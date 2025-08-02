@@ -7,29 +7,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Build and Run
 ```bash
 # Install dependencies using Poetry
-python -m poetry install
+poetry install
 
 # Run the application (Windows-specific)
-python -m poetry run python src/main.py
+poetry run python src/main.py
 
 # Build executable with PyInstaller
-python -m poetry run pyinstaller --distpath dist --workpath build/pyinstaller --specpath build --clean --onedir --windowed --icon=src/icon.ico --add-data="src/assets;assets" --name="cm-toolkit" src/main.py
+poetry run pyinstaller --distpath dist --workpath build/pyinstaller --specpath build --clean --onedir --windowed --icon=src/icon.ico --add-data="src/assets;assets" --name="cm-toolkit" src/main.py
 ```
 
 ### Code Quality Tools
 ```bash
 # Type checking with MyPy
-python -m poetry run mypy src
+poetry run mypy src
 
 # Type checking with Pyright
-python -m poetry run pyright
+poetry run pyright
 
 # Linting and formatting with Ruff
-python -m poetry run ruff check src
-python -m poetry run ruff format src
+poetry run ruff check src
+poetry run ruff format src
 
 # Format check without making changes
-python -m poetry run ruff format --check src
+poetry run ruff format --check src
 ```
 
 ## Architecture Overview
