@@ -341,8 +341,9 @@ class ScannerTab(CMCTabFrame):
 
 		for mod_path in self.get_stage_paths(scan_settings):
 			mod_name = mod_path.name
-			for root, folders, files in mod_path.walk(top_down=True):
-				root_is_mod_path = root is mod_path
+			for root, folders, files in os.walk(mod_path, topdown=True):
+				root_path = Path(root)
+				root_is_mod_path = root_path == mod_path
 				if folders:
 					last_index = len(folders) - 1
 					for i, folder in enumerate(reversed(folders)):
@@ -353,15 +354,15 @@ class ScannerTab(CMCTabFrame):
 				if root_is_mod_path:
 					root_relative = Path()
 				else:
-					root_relative = root.relative_to(mod_path)
-					mod_files.folders[root_relative] = (mod_name, root)
+					root_relative = root_path.relative_to(mod_path)
+					mod_files.folders[root_relative] = (mod_name, root_path)
 
 				for file in files:
 					file_lower = file.lower()
 					if file_lower.endswith(scan_settings.skip_file_suffixes):
 						continue
 
-					full_path = root / file
+					full_path = root_path / file
 
 					mod_files.files[root_relative / file] = (mod_name, full_path)
 
@@ -370,8 +371,6 @@ class ScannerTab(CMCTabFrame):
 							mod_files.modules[file] = (mod_name, full_path)
 						elif file_lower.endswith(".ba2"):
 							mod_files.archives[file] = (mod_name, full_path)
-					else:
-						pass
 
 		scan_settings.mod_files = mod_files
 		return mod_files
@@ -446,10 +445,11 @@ class ScannerTab(CMCTabFrame):
 		mod_files = self.build_mod_file_list(scan_settings)
 
 		data_root_lower = "Data"
-		for current_path, folders, files in data_path.walk(top_down=True):
+		for root, folders, files in os.walk(data_path, topdown=True):
+			current_path = Path(root)
 			current_path_relative = current_path.relative_to(data_path)
 			mod_name, mod_path = mod_files.folders.get(current_path_relative) or ("", current_path)
-			if current_path is data_path:
+			if current_path == data_path:
 				self.queue_progress.put(tuple(folders))
 
 			if current_path.parent == data_path:

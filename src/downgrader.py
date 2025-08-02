@@ -26,10 +26,10 @@ from tkinter import *
 from tkinter import ttk
 from types import MappingProxyType
 
-import pyxdelta
 import requests
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
+import pyxdelta
 from enums import LogType, Tab
 from globals import *
 from helpers import (
@@ -388,11 +388,15 @@ class Downgrader(ModalWindow):
 	def apply_patch(self, url: str, infile: Path, outfile: Path) -> None:
 		patch_name = Path(url).name
 		print(f"Applying {patch_name} to {infile.name}")
-		patch_successful = pyxdelta.decode(
-			str(infile),
-			patch_name,
-			str(outfile),
-		)
+		try:
+			pyxdelta.decode(
+				str(infile),
+				str(Path(patch_name)),
+				str(outfile),
+			)
+			patch_successful = True
+		except OSError:
+			patch_successful = False
 
 		if patch_successful:
 			self.logger.log_message(LogType.Good, f"Patched {outfile.name}")

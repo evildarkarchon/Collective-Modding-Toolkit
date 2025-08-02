@@ -58,10 +58,11 @@ def rglob(path: Path, ext: str) -> Generator[Path]:
 		return
 
 	ext = ext.lower()
-	for root, _, files in path.walk():
+	for root, _, files in os.walk(path):
+		root_path = Path(root)
 		for file in files:
-			if file.lower().endswith(f"*.{ext}"):
-				yield root / file
+			if file.lower().endswith(f".{ext}"):
+				yield root_path / file
 
 
 def is_file(path: Path) -> bool:
@@ -69,7 +70,7 @@ def is_file(path: Path) -> bool:
 		return path.is_file()
 
 	try:
-		with path.open():
+		with path.open(encoding="utf-8"):
 			pass
 	except FileNotFoundError:
 		return False
@@ -103,7 +104,7 @@ def exists(path: Path) -> bool:
 
 	# Files
 	try:
-		with path.open():
+		with path.open(encoding="utf-8"):
 			return True
 	except FileNotFoundError:
 		return False

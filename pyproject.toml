@@ -5,7 +5,7 @@ license = "GPL-2.0-or-later"
 description = "A toolkit for troubleshooting and optimizing your mod setup for Fallout 4, purpose-built for the Collective Modding Discord Community."
 version = "0.5.1"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.11,<3.12"
 
 [project.urls]
 homepage = "https://www.nexusmods.com/fallout4/mods/87907"
@@ -15,23 +15,25 @@ changelog = "https://github.com/wxMichael/Collective-Modding-Toolkit/blob/main/C
 download = "https://github.com/wxMichael/Collective-Modding-Toolkit/releases/latest/download/cm-toolkit.zip"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
-packaging = "^24.2"
-psutil = "^6.1.1"
-pywin32 = "^308"
-pywin32-ctypes = "^0.2.3"
-pyxdelta = "^0.2.0"
-requests = "^2.32.3"
-tkinter-tooltip = "^3.1.2"
-pillow = "^11.1.0"
-chardet = "^5.2.0"
+python = ">=3.11,<3.12"
+packaging = ">=25.0"
+psutil = ">=7.0.0"
+pywin32 = ">=311"
+pywin32-ctypes = ">=0.2.3"
+pyxdelta = ">=0.2.0"
+requests = ">=2.32.3"
+tkinter-tooltip = ">=3.1.2"
+pillow = ">=11.1.0"
+chardet = ">=5.2.0"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.14.1"
-types-psutil = "^6.1.0.20241221"
-types-pywin32 = "^308.0.0.20241221"
-types-requests = "^2.32.0.20241016"
-setuptools = "^75.6.0"
+mypy = ">=1.14.1"
+types-psutil = ">=7.0.0.20250801"
+types-pywin32 = ">=311.0.0.20250801"
+types-requests = ">=2.32.4.20250611"
+setuptools = ">=80.9.0"
+ruff = ">=0.12"
+pyright = "^1.1.403"
 
 [build-system]
 requires = ["poetry-core"]

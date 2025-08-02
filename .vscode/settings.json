@@ -43,33 +43,40 @@
 	],
 	"todo-tree.highlights.useColourScheme": true,
 	"todo-tree.highlights.foregroundColourScheme": [
-		"Black",	// BUG:
-		"Black",	// HACK:
-		"Black",	// TODO:
-		"White",	// GUI:
-		"White",	// F4SE:
-		"White",	// Scanner:
-		"White",	// Overview:
-		"White",	// Errors:
-		"White",	// Conflicts:
-		"Sienna",	// Suggestions:
-		"Thistle",	// Tools:
-		"Black",	// Settings:
-		"Purple",	// About:
+		"Black", // BUG:
+		"Black", // HACK:
+		"Black", // TODO:
+		"White", // GUI:
+		"White", // F4SE:
+		"White", // Scanner:
+		"White", // Overview:
+		"White", // Errors:
+		"White", // Conflicts:
+		"Sienna", // Suggestions:
+		"Thistle", // Tools:
+		"Black", // Settings:
+		"Purple", // About:
 	],
 	"todo-tree.highlights.backgroundColourScheme": [
-		"White",	// BUG:
-		"White",	// HACK:
-		"White",	// TODO:
-		"DodgerBlue",// GUI:
-		"Green",	// F4SE:
-		"Maroon",	// Scanner:
-		"Teal",		// Overview:
-		"Red",		// Errors:
-		"OrangeRed",// Conflicts:
-		"Gold",		// Suggestions:
-		"Indigo",	// Tools:
-		"PeachPuff",// Settings:
-		"Orchid",	// About:
+		"White", // BUG:
+		"White", // HACK:
+		"White", // TODO:
+		"DodgerBlue", // GUI:
+		"Green", // F4SE:
+		"Maroon", // Scanner:
+		"Teal", // Overview:
+		"Red", // Errors:
+		"OrangeRed", // Conflicts:
+		"Gold", // Suggestions:
+		"Indigo", // Tools:
+		"PeachPuff", // Settings:
+		"Orchid", // About:
+	],
+	"python-envs.pythonProjects": [
+		{
+			"path": "",
+			"envManager": "ms-python.python:poetry",
+			"packageManager": "ms-python.python:poetry"
+		}
 	],
 }

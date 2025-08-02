@@ -110,8 +110,8 @@ class OverviewTab(CMCTabFrame):
 						(
 							f"EXE: {manager.exe_path}\n"
 							f"INI: {manager.ini_path}\n"
-							f"Portable: {manager.portable}\n{f'Portable.txt: {manager.portable_txt_path}\n' if manager.portable_txt_path else ''}"
-							f"{'\n'.join([f'{k.rjust(max_len)}: {v}' for k, v in manager.mo2_settings.items()])}"
+							f"Portable: {manager.portable}\n{'Portable.txt: ' + str(manager.portable_txt_path) + chr(10) if manager.portable_txt_path else ''}"
+							f"{chr(10).join([f'{k.rjust(max_len)}: {v}' for k, v in manager.mo2_settings.items()])}"
 						),
 					),
 				)
@@ -258,7 +258,7 @@ class OverviewTab(CMCTabFrame):
 							ProblemInfo(
 								ProblemType.WrongVersion,
 								file_path,
-								file_path.relative_to(file_path.parent, walk_up=True),
+								Path(file_path.name),
 								None,
 								"The version of this binary does not match your installed game version.",
 								None,
@@ -276,7 +276,7 @@ class OverviewTab(CMCTabFrame):
 							ProblemInfo(
 								ProblemType.FileNotFound,
 								file_path,
-								file_path.relative_to(file_path.parent, walk_up=True),
+								Path(file_path.name),
 								None,
 								"This file is missing from your game installation.",
 								None,
@@ -289,7 +289,7 @@ class OverviewTab(CMCTabFrame):
 						ProblemInfo(
 							ProblemType.WrongVersion,
 							file_path,
-							file_path.relative_to(file_path.parent, walk_up=True),
+							Path(file_path.name),
 							None,
 							"The version of this binary does not match your installed game version.",
 							None,

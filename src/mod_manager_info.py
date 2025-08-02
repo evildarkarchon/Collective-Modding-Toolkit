@@ -35,7 +35,7 @@ def is_file(path: Path) -> bool:
 		return path.is_file()
 
 	try:
-		with path.open():
+		with path.open(encoding="utf-8"):
 			pass
 	except FileNotFoundError:
 		return False

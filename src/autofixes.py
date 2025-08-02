@@ -17,6 +17,7 @@
 #
 
 
+import dataclasses
 import logging
 from tkinter import *
 from typing import TYPE_CHECKING
@@ -33,10 +34,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@dataclasses.dataclass
 class AutoFixResult:
-	def __init__(self, *, success: bool, details: str) -> None:
-		self.success = success
-		self.details = details
+	success: bool
+	details: str
 
 
 def autofix_complex_sorter(problem_info: ProblemInfo | SimpleProblemInfo) -> AutoFixResult:

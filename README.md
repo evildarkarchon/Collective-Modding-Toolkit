@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> Future development has moved to a new repo for the C# version.  
-> <https://github.com/wxMichael/CollectiveModdingToolkit>
 
 # Collective Modding Toolkit (Python Version)
 
