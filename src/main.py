@@ -18,15 +18,13 @@
 
 
 import logging
+import os
 import sys
 from datetime import datetime
-from tkinter import Tk
 
 from app_settings import AppSettings
-from cm_checker import CMChecker
 from globals import APP_TITLE, APP_VERSION
-from helpers import StdErr
-from utils import get_asset_path, load_font, set_theme
+from utils import get_asset_path
 
 logging.basicConfig(
 	filename="cm-toolkit.log",
@@ -42,15 +40,38 @@ logger.info("%s", datetime.now().strftime("%Y-%m-%d %H:%M"))
 settings = AppSettings()
 logger.setLevel(settings.dict["log_level"])
 
-load_font(str(get_asset_path("fonts/CascadiaMono.ttf")))
-root = Tk()
-root.wm_withdraw()
-root.update_idletasks()
+# Check if we should use Qt version
+USE_QT = os.environ.get("CMT_USE_QT", "0") == "1" or "--qt" in sys.argv
 
-sys.stderr = StdErr(root)
-CMChecker(root, settings)
-set_theme(root)
-root.update_idletasks()
-root.wm_deiconify()
-root.update_idletasks()
-root.mainloop()
+if USE_QT:
+	logger.info("Using Qt (PySide6) interface")
+	from qt_compat import QApplication
+	from cm_checker_qt import CMCheckerQt
+	
+	app = QApplication(sys.argv)
+	
+	# Create and show main window
+	window = CMCheckerQt(app, settings)
+	window.show()
+	
+	# Run Qt event loop
+	sys.exit(app.exec())
+else:
+	logger.info("Using Tkinter interface")
+	from tkinter import Tk
+	from cm_checker import CMChecker
+	from helpers import StdErr
+	from utils import load_font, set_theme
+	
+	load_font(str(get_asset_path("fonts/CascadiaMono.ttf")))
+	root = Tk()
+	root.wm_withdraw()
+	root.update_idletasks()
+	
+	sys.stderr = StdErr(root)
+	CMChecker(root, settings)
+	set_theme(root)
+	root.update_idletasks()
+	root.wm_deiconify()
+	root.update_idletasks()
+	root.mainloop()

@@ -1,5 +1,3 @@
-- Make compatible with earlier versions of Python by removing 3.12+ specific syntax and features.
 - Look for opportunities to improve performance.
 - Port GUI code to PySide6 (maintaining as much of the original look and feel as possible).
-- Implement comprehensive error handling and logging.
 - Reorganize the codebase for better maintainability, focusing on modularity and separation of concerns.
