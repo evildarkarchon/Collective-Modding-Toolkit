@@ -28,11 +28,11 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QFont, QPixmap
 
-from downgrader import Downgrader
+from qt_downgrader import QtDowngrader
 from globals import *
 from qt_helpers import CMCheckerInterface, CMCTabWidget
-from modal_window import ModalWindow
-from patcher import ArchivePatcher
+from qt_modal_dialogs import ModalDialogBase
+from patcher._qt_archives import QtArchivePatcher
 
 
 class ToolsTab(CMCTabWidget):
@@ -43,7 +43,7 @@ class ToolsTab(CMCTabWidget):
         self,
         layout: QVBoxLayout,
         text: str,
-        action: str | Callable[[], ModalWindow] | None = None,
+        action: str | Callable[[], ModalDialogBase] | None = None,
         tooltip: str | None = None,
     ) -> None:
         """Add a tool button to the given layout."""
@@ -101,11 +101,11 @@ class ToolsTab(CMCTabWidget):
             "Toolkit Utilities": (
                 (
                     "Downgrade Manager",
-                    lambda: Downgrader(self.cmc.root, self.cmc),
+                    lambda: QtDowngrader(self.window(), self.cmc).exec(),
                 ),
                 (
                     "Archive Patcher",
-                    lambda: ArchivePatcher(self.cmc.root, self.cmc),
+                    lambda: QtArchivePatcher(self.window(), self.cmc).exec(),
                 ),
             ),
             "Other CM Authors' Tools": (

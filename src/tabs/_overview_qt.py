@@ -32,13 +32,13 @@ from PySide6.QtGui import QFont, QPixmap, QCursor
 
 from packaging.version import Version
 
-from downgrader import Downgrader
+from qt_downgrader import QtDowngrader
 from enums import CSIDL, ArchiveVersion, InstallType, Magic, ModuleFlag, ProblemType, SolutionType
 from globals import *
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from helpers import ProblemInfo, SimpleProblemInfo
-from modal_window import AboutWindow, TreeWindow
-from patcher import ArchivePatcher
+from qt_modal_dialogs import AboutDialog, TreeDialog
+from patcher._qt_archives import QtArchivePatcher
 from utils import (
     add_separator,
     exists,
@@ -124,19 +124,22 @@ class OverviewTab(CMCTabWidget):
                 for key in manager.mo2_settings:
                     max_len = max(max_len, len(key))
                 
-                label_mod_manager_icon.mousePressEvent = lambda e: AboutWindow(
-                    self.cmc.root,
-                    self.cmc,
-                    750,
-                    350,
-                    "Detected Mod Manager Settings",
-                    (
-                        f"EXE: {manager.exe_path}\n"
-                        f"INI: {manager.ini_path}\n"
-                        f"Portable: {manager.portable}\n{'Portable.txt: ' + str(manager.portable_txt_path) + chr(10) if manager.portable_txt_path else ''}"
-                        f"{chr(10).join([f'{k.rjust(max_len)}: {v}' for k, v in manager.mo2_settings.items()])}"
-                    ),
-                )
+                def show_manager_details(e):
+                    dialog = AboutDialog(
+                        self.window(),
+                        self.cmc,
+                        750,
+                        350,
+                        "Detected Mod Manager Settings",
+                        (
+                            f"EXE: {manager.exe_path}\n"
+                            f"INI: {manager.ini_path}\n"
+                            f"Portable: {manager.portable}\n{'Portable.txt: ' + str(manager.portable_txt_path) + chr(10) if manager.portable_txt_path else ''}"
+                            f"{chr(10).join([f'{k.rjust(max_len)}: {v}' for k, v in manager.mo2_settings.items()])}"
+                        ),
+                    )
+                    dialog.exec()
+                label_mod_manager_icon.mousePressEvent = show_manager_details
                 
                 if self.cmc.pc.os == "Windows 11 24H2" and manager.version <= Version("2.5.2"):
                     label_os_icon = QLabel()
@@ -334,7 +337,7 @@ class OverviewTab(CMCTabWidget):
                     icon_pixmap = self.cmc.get_image("images/downgrade-16.png")
                     icon_label.setToolTip(TOOLTIP_DOWNGRADE)
                     icon_label.setCursor(QCursor(Qt.PointingHandCursor))
-                    icon_label.mousePressEvent = lambda e: Downgrader(self.cmc.root, self.cmc)
+                    icon_label.mousePressEvent = lambda e: QtDowngrader(self.window(), self.cmc).exec()
                 else:
                     icon_pixmap = self.cmc.get_image("images/warning-16.png")
                     icon_label.setToolTip(TOOLTIP_DELETE_BINARIES)
@@ -394,7 +397,7 @@ class OverviewTab(CMCTabWidget):
         # Patch button
         if any(c == COLOR_BAD for c in colors_texture + colors_main):
             button_patch = QPushButton("Patch Archives")
-            button_patch.clicked.connect(lambda: ArchivePatcher(self.cmc.root, self.cmc))
+            button_patch.clicked.connect(lambda: QtArchivePatcher(self.window(), self.cmc).exec())
             archives_layout.addWidget(button_patch, 10, 0, 1, 3, Qt.AlignBottom)
     
     def build_gui_modules(self) -> None:
@@ -467,16 +470,19 @@ class OverviewTab(CMCTabWidget):
             label_hedr_unknown_icon.setPixmap(info_pixmap)
             label_hedr_unknown_icon.setCursor(QCursor(Qt.PointingHandCursor))
             label_hedr_unknown_icon.setToolTip("Detection details")
-            label_hedr_unknown_icon.mousePressEvent = lambda e: TreeWindow(
-                self.cmc.root,
-                self.cmc,
-                400,
-                500,
-                "Detected Invalid Module Versions",
-                "",
-                ("HEDR", " Module"),
-                [(v, k) for k, v in self.cmc.game.modules_hedr_unknown.items()],
-            )
+            def show_hedr_details(e):
+                dialog = TreeDialog(
+                    self.window(),
+                    self.cmc,
+                    400,
+                    500,
+                    "Detected Invalid Module Versions",
+                    "",
+                    ("HEDR", " Module"),
+                    [(v, k) for k, v in self.cmc.game.modules_hedr_unknown.items()],
+                )
+                dialog.exec()
+            label_hedr_unknown_icon.mousePressEvent = show_hedr_details
             modules_layout.addWidget(label_hedr_unknown_icon, 7, 2, Qt.AlignLeft)
         
         # Add stretch
