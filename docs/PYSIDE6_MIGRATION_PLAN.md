@@ -107,45 +107,88 @@ class CMCheckerQt(QMainWindow):
         self.setup_threads()
 ```
 
-## Phase 3: Widget Mapping Guide
+## Phase 3: Widget Conversion and Layout Migration Resources ✅ COMPLETED
 
-### 3.1 Basic Widget Conversions
+**Completed Items:**
+- ✅ Created comprehensive widget mapping guide (`docs/WIDGET_MAPPING.md`)
+- ✅ Developed layout migration examples (`docs/LAYOUT_MIGRATION_EXAMPLES.md`) 
+- ✅ Created helper module for widget conversions (`src/qt_widgets.py`)
+- ✅ Documented property and method mappings (`docs/PROPERTY_METHOD_MAPPING.md`)
+- ✅ Created complex widget conversion examples (`docs/COMPLEX_WIDGET_CONVERSIONS.md`)
 
-| Tkinter | PySide6 | Notes |
-|---------|---------|-------|
-| `Tk()` | `QMainWindow()` | Main application window |
-| `ttk.Notebook` | `QTabWidget` | Tab container |
-| `ttk.Frame` | `QWidget` or `QFrame` | Container widgets |
-| `ttk.Label` | `QLabel` | Text/image display |
-| `ttk.Button` | `QPushButton` | Standard buttons |
-| `ttk.Entry` | `QLineEdit` | Single-line text input |
-| `Text` | `QTextEdit` or `QPlainTextEdit` | Multi-line text |
-| `ttk.Treeview` | `QTreeWidget` or `QTreeView` | Tree/table display |
-| `ttk.Progressbar` | `QProgressBar` | Progress indication |
-| `ttk.Combobox` | `QComboBox` | Dropdown selection |
-| `ttk.Checkbutton` | `QCheckBox` | Checkbox |
-| `ttk.Radiobutton` | `QRadioButton` | Radio button |
-| `StringVar`, `IntVar`, etc. | Properties + signals | Use Qt's property system |
-| `PhotoImage` | `QPixmap` + `QIcon` | Image handling |
+### 3.1 Widget Conversion Resources
 
-### 3.2 Layout System Migration
+The following comprehensive documentation has been created:
 
-#### Tkinter Layout → Qt Layout
-- `pack()` → `QVBoxLayout` or `QHBoxLayout`
-- `grid()` → `QGridLayout`
-- `place()` → Avoid; use layouts or `QGraphicsView` if needed
+1. **Widget Mapping Guide** (`docs/WIDGET_MAPPING.md`)
+   - Complete widget-by-widget conversion examples
+   - Variable system replacements (StringVar → QtStringVar)
+   - Event handling patterns
+   - Common pitfalls and solutions
 
-#### Layout Best Practices
+2. **Layout Migration Examples** (`docs/LAYOUT_MIGRATION_EXAMPLES.md`)
+   - Real-world layout conversion patterns from the CMT codebase
+   - Pack → VBox/HBox conversions
+   - Grid → QGridLayout conversions
+   - Complex nested layout examples
+
+3. **Property and Method Mapping** (`docs/PROPERTY_METHOD_MAPPING.md`)
+   - Detailed property mappings for each widget type
+   - Method equivalents (get/set, configure, etc.)
+   - Event binding conversions
+   - Window management methods
+
+4. **Complex Widget Conversions** (`docs/COMPLEX_WIDGET_CONVERSIONS.md`)
+   - Treeview → QTreeWidget with full examples
+   - Text widget with syntax highlighting
+   - Canvas → QGraphicsView conversions
+   - Custom scrollable frames
+   - Dynamic notebook/tab management
+
+5. **Helper Module** (`src/qt_widgets.py`)
+   - QtStringVar, QtIntVar, QtBoolVar, QtDoubleVar classes
+   - TkinterStyleDialog base class
+   - BindingHelper for event conversions
+   - LayoutConverter utilities
+   - MessageBoxWrapper for dialogs
+   - AfterHelper for timer functionality
+
+### 3.2 Quick Reference
+
+| Tkinter | PySide6 | Documentation |
+|---------|---------|---------------|
+| `Tk()` | `QMainWindow()` | See WIDGET_MAPPING.md |
+| `ttk.Notebook` | `QTabWidget` | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `ttk.Frame` | `QWidget` or `QFrame` | See WIDGET_MAPPING.md |
+| `ttk.Label` | `QLabel` | See PROPERTY_METHOD_MAPPING.md |
+| `ttk.Button` | `QPushButton` | See WIDGET_MAPPING.md |
+| `ttk.Entry` | `QLineEdit` | See PROPERTY_METHOD_MAPPING.md |
+| `Text` | `QTextEdit` or `QPlainTextEdit` | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `ttk.Treeview` | `QTreeWidget` or `QTreeView` | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `StringVar`, `IntVar`, etc. | Qt variables in qt_widgets.py | See qt_widgets.py |
+
+### 3.3 Usage Instructions
+
+To use the widget conversion helpers:
+
 ```python
-# Example: Converting a typical Tkinter grid layout
-# Tkinter:
-# label.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+from qt_widgets import (
+    QtStringVar, QtIntVar, QtBoolVar,
+    MessageBoxWrapper, AfterHelper,
+    create_entry_with_var, create_label_with_var
+)
 
-# PySide6:
-layout = QGridLayout()
-layout.addWidget(label, 0, 0)
-layout.setContentsMargins(5, 5, 5, 5)
-layout.setSpacing(5)
+# Example: StringVar replacement
+var = QtStringVar("Initial value")
+entry = create_entry_with_var(var, parent)
+label = create_label_with_var(var, parent)
+
+# Example: Message box
+messagebox = MessageBoxWrapper()
+messagebox.showinfo("Title", "Message", parent)
+
+# Example: Timer
+timer = AfterHelper.after(1000, callback_function)
 ```
 
 ## Phase 4: Threading and Async Operations

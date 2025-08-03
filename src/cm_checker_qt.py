@@ -25,7 +25,7 @@ from typing import Optional
 from qt_compat import *
 from qt_theme import get_dark_stylesheet
 
-# from . import tabs  # TODO: Enable when tabs are converted to Qt
+from tabs import __init_qt__ as tabs_qt
 from app_settings import AppSettings
 from enums import Tab
 from game_info import GameInfo
@@ -35,6 +35,7 @@ from helpers import (
     CMCTabFrame,
     PCInfo,
 )
+from qt_helpers import CMCTabWidget
 from utils import (
     check_for_update_github,
     check_for_update_nexus,
@@ -91,7 +92,7 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         
         self._images: dict[str, QPixmap] = {}
         self.game = GameInfo(self.install_type_sv, self.game_path_sv)
-        self.current_tab: Optional[CMCTabFrame] = None
+        self.current_tab: Optional[CMCTabWidget] = None
         self.overview_problems = []
         self.processing_data = False
         
@@ -142,24 +143,16 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         self.tab_widget = QTabWidget()
         layout.addWidget(self.tab_widget)
         
-        # Create tabs (placeholder - will need Qt versions of tab classes)
-        self.tabs: dict[Tab, CMCTabFrame] = {
-            # Tab.Overview: tabs.OverviewTab(self, self.tab_widget),
-            # Tab.F4SE: tabs.F4SETab(self, self.tab_widget),
-            # Tab.Scanner: tabs.ScannerTab(self, self.tab_widget),
-            # Tab.Tools: tabs.ToolsTab(self, self.tab_widget),
-            # Tab.Settings: tabs.SettingsTab(self, self.tab_widget),
-            # Tab.About: tabs.AboutTab(self, self.tab_widget),
-        }
+        # Create tabs - use Qt versions where available
+        self.tabs: dict[Tab, CMCTabWidget] = {}
         
-        # Add placeholder tabs for testing
-        for i, tab in enumerate(["Overview", "F4SE", "Scanner", "Tools", "Settings", "About"]):
-            placeholder = QWidget()
-            label = QLabel(f"{tab} tab - Coming soon!")
-            label.setAlignment(Qt.AlignCenter)
-            layout = QVBoxLayout(placeholder)
-            layout.addWidget(label)
-            self.tab_widget.addTab(placeholder, tab)
+        # Create all Qt tabs
+        self.tabs[Tab.Overview] = tabs_qt.OverviewTab(self, self.tab_widget)
+        self.tabs[Tab.F4SE] = tabs_qt.F4SETab(self, self.tab_widget)
+        self.tabs[Tab.Scanner] = tabs_qt.ScannerTab(self, self.tab_widget)
+        self.tabs[Tab.Tools] = tabs_qt.ToolsTab(self, self.tab_widget)
+        self.tabs[Tab.Settings] = tabs_qt.SettingsTab(self, self.tab_widget)
+        self.tabs[Tab.About] = tabs_qt.AboutTab(self, self.tab_widget)
         
         # Connect tab change signal
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -255,11 +248,21 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         
         # Get tab name from widget
         tab_text = self.tab_widget.tabText(index)
-        # TODO: Enable when tabs are converted to Qt
-        # tab_name = Tab[tab_text.replace(" ", "_")]
-        # self.current_tab = self.tabs.get(tab_name)
-        # if self.current_tab:
-        #     self.current_tab.load()
+        
+        # Map tab text to enum
+        tab_map = {
+            "Overview": Tab.Overview,
+            "F4SE": Tab.F4SE,
+            "Scanner": Tab.Scanner,
+            "Tools": Tab.Tools,
+            "Settings": Tab.Settings,
+            "About": Tab.About,
+        }
+        
+        tab_enum = tab_map.get(tab_text)
+        if tab_enum and tab_enum in self.tabs:
+            self.current_tab = self.tabs[tab_enum]
+            self.current_tab.load()
     
     def refresh_tab(self, tab: Tab) -> None:
         logger.debug("Refresh Tab : %s", tab)
