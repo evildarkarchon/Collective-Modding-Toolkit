@@ -45,8 +45,8 @@ USE_QT = os.environ.get("CMT_USE_QT", "0") == "1" or "--qt" in sys.argv
 
 if USE_QT:
 	logger.info("Using Qt (PySide6) interface")
-	from qt_compat import QApplication
 	from cm_checker_qt import CMCheckerQt
+	from qt_compat import QApplication
 	
 	app = QApplication(sys.argv)
 	
@@ -59,6 +59,7 @@ if USE_QT:
 else:
 	logger.info("Using Tkinter interface")
 	from tkinter import Tk
+
 	from cm_checker import CMChecker
 	from helpers import StdErr
 	from utils import load_font, set_theme

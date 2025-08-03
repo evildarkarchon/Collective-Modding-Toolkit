@@ -147,4 +147,10 @@ ignore = [
 	"PYI021",  # docstring-in-stub
 	"PYI051",  # redundant-literal-union
 	"S606",    # start-process-with-no-shell
+	"FBT002",  # boolean-trap
+	"FBT001",  # boolean-trap
+]
+[tool.ruff.per-file-ignores]
+"src/qt_compat.py" = [
+	"F401",  # Unused import
 ]

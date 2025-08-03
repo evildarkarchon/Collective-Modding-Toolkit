@@ -6,57 +6,52 @@ used in the Tkinter version of the application.
 
 # Color constants from sv_ttk dark theme
 COLORS = {
-    "fg": "#fafafa",          # Main foreground/text color
-    "bg": "#1c1c1c",          # Main background color
-    "disfg": "#595959",       # Disabled foreground
-    "selfg": "#ffffff",       # Selected foreground
-    "selbg": "#05b62e",       # Selected background (green)
-    "accent": "#57ff64",      # Accent color (light green)
-    
-    # Additional colors extracted from the theme
-    "button_bg": "#2d2d2d",        # Button background
-    "button_hover": "#404040",     # Button hover state
-    "button_pressed": "#4a4a4a",   # Button pressed state
-    "button_border": "#555555",    # Button border
-    
-    "input_bg": "#262626",         # Input field background
-    "input_border": "#404040",     # Input field border
-    "input_hover": "#303030",      # Input field hover
-    "input_focus": "#05b62e",      # Input field focus border
-    
-    "disabled_fg": "#757575",      # Disabled text
-    "disabled_bg": "#1a1a1a",      # Disabled background
-    
-    "tab_bg": "#2d2d2d",          # Inactive tab background
-    "tab_selected": "#404040",     # Active tab background
-    "tab_border": "#404040",       # Tab border
-    
-    "scrollbar_bg": "#1c1c1c",     # Scrollbar background
-    "scrollbar_handle": "#404040", # Scrollbar handle
-    "scrollbar_hover": "#4a4a4a",  # Scrollbar handle hover
+	"fg": "#fafafa",  # Main foreground/text color
+	"bg": "#1c1c1c",  # Main background color
+	"disfg": "#595959",  # Disabled foreground
+	"selfg": "#ffffff",  # Selected foreground
+	"selbg": "#05b62e",  # Selected background (green)
+	"accent": "#57ff64",  # Accent color (light green)
+	# Additional colors extracted from the theme
+	"button_bg": "#2d2d2d",  # Button background
+	"button_hover": "#404040",  # Button hover state
+	"button_pressed": "#4a4a4a",  # Button pressed state
+	"button_border": "#555555",  # Button border
+	"input_bg": "#262626",  # Input field background
+	"input_border": "#404040",  # Input field border
+	"input_hover": "#303030",  # Input field hover
+	"input_focus": "#05b62e",  # Input field focus border
+	"disabled_fg": "#757575",  # Disabled text
+	"disabled_bg": "#1a1a1a",  # Disabled background
+	"tab_bg": "#2d2d2d",  # Inactive tab background
+	"tab_selected": "#404040",  # Active tab background
+	"tab_border": "#404040",  # Tab border
+	"scrollbar_bg": "#1c1c1c",  # Scrollbar background
+	"scrollbar_handle": "#404040",  # Scrollbar handle
+	"scrollbar_hover": "#4a4a4a",  # Scrollbar handle hover
 }
 
 
-def get_dark_stylesheet():
-    """Return the complete Qt stylesheet matching sv_ttk dark theme."""
-    return f"""
+def get_dark_stylesheet() -> str:
+	"""Return the complete Qt stylesheet matching sv_ttk dark theme."""
+	return f"""
     /* ==================== Main Application ==================== */
     QMainWindow {{
-        background-color: {COLORS['bg']};
-        color: {COLORS['fg']};
+        background-color: {COLORS["bg"]};
+        color: {COLORS["fg"]};
     }}
     
     QWidget {{
-        background-color: {COLORS['bg']};
-        color: {COLORS['fg']};
+        background-color: {COLORS["bg"]};
+        color: {COLORS["fg"]};
         font-family: "Cascadia Mono", "Consolas", monospace;
         font-size: 10pt;
     }}
     
     /* ==================== Tab Widget ==================== */
     QTabWidget::pane {{
-        background-color: {COLORS['bg']};
-        border: 1px solid {COLORS['tab_border']};
+        background-color: {COLORS["bg"]};
+        border: 1px solid {COLORS["tab_border"]};
         border-top: none;
     }}
     
@@ -65,66 +60,69 @@ def get_dark_stylesheet():
     }}
     
     QTabBar::tab {{
-        background-color: {COLORS['tab_bg']};
-        color: {COLORS['fg']};
-        padding: 8px 16px;
+        background-color: {COLORS["tab_bg"]};
+        color: {COLORS["fg"]};
+        padding: 8px 16px;  /* Matches sv_ttk tab padding */
         margin-right: 2px;
-        border: 1px solid {COLORS['tab_border']};
+        border: 1px solid {COLORS["tab_border"]};
         border-bottom: none;
         border-top-left-radius: 4px;
         border-top-right-radius: 4px;
+        font-size: 10pt;  /* Standard font size for tabs */
     }}
     
     QTabBar::tab:selected {{
-        background-color: {COLORS['tab_selected']};
-        color: {COLORS['selfg']};
+        background-color: {COLORS["tab_selected"]};
+        color: {COLORS["selfg"]};
     }}
     
     QTabBar::tab:hover:!selected {{
-        background-color: {COLORS['button_hover']};
+        background-color: {COLORS["button_hover"]};
     }}
     
     /* ==================== Buttons ==================== */
     QPushButton {{
-        background-color: {COLORS['button_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['button_border']};
-        padding: 6px 16px;
+        background-color: {COLORS["button_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["button_border"]};
+        padding: 2px 8px 3px 8px;  /* Matches sv_ttk padding */
         border-radius: 4px;
         min-height: 20px;
+        font-family: "Cascadia Mono", "Consolas", monospace;
+        font-size: 9pt;  /* Slightly smaller to match ttk.Button appearance */
     }}
     
     QPushButton:hover {{
-        background-color: {COLORS['button_hover']};
-        border-color: {COLORS['accent']};
+        background-color: {COLORS["button_hover"]};
+        border-color: {COLORS["accent"]};
     }}
     
     QPushButton:pressed {{
-        background-color: {COLORS['button_pressed']};
+        background-color: {COLORS["button_pressed"]};
         color: #d0d0d0;
     }}
     
     QPushButton:disabled {{
-        background-color: {COLORS['disabled_bg']};
-        color: {COLORS['disabled_fg']};
+        background-color: {COLORS["disabled_bg"]};
+        color: {COLORS["disabled_fg"]};
         border-color: #333333;
     }}
     
     QPushButton:focus {{
-        border: 2px solid {COLORS['accent']};
+        border: 2px solid {COLORS["accent"]};
         outline: none;
     }}
     
     /* Accent buttons (if needed) */
     QPushButton[class="accent"] {{
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
         color: #000000;
-        border: 1px solid {COLORS['selbg']};
+        border: 1px solid {COLORS["selbg"]};
     }}
     
     QPushButton[class="accent"]:hover {{
-        background-color: {COLORS['accent']};
-        border-color: {COLORS['accent']};
+        background-color: {COLORS["accent"]};
+        border-color: {COLORS["accent"]};
     }}
     
     QPushButton[class="accent"]:pressed {{
@@ -141,64 +139,64 @@ def get_dark_stylesheet():
     /* ==================== Labels ==================== */
     QLabel {{
         background-color: transparent;
-        color: {COLORS['fg']};
+        color: {COLORS["fg"]};
         padding: 2px;
     }}
     
     QLabel:disabled {{
-        color: {COLORS['disabled_fg']};
+        color: {COLORS["disabled_fg"]};
     }}
     
     /* ==================== Input Fields ==================== */
     QLineEdit, QTextEdit, QPlainTextEdit {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 4px;
         padding: 6px;
-        selection-background-color: {COLORS['selbg']};
-        selection-color: {COLORS['selfg']};
+        selection-background-color: {COLORS["selbg"]};
+        selection-color: {COLORS["selfg"]};
     }}
     
     QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover {{
-        background-color: {COLORS['input_hover']};
+        background-color: {COLORS["input_hover"]};
         border-color: #505050;
     }}
     
     QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
-        border: 2px solid {COLORS['input_focus']};
+        border: 2px solid {COLORS["input_focus"]};
         outline: none;
     }}
     
     QLineEdit:disabled, QTextEdit:disabled, QPlainTextEdit:disabled {{
-        background-color: {COLORS['disabled_bg']};
-        color: {COLORS['disabled_fg']};
+        background-color: {COLORS["disabled_bg"]};
+        color: {COLORS["disabled_fg"]};
         border-color: #333333;
     }}
     
     /* ==================== ComboBox ==================== */
     QComboBox {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 4px;
         padding: 6px;
         min-width: 100px;
     }}
     
     QComboBox:hover {{
-        background-color: {COLORS['input_hover']};
+        background-color: {COLORS["input_hover"]};
         border-color: #505050;
     }}
     
     QComboBox:focus {{
-        border: 2px solid {COLORS['input_focus']};
+        border: 2px solid {COLORS["input_focus"]};
         outline: none;
     }}
     
     QComboBox:disabled {{
-        background-color: {COLORS['disabled_bg']};
-        color: {COLORS['disabled_fg']};
+        background-color: {COLORS["disabled_bg"]};
+        color: {COLORS["disabled_fg"]};
         border-color: #333333;
     }}
     
@@ -211,38 +209,38 @@ def get_dark_stylesheet():
         image: none;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
-        border-top: 5px solid {COLORS['fg']};
+        border-top: 5px solid {COLORS["fg"]};
         margin-right: 5px;
     }}
     
     QComboBox::down-arrow:disabled {{
-        border-top-color: {COLORS['disabled_fg']};
+        border-top-color: {COLORS["disabled_fg"]};
     }}
     
     QComboBox QAbstractItemView {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
-        selection-background-color: {COLORS['selbg']};
-        selection-color: {COLORS['selfg']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
+        selection-background-color: {COLORS["selbg"]};
+        selection-color: {COLORS["selfg"]};
         outline: none;
     }}
     
     /* ==================== CheckBox & RadioButton ==================== */
     QCheckBox, QRadioButton {{
-        color: {COLORS['fg']};
+        color: {COLORS["fg"]};
         spacing: 8px;
     }}
     
     QCheckBox:disabled, QRadioButton:disabled {{
-        color: {COLORS['disabled_fg']};
+        color: {COLORS["disabled_fg"]};
     }}
     
     QCheckBox::indicator, QRadioButton::indicator {{
         width: 18px;
         height: 18px;
-        background-color: {COLORS['input_bg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        border: 1px solid {COLORS["input_border"]};
     }}
     
     QCheckBox::indicator {{
@@ -254,18 +252,18 @@ def get_dark_stylesheet():
     }}
     
     QCheckBox::indicator:hover, QRadioButton::indicator:hover {{
-        background-color: {COLORS['input_hover']};
+        background-color: {COLORS["input_hover"]};
         border-color: #505050;
     }}
     
     QCheckBox::indicator:checked, QRadioButton::indicator:checked {{
-        background-color: {COLORS['selbg']};
-        border-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
+        border-color: {COLORS["selbg"]};
     }}
     
     QCheckBox::indicator:checked {{
         image: none;
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
     }}
     
     QCheckBox::indicator:checked:after {{
@@ -273,7 +271,7 @@ def get_dark_stylesheet():
         position: absolute;
         width: 5px;
         height: 10px;
-        border: solid {COLORS['selfg']};
+        border: solid {COLORS["selfg"]};
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
         left: 6px;
@@ -281,51 +279,51 @@ def get_dark_stylesheet():
     }}
     
     QRadioButton::indicator:checked {{
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
     }}
     
     QCheckBox::indicator:disabled, QRadioButton::indicator:disabled {{
-        background-color: {COLORS['disabled_bg']};
+        background-color: {COLORS["disabled_bg"]};
         border-color: #333333;
     }}
     
     /* ==================== Progress Bar ==================== */
     QProgressBar {{
-        background-color: {COLORS['input_bg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 4px;
         text-align: center;
-        color: {COLORS['fg']};
+        color: {COLORS["fg"]};
         min-height: 20px;
     }}
     
     QProgressBar::chunk {{
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
         border-radius: 3px;
     }}
     
     /* ==================== Scrollbars ==================== */
     QScrollBar:vertical {{
-        background-color: {COLORS['scrollbar_bg']};
+        background-color: {COLORS["scrollbar_bg"]};
         width: 12px;
         border: none;
     }}
     
     QScrollBar:horizontal {{
-        background-color: {COLORS['scrollbar_bg']};
+        background-color: {COLORS["scrollbar_bg"]};
         height: 12px;
         border: none;
     }}
     
     QScrollBar::handle:vertical, QScrollBar::handle:horizontal {{
-        background-color: {COLORS['scrollbar_handle']};
+        background-color: {COLORS["scrollbar_handle"]};
         border-radius: 6px;
         min-height: 20px;
         min-width: 20px;
     }}
     
     QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {{
-        background-color: {COLORS['scrollbar_hover']};
+        background-color: {COLORS["scrollbar_hover"]};
     }}
     
     QScrollBar::add-line, QScrollBar::sub-line {{
@@ -339,12 +337,13 @@ def get_dark_stylesheet():
     
     /* ==================== TreeView / TreeWidget ==================== */
     QTreeView, QTreeWidget {{
-        background-color: {COLORS['bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
-        selection-background-color: #292929;
-        selection-color: {COLORS['selfg']};
+        background-color: {COLORS["bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
+        selection-background-color: #292929;  /* Exact match from sv_ttk */
+        selection-color: {COLORS["selfg"]};
         outline: none;
+        alternate-background-color: #222222;  /* Subtle alternating rows */
     }}
     
     QTreeView::item, QTreeWidget::item {{
@@ -354,31 +353,31 @@ def get_dark_stylesheet():
     
     QTreeView::item:selected, QTreeWidget::item:selected {{
         background-color: #292929;
-        color: {COLORS['selfg']};
+        color: {COLORS["selfg"]};
     }}
     
     QTreeView::item:hover, QTreeWidget::item:hover {{
-        background-color: {COLORS['button_bg']};
+        background-color: {COLORS["button_bg"]};
     }}
     
     QHeaderView::section {{
-        background-color: {COLORS['button_bg']};
-        color: {COLORS['fg']};
+        background-color: {COLORS["button_bg"]};
+        color: {COLORS["fg"]};
         padding: 6px;
         border: none;
-        border-right: 1px solid {COLORS['input_border']};
-        border-bottom: 1px solid {COLORS['input_border']};
+        border-right: 1px solid {COLORS["input_border"]};
+        border-bottom: 1px solid {COLORS["input_border"]};
     }}
     
     QHeaderView::section:hover {{
-        background-color: {COLORS['button_hover']};
+        background-color: {COLORS["button_hover"]};
     }}
     
     /* ==================== Menu Bar ==================== */
     QMenuBar {{
-        background-color: {COLORS['bg']};
-        color: {COLORS['fg']};
-        border-bottom: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["bg"]};
+        color: {COLORS["fg"]};
+        border-bottom: 1px solid {COLORS["input_border"]};
     }}
     
     QMenuBar::item {{
@@ -387,13 +386,13 @@ def get_dark_stylesheet():
     }}
     
     QMenuBar::item:selected {{
-        background-color: {COLORS['button_hover']};
+        background-color: {COLORS["button_hover"]};
     }}
     
     QMenu {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
     }}
     
     QMenu::item {{
@@ -401,50 +400,52 @@ def get_dark_stylesheet():
     }}
     
     QMenu::item:selected {{
-        background-color: {COLORS['selbg']};
-        color: {COLORS['selfg']};
+        background-color: {COLORS["selbg"]};
+        color: {COLORS["selfg"]};
     }}
     
     /* ==================== Tool Tips ==================== */
     QToolTip {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
         padding: 4px;
     }}
     
     /* ==================== Group Box ==================== */
     QGroupBox {{
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 4px;
         margin-top: 12px;
         padding-top: 12px;
+        font-size: 9pt;  /* Smaller font for titles, matching sv_ttk SunValleyCaptionFont */
     }}
     
     QGroupBox::title {{
         subcontrol-origin: margin;
         left: 10px;
         padding: 0 5px 0 5px;
-        background-color: {COLORS['bg']};
+        background-color: {COLORS["bg"]};
+        font-size: 9pt;  /* Ensure title uses smaller font */
     }}
     
     /* ==================== Spin Box ==================== */
     QSpinBox, QDoubleSpinBox {{
-        background-color: {COLORS['input_bg']};
-        color: {COLORS['fg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["input_bg"]};
+        color: {COLORS["fg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 4px;
         padding: 4px;
     }}
     
     QSpinBox:hover, QDoubleSpinBox:hover {{
-        background-color: {COLORS['input_hover']};
+        background-color: {COLORS["input_hover"]};
         border-color: #505050;
     }}
     
     QSpinBox:focus, QDoubleSpinBox:focus {{
-        border: 2px solid {COLORS['input_focus']};
+        border: 2px solid {COLORS["input_focus"]};
         outline: none;
     }}
     
@@ -459,7 +460,7 @@ def get_dark_stylesheet():
         image: none;
         border-left: 4px solid transparent;
         border-right: 4px solid transparent;
-        border-bottom: 4px solid {COLORS['fg']};
+        border-bottom: 4px solid {COLORS["fg"]};
         width: 0;
         height: 0;
     }}
@@ -468,20 +469,20 @@ def get_dark_stylesheet():
         image: none;
         border-left: 4px solid transparent;
         border-right: 4px solid transparent;
-        border-top: 4px solid {COLORS['fg']};
+        border-top: 4px solid {COLORS["fg"]};
         width: 0;
         height: 0;
     }}
     
     /* ==================== Slider ==================== */
     QSlider::groove:horizontal {{
-        background-color: {COLORS['input_bg']};
+        background-color: {COLORS["input_bg"]};
         height: 6px;
         border-radius: 3px;
     }}
     
     QSlider::handle:horizontal {{
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
         width: 16px;
         height: 16px;
         margin: -5px 0;
@@ -489,17 +490,17 @@ def get_dark_stylesheet():
     }}
     
     QSlider::handle:horizontal:hover {{
-        background-color: {COLORS['accent']};
+        background-color: {COLORS["accent"]};
     }}
     
     QSlider::groove:vertical {{
-        background-color: {COLORS['input_bg']};
+        background-color: {COLORS["input_bg"]};
         width: 6px;
         border-radius: 3px;
     }}
     
     QSlider::handle:vertical {{
-        background-color: {COLORS['selbg']};
+        background-color: {COLORS["selbg"]};
         width: 16px;
         height: 16px;
         margin: 0 -5px;
@@ -507,20 +508,35 @@ def get_dark_stylesheet():
     }}
     
     QSlider::handle:vertical:hover {{
-        background-color: {COLORS['accent']};
+        background-color: {COLORS["accent"]};
     }}
     
     /* ==================== Status Bar ==================== */
     QStatusBar {{
-        background-color: {COLORS['bg']};
-        color: {COLORS['fg']};
-        border-top: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["bg"]};
+        color: {COLORS["fg"]};
+        border-top: 1px solid {COLORS["input_border"]};
+    }}
+    
+    /* ==================== Separators ==================== */
+    QFrame[frameShape="4"] /* QFrame::HLine */ {{
+        background-color: {COLORS["input_border"]};
+        max-height: 1px;
+        border: none;
+        margin: 10px;
+    }}
+    
+    QFrame[frameShape="5"] /* QFrame::VLine */ {{
+        background-color: {COLORS["input_border"]};
+        max-width: 1px;
+        border: none;
+        margin: 10px;
     }}
     
     /* ==================== Frame (for cards/panels) ==================== */
     QFrame[class="card"] {{
-        background-color: {COLORS['button_bg']};
-        border: 1px solid {COLORS['input_border']};
+        background-color: {COLORS["button_bg"]};
+        border: 1px solid {COLORS["input_border"]};
         border-radius: 8px;
         padding: 10px;
     }}

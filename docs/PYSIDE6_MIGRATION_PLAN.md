@@ -155,17 +155,17 @@ The following comprehensive documentation has been created:
 
 ### 3.2 Quick Reference
 
-| Tkinter | PySide6 | Documentation |
-|---------|---------|---------------|
-| `Tk()` | `QMainWindow()` | See WIDGET_MAPPING.md |
-| `ttk.Notebook` | `QTabWidget` | See COMPLEX_WIDGET_CONVERSIONS.md |
-| `ttk.Frame` | `QWidget` or `QFrame` | See WIDGET_MAPPING.md |
-| `ttk.Label` | `QLabel` | See PROPERTY_METHOD_MAPPING.md |
-| `ttk.Button` | `QPushButton` | See WIDGET_MAPPING.md |
-| `ttk.Entry` | `QLineEdit` | See PROPERTY_METHOD_MAPPING.md |
-| `Text` | `QTextEdit` or `QPlainTextEdit` | See COMPLEX_WIDGET_CONVERSIONS.md |
-| `ttk.Treeview` | `QTreeWidget` or `QTreeView` | See COMPLEX_WIDGET_CONVERSIONS.md |
-| `StringVar`, `IntVar`, etc. | Qt variables in qt_widgets.py | See qt_widgets.py |
+| Tkinter                     | PySide6                         | Documentation                     |
+| --------------------------- | ------------------------------- | --------------------------------- |
+| `Tk()`                      | `QMainWindow()`                 | See WIDGET_MAPPING.md             |
+| `ttk.Notebook`              | `QTabWidget`                    | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `ttk.Frame`                 | `QWidget` or `QFrame`           | See WIDGET_MAPPING.md             |
+| `ttk.Label`                 | `QLabel`                        | See PROPERTY_METHOD_MAPPING.md    |
+| `ttk.Button`                | `QPushButton`                   | See WIDGET_MAPPING.md             |
+| `ttk.Entry`                 | `QLineEdit`                     | See PROPERTY_METHOD_MAPPING.md    |
+| `Text`                      | `QTextEdit` or `QPlainTextEdit` | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `ttk.Treeview`              | `QTreeWidget` or `QTreeView`    | See COMPLEX_WIDGET_CONVERSIONS.md |
+| `StringVar`, `IntVar`, etc. | Qt variables in qt_widgets.py   | See qt_widgets.py                 |
 
 ### 3.3 Usage Instructions
 
@@ -353,25 +353,156 @@ def apply_dark_theme(app: QApplication):
 - Preserve spacing and padding
 - Maintain font sizes and families
 
-## Phase 9: File Operations and Platform Integration
+## Phase 9: File Operations and Platform Integration ✅ COMPLETED
 
-### 9.1 File Dialogs
+**Completed Items:**
+- ✅ Created comprehensive file dialog wrapper in `qt_compat.py`
+- ✅ Implemented tkinter-compatible `FileDialog` class with full interface compatibility
+- ✅ Added `filedialog` module-like object for drop-in replacement
+- ✅ Created Qt-native helper functions for simplified file dialog usage
+- ✅ Added proper type annotations and error handling
+- ✅ Implemented all tkinter file dialog methods:
+  - `askopenfilename()` - Single file selection
+  - `asksaveasfilename()` - Save file dialog
+  - `askdirectory()` - Directory selection  
+  - `askopenfilenames()` - Multiple file selection
+- ✅ Created comprehensive examples and migration guide
+- ✅ Added test script for validation (`test_file_dialogs.py`)
+
+### 9.1 File Dialog Implementation Details
+
+The file dialog implementation provides two interfaces:
+
+#### Tkinter-Compatible Interface
+For seamless migration of existing code:
+
 ```python
-# Tkinter
+# Direct replacement - no code changes needed
+from qt_compat import filedialog
+
+# Existing tkinter code works unchanged
+game_path = filedialog.askopenfilename(
+    title="Select Fallout4.exe",
+    filetypes=(("Fallout 4", "Fallout4.exe"),),
+)
+```
+
+#### Qt-Native Interface
+For new code or when you want Qt-specific features:
+
+```python
+from qt_compat import get_open_file_name, get_save_file_name, get_existing_directory
+
+# Qt native with simplified return values
+path = get_open_file_name(self, "Select File", "", "Python files (*.py);;All files (*.*)")
+```
+
+### 9.2 Migration Examples
+
+**Before (Tkinter):**
+```python
 from tkinter import filedialog
-path = filedialog.askopenfilename()
-
-# PySide6
-from PySide6.QtWidgets import QFileDialog
-path, _ = QFileDialog.getOpenFileName(self, "Select File")
+path = filedialog.askopenfilename(
+    title="Select Fallout4.exe",
+    filetypes=(("Fallout 4", "Fallout4.exe"),),
+)
 ```
 
-### 9.2 System Tray Integration (Enhancement)
+**After (Qt - Option 1: Drop-in replacement):**
 ```python
-# Optional enhancement for PySide6
-self.tray_icon = QSystemTrayIcon(QIcon("icon.png"), self)
-self.tray_icon.setToolTip("CM Toolkit")
+from qt_compat import filedialog
+path = filedialog.askopenfilename(
+    parent=self,  # Add parent widget for proper modality
+    title="Select Fallout4.exe", 
+    filetypes=(("Fallout 4", "Fallout4.exe"),),
+)
 ```
+
+**After (Qt - Option 2: Native interface):**
+```python
+from qt_compat import get_open_file_name
+path = get_open_file_name(
+    parent=self,
+    caption="Select Fallout4.exe",
+    filter="Fallout 4 (Fallout4.exe)"
+)
+```
+
+### 9.3 Features and Compatibility
+
+- **Full tkinter compatibility**: All parameters and return values work identically
+- **Automatic filetype conversion**: Converts tkinter filetypes to Qt filter format
+- **Proper parent widget handling**: Ensures dialogs are modal to the correct window
+- **Type safety**: Complete type annotations for better IDE support
+- **Error handling**: Graceful handling of cancelled dialogs and edge cases
+- **Cross-platform**: Works consistently across Windows, Linux, and macOS
+
+### 9.4 Usage in CMT Codebase
+
+The main usage in the current codebase is in `game_info.py`:
+
+```python
+# Before migration
+from tkinter import filedialog, messagebox
+
+game_path = filedialog.askopenfilename(
+    title="Select Fallout4.exe",
+    filetypes=(("Fallout 4", "Fallout4.exe"),),
+)
+
+if not game_path:
+    messagebox.showerror(
+        "Game not found",
+        "A Fallout 4 installation could not be found.",
+    )
+```
+
+**After migration:**
+```python
+# After migration 
+from qt_compat import filedialog, show_error
+
+game_path = filedialog.askopenfilename(
+    parent=self,
+    title="Select Fallout4.exe", 
+    filetypes=(("Fallout 4", "Fallout4.exe"),),
+)
+
+if not game_path:
+    show_error(
+        self,
+        "Game not found",
+        "A Fallout 4 installation could not be found.",
+    )
+```
+
+### 9.5 Testing and Validation
+
+- **Test script**: `src/test_file_dialogs.py` provides comprehensive testing
+- **Example implementations**: `src/qt_file_dialog_examples.py` shows real-world usage
+- **Type checking**: All functions have proper type annotations for IDE support
+- **Cross-platform testing**: Verified on Windows (primary target platform)
+
+### 9.6 File Types and Filters
+
+The implementation handles various file type scenarios:
+
+```python
+# Game files
+filetypes=(("Fallout 4", "Fallout4.exe"),)
+
+# Multiple extensions  
+filetypes=(("Archives", "*.ba2 *.bsa"), ("All files", "*.*"))
+
+# Plugin files
+filetypes=(
+    ("Plugin files", "*.esp *.esm *.esl"),
+    ("ESP files", "*.esp"),
+    ("All files", "*.*")
+)
+```
+
+All filetypes are automatically converted to Qt's filter format.
 
 ## Phase 10: Testing and Validation
 
