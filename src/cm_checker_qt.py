@@ -24,6 +24,7 @@ from typing import Optional
 
 from qt_compat import *
 from qt_theme import get_dark_stylesheet
+from qt_threading import ThreadManager, BaseWorker
 
 from tabs import __init_qt__ as tabs_qt
 from app_settings import AppSettings
@@ -96,6 +97,9 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         self.overview_problems = []
         self.processing_data = False
         
+        # Initialize thread manager
+        self.thread_manager = ThreadManager()
+        
         # Connect signals for property changes
         self.install_type_changed.connect(lambda v: self.install_type_sv.set(v))
         self.game_path_changed.connect(lambda v: self.game_path_sv.set(v))
@@ -112,6 +116,13 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         if self.processing_data:
             event.ignore()
             return
+        
+        # Stop all threads before closing
+        active_threads = self.thread_manager.get_active_threads()
+        if active_threads:
+            logger.debug("Stopping %d active threads before closing", len(active_threads))
+            self.thread_manager.stop_all(wait=True, timeout=3000)
+        
         sys.stderr = sys.__stderr__
         event.accept()
     
@@ -142,6 +153,13 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         # Create tab widget
         self.tab_widget = QTabWidget()
         layout.addWidget(self.tab_widget)
+        
+        # Create status bar with progress bar
+        self.status_bar = self.statusBar()
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMaximumWidth(200)
+        self.progress_bar.setVisible(False)
+        self.status_bar.addPermanentWidget(self.progress_bar)
         
         # Create tabs - use Qt versions where available
         self.tabs: dict[Tab, CMCTabWidget] = {}
@@ -283,19 +301,31 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
     @Slot(str)
     def update_status(self, message: str) -> None:
         """Thread-safe method to update status messages"""
-        # This would update a status bar if we had one
+        self.status_bar.showMessage(message, 5000)  # Show for 5 seconds
         logger.debug("Status update: %s", message)
+    
+    @Slot(int)
+    def update_progress(self, value: int) -> None:
+        """Thread-safe method to update progress bar"""
+        if value > 0:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(value)
+        else:
+            self.progress_bar.setVisible(False)
     
     @Slot()
     def on_processing_started(self) -> None:
         """Called when heavy processing starts"""
         self.processing_data = True
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
         self.processing_started.emit()
     
     @Slot()
     def on_processing_finished(self) -> None:
         """Called when heavy processing finishes"""
         self.processing_data = False
+        self.progress_bar.setVisible(False)
         self.processing_finished.emit()
     
     # Tkinter compatibility methods
@@ -332,10 +362,25 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
         self.close()
     
     # Additional helper methods
-    def run_in_thread(self, func, *args, **kwargs):
-        """Helper to run a function in a separate thread"""
-        from threading import Thread
-        thread = Thread(target=func, args=args, kwargs=kwargs)
-        thread.daemon = True
-        thread.start()
-        return thread
+    def start_worker(self, worker: BaseWorker, thread_name: str = None) -> BaseWorker:
+        """Start a worker in a managed thread
+        
+        Args:
+            worker: The worker instance to run
+            thread_name: Optional thread name (defaults to worker class name)
+            
+        Returns:
+            The worker instance for signal connections
+        """
+        if thread_name is None:
+            thread_name = worker.__class__.__name__
+        
+        # Connect standard signals
+        worker.signals.progress.connect(self.update_progress)
+        worker.signals.status.connect(self.update_status)
+        worker.signals.started.connect(self.on_processing_started)
+        worker.signals.finished.connect(self.on_processing_finished)
+        
+        # Start the worker
+        self.thread_manager.start_worker(worker, thread_name)
+        return worker

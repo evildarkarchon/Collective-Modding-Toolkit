@@ -2,36 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Development Setup and Commands
-
-### Build and Run
-```bash
-# Install dependencies using Poetry
-poetry install
-
-# Run the application (Windows-specific)
-poetry run python src/main.py
-
-# Build executable with PyInstaller
-poetry run pyinstaller --distpath dist --workpath build/pyinstaller --specpath build --clean --onedir --windowed --icon=src/icon.ico --add-data="src/assets;assets" --name="cm-toolkit" src/main.py
-```
-
-### Code Quality Tools
-```bash
-# Type checking with MyPy
-poetry run mypy src
-
-# Type checking with Pyright
-poetry run pyright
-
-# Linting and formatting with Ruff
-poetry run ruff check src
-poetry run ruff format src
-
-# Format check without making changes
-poetry run ruff format --check src
-```
-
 ## Architecture Overview
 
 ### Core Application Structure
@@ -71,6 +41,3 @@ The Collective Modding Toolkit is a Tkinter-based GUI application for Fallout 4 
 
 - Application is Windows-only due to Fallout 4 being a Windows game
 - Requires Python 3.11 (configured in pyproject.toml)
-- Uses Poetry for dependency management with pyinstaller plugin for building
-- Extensive Ruff linting rules configured - run linting before commits
-- Type hints used throughout - check with both MyPy and Pyright
