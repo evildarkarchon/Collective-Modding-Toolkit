@@ -2,91 +2,101 @@
 
 ## Project Overview
 
-This is a **Fallout 4 mod management toolkit** currently undergoing migration from **Tkinter to PySide6**. The application uses a **dual-architecture approach** where both GUI frameworks coexist during the transition.
+This is a **Fallout 4 mod management toolkit** built with **PySide6** for analyzing mod setups, patching game files, and providing automated fixes for common issues. The application features a tab-based interface with powerful threading architecture for non-blocking operations.
 
-### Key Architecture Concepts
+### Core Architecture
 
-**Dual GUI Framework**: Run with `python src/main.py` (Tkinter) or `python src/main.py --qt` (PySide6). The `CMT_USE_QT=1` environment variable also enables Qt mode.
+**Main Application Flow**: `src/main.py` → `CMCheckerQt` (QMainWindow) → Tab widgets inheriting from `CMCTabWidget`
 
-**Tab-Based Inheritance Pattern**: All tabs inherit from base classes:
-- Tkinter: `CMCTabFrame` (in `src/helpers.py`) 
-- PySide6: `CMCTabWidget` (in `src/qt_helpers.py`)
-- Each tab has parallel implementations: `_scanner.py` (Tkinter) and `_scanner_qt.py` (PySide6)
+**Tab System**: All tabs inherit from `CMCTabWidget` in `src/qt_helpers.py` and implement the `CMCheckerInterface` protocol for consistent communication with the main controller.
 
-**Interface Protocol**: `CMCheckerInterface` defines the contract between tabs and main controller, ensuring compatibility across both frameworks.
+**Threading Model**: Heavy operations use `BaseWorker` classes (from `src/qt_threading.py`) running in `QThread` with signals/slots for progress updates. **Never access GUI elements from worker threads.**
 
-**Thread-Safe Operations**: 
-- Tkinter version uses Python threading + queues
-- PySide6 version uses `QThread` + signals/slots (see `src/qt_threading.py`)
-- Heavy operations (file scanning, patching) must never block the UI thread
+**Reactive Variables**: `QtStringVar`, `QtBoolVar` etc. from `src/qt_widgets.py` provide Tkinter-style reactive bindings that emit Qt signals on value changes.
 
 ## Critical Development Patterns
 
-### Tab Implementation Pattern
-When creating new tabs, implement both versions:
+### Tab Implementation Template
 ```python
-# Tkinter version in src/tabs/_newtab.py
-class NewTab(CMCTabFrame):
-    def __init__(self, cmc: CMCheckerInterface, notebook: ttk.Notebook):
-        super().__init__(cmc, notebook, "New Tab")
-        
-# PySide6 version in src/tabs/_newtab_qt.py  
-class NewTab(CMCTabWidget):
+# All tabs follow this pattern in src/tabs/*_qt.py
+class ExampleTab(CMCTabWidget):
     def __init__(self, cmc: CMCheckerInterface, tab_widget: QTabWidget):
-        super().__init__(cmc, tab_widget, "New Tab")
+        super().__init__(cmc, tab_widget, "Tab Title")
+        
+    def _build_gui(self) -> None:
+        # Implement UI construction
+        
+    def refresh(self) -> None:
+        # Implement refresh logic
 ```
 
-### Modal Dialog Pattern
-Patcher dialogs inherit from framework-specific base classes:
-- `PatcherBase` (Tkinter) in `src/patcher/_base.py`
-- `QtPatcherBase` (PySide6) in `src/patcher/_qt_base.py`
+### Threading Pattern for Long Operations
+```python
+# Worker class pattern from src/qt_threading.py
+class ExampleWorker(BaseWorker):
+    def execute(self) -> object:
+        # Heavy work here, use self.update_progress(percentage)
+        return result
 
-Both use the **Template Method Pattern**: implement abstract properties (`about_title`, `files_to_patch`) and methods (`patch_files`, `build_gui_secondary`).
+# Usage in tabs
+worker = ExampleWorker()
+worker.signals.result_ready.connect(self.on_result)
+worker.signals.progress.connect(self.update_progress_bar)
+self.cmc.thread_manager.start_worker(worker)
+```
 
-### Threading Best Practices
-- **Never** access GUI elements from worker threads
-- Use `BaseWorker` class for PySide6 threaded operations
-- Scanner tab uses complex threading for file analysis - see `src/scanner_threading.py`
-- File patching operations must update progress via signals/queues
+### Autofix System Architecture
+The `src/autofix_handlers.py` module implements a registry pattern for automated problem fixes:
+- `AUTOFIX_REGISTRY` maps `SolutionType` enums to handler functions
+- Each handler takes `ProblemInfo | SimpleProblemInfo` and returns `AutoFixResult`
+- Handlers automatically create backups before modifying files
+- Batch operations use `BatchAutofixWorker` for non-blocking execution
 
 ## Project-Specific Conventions
 
-**Widget Variable System**: Both frameworks use reactive variables:
-- Tkinter: `StringVar`, `IntVar`, etc.
-- PySide6: `QtStringVar`, `QtBoolVar` from `src/qt_widgets.py`
+**Error Handling**: Use `src/qt_error_handler.py` for consistent error dialogs. All exceptions in workers are automatically caught and displayed.
 
-**File Dialog Compatibility**: Use `from qt_compat import filedialog` for cross-framework file dialogs.
+**File Operations**: Always use `pathlib.Path` objects. Windows-specific operations use `pywin32` APIs.
 
-**Theming**: PySide6 uses custom dark stylesheet in `src/qt_theme.py` to match sv_ttk appearance.
+**Game Integration**: 
+- `src/game_info_qt.py` handles Fallout 4 detection and version analysis
+- `src/mod_manager_info.py` integrates with MO2/Vortex staging directories
+- Archive patching uses `pyxdelta` for BA2 format conversion (OG ↔ NG)
 
-**Settings Management**: `AppSettings` class handles JSON persistence in `src/app_settings.py` - shared across both frameworks.
+**Theming**: Dark theme in `src/qt_theme.py` matches original sv_ttk appearance with custom Cascadia Mono font.
 
-## Build and Development Workflow
+## Development Workflow
 
-**Dependencies**: Managed via Poetry (`poetry install`). Key deps: PySide6, pywin32, pyxdelta.
+**Running**: `poetry run python src/main.py` (Qt is now the default interface)
 
-**Testing**: Run Qt tests with `python src/test_file_dialogs.py` or individual tab tests.
+**Code Quality**: 
+```bash
+poetry run ruff check src/       # Linting
+poetry run ruff format src/      # Formatting  
+poetry run mypy src/            # Type checking
+poetry run pytest              # Run tests
+```
 
-**Migration Status**: Overview, F4SE, Tools, Settings, About tabs are complete. **Scanner tab needs finishing** (60% complete).
+**Building**: Uses `poetry-pyinstaller-plugin` - see `pyproject.toml` for executable generation.
 
-**Packaging**: Uses `poetry-pyinstaller-plugin` - see `pyproject.toml` for build config.
+**Dependencies**: Windows-only application. Core deps: PySide6, pyxdelta, pywin32, requests.
 
-## Integration Points
+## Key Integration Points
 
-**Game Detection**: `src/game_info.py` handles Fallout 4 installation discovery and version checking.
+**Problem Detection**: Scanner tab analyzes mod files and populates `ProblemInfo` objects with detected issues and suggested `SolutionType` fixes.
 
-**Mod Manager Integration**: `src/mod_manager_info.py` detects MO2/Vortex, handles staging paths.
+**File Analysis**: Complex file scanning uses multiple worker threads coordinated through `ThreadManager` with progress aggregation.
 
-**Archive Patching**: `src/patcher/` module uses pyxdelta for BA2 version conversion (OG ↔ NG).
+**Modal Operations**: Archive patching and game downgrading use `QDialog` subclasses with embedded progress tracking.
 
-**F4SE DLL Scanning**: Complex version compatibility checking in F4SE tab implementations.
+**Settings Persistence**: `AppSettings` class in `src/app_settings.py` handles JSON-based configuration with automatic validation.
 
-## Essential Files for AI Context
+## Essential Reference Files
 
-- `docs/PYSIDE6_MIGRATION_PLAN.md` - Comprehensive migration roadmap
-- `src/qt_compat.py` - Cross-framework compatibility layer
-- `src/helpers.py` & `src/qt_helpers.py` - Base classes and protocols
-- `src/tabs/_scanner.py` vs `src/tabs/_scanner_qt.py` - Compare implementation patterns
-- `docs/WIDGET_MAPPING.md` - Widget conversion reference
+- `src/qt_helpers.py` - Base classes and protocols for tab system
+- `src/qt_threading.py` - Worker base classes and thread management
+- `src/autofix_handlers.py` - Automated fix system with registry pattern
+- `src/enums.py` - All enums including `ProblemType` and `SolutionType`
+- `docs/PYSIDE6_MIGRATION_PLAN.md` - Architecture decisions and patterns
 
-When working on this codebase, **always consider both GUI frameworks** and maintain feature parity during the transition period.
+**Performance Note**: Scanner operations can process thousands of files - always use progress reporting and ensure operations remain cancellable via `worker.stop()`.
