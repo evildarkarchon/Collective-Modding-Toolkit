@@ -33,7 +33,33 @@ from helpers import (
 	CMCTabFrame,  # noqa: F401
 	PCInfo,
 )
-from qt_compat import *
+from qt_compat import (
+    QApplication,
+    QCloseEvent,
+    QEvent,
+    QFontDatabase,
+    QHBoxLayout,
+    QIcon,
+    QKeySequence,
+    QLabel,
+    QMainWindow,
+    QMouseEvent,
+    QMutex,
+    QMutexLocker,
+    QObject,
+    QPixmap,
+    QProgressBar,
+    QShortcut,
+    Qt,
+    QTabWidget,
+    QThread,
+    QTimer,
+    QVBoxLayout,
+    QWidget,
+    QWindowStateChangeEvent,
+    Signal,
+    Slot,
+)
 from qt_theme import get_dark_stylesheet
 from qt_threading import BaseWorker, ThreadManager
 from qt_widgets import QtStringVar

@@ -20,7 +20,7 @@
 import logging
 import sys
 import webbrowser
-from tkinter import *
+from tkinter import E, Event, LEFT, Misc, NSEW, PhotoImage, RIGHT, StringVar, Tk, W
 from tkinter import ttk
 
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
@@ -29,7 +29,15 @@ import tabs
 from app_settings import AppSettings
 from enums import Tab
 from game_info import GameInfo
-from cmt_globals import *
+from cmt_globals import (
+    APP_TITLE,
+    APP_VERSION,
+    FONT,
+    GITHUB_LINK,
+    NEXUS_LINK,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+)
 from helpers import (
 	CMCheckerInterface,
 	CMCTabFrame,

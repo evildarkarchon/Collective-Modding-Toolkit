@@ -20,11 +20,11 @@
 import operator
 from abc import ABC
 from pathlib import Path
-from tkinter import *
+from tkinter import CENTER, END, Event, LEFT, Misc, N, NONE, NS, NSEW, Toplevel, VERTICAL, W, Wm
 from tkinter import ttk
 from typing import final
 
-from cmt_globals import *
+from cmt_globals import FONT_SMALL
 from helpers import CMCheckerInterface
 from utils import set_titlebar_style
 

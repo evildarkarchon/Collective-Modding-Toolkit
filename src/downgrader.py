@@ -22,7 +22,7 @@ import stat
 from pathlib import Path
 from shutil import copy2
 from threading import Thread
-from tkinter import *
+from tkinter import BooleanVar, DISABLED, DoubleVar, E, EW, NORMAL, NSEW, RIGHT, W, Wm
 from tkinter import ttk
 from types import MappingProxyType
 
@@ -30,8 +30,16 @@ import requests
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 import pyxdelta
-from enums import LogType, Tab
-from cmt_globals import *
+from enums import InstallType, LogType, Tab
+from cmt_globals import (
+    ABOUT_DOWNGRADING,
+    ABOUT_DOWNGRADING_TITLE,
+    COLOR_BAD,
+    COLOR_NEUTRAL_1,
+    FONT,
+    TOOLTIP_DOWNGRADER_BACKUPS,
+    TOOLTIP_DOWNGRADER_DELTAS,
+)
 from helpers import (
 	CMCheckerInterface,
 )

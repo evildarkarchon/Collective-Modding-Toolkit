@@ -22,14 +22,19 @@ import stat
 from pathlib import Path
 from typing import TYPE_CHECKING, final
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QLabel, QLineEdit, QRadioButton, QGroupBox,
-    QVBoxLayout, QHBoxLayout, QWidget
+    QHBoxLayout, QWidget
 )
 
 from enums import ArchiveVersion, LogType, Magic
-from cmt_globals import *
+from cmt_globals import (
+    ABOUT_ARCHIVES,
+    ABOUT_ARCHIVES_TITLE,
+    COLOR_NEUTRAL_2,
+    PATCHER_FILTER_NG,
+    PATCHER_FILTER_OG,
+)
 from ._qt_base import QtPatcherBase
 
 if TYPE_CHECKING:

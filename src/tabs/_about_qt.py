@@ -23,7 +23,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QFrame, QGridLayout, QLabel, QPushButton, QSizePolicy, QTabWidget, QVBoxLayout
 
-from cmt_globals import *
+from cmt_globals import DISCORD_INVITE, GITHUB_LINK, NEXUS_LINK
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 
 

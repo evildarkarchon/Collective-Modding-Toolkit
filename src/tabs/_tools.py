@@ -19,13 +19,13 @@
 
 import webbrowser
 from collections.abc import Callable
-from tkinter import *
+from tkinter import CENTER, N, NSEW
 from tkinter import ttk
 
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from downgrader import Downgrader
-from cmt_globals import *
+from cmt_globals import FONT_SMALL
 from helpers import CMCheckerInterface, CMCTabFrame
 from modal_window import ModalWindow
 from patcher import ArchivePatcher

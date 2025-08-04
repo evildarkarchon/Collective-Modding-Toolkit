@@ -27,7 +27,7 @@ import zlib
 from collections.abc import Generator
 from ctypes import WinDLL, byref, c_int, create_unicode_buffer, sizeof, windll, wintypes
 from pathlib import Path
-from tkinter import *
+from tkinter import DISABLED, EW, Event, HORIZONTAL, Misc, NORMAL, NS, NSEW, Text, Tk, TOP
 from tkinter import ttk
 from typing import TYPE_CHECKING, Literal, overload
 

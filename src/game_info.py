@@ -21,8 +21,7 @@ import os
 import sys
 import winreg
 from pathlib import Path
-from tkinter import *
-from tkinter import filedialog, messagebox
+from tkinter import StringVar, filedialog, messagebox
 from typing import TYPE_CHECKING, Literal
 
 from enums import CSIDL, InstallType, Language

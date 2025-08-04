@@ -21,11 +21,17 @@ import logging
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QTextEdit, QLabel,
-    QVBoxLayout, QGridLayout, QTabWidget, QHeaderView
+    QTabWidget, QHeaderView
 )
 from PySide6.QtGui import QFont, QColor, QTextCharFormat, QTextCursor
 
-from cmt_globals import *
+from cmt_globals import (
+    ABOUT_F4SE_DLLS,
+    COLOR_BAD,
+    COLOR_GOOD,
+    COLOR_NEUTRAL_1,
+    COLOR_NEUTRAL_2,
+)
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from helpers import DLLInfo
 from utils import parse_dll

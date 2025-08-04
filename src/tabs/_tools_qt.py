@@ -24,12 +24,11 @@ from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGroupBox, QPushButton, QLabel, QVBoxLayout, 
-    QHBoxLayout, QGridLayout, QTabWidget
+    QHBoxLayout, QTabWidget
 )
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtGui import QFont
 
 from qt_downgrader import QtDowngrader
-from cmt_globals import *
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from qt_modal_dialogs import ModalDialogBase
 from patcher._qt_archives import QtArchivePatcher

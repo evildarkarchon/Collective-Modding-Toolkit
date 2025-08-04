@@ -20,12 +20,12 @@
 import logging
 from abc import abstractmethod
 from pathlib import Path
-from tkinter import *
+from tkinter import END, EW, NS, NSEW, RIGHT, VERTICAL, Wm
 from tkinter import ttk
 from typing import final
 
 from enums import LogType, Tab
-from cmt_globals import *
+from cmt_globals import WINDOW_HEIGHT_PATCHER, WINDOW_WIDTH_PATCHER
 from helpers import CMCheckerInterface
 from logger import Logger
 from modal_window import AboutWindow, ModalWindow

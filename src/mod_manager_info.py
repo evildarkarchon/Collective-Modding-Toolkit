@@ -20,7 +20,6 @@
 import csv
 import sys
 from pathlib import Path
-from tkinter import *
 from typing import Literal, TypedDict
 
 from packaging.version import Version

@@ -20,12 +20,20 @@
 import logging
 import stat
 from pathlib import Path
-from tkinter import *
+from tkinter import Event, IntVar, LEFT, NSEW, Wm, Y
 from tkinter import ttk
 from typing import final
 
 from enums import ArchiveVersion, LogType, Magic
-from cmt_globals import *
+from cmt_globals import (
+    ABOUT_ARCHIVES,
+    ABOUT_ARCHIVES_TITLE,
+    COLOR_DEFAULT,
+    COLOR_NEUTRAL_2,
+    FONT_SMALL,
+    PATCHER_FILTER_NG,
+    PATCHER_FILTER_OG,
+)
 from helpers import CMCheckerInterface
 
 from ._base import PatcherBase

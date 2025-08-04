@@ -25,7 +25,7 @@ import winreg
 from abc import ABC, abstractmethod
 from ctypes import windll
 from pathlib import Path
-from tkinter import *
+from tkinter import BOTH, CENTER, PhotoImage, StringVar, Text, Tk, Toplevel
 from tkinter import ttk
 from typing import TYPE_CHECKING, NotRequired, TypedDict, final
 

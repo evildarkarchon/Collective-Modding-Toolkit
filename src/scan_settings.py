@@ -19,10 +19,17 @@
 
 import collections
 from enum import Enum
-from tkinter import *
 from typing import TYPE_CHECKING
 
-from cmt_globals import *
+from cmt_globals import (
+    TOOLTIP_SCAN_BAD_OVERRIDES,
+    TOOLTIP_SCAN_ERRORS,
+    TOOLTIP_SCAN_FORMATS,
+    TOOLTIP_SCAN_JUNK,
+    TOOLTIP_SCAN_OVERVIEW,
+    TOOLTIP_SCAN_PREVIS,
+    TOOLTIP_SCAN_RACE_SUBGRAPHS,
+)
 
 if TYPE_CHECKING:
 	from pathlib import Path

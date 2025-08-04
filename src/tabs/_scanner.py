@@ -22,14 +22,21 @@ import queue
 import threading
 import webbrowser
 from pathlib import Path
-from tkinter import *
+from tkinter import BOTH, DISABLED, E, END, EW, LEFT, N, NORMAL, NS, NSEW, RIGHT, StringVar, VERTICAL, W, X
 from tkinter import ttk
 
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from autofixes import AUTO_FIXES, do_autofix
 from enums import ProblemType, SolutionType, Tab, Tool
-from cmt_globals import *
+from cmt_globals import (
+    COLOR_NEUTRAL_2,
+    FONT,
+    FONT_SMALL,
+    INFO_SCAN_RACE_SUBGRAPHS,
+    RACE_SUBGRAPH_THRESHOLD,
+    TOOLTIP_LOCATION,
+)
 from helpers import CMCheckerInterface, CMCTabFrame, ProblemInfo, SimpleProblemInfo
 from modal_window import TreeWindow
 from scan_settings import (

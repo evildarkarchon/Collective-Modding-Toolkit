@@ -19,12 +19,12 @@
 
 import logging
 from enum import StrEnum
-from tkinter import *
+from tkinter import NSEW, StringVar, W
 from tkinter import ttk
 
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
-from cmt_globals import *
+from cmt_globals import TOOLTIP_LOG_LEVEL, TOOLTIP_UPDATE_SOURCE
 from helpers import CMCheckerInterface, CMCTabFrame
 
 logger = logging.getLogger(__name__)

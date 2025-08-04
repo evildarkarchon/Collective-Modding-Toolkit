@@ -18,10 +18,18 @@
 
 
 import logging
-from tkinter import *
+from tkinter import DISABLED, E, END, N, NS, NSEW, S, VERTICAL, W, Y
 from tkinter import ttk
 
-from cmt_globals import *
+from cmt_globals import (
+    ABOUT_F4SE_DLLS,
+    COLOR_BAD,
+    COLOR_GOOD,
+    COLOR_NEUTRAL_1,
+    COLOR_NEUTRAL_2,
+    FONT,
+    FONT_SMALL,
+)
 from helpers import CMCheckerInterface, CMCTabFrame, DLLInfo
 from utils import (
 	parse_dll,

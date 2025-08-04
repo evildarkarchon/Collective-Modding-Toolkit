@@ -37,6 +37,42 @@ The Collective Modding Toolkit is a Tkinter-based GUI application for Fallout 4 
 - `AppSettings` class handles loading/saving with validation
 - Per-scan settings in `src/scan_settings.py`
 
+## Development Commands
+
+All commands should be run through Poetry to ensure proper dependency management.
+
+**Running the Application:**
+```bash
+poetry run python src/main.py --qt
+```
+
+**Linting:**
+```bash
+poetry run ruff check src/
+poetry run ruff check tests/
+```
+
+**Formatting:**
+```bash
+poetry run ruff format src/
+poetry run ruff format tests/
+```
+
+**Type Checking:**
+```bash
+poetry run mypy src/
+```
+
+**Running Tests:**
+```bash
+poetry run pytest
+```
+
+**Installing Dependencies:**
+```bash
+poetry install
+```
+
 ## Notes for Development
 
 - Application is Windows-only due to Fallout 4 being a Windows game

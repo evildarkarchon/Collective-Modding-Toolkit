@@ -22,7 +22,7 @@ import os
 import struct
 import sys
 from pathlib import Path
-from tkinter import *
+from tkinter import BOTH, E, EW, LEFT, N, NSEW, RIGHT, S, W, X
 from tkinter import messagebox, ttk
 from typing import Literal
 
@@ -31,7 +31,32 @@ from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from downgrader import Downgrader
 from enums import CSIDL, ArchiveVersion, Magic, ModuleFlag, ProblemType, SolutionType
-from cmt_globals import *
+from cmt_globals import (
+    BASE_FILES,
+    COLOR_BAD,
+    COLOR_DEFAULT,
+    COLOR_GOOD,
+    COLOR_NEUTRAL_1,
+    COLOR_NEUTRAL_2,
+    COLOR_WARNING,
+    FONT,
+    GAME_MASTERS,
+    MAX_ARCHIVES_GNRL,
+    MAX_MODULES_FULL,
+    MAX_MODULES_LIGHT,
+    MODULE_VERSION_SUPPORT,
+    TOOLTIP_ADDRESS_LIBRARY_MISSING,
+    TOOLTIP_BA2_FORMATS,
+    TOOLTIP_BA2_VERSIONS,
+    TOOLTIP_GAME_PATH,
+    TOOLTIP_HEDR_100,
+    TOOLTIP_HEDR_95,
+    TOOLTIP_HEDR_UNKNOWN,
+    TOOLTIP_MODULE_TYPES,
+    TOOLTIP_NO_MOD_MANAGER,
+    TOOLTIP_REFRESH,
+    TOOLTIP_UNREADABLE,
+)
 from helpers import CMCheckerInterface, CMCTabFrame, ProblemInfo, SimpleProblemInfo
 from modal_window import AboutWindow, TreeWindow
 from patcher import ArchivePatcher

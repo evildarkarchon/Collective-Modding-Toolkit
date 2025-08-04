@@ -18,11 +18,11 @@
 
 
 import logging
-from tkinter import *
+from tkinter import END, INSERT, Misc, NS, NSEW, Text, VERTICAL, WORD
 from tkinter import ttk
 
 from enums import LogType
-from cmt_globals import *
+from cmt_globals import COLOR_BAD, COLOR_GOOD, COLOR_INFO, FONT_SMALL
 from utils import block_text_input
 
 logger = logging.getLogger(__name__)

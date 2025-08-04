@@ -22,15 +22,13 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QLabel, QPushButton, QTreeWidget, QTreeWidgetItem,
+    QPushButton, QTreeWidget, QTreeWidgetItem,
     QVBoxLayout, QHBoxLayout, QWidget
 )
-from PySide6.QtGui import QFont
 
 from enums import LogType, Tab
-from cmt_globals import *
+from cmt_globals import WINDOW_HEIGHT_PATCHER, WINDOW_WIDTH_PATCHER
 from qt_modal_dialogs import ModalDialogBase, AboutDialog
 from qt_logger import QtLogger
 

@@ -18,10 +18,10 @@
 
 
 import webbrowser
-from tkinter import *
+from tkinter import CENTER, E, NS, VERTICAL
 from tkinter import ttk
 
-from cmt_globals import *
+from cmt_globals import APP_TITLE, APP_VERSION, DISCORD_INVITE, FONT, FONT_LARGE, GITHUB_LINK, NEXUS_LINK
 from helpers import CMCheckerInterface, CMCTabFrame
 from utils import (
 	add_separator,

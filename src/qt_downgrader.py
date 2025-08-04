@@ -40,7 +40,14 @@ from PySide6.QtWidgets import (
 
 import pyxdelta
 from enums import InstallType, LogType, Tab
-from cmt_globals import *
+from cmt_globals import (
+    ABOUT_DOWNGRADING,
+    ABOUT_DOWNGRADING_TITLE,
+    COLOR_BAD,
+    COLOR_NEUTRAL_1,
+    TOOLTIP_DOWNGRADER_BACKUPS,
+    TOOLTIP_DOWNGRADER_DELTAS,
+)
 from qt_logger import QtLogger
 from qt_modal_dialogs import AboutDialog, ModalDialogBase
 from qt_threading import BaseWorker
