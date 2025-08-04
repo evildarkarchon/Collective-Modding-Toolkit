@@ -19,19 +19,15 @@
 
 import webbrowser
 from collections.abc import Callable
-from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QGroupBox, QPushButton, QLabel, QVBoxLayout, 
-    QHBoxLayout, QTabWidget
-)
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QVBoxLayout
 
+from patcher._qt_archives import QtArchivePatcher  # noqa: PLC2701
 from qt_downgrader import QtDowngrader
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from qt_modal_dialogs import ModalDialogBase
-from patcher._qt_archives import QtArchivePatcher
 
 
 class ToolsTab(CMCTabWidget):
@@ -76,7 +72,7 @@ class ToolsTab(CMCTabWidget):
             info_label = QLabel()
             info_pixmap = self.cmc.get_image("images/info-16.png")
             info_label.setPixmap(info_pixmap)
-            info_label.setAlignment(Qt.AlignCenter)
+            info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             info_label.setToolTip(tooltip)
             button_layout.addWidget(info_label)
             button_layout.addSpacing(5)
@@ -174,7 +170,7 @@ class ToolsTab(CMCTabWidget):
         }
         
         # Store reference to first column for planned tools
-        first_group_box: Optional[QGroupBox] = None
+        first_group_box: QGroupBox | None = None
         
         # Create columns
         for i, (column_title, buttons) in enumerate(tool_buttons.items()):
@@ -202,20 +198,24 @@ class ToolsTab(CMCTabWidget):
         if first_group_box:
             layout = first_group_box.layout()
             # Remove stretch temporarily
-            layout.takeAt(layout.count() - 1)
+            if layout and layout.count() > 0:
+                layout.takeAt(layout.count() - 1)
             
-            # Add planned tools label
-            planned_label = QLabel("Planned Tools:")
-            small_font = QFont()
-            small_font.setPointSize(8)
-            planned_label.setFont(small_font)
-            planned_label.setAlignment(Qt.AlignCenter)
-            layout.addWidget(planned_label)
-            
-            # Add planned tool buttons (disabled)
-            self.add_tool_button(layout, "File Inspector")
-            self.add_tool_button(layout, "Move CC to\nMod Manager")
-            self.add_tool_button(layout, "Papyrus Script\n   Compiler")
-            
-            # Re-add stretch
-            layout.addStretch()
+            if layout:
+                # Add planned tools label
+                planned_label = QLabel("Planned Tools:")
+                small_font = QFont()
+                small_font.setPointSize(8)
+                planned_label.setFont(small_font)
+                planned_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(planned_label)
+                
+                # Add planned tool buttons (disabled) - cast to QVBoxLayout
+                if isinstance(layout, QVBoxLayout):
+                    self.add_tool_button(layout, "File Inspector")
+                    self.add_tool_button(layout, "Move CC to\nMod Manager")
+                    self.add_tool_button(layout, "Papyrus Script\n   Compiler")
+                
+                # Re-add stretch if it's a QVBoxLayout
+                if isinstance(layout, QVBoxLayout):
+                    layout.addStretch()

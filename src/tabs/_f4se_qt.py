@@ -18,12 +18,11 @@
 
 
 import logging
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QTreeWidget, QTreeWidgetItem, QTextEdit, QLabel,
-    QTabWidget, QHeaderView
-)
-from PySide6.QtGui import QFont, QColor, QTextCharFormat, QTextCursor
+from PySide6.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
+from PySide6.QtWidgets import QHeaderView, QLabel, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem
 
 from cmt_globals import (
     ABOUT_F4SE_DLLS,
@@ -33,8 +32,10 @@ from cmt_globals import (
     COLOR_NEUTRAL_2,
 )
 from qt_helpers import CMCheckerInterface, CMCTabWidget
-from helpers import DLLInfo
 from utils import parse_dll
+
+if TYPE_CHECKING:
+    from helpers import DLLInfo
 
 TAG_NEUTRAL = "neutral"
 TAG_GOOD = "good"
@@ -111,10 +112,10 @@ class F4SETab(CMCTabWidget):
         
         # Configure columns
         header = self.tree_dlls.header()
-        header.setSectionResizeMode(0, QHeaderView.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         
         # Set column widths
         self.tree_dlls.setColumnWidth(0, 300)
@@ -123,21 +124,21 @@ class F4SETab(CMCTabWidget):
         self.tree_dlls.setColumnWidth(3, 80)
         
         # Set column alignments
-        self.tree_dlls.headerItem().setTextAlignment(0, Qt.AlignRight)
-        self.tree_dlls.headerItem().setTextAlignment(1, Qt.AlignCenter)
-        self.tree_dlls.headerItem().setTextAlignment(2, Qt.AlignCenter)
-        self.tree_dlls.headerItem().setTextAlignment(3, Qt.AlignCenter)
+        self.tree_dlls.headerItem().setTextAlignment(0, Qt.AlignmentFlag.AlignRight)
+        self.tree_dlls.headerItem().setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+        self.tree_dlls.headerItem().setTextAlignment(2, Qt.AlignmentFlag.AlignCenter)
+        self.tree_dlls.headerItem().setTextAlignment(3, Qt.AlignmentFlag.AlignCenter)
         
         # Add tree to layout
         self.main_layout.addWidget(self.tree_dlls, 0, 0, 2, 1)
         
         # Title label
         title_label = QLabel("F4SE DLLs")
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
         font.setPointSize(10)
         title_label.setFont(font)
-        self.main_layout.addWidget(title_label, 0, 2, Qt.AlignTop)
+        self.main_layout.addWidget(title_label, 0, 2, Qt.AlignmentFlag.AlignTop)
         
         # About text
         self.text_about_f4se = QTextEdit()
@@ -174,38 +175,38 @@ class F4SETab(CMCTabWidget):
         
         # Apply formats to specific lines
         # Line 2, chars 0-18
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, 1)
-        cursor.movePosition(QTextCursor.StartOfLine)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 18)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Down, QTextCursor.MoveMode.MoveAnchor, 1)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, 18)
         cursor.setCharFormat(neutral_format)
         
         # Line 6, char 0
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, 5)
-        cursor.movePosition(QTextCursor.StartOfLine)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 1)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Down, QTextCursor.MoveMode.MoveAnchor, 5)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, 1)
         cursor.setCharFormat(good_format)
         
         # Line 8, char 0
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, 7)
-        cursor.movePosition(QTextCursor.StartOfLine)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 1)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Down, QTextCursor.MoveMode.MoveAnchor, 7)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, 1)
         cursor.setCharFormat(bad_format)
         
         # Line 10, char 0
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, 9)
-        cursor.movePosition(QTextCursor.StartOfLine)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 1)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Down, QTextCursor.MoveMode.MoveAnchor, 9)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, 1)
         cursor.setCharFormat(neutral_format)
         
         # Line 14, char 0
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, 13)
-        cursor.movePosition(QTextCursor.StartOfLine)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 1)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Down, QTextCursor.MoveMode.MoveAnchor, 13)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, 1)
         cursor.setCharFormat(note_format)
     
     def _populate_tree(self) -> None:
@@ -215,7 +216,7 @@ class F4SETab(CMCTabWidget):
         for dll, info in self.dll_info.items():
             item = QTreeWidgetItem()
             item.setText(0, dll)
-            item.setTextAlignment(0, Qt.AlignRight)
+            item.setTextAlignment(0, Qt.AlignmentFlag.AlignRight)
             
             if info is None or not info["IsF4SE"]:
                 # Unknown DLL
@@ -250,9 +251,9 @@ class F4SETab(CMCTabWidget):
                 item.setText(3, cg)
                 
                 # Center align status columns
-                item.setTextAlignment(1, Qt.AlignCenter)
-                item.setTextAlignment(2, Qt.AlignCenter)
-                item.setTextAlignment(3, Qt.AlignCenter)
+                item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+                item.setTextAlignment(2, Qt.AlignmentFlag.AlignCenter)
+                item.setTextAlignment(3, Qt.AlignmentFlag.AlignCenter)
                 
                 # Set colors based on status
                 if cg == EMOJI_DLL_NOTE:

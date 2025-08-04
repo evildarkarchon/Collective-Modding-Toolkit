@@ -17,29 +17,39 @@
 #
 
 
-import io
+import io  # noqa: I001
 import logging
 import os
+import platform
 import struct
 import sys
-import winreg
 import zlib
 from collections.abc import Generator
-from ctypes import WinDLL, byref, c_int, create_unicode_buffer, sizeof, windll, wintypes
 from pathlib import Path
-from tkinter import DISABLED, EW, Event, HORIZONTAL, Misc, NORMAL, NS, NSEW, Text, Tk, TOP
-from tkinter import ttk
+# from tkinter import DISABLED, EW, Event, HORIZONTAL, Misc, NORMAL, NS, NSEW, Text, Tk, TOP  # Tkinter removed
+# from tkinter import ttk  # Tkinter removed
 from typing import TYPE_CHECKING, Literal, overload
 
 import chardet
 import requests
-import win32api
 from packaging.version import InvalidVersion, Version
 from psutil import Process
 
-import sv_ttk
+# Windows-specific imports
+if platform.system() == "Windows":
+    import winreg
+    from ctypes import WinDLL, byref, c_int, create_unicode_buffer, sizeof, windll, wintypes
+
+    import win32api  # pyright: ignore[reportMissingModuleSource]
+else:
+    # Mock objects for non-Windows platforms
+    winreg = None  # type: ignore[assignment]
+    windll = None  # type: ignore[assignment]
+    WinDLL = None  # type: ignore[assignment,misc]
+
+# import sv_ttk  # Tkinter removed
+from cmt_globals import APP_VERSION, NEXUS_LINK
 from enums import CSIDL
-from cmt_globals import APP_VERSION, COLOR_DEFAULT, FONT, FONT_SMALL, NEXUS_LINK
 from helpers import DLLInfo
 from mod_manager_info import ModManagerInfo
 
@@ -49,7 +59,8 @@ DONT_RESOLVE_DLL_REFERENCES = 0x00000001
 HTTP_OK = 200
 KEY_CTRL = 12
 
-win11_24h2 = sys.getwindowsversion().build >= 26100
+# Check for Windows 11 24H2
+win11_24h2 = sys.getwindowsversion().build >= 26100 if platform.system() == "Windows" else False
 
 
 def rglob(path: Path, ext: str) -> Generator[Path]:
@@ -131,6 +142,8 @@ def read_text_encoded(file_path: Path) -> tuple[str, str]:
 
 
 def load_font(font_path: str) -> None:
+	if platform.system() != "Windows":
+		return  # Font loading only works on Windows
 	# https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-addfontresourceexw
 	# FR_PRIVATE = 0x10
 	# FR_NOT_ENUM = 0x20
@@ -139,6 +152,9 @@ def load_font(font_path: str) -> None:
 
 
 def get_environment_path(location: CSIDL) -> Path:
+	if platform.system() != "Windows":
+		# Return a dummy path for non-Windows systems
+		return Path.home() / "Documents"
 	buf = create_unicode_buffer(wintypes.MAX_PATH)
 	windll.shell32.SHGetFolderPathW(None, location, None, 0, buf)
 	path = Path(buf.value)
@@ -180,14 +196,16 @@ def get_asset_path(relative_path: str) -> Path:
 	return base_path / "assets" / relative_path
 
 
-def block_text_input(event: "Event[Text]") -> str | None:
-	# Block all input except CTRL+A / CTRL+C
-	if event.state == KEY_CTRL and event.keysym in "AC":
-		return None
-	return "break"
+# def block_text_input(event: "Event[Text]") -> str | None:  # Tkinter removed
+# 	# Block all input except CTRL+A / CTRL+C
+# 	if event.state == KEY_CTRL and event.keysym in "AC":
+# 		return None
+# 	return "break"
 
 
 def get_file_version(path: Path) -> tuple[int, int, int, int] | None:
+	if platform.system() != "Windows":
+		return None  # File version info only available on Windows
 	try:
 		info = win32api.GetFileVersionInfo(str(path), "\\")
 	except:
@@ -218,6 +236,8 @@ def get_crc32(file_path: Path, chunk_size: int = 65536, max_chunks: int | None =
 
 
 def parse_dll(file_path: Path) -> DLLInfo | None:
+	if platform.system() != "Windows":
+		return None  # DLL parsing only works on Windows
 	try:
 		dll = WinDLL(str(file_path), winmode=DONT_RESOLVE_DLL_REFERENCES)
 		dll_info: DLLInfo = {
@@ -238,6 +258,8 @@ def ver_to_str(version: str | tuple[int, int, int, int]) -> str:
 
 
 def get_registry_value(key: int, subkey: str, value_name: str) -> str | None:
+	if platform.system() != "Windows":
+		return None  # Registry only exists on Windows
 	try:
 		with winreg.OpenKey(key, subkey) as reg_handle:
 			value, value_type = winreg.QueryValueEx(reg_handle, value_name)
@@ -251,64 +273,66 @@ def get_registry_value(key: int, subkey: str, value_name: str) -> str | None:
 	return None
 
 
-def copy_text(widget: ttk.Widget, text: str) -> None:
-	widget.clipboard_clear()
-	widget.clipboard_append(text)
+# def copy_text(widget: ttk.Widget, text: str) -> None:  # Tkinter removed
+# 	widget.clipboard_clear()
+# 	widget.clipboard_append(text)
 
 
-def copy_text_button(button: ttk.Button, text: str) -> None:
-	button.master.clipboard_clear()
-	button.master.clipboard_append(text)
-	original_text = button.cget("text")
-	button.config(text="Copied!", state=DISABLED)
-	button.master.after(3000, lambda: button.config(text=original_text, state=NORMAL))
+# def copy_text_button(button: ttk.Button, text: str) -> None:  # Tkinter removed
+# 	button.master.clipboard_clear()
+# 	button.master.clipboard_append(text)
+# 	original_text = button.cget("text")
+# 	button.config(text="Copied!", state=DISABLED)
+# 	button.master.after(3000, lambda: button.config(text=original_text, state=NORMAL))
 
 
-def add_separator(master: Misc, orient: Literal["horizontal", "vertical"], column: int, row: int, span: int) -> None:
-	separator = ttk.Separator(master, orient=orient)
-	if orient == HORIZONTAL:
-		separator.grid(column=column, row=row, columnspan=span, padx=10, pady=10, ipady=1, sticky=EW)
-	else:
-		separator.grid(column=column, row=row, rowspan=span, padx=10, pady=10, ipadx=1, sticky=NS)
+# def add_separator(master: Misc, orient: Literal["horizontal", "vertical"], column: int, row: int, span: int) -> None:  # Tkinter removed
+# 	separator = ttk.Separator(master, orient=orient)
+# 	if orient == HORIZONTAL:
+# 		separator.grid(column=column, row=row, columnspan=span, padx=10, pady=10, ipady=1, sticky=EW)
+# 	else:
+# 		separator.grid(column=column, row=row, rowspan=span, padx=10, pady=10, ipadx=1, sticky=NS)
 
 
-def set_titlebar_style(window: Misc) -> None:
-	window.update()
-	hwnd = windll.user32.GetParent(window.winfo_id())
-	windll.dwmapi.DwmSetWindowAttribute(hwnd, 19, byref(c_int(1)), sizeof(c_int))
-	windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, byref(c_int(1)), sizeof(c_int))
+# def set_titlebar_style(window: Misc) -> None:  # Tkinter removed
+# 	if platform.system() != "Windows":
+# 		return  # Windows titlebar styling only works on Windows
+# 	window.update()
+# 	hwnd = windll.user32.GetParent(window.winfo_id())
+# 	windll.dwmapi.DwmSetWindowAttribute(hwnd, 19, byref(c_int(1)), sizeof(c_int))
+# 	windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, byref(c_int(1)), sizeof(c_int))
 
 
-def set_theme(win: Tk) -> None:
-	set_titlebar_style(win)
-	sv_ttk.apply_dark_theme()
-	style = ttk.Style(win)
-
-	# Remove blue dotted line from focused tab
-	# fmt: off
-	style.layout(
-		"Tab", [("Notebook.tab", {
-			"sticky": NSEW,
-			"children": [("Notebook.padding", {
-				"side": TOP,
-				"sticky": NSEW,
-				"children": [("Notebook.label", {
-					"side": TOP,
-					"sticky": "",
-				})],
-			})],
-		})],
-	)
-	# fmt: on
-	# style.configure("TNotebook.Tab", padding=padding)
-	style.configure("Tab", font=FONT, foreground=COLOR_DEFAULT)
-	style.configure("TButton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("TCheckbutton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("TRadiobutton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("TLabelframe.Label", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("Treeview", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("Heading", font=FONT_SMALL, foreground=COLOR_DEFAULT)
-	style.configure("Update.TFrame", background="pale green")
+# def set_theme(win: Tk) -> None:  # Tkinter removed
+# 	set_titlebar_style(win)
+# 	sv_ttk.apply_dark_theme()
+# 	style = ttk.Style(win)
+# 
+# 	# Remove blue dotted line from focused tab
+# 	# fmt: off
+# 	style.layout(
+# 		"Tab", [("Notebook.tab", {
+# 			"sticky": NSEW,
+# 			"children": [("Notebook.padding", {
+# 				"side": TOP,
+# 				"sticky": NSEW,
+# 				"children": [("Notebook.label", {
+# 					"side": TOP,
+# 					"sticky": "",
+# 				})],
+# 			})],
+# 		})],
+# 	)
+# 	# fmt: on
+# 	# style.configure("TNotebook.Tab", padding=padding)
+# 	style.configure("Tab", font=FONT, foreground=COLOR_DEFAULT)
+# 	style.configure("TButton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("TCheckbutton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("TRadiobutton", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("TLabelframe.Label", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("Treeview", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("Heading", font=FONT_SMALL, foreground=COLOR_DEFAULT)
+# 	style.configure("Update.TFrame", background="pale green")
 
 
 def check_for_update_nexus() -> str | None:

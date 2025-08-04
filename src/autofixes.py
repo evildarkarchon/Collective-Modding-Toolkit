@@ -17,26 +17,20 @@
 #
 
 
-import dataclasses
 import logging
-from tkinter import DISABLED, NORMAL
+# Tkinter imports removed - using Qt version instead
 from typing import TYPE_CHECKING
 
+from autofix_types import AutoFixResult
 from enums import SolutionType
 from helpers import ProblemInfo, SimpleProblemInfo
-from modal_window import AboutWindow
+# from modal_window import AboutWindow  # Tkinter removed
 from utils import read_text_encoded
 
 if TYPE_CHECKING:
 	import tabs
 
 logger = logging.getLogger(__name__)
-
-
-@dataclasses.dataclass
-class AutoFixResult:
-	success: bool
-	details: str
 
 
 def autofix_complex_sorter(problem_info: ProblemInfo | SimpleProblemInfo) -> AutoFixResult:
@@ -132,23 +126,23 @@ def do_autofix(results_pane: "tabs.ResultDetailsPane", selection: str) -> None:
 			assert isinstance(results_pane.problem_info.solution, SolutionType)
 			assert results_pane.button_autofix is not None
 		solution_func = AUTO_FIXES[results_pane.problem_info.solution]
-		results_pane.button_autofix.configure(text="Fixing...", state=DISABLED)
+		# results_pane.button_autofix.configure(text="Fixing...", state=DISABLED)  # Tkinter removed
 		logger.info("Auto-Fix : Running %s", solution_func.__name__)
 		results_pane.problem_info.autofix_result = solution_func(results_pane.problem_info)
 		if results_pane.problem_info.autofix_result.success:
-			results_pane.button_autofix.configure(text="Fixed!", style="TButton", state=NORMAL)
+			# results_pane.button_autofix.configure(text="Fixed!", style="TButton", state=NORMAL)  # Tkinter removed
 			results_pane.scanner_tab.tree_results.item(
 				selection,
 				image=results_pane.scanner_tab.cmc.get_image("images/check-20.png"),
 			)
 		else:
-			results_pane.button_autofix.configure(text="Fix Failed", style="TButton", state=NORMAL)
+			# results_pane.button_autofix.configure(text="Fix Failed", style="TButton", state=NORMAL)  # Tkinter removed
 
-	AboutWindow(
-		results_pane.scanner_tab.cmc.root,
-		results_pane.scanner_tab.cmc,
-		500,
-		300,
-		"Auto-Fix Results",
-		results_pane.problem_info.autofix_result.details,
-	)
+	# AboutWindow(  # Tkinter removed
+	# 	results_pane.scanner_tab.cmc.root,
+	# 	results_pane.scanner_tab.cmc,
+	# 	500,
+	# 	300,
+	# 	"Auto-Fix Results",
+	# 	results_pane.problem_info.autofix_result.details,
+	# )

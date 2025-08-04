@@ -191,7 +191,7 @@ class OverviewTab(CMCTabWidget):
 		label_path.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 		self.cmc.game_path_sv.changed.connect(label_path.setText)
 		label_path.setText(self.cmc.game_path_sv.get())
-		label_path.mousePressEvent = lambda _: os.startfile(self.cmc.game.game_path)
+		label_path.mousePressEvent = lambda _: os.startfile(self.cmc.game.game_path) # pyright: ignore[reportUnknownLambdaType, reportAttributeAccessIssue]
 		label_path.setToolTip(cmt_globals.TOOLTIP_GAME_PATH)
 		top_layout.addWidget(label_path, 1, 2, Qt.AlignmentFlag.AlignLeft)
 

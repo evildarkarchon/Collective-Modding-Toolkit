@@ -18,7 +18,9 @@
 
 
 import contextlib
+import fnmatch
 import os
+import sys
 import webbrowser
 from pathlib import Path
 
@@ -29,11 +31,14 @@ from PySide6.QtWidgets import (
 	QApplication,
 	QCheckBox,
 	QDialog,
+	QDialogButtonBox,
 	QGridLayout,
 	QGroupBox,
 	QHBoxLayout,
 	QHeaderView,
 	QLabel,
+	QListWidget,
+	QListWidgetItem,
 	QMenu,
 	QMessageBox,
 	QProgressBar,
@@ -47,7 +52,7 @@ from PySide6.QtWidgets import (
 
 import cmt_globals
 from autofix_handlers import AUTOFIX_REGISTRY, do_autofix_qt
-from autofixes import AutoFixResult
+from autofix_types import AutoFixResult
 from enums import ProblemType, Tab
 from helpers import ProblemInfo, SimpleProblemInfo
 from qt_helpers import CMCheckerInterface, CMCTabWidget
@@ -60,7 +65,7 @@ from scan_settings import (
 	ScanSetting,
 	ScanSettings,
 )
-from scanner_threading import ScanWorker
+from qt_workers import ScannerWorker
 from utils import (
 	exists,
 	is_dir,
@@ -125,8 +130,12 @@ class ScannerTab(CMCTabWidget):
 		self.details_pane: ResultDetailsPane | None = None
 
 		self.scan_results: list[ProblemInfo | SimpleProblemInfo] = []
-		self.scan_worker: ScanWorker | None = None
+		self.scan_worker: ScannerWorker | None = None
 		self.thread_manager = ThreadManager()
+		
+		# Load ignore list from settings
+		self.ignored_problems: set[str] = set(self.cmc.settings.dict.get("scanner_ignored_problems", []))
+		self.ignore_patterns: list[str] = self.cmc.settings.dict.get("scanner_ignore_patterns", [])
 
 		self.dv_progress = QtDoubleVar()
 		self.sv_scanning_text = QtStringVar()
@@ -216,6 +225,12 @@ class ScannerTab(CMCTabWidget):
 		self.button_batch_fix.clicked.connect(self.show_batch_autofix)
 		self.button_batch_fix.setEnabled(False)  # Disabled until results loaded
 		controls_layout.addWidget(self.button_batch_fix)
+		
+		# Manage Ignore List button
+		self.button_clear_ignore = QPushButton("Manage Ignore List")
+		self.button_clear_ignore.clicked.connect(self.show_ignore_list_dialog)
+		self.button_clear_ignore.setEnabled(False)  # Disabled until items are ignored
+		controls_layout.addWidget(self.button_clear_ignore)
 
 		controls_layout.addStretch()
 
@@ -301,8 +316,10 @@ class ScannerTab(CMCTabWidget):
 
 		self.dv_progress.set(1)
 
-		# Create worker
-		self.scan_worker = ScanWorker(self.cmc, scan_settings, overview_problems)
+		# Create worker - TODO: Update to use proper Qt worker initialization
+		# For now, using empty paths list as placeholder
+		paths_to_scan: list[Path] = []
+		self.scan_worker = ScannerWorker(scan_settings, paths_to_scan)
 
 		# Connect signals
 		self.scan_worker.signals.progress.connect(self.on_progress)
@@ -351,10 +368,23 @@ class ScannerTab(CMCTabWidget):
 		self.populate_results()
 
 	@Slot(str, str)
-	def on_scan_error(self, error: str, traceback: str) -> None:  # noqa: ARG002
+	def on_scan_error(self, error: str, traceback_str: str) -> None:
 		"""Handle scan errors."""
 		self.sv_scanning_text.set(f"Scan error: {error}")
-		# TODO: Show error dialog
+		
+		# Show error dialog with details
+		msg = QMessageBox(self)
+		msg.setWindowTitle("Scan Error")
+		msg.setIcon(QMessageBox.Icon.Critical)
+		msg.setText("An error occurred during the scan.")
+		msg.setInformativeText(error)
+		
+		# Add detailed traceback if available
+		if traceback_str:
+			msg.setDetailedText(traceback_str)
+		
+		msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+		msg.exec()
 
 	@Slot()
 	def on_scan_finished(self) -> None:
@@ -377,15 +407,23 @@ class ScannerTab(CMCTabWidget):
 			self.sv_scanning_text.set("")
 
 		# Update results info
-		self.sv_results_info.set(f"{len(self.scan_results)} Results ~ Select an item for details")
+		non_ignored_count = sum(1 for p in self.scan_results if not self._is_problem_ignored(p))
+		ignored_count = len(self.ignored_problems)
+		if ignored_count > 0:
+			self.sv_results_info.set(f"{non_ignored_count} Results ({ignored_count} ignored) ~ Select an item for details")
+		else:
+			self.sv_results_info.set(f"{non_ignored_count} Results ~ Select an item for details")
 
-		# Enable batch fix button if there are fixable problems
-		fixable_count = sum(1 for p in self.scan_results if p.solution in AUTOFIX_REGISTRY)
+		# Enable batch fix button if there are fixable problems (excluding ignored)
+		fixable_count = sum(1 for p in self.scan_results if p.solution in AUTOFIX_REGISTRY and not self._is_problem_ignored(p))
 		self.button_batch_fix.setEnabled(fixable_count > 0)
 		if fixable_count > 0:
 			self.button_batch_fix.setText(f"Batch Auto-Fix ({fixable_count})")
 		else:
 			self.button_batch_fix.setText("Batch Auto-Fix")
+		
+		# Enable Clear Ignore List button if we have ignored items
+		self.button_clear_ignore.setEnabled(len(self.ignored_problems) > 0 or len(self.ignore_patterns) > 0)
 
 		# Clear previous selection handler to avoid duplicate connections
 		with contextlib.suppress(TypeError):
@@ -468,6 +506,11 @@ class ScannerTab(CMCTabWidget):
 		# Process current batch
 		for i in range(self._batch_index, end_index):
 			group, problem_info = self._sorted_problems[i]
+			
+			# Skip ignored problems
+			if self._is_problem_ignored(problem_info):
+				continue
+				
 			group_item = self._group_items[group]
 
 			# Create item for problem
@@ -568,8 +611,20 @@ class ScannerTab(CMCTabWidget):
 			action_autofix.triggered.connect(lambda: self._autofix_from_context_menu(item_id))
 
 		# Ignore Problem
-		action_ignore = menu.addAction("Ignore Problem")
+		action_ignore = menu.addAction("Ignore This Problem")
 		action_ignore.triggered.connect(lambda: self.ignore_problem(problem_info))
+		
+		# Ignore by pattern
+		problem_type = problem_info.type if isinstance(problem_info, ProblemInfo) else problem_info.problem
+		action_ignore_type = menu.addAction(f"Ignore All '{problem_type}' Problems")
+		action_ignore_type.triggered.connect(lambda: self.ignore_by_type(problem_type))
+		
+		# Ignore by path pattern (for files in specific folders)
+		path_parts = str(problem_info.relative_path).split("/")
+		if len(path_parts) > 1:
+			folder_pattern = "/".join(path_parts[:-1]) + "/*"
+			action_ignore_folder = menu.addAction(f"Ignore All in '{path_parts[-2]}' Folder")
+			action_ignore_folder.triggered.connect(lambda: self.ignore_by_pattern(f"*:{folder_pattern}"))
 
 		# Show menu at cursor position
 		menu.exec_(self.tree_results.viewport().mapToGlobal(position))
@@ -590,15 +645,15 @@ class ScannerTab(CMCTabWidget):
 	def browse_to_file(self, problem_info: ProblemInfoType) -> None:  # noqa: PLR6301
 		"""Browse to the problem file location."""
 		target = problem_info.path
-		if isinstance(target, Path):
-			if exists(target):
-				if is_dir(target):
-					os.startfile(target)
-				else:
-					# Open parent directory and select file
-					os.startfile(target.parent)
-			elif exists(target.parent):
-				os.startfile(target.parent)
+		if isinstance(target, Path) and sys.platform == "win32":
+				if exists(target):
+					if is_dir(target):
+						os.startfile(target)  # type: ignore[attr-defined]
+					else:
+						# Open parent directory and select file
+						os.startfile(target.parent)  # type: ignore[attr-defined]
+				elif exists(target.parent):
+					os.startfile(target.parent)  # type: ignore[attr-defined]
 
 	def copy_path_from_menu(self, problem_info: ProblemInfoType) -> None:  # noqa: PLR6301
 		"""Copy file path to clipboard from context menu."""
@@ -629,11 +684,21 @@ class ScannerTab(CMCTabWidget):
 
 	def ignore_problem(self, problem_info: ProblemInfoType) -> None:
 		"""Add problem to ignore list and refresh display."""
-		# TODO: Implement ignore list functionality
-		# For now, just remove from display
+		# Create a unique signature for the problem
+		signature = self._get_problem_signature(problem_info)
+		
+		# Add to ignore list
+		self.ignored_problems.add(signature)
+		
+		# Save to settings
+		self._save_ignore_lists()
+		
+		# Remove from current display
 		selected_items = self.tree_results.selectedItems()
 		if selected_items:
 			item = selected_items[0]
+			item_id = item.data(0, Qt.ItemDataRole.UserRole)
+			
 			parent = item.parent()
 			if parent:
 				parent.removeChild(item)
@@ -641,10 +706,191 @@ class ScannerTab(CMCTabWidget):
 				if parent.childCount() == 0:
 					self.tree_results.invisibleRootItem().removeChild(parent)
 
-			# Update results count
-			if problem_info in self.scan_results:
-				self.scan_results.remove(problem_info)
-				self.sv_results_info.set(f"{len(self.scan_results)} Results ~ Select an item for details")
+			# Remove from data dict
+			if item_id and item_id in self.tree_results_data:
+				del self.tree_results_data[item_id]
+				
+		# Update results count
+		self._update_results_info()
+		
+		# Enable Clear Ignore List button if we have ignored items
+		self.button_clear_ignore.setEnabled(len(self.ignored_problems) > 0 or len(self.ignore_patterns) > 0)
+		
+		# Close details pane if it was showing this problem
+		if self.details_pane and self.details_pane.problem_info == problem_info:
+			self.details_pane.close()
+	
+	@staticmethod
+	def _get_problem_signature(problem_info: ProblemInfoType) -> str:
+		"""Generate a unique signature for a problem to use in ignore list."""
+		# Create signature from problem type and path
+		problem_type = problem_info.type if isinstance(problem_info, ProblemInfo) else problem_info.problem
+		return f"{problem_type}:{problem_info.relative_path}"
+	
+	def _is_problem_ignored(self, problem_info: ProblemInfoType) -> bool:
+		"""Check if a problem is in the ignore list or matches an ignore pattern."""
+		signature = self._get_problem_signature(problem_info)
+		
+		# Check exact matches
+		if signature in self.ignored_problems:
+			return True
+		
+		# Check patterns (wildcards for problem type or path)
+		return any(fnmatch.fnmatch(signature, pattern) for pattern in self.ignore_patterns)
+	
+	def clear_ignore_list(self) -> None:
+		"""Clear all ignored problems and refresh display."""
+		self.ignored_problems.clear()
+		self.ignore_patterns.clear()
+		
+		# Save to settings
+		self._save_ignore_lists()
+		
+		# Disable Clear Ignore List button
+		self.button_clear_ignore.setEnabled(False)
+		# Re-populate results to show previously ignored problems
+		if self.scan_results:
+			self.populate_results()
+	
+	def _save_ignore_lists(self) -> None:
+		"""Save ignore lists to settings."""
+		self.cmc.settings.dict["scanner_ignored_problems"] = list(self.ignored_problems)
+		self.cmc.settings.dict["scanner_ignore_patterns"] = self.ignore_patterns
+		self.cmc.settings.save()
+	
+	def ignore_by_type(self, problem_type: str) -> None:
+		"""Add a pattern to ignore all problems of a specific type."""
+		pattern = f"{problem_type}:*"
+		if pattern not in self.ignore_patterns:
+			self.ignore_patterns.append(pattern)
+			self._save_ignore_lists()
+			
+			# Update UI
+			self.button_clear_ignore.setEnabled(True)
+			
+			# Refresh display to apply new pattern
+			if self.scan_results:
+				self.populate_results()
+			
+			# Show confirmation
+			QMessageBox.information(
+				self, 
+				"Pattern Added", 
+				f"All '{problem_type}' problems will now be ignored.",
+			)
+	
+	def ignore_by_pattern(self, pattern: str) -> None:
+		"""Add a custom pattern to the ignore list."""
+		if pattern not in self.ignore_patterns:
+			self.ignore_patterns.append(pattern)
+			self._save_ignore_lists()
+			
+			# Update UI
+			self.button_clear_ignore.setEnabled(True)
+			
+			# Refresh display to apply new pattern
+			if self.scan_results:
+				self.populate_results()
+			
+			# Show confirmation
+			QMessageBox.information(
+				self, 
+				"Pattern Added", 
+				f"Pattern '{pattern}' added to ignore list.",
+			)
+	
+	def _update_results_info(self) -> None:
+		"""Update the results info label with count including ignored items."""
+		visible_count = self.tree_results.topLevelItemCount()
+		
+		# Count total ignored (exact matches + patterns)
+		total_ignored = len(self.ignored_problems) + len(self.ignore_patterns)
+		
+		if total_ignored > 0:
+			self.sv_results_info.set(f"{visible_count} Results ({total_ignored} ignore rules) ~ Select an item for details")
+		else:
+			self.sv_results_info.set(f"{visible_count} Results ~ Select an item for details")
+	
+	def show_ignore_list_dialog(self) -> None:
+		"""Show dialog to manage the ignore list."""
+		dialog = QDialog(self)
+		dialog.setWindowTitle("Manage Ignore List")
+		dialog.setModal(True)
+		dialog.resize(500, 400)
+		
+		layout = QVBoxLayout(dialog)
+		
+		# List widget to show all ignore rules
+		list_widget = QListWidget()
+		
+		# Add exact matches
+		for signature in sorted(self.ignored_problems):
+			item = QListWidgetItem(f"📍 {signature}")
+			item.setData(Qt.ItemDataRole.UserRole, ("exact", signature))
+			list_widget.addItem(item)
+		
+		# Add patterns
+		for pattern in sorted(self.ignore_patterns):
+			item = QListWidgetItem(f"🔍 {pattern}")
+			item.setData(Qt.ItemDataRole.UserRole, ("pattern", pattern))
+			list_widget.addItem(item)
+		
+		if list_widget.count() == 0:
+			item = QListWidgetItem("(No ignore rules)")
+			item.setFlags(Qt.ItemFlag.NoItemFlags)
+			list_widget.addItem(item)
+		
+		layout.addWidget(list_widget)
+		
+		# Buttons
+		button_box = QDialogButtonBox()
+		
+		# Remove Selected button
+		remove_button = button_box.addButton("Remove Selected", QDialogButtonBox.ButtonRole.ActionRole)
+		remove_button.clicked.connect(lambda: self._remove_ignore_rule(list_widget))
+		
+		# Clear All button
+		clear_button = button_box.addButton("Clear All", QDialogButtonBox.ButtonRole.DestructiveRole)
+		clear_button.clicked.connect(lambda: (self.clear_ignore_list(), dialog.accept()))
+		
+		# Close button
+		button_box.addButton(QDialogButtonBox.StandardButton.Close)
+		button_box.rejected.connect(dialog.reject)
+		
+		layout.addWidget(button_box)
+		
+		dialog.exec()
+	
+	def _remove_ignore_rule(self, list_widget: QListWidget) -> None:
+		"""Remove selected ignore rule from the list."""
+		current_item = list_widget.currentItem()
+		if not current_item:
+			return
+		
+		data = current_item.data(Qt.ItemDataRole.UserRole)
+		if not data:
+			return
+		
+		rule_type, rule_value = data
+		
+		if rule_type == "exact":
+			self.ignored_problems.discard(rule_value)
+		elif rule_type == "pattern" and rule_value in self.ignore_patterns:
+			self.ignore_patterns.remove(rule_value)
+		
+		# Save changes
+		self._save_ignore_lists()
+		
+		# Remove from list widget
+		list_widget.takeItem(list_widget.row(current_item))
+		
+		# Update button state
+		if len(self.ignored_problems) == 0 and len(self.ignore_patterns) == 0:
+			self.button_clear_ignore.setEnabled(False)
+		
+		# Refresh display
+		if self.scan_results:
+			self.populate_results()
 
 	def show_batch_autofix(self) -> None:
 		"""Show batch autofix dialog."""
@@ -1030,15 +1276,15 @@ class ResultDetailsPane(QDialog):
 			return
 
 		target = self.problem_info.path
-		if isinstance(target, Path):
-			if exists(target):
-				if is_dir(target):
-					os.startfile(target)
-				else:
-					# Open parent directory and select file
-					os.startfile(target.parent)
-			elif exists(target.parent):
-				os.startfile(target.parent)
+		if isinstance(target, Path) and sys.platform == "win32":
+				if exists(target):
+					if is_dir(target):
+						os.startfile(target)  # type: ignore[attr-defined]
+					else:
+						# Open parent directory and select file
+						os.startfile(target.parent)  # type: ignore[attr-defined]
+				elif exists(target.parent):
+					os.startfile(target.parent)  # type: ignore[attr-defined]
 
 	def copy_path(self) -> None:
 		"""Copy file path to clipboard."""
@@ -1104,7 +1350,10 @@ class ResultDetailsPane(QDialog):
 		if isinstance(target, Path) and (exists(target) or exists(target.parent)):
 			if not is_dir(target):
 				target = target.parent
-			self.label_file_path.mousePressEvent = lambda _: os.startfile(target)
+			if sys.platform == "win32":
+				self.label_file_path.mousePressEvent = lambda _: os.startfile(target)  # type: ignore[attr-defined]
+			else:
+				self.label_file_path.mousePressEvent = lambda _: None
 			self.label_file_path.setToolTip("Click to open location")
 			self.label_file_path.setCursor(Qt.CursorShape.PointingHandCursor)
 		else:

@@ -172,12 +172,7 @@ def main():
     """Run the test application."""
     app = QApplication(sys.argv)
     
-    # Set dark theme if available
-    try:
-        from sv_ttk import set_theme
-        set_theme("dark")
-    except ImportError:
-        pass
+    # Dark theme removed - was tkinter-specific
     
     window = TestWindow()
     window.show()

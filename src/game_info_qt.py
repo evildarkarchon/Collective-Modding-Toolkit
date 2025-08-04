@@ -18,10 +18,16 @@
 
 
 import os
+import platform
 import sys
-import winreg
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
+
+# Windows-specific imports
+if platform.system() == "Windows":
+	import winreg
+else:
+	winreg = None  # type: ignore[assignment]
 
 from enums import CSIDL, ArchiveVersion, InstallType, Language
 from qt_compat import filedialog, messagebox
@@ -182,11 +188,14 @@ class GameInfo:
 					self.manager.portable_txt_path = portable_txt_path
 
 				else:
-					current_instance = get_registry_value(
-						winreg.HKEY_CURRENT_USER,
-						R"Software\Mod Organizer Team\Mod Organizer",
-						"CurrentInstance",
-					)
+					if platform.system() == "Windows" and winreg:
+						current_instance = get_registry_value(
+							winreg.HKEY_CURRENT_USER,  # type: ignore[attr-defined]
+							R"Software\Mod Organizer Team\Mod Organizer",
+							"CurrentInstance",
+						)
+					else:
+						current_instance = None
 					if current_instance:
 						appdata_local = os.getenv("LOCALAPPDATA")
 						if appdata_local:
@@ -212,16 +221,19 @@ class GameInfo:
 			self.game_path = Path.cwd()
 			return
 
-		registry_path = get_registry_value(
-			winreg.HKEY_LOCAL_MACHINE,
-			R"SOFTWARE\WOW6432Node\Bethesda Softworks\Fallout4",
-			"Installed Path",
-		) or get_registry_value(
-			winreg.HKEY_LOCAL_MACHINE,
-			R"SOFTWARE\WOW6432Node\GOG.com\Games\1998527297",
-			"path",
-		)
-		game_path = registry_path
+		if platform.system() == "Windows" and winreg:
+			registry_path = get_registry_value(
+				winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
+				R"SOFTWARE\WOW6432Node\Bethesda Softworks\Fallout4",
+				"Installed Path",
+			) or get_registry_value(
+				winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
+				R"SOFTWARE\WOW6432Node\GOG.com\Games\1998527297",
+				"path",
+			)
+			game_path = registry_path
+		else:
+			game_path = None
 
 		if not game_path:
 			ask_location = messagebox.askyesno(

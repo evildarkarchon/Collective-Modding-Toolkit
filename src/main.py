@@ -40,39 +40,15 @@ logger.info("%s", datetime.now().strftime("%Y-%m-%d %H:%M"))
 settings = AppSettings()
 logger.setLevel(settings.dict["log_level"])
 
-# Check if we should use Qt version
-USE_QT = os.environ.get("CMT_USE_QT", "0") == "1" or "--qt" in sys.argv
+logger.info("Using Qt (PySide6) interface")
+from cm_checker_qt import CMCheckerQt
+from qt_compat import QApplication
 
-if USE_QT:
-	logger.info("Using Qt (PySide6) interface")
-	from cm_checker_qt import CMCheckerQt
-	from qt_compat import QApplication
-	
-	app = QApplication(sys.argv)
-	
-	# Create and show main window
-	window = CMCheckerQt(app, settings)
-	window.show()
-	
-	# Run Qt event loop
-	sys.exit(app.exec())
-else:
-	logger.info("Using Tkinter interface")
-	from tkinter import Tk
+app = QApplication(sys.argv)
 
-	from cm_checker import CMChecker
-	from helpers import StdErr
-	from utils import load_font, set_theme
-	
-	load_font(str(get_asset_path("fonts/CascadiaMono.ttf")))
-	root = Tk()
-	root.wm_withdraw()
-	root.update_idletasks()
-	
-	sys.stderr = StdErr(root)
-	CMChecker(root, settings)
-	set_theme(root)
-	root.update_idletasks()
-	root.wm_deiconify()
-	root.update_idletasks()
-	root.mainloop()
+# Create and show main window
+window = CMCheckerQt(app, settings)
+window.show()
+
+# Run Qt event loop
+sys.exit(app.exec())

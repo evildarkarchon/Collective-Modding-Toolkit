@@ -17,8 +17,11 @@
 #
 
 
-# from ._archives import ArchivePatcher  # Tkinter version removed - use Qt version
+import dataclasses
 
-__all__ = [
-	# "ArchivePatcher",  # Tkinter version removed - use Qt version
-]
+
+@dataclasses.dataclass
+class AutoFixResult:
+	"""Result of an autofix operation."""
+	success: bool
+	details: str

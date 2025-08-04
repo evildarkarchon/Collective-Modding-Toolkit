@@ -50,6 +50,8 @@ class AppSettingsDict(TypedDict):
 	scanner_JunkFiles: bool
 	scanner_ProblemOverrides: bool
 	scanner_RaceSubgraphs: bool
+	scanner_ignored_problems: list[str]  # List of problem signatures to ignore
+	scanner_ignore_patterns: list[str]  # List of patterns for ignoring problems
 	downgrader_keep_backups: bool
 	downgrader_delete_deltas: bool
 
@@ -64,6 +66,8 @@ DEFAULT_SETTINGS: AppSettingsDict = {
 	"scanner_JunkFiles": True,
 	"scanner_ProblemOverrides": True,
 	"scanner_RaceSubgraphs": True,
+	"scanner_ignored_problems": [],
+	"scanner_ignore_patterns": [],
 	"downgrader_keep_backups": True,
 	"downgrader_delete_deltas": True,
 }

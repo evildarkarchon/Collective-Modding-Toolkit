@@ -18,6 +18,7 @@
 
 
 import csv
+import platform
 import sys
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -26,7 +27,8 @@ from packaging.version import Version
 
 from enums import Tool
 
-win11_24h2 = sys.getwindowsversion().build >= 26100
+# Check for Windows 11 24H2
+win11_24h2 = sys.getwindowsversion().build >= 26100 if platform.system() == "Windows" else False
 
 
 def is_file(path: Path) -> bool:

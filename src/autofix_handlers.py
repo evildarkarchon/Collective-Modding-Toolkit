@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QMessageBox, QWidget
 
-from autofixes import AutoFixResult
+from autofix_types import AutoFixResult
 from enums import ProblemType, SolutionType
 from helpers import ProblemInfo, SimpleProblemInfo
 from qt_threading import BaseWorker

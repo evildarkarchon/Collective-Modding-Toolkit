@@ -28,11 +28,7 @@ import cmt_globals
 from app_settings import AppSettings
 from enums import Tab
 from game_info_qt import GameInfo
-from helpers import (
-	CMCheckerInterface,  # noqa: F401
-	CMCTabFrame,  # noqa: F401
-	PCInfo,
-)
+from helpers import PCInfo
 from qt_compat import (
     QApplication,
     QCloseEvent,

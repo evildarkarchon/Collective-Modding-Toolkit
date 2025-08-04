@@ -155,7 +155,7 @@ ignore = [
 	"FBT002",  # boolean-trap
 	"FBT001",  # boolean-trap
 ]
-[lint.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "src/qt_compat.py" = [
 	"F401",  # Unused import
 ]
