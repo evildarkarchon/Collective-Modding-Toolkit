@@ -154,6 +154,7 @@ ignore = [
 	"S606",    # start-process-with-no-shell
 	"FBT002",  # boolean-trap
 	"FBT001",  # boolean-trap
+	"COM812", # trailing-comma-in-multi-line-comprehension
 ]
 [tool.ruff.lint.per-file-ignores]
 "src/qt_compat.py" = [

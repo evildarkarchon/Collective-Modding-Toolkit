@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QMessageBox, QWidget
+from PySide6.QtWidgets import QMessageBox, QStyle, QWidget
 
 from autofix_types import AutoFixResult
 from enums import ProblemType, SolutionType
@@ -387,8 +387,14 @@ def do_autofix_qt(details_pane: "ResultDetailsPane", item_id: str) -> None:
 				details_pane.button_autofix.setText("Fixed!")
 				details_pane.button_autofix.setStyleSheet("QPushButton { color: #00ff00; }")
 
-				# Update tree item icon if possible
-				# TODO: Add check mark icon to tree item
+				# Update tree item icon with check mark
+				if hasattr(details_pane.scanner_tab, "tree_results_items"):
+					tree_item = details_pane.scanner_tab.tree_results_items.get(item_id)
+					if tree_item:
+						# Use standard Qt check mark icon
+						app = QWidget().style()
+						check_icon = app.standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
+						tree_item.setIcon(0, check_icon)
 			else:
 				details_pane.button_autofix.setText("Fix Failed")
 				details_pane.button_autofix.setStyleSheet("QPushButton { color: #ff0000; }")

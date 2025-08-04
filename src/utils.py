@@ -28,17 +28,17 @@ from collections.abc import Generator
 from pathlib import Path
 # from tkinter import DISABLED, EW, Event, HORIZONTAL, Misc, NORMAL, NS, NSEW, Text, Tk, TOP  # Tkinter removed
 # from tkinter import ttk  # Tkinter removed
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, overload
 
 import chardet
 import requests
 from packaging.version import InvalidVersion, Version
-from psutil import Process
+from psutil import Process # pyright: ignore[reportMissingModuleSource]
 
 # Windows-specific imports
 if platform.system() == "Windows":
-    import winreg
-    from ctypes import WinDLL, byref, c_int, create_unicode_buffer, sizeof, windll, wintypes
+    import winreg  # noqa: I001
+    from ctypes import WinDLL, byref, create_unicode_buffer, windll, wintypes # pyright: ignore[reportUnknownVariableType, reportAttributeAccessIssue]
 
     import win32api  # pyright: ignore[reportMissingModuleSource]
 else:
@@ -60,7 +60,7 @@ HTTP_OK = 200
 KEY_CTRL = 12
 
 # Check for Windows 11 24H2
-win11_24h2 = sys.getwindowsversion().build >= 26100 if platform.system() == "Windows" else False
+win11_24h2 = sys.getwindowsversion().build >= 26100 if platform.system() == "Windows" else False # pyright: ignore[reportAttributeAccessIssue, reportUnknownVariableType]
 
 
 def rglob(path: Path, ext: str) -> Generator[Path]:
@@ -147,16 +147,16 @@ def load_font(font_path: str) -> None:
 	# https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-addfontresourceexw
 	# FR_PRIVATE = 0x10
 	# FR_NOT_ENUM = 0x20
-	buffer = create_unicode_buffer(font_path)
-	windll.gdi32.AddFontResourceExW(byref(buffer), 0x10, 0)
+	buffer = create_unicode_buffer(font_path) # pyright: ignore[reportPossiblyUnboundVariable]
+	windll.gdi32.AddFontResourceExW(byref(buffer), 0x10, 0) # pyright: ignore[reportPossiblyUnboundVariable, reportOptionalMemberAccess]
 
 
 def get_environment_path(location: CSIDL) -> Path:
 	if platform.system() != "Windows":
 		# Return a dummy path for non-Windows systems
 		return Path.home() / "Documents"
-	buf = create_unicode_buffer(wintypes.MAX_PATH)
-	windll.shell32.SHGetFolderPathW(None, location, None, 0, buf)
+	buf = create_unicode_buffer(wintypes.MAX_PATH) # pyright: ignore[reportPossiblyUnboundVariable]
+	windll.shell32.SHGetFolderPathW(None, location, None, 0, buf) # pyright: ignore[reportOptionalMemberAccess]
 	path = Path(buf.value)
 	if not is_dir(path):
 		msg = f"Folder does not exist:\n{path}"
@@ -207,16 +207,16 @@ def get_file_version(path: Path) -> tuple[int, int, int, int] | None:
 	if platform.system() != "Windows":
 		return None  # File version info only available on Windows
 	try:
-		info = win32api.GetFileVersionInfo(str(path), "\\")
+		info = win32api.GetFileVersionInfo(str(path), "\\") # pyright: ignore[reportPossiblyUnboundVariable]
 	except:
 		return None
 	ms = info["FileVersionMS"]
 	ls = info["FileVersionLS"]
 	return (
-		win32api.HIWORD(ms),
-		win32api.LOWORD(ms),
-		win32api.HIWORD(ls),
-		win32api.LOWORD(ls),
+		win32api.HIWORD(ms), # pyright: ignore[reportPossiblyUnboundVariable]
+		win32api.LOWORD(ms), # pyright: ignore[reportPossiblyUnboundVariable]
+		win32api.HIWORD(ls), # pyright: ignore[reportPossiblyUnboundVariable]
+		win32api.LOWORD(ls), # pyright: ignore[reportPossiblyUnboundVariable]
 	)
 
 
@@ -239,11 +239,11 @@ def parse_dll(file_path: Path) -> DLLInfo | None:
 	if platform.system() != "Windows":
 		return None  # DLL parsing only works on Windows
 	try:
-		dll = WinDLL(str(file_path), winmode=DONT_RESOLVE_DLL_REFERENCES)
+		dll = WinDLL(str(file_path), winmode=DONT_RESOLVE_DLL_REFERENCES) # pyright: ignore[reportOptionalCall, reportUnknownVariableType]
 		dll_info: DLLInfo = {
-			"IsF4SE": hasattr(dll, "F4SEPlugin_Load"),
-			"SupportsOG": hasattr(dll, "F4SEPlugin_Query"),
-			"SupportsNG": hasattr(dll, "F4SEPlugin_Version"),
+			"IsF4SE": hasattr(dll, "F4SEPlugin_Load"), # pyright: ignore[reportUnknownArgumentType]
+			"SupportsOG": hasattr(dll, "F4SEPlugin_Query"), # pyright: ignore[reportUnknownArgumentType]
+			"SupportsNG": hasattr(dll, "F4SEPlugin_Version"), # pyright: ignore[reportUnknownArgumentType]
 		}
 	except OSError:
 		return None
@@ -261,10 +261,10 @@ def get_registry_value(key: int, subkey: str, value_name: str) -> str | None:
 	if platform.system() != "Windows":
 		return None  # Registry only exists on Windows
 	try:
-		with winreg.OpenKey(key, subkey) as reg_handle:
-			value, value_type = winreg.QueryValueEx(reg_handle, value_name)
+		with winreg.OpenKey(key, subkey) as reg_handle: # pyright: ignore[reportUnknownVariableType, reportOptionalMemberAccess, reportAttributeAccessIssue]
+			value, value_type = winreg.QueryValueEx(reg_handle, value_name) # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue, reportUnknownVariableType]
 
-		if value and value_type == winreg.REG_SZ and isinstance(value, str):
+		if value and value_type == winreg.REG_SZ and isinstance(value, str): # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue]
 			return value
 
 	except OSError:
@@ -360,10 +360,10 @@ def check_for_update_nexus() -> str | None:
 
 			latest_version = version_line[1]
 			if Version(latest_version) > Version(str(APP_VERSION)):
-				logger.info("Update Check : Nexus Mods : Update Available : v%s", latest_version)  # TODO: test variable
+				logger.info("Update Check : Nexus Mods : Update Available : v%s", latest_version)
 				return latest_version
 	except (requests.RequestException, InvalidVersion, IndexError):
-		logger.exception("Update Check : Nexus Mods : Failed")  # TODO: Reasons
+		logger.exception("Update Check : Nexus Mods : Failed")
 		return None
 
 	logger.debug("Update Check : Nexus Mods : No Updates")

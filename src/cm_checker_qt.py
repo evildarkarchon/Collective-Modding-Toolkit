@@ -74,6 +74,7 @@ from utils import (
 )
 
 if TYPE_CHECKING:
+	from helpers import ProblemInfo, SimpleProblemInfo
 	from qt_helpers import CMCTabWidget
 
 logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ class ClickableLabel(QLabel):
 		super().mousePressEvent(event)
 
 
-class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
+class CMCheckerQt(QMainWindow):
 	# Qt signals for thread communication
 	game_info_updated = Signal()
 	processing_started = Signal()
@@ -142,12 +143,12 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
 
 		self._images: dict[str, QPixmap] = {}
 		self._image_loading_lock = QMutex()
-		self._image_thread = None
+		self._image_thread: QThread | None = None
 
 		# QtStringVar is already the correct type for Qt version
 		self.game = GameInfo(self.install_type_sv, self.game_path_sv)
 		self.current_tab: CMCTabWidget | None = None
-		self.overview_problems = []
+		self.overview_problems: list[ProblemInfo | SimpleProblemInfo] = []
 		self.processing_data = False
 
 		# Initialize thread manager

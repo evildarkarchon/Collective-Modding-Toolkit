@@ -20,17 +20,21 @@
 import logging
 from abc import abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import (
-    QPushButton, QTreeWidget, QTreeWidgetItem,
-    QVBoxLayout, QHBoxLayout, QWidget
+    QHBoxLayout,
+    QPushButton,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
 
-from enums import LogType, Tab
 from cmt_globals import WINDOW_HEIGHT_PATCHER, WINDOW_WIDTH_PATCHER
-from qt_modal_dialogs import ModalDialogBase, AboutDialog
+from enums import LogType, Tab
 from qt_logger import QtLogger
+from qt_modal_dialogs import AboutDialog, ModalDialogBase
 
 if TYPE_CHECKING:
     from qt_helpers import CMCheckerInterface
@@ -42,7 +46,7 @@ class QtPatcherBase(ModalDialogBase):
     """Base class for Qt patcher dialogs."""
     
     def __init__(self, parent: QWidget, cmc: "CMCheckerInterface", window_title: str) -> None:
-        self.name_filter: Optional[str] = None
+        self.name_filter: str | None = None
         super().__init__(parent, cmc, window_title, WINDOW_WIDTH_PATCHER, WINDOW_HEIGHT_PATCHER)
         self.populate_tree()
     
@@ -50,35 +54,29 @@ class QtPatcherBase(ModalDialogBase):
     @abstractmethod
     def about_title(self) -> str:
         """Return the about dialog title."""
-        pass
     
     @property
     @abstractmethod
     def about_text(self) -> str:
         """Return the about dialog text."""
-        pass
     
     @property
     @abstractmethod
     def filter_text(self) -> str:
         """Return the filter description text."""
-        pass
     
     @property
     @abstractmethod
     def files_to_patch(self) -> set[Path]:
         """Return the set of files that need patching."""
-        pass
     
     @abstractmethod
     def patch_files(self) -> None:
         """Patch the files. Must be implemented by subclasses."""
-        pass
     
     @abstractmethod
     def build_gui_secondary(self) -> None:
         """Build subclass-specific GUI elements. Must be implemented by subclasses."""
-        pass
     
     def build_gui(self) -> None:
         """Build the primary GUI structure."""
@@ -141,7 +139,7 @@ class QtPatcherBase(ModalDialogBase):
         self.logger.log_message(
             LogType.Info, 
             f"Showing {len(files)} files to be patched.", 
-            skip_logging=True
+            skip_logging=True,
         )
     
     def show_about(self) -> None:

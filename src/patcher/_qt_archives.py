@@ -23,11 +23,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING, final
 
 from PySide6.QtWidgets import (
-    QLabel, QLineEdit, QRadioButton, QGroupBox,
-    QHBoxLayout, QWidget
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QRadioButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from enums import ArchiveVersion, LogType, Magic
 from cmt_globals import (
     ABOUT_ARCHIVES,
     ABOUT_ARCHIVES_TITLE,
@@ -35,6 +39,8 @@ from cmt_globals import (
     PATCHER_FILTER_NG,
     PATCHER_FILTER_OG,
 )
+from enums import ArchiveVersion, LogType, Magic
+
 from ._qt_base import QtPatcherBase
 
 if TYPE_CHECKING:
@@ -107,8 +113,10 @@ class QtArchivePatcher(QtPatcherBase):
         filter_layout.addStretch()
         
         # Insert filter widget after top widget
+        # Cast to QVBoxLayout since we know the layout type from the base class
         main_layout = self.layout()
-        main_layout.insertWidget(1, filter_widget)
+        if isinstance(main_layout, QVBoxLayout):
+            main_layout.insertWidget(1, filter_widget)
     
     def on_radio_change(self) -> None:
         """Handle radio button changes."""
@@ -146,7 +154,7 @@ class QtArchivePatcher(QtPatcherBase):
         for ba2_file in files_to_patch:
             try:
                 # Remove read-only flag if needed
-                if ba2_file.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY:
+                if ba2_file.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY: # pyright: ignore[reportAttributeAccessIssue]
                     ba2_file.chmod(stat.S_IWRITE)
                     logger.info("Removed read-only flag: %s", ba2_file.name)
                 

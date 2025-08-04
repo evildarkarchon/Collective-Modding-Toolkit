@@ -17,14 +17,20 @@
 #
 
 
-# Tkinter tab imports removed - use Qt versions instead
-# from ._about import AboutTab
-# from ._f4se import F4SETab
-# from ._overview import OverviewTab
-# from ._scanner import ResultDetailsPane, ScannerTab
-# from ._settings import SettingsTab
-# from ._tools import ToolsTab
+"""Qt versions of all tabs for the Collective Modding Toolkit."""
+
+from ._about_qt import AboutTab
+from ._f4se_qt import F4SETab
+from ._overview_qt import OverviewTab
+from ._scanner_qt import ScannerTab
+from ._settings_qt import SettingsTab
+from ._tools_qt import ToolsTab
 
 __all__ = [
-	# Tkinter tabs removed - Qt versions are in separate files
+    "AboutTab",
+    "F4SETab",
+    "OverviewTab",
+    "ScannerTab",
+    "SettingsTab",
+    "ToolsTab",
 ]

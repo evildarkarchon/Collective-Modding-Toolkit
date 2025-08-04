@@ -25,7 +25,7 @@
 	"[markdown]": {
 		"files.trimTrailingWhitespace": false,
 	},
-	"todo-tree.tree.scanMode": "workspace only",
+	"todo-tree.tree.scanMode": "workspace",
 	"todo-tree.general.tags": [
 		"BUG:",
 		"HACK:",

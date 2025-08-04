@@ -23,15 +23,16 @@ import re
 import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
+
 # from tkinter import BOTH, CENTER, PhotoImage, StringVar, Text, Tk, Toplevel, ttk  # Tkinter removed
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
-import psutil
+import psutil  # pyright: ignore[reportMissingModuleSource]
 
 # Windows-specific imports
 if platform.system() == "Windows":
     import winreg
-    from ctypes import windll
+    from ctypes import windll  # pyright: ignore[reportUnknownVariableType, reportAttributeAccessIssue]
 else:
     winreg = None  # type: ignore[assignment]
     windll = None  # type: ignore[assignment]
@@ -40,7 +41,8 @@ else:
 from enums import InstallType, ProblemType, SolutionType, Tab
 
 if TYPE_CHECKING:
-	import psutil._pswindows as pswin
+	import psutil._pswindows as pswin  # pyright: ignore[reportMissingModuleSource]
+	from PySide6.QtGui import QPixmap
 
 	from app_settings import AppSettings
 	from autofix_types import AutoFixResult
@@ -69,7 +71,7 @@ os_versions = {
 
 class PCInfo:
 	def __init__(self) -> None:
-		self.using_wine = platform.system() == "Windows" and windll and hasattr(windll.ntdll, "wine_get_version")
+		self.using_wine = platform.system() == "Windows" and windll and hasattr(windll.ntdll, "wine_get_version") # pyright: ignore[reportUnknownArgumentType]
 		self.os = self._get_os() if not self.using_wine else "Linux (WINE)"
 		self.ram = self._get_ram()
 		self.cpu = self._get_cpu()
@@ -79,7 +81,7 @@ class PCInfo:
 	def _get_os() -> str:
 		os = platform.system()
 		release = platform.release()
-		version = os_versions.get(str(sys.getwindowsversion().build), "") if os == "Windows" else ""
+		version = os_versions.get(str(sys.getwindowsversion().build), "") if os == "Windows" else "" # pyright: ignore[reportUnknownArgumentType, reportAttributeAccessIssue]
 		return f"{os} {release} {version}"
 
 	@staticmethod
@@ -150,7 +152,7 @@ class CMCheckerInterface(ABC):
 	def refresh_tab(self, tab: Tab) -> None: ...
 
 	@abstractmethod
-	def get_image(self, relative_path: str): ...  # Return type changed - was PhotoImage (tkinter)
+	def get_image(self, relative_path: str) -> "QPixmap": ...  # Return type changed - was PhotoImage (tkinter)
 
 
 # CMCTabFrame class removed - was tkinter-specific
