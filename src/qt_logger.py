@@ -23,7 +23,7 @@ from PySide6.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import QTextEdit, QVBoxLayout, QWidget
 
 from enums import LogType
-from globals import COLOR_BAD, COLOR_GOOD, COLOR_INFO
+from cmt_globals import COLOR_BAD, COLOR_GOOD, COLOR_INFO
 
 logger = logging.getLogger(__name__)
 

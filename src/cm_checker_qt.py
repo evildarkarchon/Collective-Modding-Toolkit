@@ -24,10 +24,10 @@ from collections.abc import Callable
 from pathlib import Path  # noqa: F401
 from typing import TYPE_CHECKING
 
+import cmt_globals
 from app_settings import AppSettings
 from enums import Tab
 from game_info_qt import GameInfo
-from globals import *
 from helpers import (
 	CMCheckerInterface,  # noqa: F401
 	CMCTabFrame,  # noqa: F401
@@ -190,15 +190,15 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
 
 	def setup_window(self) -> None:
 		# Window properties
-		self.setWindowTitle(f"{APP_TITLE} v{APP_VERSION}")
-		self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+		self.setWindowTitle(f"{cmt_globals.APP_TITLE} {cmt_globals.APP_VERSION}")
+		self.setFixedSize(cmt_globals.WINDOW_WIDTH, cmt_globals.WINDOW_HEIGHT)
 		self.setWindowIcon(QIcon(str(get_asset_path("images/icon-32.png"))))
 
 		# Center window on screen
 		screen = self.app.primaryScreen()
 		screen_geometry = screen.geometry()
-		x = (screen_geometry.width() - WINDOW_WIDTH) // 2
-		y = (screen_geometry.height() - WINDOW_HEIGHT) // 2
+		x = (screen_geometry.width() - cmt_globals.WINDOW_WIDTH) // 2
+		y = (screen_geometry.height() - cmt_globals.WINDOW_HEIGHT) // 2
 		self.move(x, y)
 
 		# Create central widget and layout
@@ -275,7 +275,7 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
 		update_layout.addWidget(text_label)
 
 		if nexus_version:
-			nexus_link = ClickableLabel(f"v{nexus_version} (NexusMods)", NEXUS_LINK)
+			nexus_link = ClickableLabel(f"v{nexus_version} (NexusMods)", cmt_globals.NEXUS_LINK)
 			nexus_link.setToolTip("Open Nexus Mods")
 			update_layout.addWidget(nexus_link)
 
@@ -284,7 +284,7 @@ class CMCheckerQt(QMainWindow):  # TODO: Implement CMCheckerInterface methods
 			update_layout.addWidget(separator)
 
 		if github_version:
-			github_link = ClickableLabel(f"v{github_version} (GitHub)", GITHUB_LINK)
+			github_link = ClickableLabel(f"v{github_version} (GitHub)", cmt_globals.GITHUB_LINK)
 			github_link.setToolTip("Open GitHub")
 			update_layout.addWidget(github_link)
 

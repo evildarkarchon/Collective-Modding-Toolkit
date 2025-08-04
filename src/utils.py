@@ -39,7 +39,7 @@ from psutil import Process
 
 import sv_ttk
 from enums import CSIDL
-from globals import APP_VERSION, COLOR_DEFAULT, FONT, FONT_SMALL, NEXUS_LINK
+from cmt_globals import APP_VERSION, COLOR_DEFAULT, FONT, FONT_SMALL, NEXUS_LINK
 from helpers import DLLInfo
 from mod_manager_info import ModManagerInfo
 

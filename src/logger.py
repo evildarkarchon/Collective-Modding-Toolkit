@@ -22,7 +22,7 @@ from tkinter import *
 from tkinter import ttk
 
 from enums import LogType
-from globals import *
+from cmt_globals import *
 from utils import block_text_input
 
 logger = logging.getLogger(__name__)

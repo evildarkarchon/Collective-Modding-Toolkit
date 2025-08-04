@@ -24,7 +24,7 @@ from tkinter import ttk
 
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame
 
 logger = logging.getLogger(__name__)

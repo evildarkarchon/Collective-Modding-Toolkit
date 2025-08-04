@@ -21,7 +21,7 @@ import logging
 from tkinter import *
 from tkinter import ttk
 
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame, DLLInfo
 from utils import (
 	parse_dll,

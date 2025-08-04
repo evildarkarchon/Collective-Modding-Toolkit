@@ -21,7 +21,7 @@ import webbrowser
 from tkinter import *
 from tkinter import ttk
 
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame
 from utils import (
 	add_separator,

@@ -31,7 +31,7 @@ from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 import pyxdelta
 from enums import LogType, Tab
-from globals import *
+from cmt_globals import *
 from helpers import (
 	CMCheckerInterface,
 )

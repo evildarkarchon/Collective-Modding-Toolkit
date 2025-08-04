@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont
 
 from enums import LogType, Tab
-from globals import *
+from cmt_globals import *
 from qt_modal_dialogs import ModalDialogBase, AboutDialog
 from qt_logger import QtLogger
 

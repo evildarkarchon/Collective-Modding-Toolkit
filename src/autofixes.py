@@ -23,7 +23,7 @@ from tkinter import *
 from typing import TYPE_CHECKING
 
 from enums import SolutionType
-from globals import *
+from cmt_globals import *
 from helpers import ProblemInfo, SimpleProblemInfo
 from modal_window import AboutWindow
 from utils import read_text_encoded

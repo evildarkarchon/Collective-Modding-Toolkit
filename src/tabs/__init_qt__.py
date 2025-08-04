@@ -20,17 +20,17 @@
 """Qt versions of all tabs for the Collective Modding Toolkit."""
 
 from ._about_qt import AboutTab
-from ._settings_qt import SettingsTab
-from ._overview_qt import OverviewTab
 from ._f4se_qt import F4SETab
-from ._tools_qt import ToolsTab
+from ._overview_qt import OverviewTab
 from ._scanner_qt import ScannerTab
+from ._settings_qt import SettingsTab
+from ._tools_qt import ToolsTab
 
 __all__ = [
     "AboutTab",
-    "SettingsTab", 
-    "OverviewTab",
     "F4SETab",
-    "ToolsTab",
+    "OverviewTab",
     "ScannerTab",
+    "SettingsTab",
+    "ToolsTab",
 ]

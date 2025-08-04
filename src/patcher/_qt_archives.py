@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
 )
 
 from enums import ArchiveVersion, LogType, Magic
-from globals import *
+from cmt_globals import *
 from ._qt_base import QtPatcherBase
 
 if TYPE_CHECKING:

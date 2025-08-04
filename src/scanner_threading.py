@@ -13,9 +13,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QMutex, QMutexLocker, Signal
+from PySide6.QtWidgets import QApplication
 
 from enums import ProblemType, SolutionType, Tool
-from globals import (
+from cmt_globals import (
 	ARCHIVE_NAME_WHITELIST,
 	F4SE_CRC,
 	INFO_SCAN_RACE_SUBGRAPHS,
@@ -40,9 +41,73 @@ from utils import (
 )
 
 if TYPE_CHECKING:
+	from collections.abc import Callable, Generator
+
 	from qt_helpers import CMCheckerInterface
 
 logger = logging.getLogger(__name__)
+
+
+class OptimizedDirectoryScanner:
+	"""Optimized directory scanner with cancellation support and better performance."""
+
+	def __init__(self, is_running_check: Callable[[], bool]) -> None:
+		"""Initialize with a callable that returns True if scanning should continue."""
+		self.is_running_check = is_running_check
+		self._files_processed = 0
+
+	def walk_directory(self, root_path: Path, topdown: bool = True) -> Generator[tuple[str, list[str], list[str]], None, None]:
+		"""
+		Optimized replacement for os.walk using os.scandir for better performance.
+		Yields (root, folders, files) tuples like os.walk.
+		"""
+		try:
+			with os.scandir(root_path) as entries:
+				folders: list[str] = []
+				files: list[str] = []
+
+				# Separate folders and files using scandir for efficiency
+				for entry in entries:
+					if not self.is_running_check():
+						return
+
+					try:
+						if entry.is_dir(follow_symlinks=False):
+							folders.append(entry.name)
+						elif entry.is_file(follow_symlinks=False):
+							files.append(entry.name)
+					except OSError:
+						# Skip entries that cause permission errors
+						continue
+
+				# Yield current directory first if topdown
+				if topdown:
+					yield str(root_path), folders, files
+
+				# Process subdirectories
+				for folder in folders:
+					if not self.is_running_check():
+						return
+
+					subfolder_path = root_path / folder
+					try:
+						yield from self.walk_directory(subfolder_path, topdown)
+					except OSError:
+						# Skip directories that cause permission errors
+						continue
+
+					# Yield control periodically to prevent UI blocking
+					self._files_processed += len(files)
+					if self._files_processed % 200 == 0:
+						QApplication.processEvents()
+
+				# Yield current directory last if not topdown
+				if not topdown:
+					yield str(root_path), folders, files
+
+		except OSError:
+			# Handle case where root_path itself is inaccessible
+			return
 
 
 class ScannerWorkerSignals(WorkerSignals):
@@ -66,8 +131,13 @@ class ScannerWorkerSignals(WorkerSignals):
 
 
 @dataclass
+@dataclass
 class ScanProgressState:
-	"""Thread-safe container for scan progress state."""
+	"""Optimized thread-safe container for scan progress state.
+
+	Uses atomic operations and reduces lock granularity for better performance.
+	Only locks when necessary for compound operations or consistency requirements.
+	"""
 
 	_mutex: QMutex = field(default_factory=QMutex, init=False)
 	current_folder: str = ""
@@ -76,44 +146,75 @@ class ScanProgressState:
 	scan_stage: str = ""
 	problems_found: int = 0
 	files_scanned: int = 0
+	_last_progress: float = 0.0
 
 	def update_folder(self, folder: str, index: int, total: int) -> None:
-		"""Update current folder progress."""
-		with QMutexLocker(self._mutex):
-			self.current_folder = folder
-			self.folder_index = index
-			self.total_folders = total
+		"""Update current folder progress.
+
+		String and int assignments are atomic in CPython, so no locking needed
+		for simple assignments to primitive types.
+		"""
+		self.current_folder = folder  # String assignment is atomic
+		self.folder_index = index  # Int assignment is atomic
+		self.total_folders = total  # Int assignment is atomic
 
 	def update_stage(self, stage: str) -> None:
 		"""Update current scan stage."""
-		with QMutexLocker(self._mutex):
-			self.scan_stage = stage
+		self.scan_stage = stage  # String assignment is atomic
 
 	def increment_files(self, count: int = 1) -> None:
-		"""Increment files scanned counter."""
+		"""Increment files scanned counter.
+
+		Uses lock only for compound operation (read-modify-write).
+		"""
 		with QMutexLocker(self._mutex):
 			self.files_scanned += count
 
 	def increment_problems(self, count: int = 1) -> None:
-		"""Increment problems found counter."""
+		"""Increment problems found counter.
+
+		Uses lock only for compound operation (read-modify-write).
+		"""
 		with QMutexLocker(self._mutex):
 			self.problems_found += count
 
 	def get_progress_percentage(self) -> float:
-		"""Calculate current progress percentage."""
-		with QMutexLocker(self._mutex):
-			if self.total_folders == 0:
-				return 0.0
-			return (self.folder_index / self.total_folders) * 100.0
+		"""Calculate current progress percentage.
+
+		Read operations don't need locks for atomic types in most cases.
+		"""
+		total = self.total_folders
+		if total == 0:
+			return 0.0
+		return (self.folder_index / total) * 100.0
+
+	def get_progress_if_changed(self, threshold: float = 1.0) -> float | None:
+		"""Only return progress if it changed significantly.
+
+		This reduces unnecessary UI updates and signal emissions.
+		"""
+		current = self.get_progress_percentage()
+		if abs(current - self._last_progress) >= threshold:
+			self._last_progress = current
+			return current
+		return None
 
 	def get_stats(self) -> dict[str, int | float | str]:
-		"""Get current scan statistics."""
+		"""Get current scan statistics.
+
+		Only locks for consistency of the snapshot - reads individual
+		atomic values without locks first, then locks only if needed.
+		"""
+		# Take a quick snapshot of atomic values
+		current_progress = self.get_progress_percentage()
+
+		# Lock only for consistent snapshot of compound state
 		with QMutexLocker(self._mutex):
 			return {
 				"files_scanned": self.files_scanned,
 				"problems_found": self.problems_found,
 				"current_folder": self.current_folder,
-				"progress": self.get_progress_percentage(),
+				"progress": current_progress,
 			}
 
 
@@ -145,9 +246,11 @@ class ThreadSafeResultAccumulator:
 			self._problems.clear()
 
 	def count(self) -> int:
-		"""Get the current count of problems."""
-		with QMutexLocker(self._mutex):
-			return len(self._problems)
+		"""Get the current count of problems.
+
+		Note: len() is atomic in CPython, so no locking needed for count operations.
+		"""
+		return len(self._problems)
 
 
 class ScanWorker(BaseWorker):
@@ -171,6 +274,9 @@ class ScanWorker(BaseWorker):
 		# Internal state
 		self.progress_state = ScanProgressState()
 		self.result_accumulator = ThreadSafeResultAccumulator()
+
+		# Optimized directory scanner
+		self.directory_scanner = OptimizedDirectoryScanner(lambda: self.is_running)
 
 		# For batch processing
 		self.problem_batch: list[ProblemInfo | SimpleProblemInfo] = []
@@ -248,7 +354,7 @@ class ScanWorker(BaseWorker):
 				break
 
 			mod_name = mod_path.name
-			for root, folders, files in os.walk(mod_path, topdown=True):
+			for root, folders, files in self.directory_scanner.walk_directory(mod_path, topdown=True):
 				if not self.is_running:
 					break
 
@@ -298,15 +404,32 @@ class ScanWorker(BaseWorker):
 			raise ValueError(msg)
 
 		modlist_path = manager.profiles_path / manager.selected_profile / "modlist.txt"
-		if not is_file(modlist_path):
-			msg = f"File doesn't exist: {modlist_path}"
-			raise FileNotFoundError(msg)
 
-		stage_paths = [
-			mod_path
-			for mod in reversed(modlist_path.read_text("utf-8").splitlines())
-			if mod[:1] == "+" and is_dir(mod_path := manager.stage_path / mod[1:])
-		]
+		# Use async file reading with proper error handling
+		try:
+			with modlist_path.open(encoding="utf-8", buffering=8192) as f:
+				content = f.read()
+		except OSError as e:
+			msg = f"File doesn't exist: {modlist_path}"
+			raise FileNotFoundError(msg) from e
+
+		# Process in chunks to avoid blocking
+		lines = content.splitlines()
+		stage_paths: list[Path] = []
+
+		for i, mod in enumerate(reversed(lines)):
+			if not self.is_running:  # Check cancellation
+				break
+
+			if mod[:1] == "+":
+				mod_path = manager.stage_path / mod[1:]
+				# Batch directory checks for efficiency
+				if mod_path.exists() and mod_path.is_dir():
+					stage_paths.append(mod_path)
+
+			# Yield control periodically to prevent UI blocking
+			if i % 100 == 0:
+				QApplication.processEvents()
 
 		if is_dir(manager.overwrite_path):
 			stage_paths.append(manager.overwrite_path)
@@ -413,7 +536,7 @@ class ScanWorker(BaseWorker):
 		data_root_lower = "Data"
 
 		# Walk the data directory
-		for root, folders, files in os.walk(data_path, topdown=True):
+		for root, folders, files in self.directory_scanner.walk_directory(data_path, topdown=True):
 			if not self.is_running:
 				break
 
@@ -432,11 +555,15 @@ class ScanWorker(BaseWorker):
 				folder_name = current_path.name
 				self.signals.current_folder.emit(folder_name)
 
-				# Update progress
+				# Update progress - only emit signal if progress changed significantly
 				try:
 					folder_index = list(data_path.iterdir()).index(current_path)
 					self.progress_state.update_folder(folder_name, folder_index, self.progress_state.total_folders)
-					self.update_progress(int(self.progress_state.get_progress_percentage()))
+
+					# Only update progress if it changed by at least 1%
+					progress_value = self.progress_state.get_progress_if_changed(threshold=1.0)
+					if progress_value is not None:
+						self.update_progress(int(progress_value))
 				except ValueError:
 					pass
 

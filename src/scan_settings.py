@@ -22,7 +22,7 @@ from enum import Enum
 from tkinter import *
 from typing import TYPE_CHECKING
 
-from globals import *
+from cmt_globals import *
 
 if TYPE_CHECKING:
 	from pathlib import Path

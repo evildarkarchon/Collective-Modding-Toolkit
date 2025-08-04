@@ -25,7 +25,7 @@ from tkinter import ttk
 from typing import final
 
 from enums import ArchiveVersion, LogType, Magic
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface
 
 from ._base import PatcherBase

@@ -29,7 +29,7 @@ import tabs
 from app_settings import AppSettings
 from enums import Tab
 from game_info import GameInfo
-from globals import *
+from cmt_globals import *
 from helpers import (
 	CMCheckerInterface,
 	CMCTabFrame,

@@ -23,7 +23,7 @@ import sys
 from datetime import datetime
 
 from app_settings import AppSettings
-from globals import APP_TITLE, APP_VERSION
+from cmt_globals import APP_TITLE, APP_VERSION
 from utils import get_asset_path
 
 logging.basicConfig(

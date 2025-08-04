@@ -25,7 +25,7 @@ from tkinter import ttk
 from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from downgrader import Downgrader
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame
 from modal_window import ModalWindow
 from patcher import ArchivePatcher

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 	from app_settings import AppSettings
 	from enums import Tab
 	from game_info_qt import GameInfo
-	from helpers import ProblemInfo, SimpleProblemInfo
+	from helpers import PCInfo, ProblemInfo, SimpleProblemInfo
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ class CMCheckerInterface(Protocol):
 	specs_sv_1: QtStringVar
 	specs_sv_2: QtStringVar
 	game: "GameInfo"
+	pc: "PCInfo"
 	settings: "AppSettings"
 	overview_problems: list["ProblemInfo | SimpleProblemInfo"]
 	processing_data: bool

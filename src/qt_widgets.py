@@ -36,6 +36,9 @@ class QtVariable(QObject):
 		super().__init__()
 		self._value = initial_value
 		self._traces: list[Callable[[], None]] = []
+		self._suppress_signals = False
+		self._callback_timer: QTimer | None = None
+		self._pending_callbacks = False
 
 	def get(self) -> object | None:
 		"""Get the current value."""
@@ -45,10 +48,37 @@ class QtVariable(QObject):
 		"""Set a new value and emit change signal."""
 		if self._value != value:
 			self._value = value
-			self.changed.emit(value)
-			# Call trace callbacks for Tkinter compatibility
-			for callback in self._traces:
+			if not self._suppress_signals:
+				self.changed.emit(value)
+				# Batch callback execution to reduce overhead
+				if self._traces and not self._pending_callbacks:
+					self._pending_callbacks = True
+					if self._callback_timer is None:
+						self._callback_timer = QTimer()
+						self._callback_timer.setSingleShot(True)
+						self._callback_timer.timeout.connect(self._execute_callbacks)
+					self._callback_timer.start(0)  # Execute on next event loop iteration
+
+	def _execute_callbacks(self) -> None:
+		"""Execute callbacks in batches to reduce overhead."""
+		self._pending_callbacks = False
+		for callback in self._traces:
+			try:
 				callback()
+			except (RuntimeError, AttributeError) as e:
+				# Avoid importing logger to prevent circular imports
+				print(f"Warning: Callback error in QtVariable: {e}")
+
+	def set_batch(self, values: list[object]) -> None:
+		"""Set multiple values efficiently with only one signal emission."""
+		if not values:
+			return
+
+		self._suppress_signals = True
+		for value in values[:-1]:
+			self.set(value)
+		self._suppress_signals = False
+		self.set(values[-1])  # Emit signal for last value only
 
 	def trace_add(self, _mode: str, callback: Callable[[], None]) -> str:
 		"""Add a trace callback (Tkinter compatibility)."""
@@ -58,7 +88,14 @@ class QtVariable(QObject):
 
 	def trace_remove(self, trace_id: str) -> None:
 		"""Remove a trace callback (Tkinter compatibility)."""
-		# Simplified implementation
+		# Extract index from trace_id and remove if valid
+		try:
+			index = int(trace_id.split("_")[1]) - 1
+			if 0 <= index < len(self._traces):
+				callback = self._traces.pop(index)
+				self.changed.disconnect(callback)
+		except (ValueError, IndexError):
+			pass  # Invalid trace_id
 
 
 class QtStringVar(QtVariable):
@@ -73,7 +110,20 @@ class QtStringVar(QtVariable):
 		return str(self._value)
 
 	def set(self, value: object) -> None:
-		super().set(str(value))
+		"""Override to ensure string conversion before comparison."""
+		str_value = str(value)
+		if str(self._value) != str_value:
+			self._value = str_value
+			if not self._suppress_signals:
+				self.changed.emit(str_value)
+				# Batch callback execution to reduce overhead
+				if self._traces and not self._pending_callbacks:
+					self._pending_callbacks = True
+					if self._callback_timer is None:
+						self._callback_timer = QTimer()
+						self._callback_timer.setSingleShot(True)
+						self._callback_timer.timeout.connect(self._execute_callbacks)
+					self._callback_timer.start(0)
 
 	def trace_add(self, _mode: str, callback: Callable[[], None]) -> str:
 		"""Add a trace callback (Tkinter compatibility)."""
@@ -91,15 +141,30 @@ class QtIntVar(QtVariable):
 		super().__init__(int(initial_value) if initial_value is not None else 0)
 
 	def get(self) -> int:
-		if self._value is None:
-			return 0
 		try:
 			return int(self._value)  # pyright: ignore[reportArgumentType]
 		except (ValueError, TypeError):
 			return 0
 
 	def set(self, value: object) -> None:
-		super().set(int(value))  # pyright: ignore[reportArgumentType]
+		"""Override to ensure int conversion before comparison."""
+		try:
+			int_value = int(value)  # pyright: ignore[reportArgumentType]
+		except (ValueError, TypeError):
+			int_value = 0
+
+		if self.get() != int_value:
+			self._value = int_value
+			if not self._suppress_signals:
+				self.changed.emit(int_value)
+				# Batch callback execution to reduce overhead
+				if self._traces and not self._pending_callbacks:
+					self._pending_callbacks = True
+					if self._callback_timer is None:
+						self._callback_timer = QTimer()
+						self._callback_timer.setSingleShot(True)
+						self._callback_timer.timeout.connect(self._execute_callbacks)
+					self._callback_timer.start(0)
 
 	def trace_add(self, _mode: str, callback: Callable[[], None]) -> str:
 		"""Add a trace callback (Tkinter compatibility)."""
@@ -120,7 +185,20 @@ class QtBoolVar(QtVariable):
 		return bool(self._value)
 
 	def set(self, value: object) -> None:
-		super().set(bool(value))
+		"""Override to ensure bool conversion before comparison."""
+		bool_value = bool(value)
+		if self.get() != bool_value:
+			self._value = bool_value
+			if not self._suppress_signals:
+				self.changed.emit(bool_value)
+				# Batch callback execution to reduce overhead
+				if self._traces and not self._pending_callbacks:
+					self._pending_callbacks = True
+					if self._callback_timer is None:
+						self._callback_timer = QTimer()
+						self._callback_timer.setSingleShot(True)
+						self._callback_timer.timeout.connect(self._execute_callbacks)
+					self._callback_timer.start(0)
 
 	def trace_add(self, _mode: str, callback: Callable[[], None]) -> str:
 		"""Add a trace callback (Tkinter compatibility)."""
@@ -141,7 +219,24 @@ class QtDoubleVar(QtVariable):
 		return float(self._value)  # pyright: ignore[reportArgumentType]
 
 	def set(self, value: object) -> None:
-		super().set(float(value))  # pyright: ignore[reportArgumentType]
+		"""Override to ensure float conversion before comparison."""
+		try:
+			float_value = float(value)  # pyright: ignore[reportArgumentType]
+		except (ValueError, TypeError):
+			float_value = 0.0
+
+		if self.get() != float_value:
+			self._value = float_value
+			if not self._suppress_signals:
+				self.changed.emit(float_value)
+				# Batch callback execution to reduce overhead
+				if self._traces and not self._pending_callbacks:
+					self._pending_callbacks = True
+					if self._callback_timer is None:
+						self._callback_timer = QTimer()
+						self._callback_timer.setSingleShot(True)
+						self._callback_timer.timeout.connect(self._execute_callbacks)
+					self._callback_timer.start(0)
 
 	def trace_add(self, _mode: str, callback: Callable[[], None]) -> str:
 		"""Add a trace callback (Tkinter compatibility)."""

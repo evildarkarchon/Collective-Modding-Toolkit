@@ -244,6 +244,8 @@ TOOLTIP_NO_MOD_MANAGER = "Your mod manager must launch the app to be detected."
 TOOLTIP_GAME_PATH = "Click to open folder"
 TOOLTIP_LOCATION = "Click to open location"
 TOOLTIP_REFRESH = "Refresh"
+TOOLTIP_DOWNGRADE = "Click to open the Downgrade Manager"
+TOOLTIP_DELETE_BINARIES = "These Next-Gen binaries should be deleted as they don't match your Old-Gen game version."
 
 TOOLTIP_ADDRESS_LIBRARY_MISSING = "Address Library is required for many F4SE mods."
 

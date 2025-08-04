@@ -25,7 +25,7 @@ from tkinter import ttk
 from typing import final
 
 from enums import LogType, Tab
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface
 from logger import Logger
 from modal_window import AboutWindow, ModalWindow

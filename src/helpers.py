@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING, NotRequired, TypedDict, final
 import psutil
 
 from enums import InstallType, ProblemType, SolutionType, Tab
-from globals import COLOR_BAD, FONT_LARGE
+from cmt_globals import COLOR_BAD, FONT_LARGE
 
 if TYPE_CHECKING:
 	import psutil._pswindows as pswin

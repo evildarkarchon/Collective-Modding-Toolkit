@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont, QPixmap
 
 from qt_downgrader import QtDowngrader
-from globals import *
+from cmt_globals import *
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from qt_modal_dialogs import ModalDialogBase
 from patcher._qt_archives import QtArchivePatcher

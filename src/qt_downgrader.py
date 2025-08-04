@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
 
 import pyxdelta
 from enums import InstallType, LogType, Tab
-from globals import *
+from cmt_globals import *
 from qt_logger import QtLogger
 from qt_modal_dialogs import AboutDialog, ModalDialogBase
 from qt_threading import BaseWorker

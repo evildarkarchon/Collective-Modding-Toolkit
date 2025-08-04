@@ -24,7 +24,7 @@ from tkinter import *
 from tkinter import ttk
 from typing import final
 
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface
 from utils import set_titlebar_style
 

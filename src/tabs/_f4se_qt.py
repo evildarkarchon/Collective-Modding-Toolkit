@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QFont, QColor, QTextCharFormat, QTextCursor
 
-from globals import *
+from cmt_globals import *
 from qt_helpers import CMCheckerInterface, CMCTabWidget
 from helpers import DLLInfo
 from utils import parse_dll

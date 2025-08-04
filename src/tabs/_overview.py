@@ -31,7 +31,7 @@ from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from downgrader import Downgrader
 from enums import CSIDL, ArchiveVersion, Magic, ModuleFlag, ProblemType, SolutionType
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame, ProblemInfo, SimpleProblemInfo
 from modal_window import AboutWindow, TreeWindow
 from patcher import ArchivePatcher

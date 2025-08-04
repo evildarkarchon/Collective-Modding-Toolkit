@@ -29,7 +29,7 @@ from tktooltip import ToolTip  # type: ignore[reportMissingTypeStubs]
 
 from autofixes import AUTO_FIXES, do_autofix
 from enums import ProblemType, SolutionType, Tab, Tool
-from globals import *
+from cmt_globals import *
 from helpers import CMCheckerInterface, CMCTabFrame, ProblemInfo, SimpleProblemInfo
 from modal_window import TreeWindow
 from scan_settings import (

@@ -23,7 +23,7 @@ import winreg
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from enums import CSIDL, InstallType, Language
+from enums import CSIDL, ArchiveVersion, InstallType, Language
 from qt_compat import filedialog, messagebox
 from qt_widgets import QtStringVar
 from utils import (
@@ -55,6 +55,7 @@ class GameInfo:
 		self.archives_ng: set[Path] = set()
 		self.archives_enabled: set[Path] = set()
 		self.archives_unreadable: set[Path] = set()
+		self.archives: dict[str, ArchiveVersion] = {}
 		self.modules_unreadable: set[Path] = set()
 		self.modules_hedr_95: set[Path] = set()
 		self.modules_hedr_unknown: dict[Path, float] = {}
@@ -128,6 +129,7 @@ class GameInfo:
 		self.archives_ng.clear()
 		self.archives_enabled.clear()
 		self.archives_unreadable.clear()
+		self.archives.clear()
 
 	@property
 	def game_path(self) -> Path:

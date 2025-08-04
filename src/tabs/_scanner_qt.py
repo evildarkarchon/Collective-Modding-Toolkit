@@ -17,59 +17,96 @@
 #
 
 
+import contextlib
 import os
 import webbrowser
 from pathlib import Path
-from typing import Optional
 
-from PySide6.QtCore import Qt, Signal, Slot, QEvent, QObject
+from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, Slot
+from PySide6.QtGui import QCloseEvent, QColor, QFont, QGuiApplication, QMouseEvent, QShowEvent
 from PySide6.QtWidgets import (
-	QTreeWidget,
-	QTreeWidgetItem,
-	QLabel,
-	QPushButton,
-	QVBoxLayout,
-	QHBoxLayout,
-	QGridLayout,
-	QTabWidget,
-	QProgressBar,
-	QGroupBox,
+	QAbstractItemView,
+	QApplication,
 	QCheckBox,
 	QDialog,
-	QWidget,
+	QGridLayout,
+	QGroupBox,
+	QHBoxLayout,
 	QHeaderView,
+	QLabel,
 	QMenu,
-	QApplication,
 	QMessageBox,
+	QProgressBar,
+	QPushButton,
+	QTabWidget,
+	QTreeWidget,
+	QTreeWidgetItem,
+	QVBoxLayout,
+	QWidget,
 )
-from PySide6.QtGui import QFont, QColor, QGuiApplication
 
+import cmt_globals
 from autofix_handlers import AUTOFIX_REGISTRY, do_autofix_qt
-from enums import ProblemType, SolutionType, Tab, Tool
-from globals import *
-from qt_helpers import CMCheckerInterface, CMCTabWidget
-from qt_widgets import QtStringVar, QtDoubleVar, QtBoolVar
-from qt_threading import ThreadManager
-from scanner_threading import ScanWorker, ScannerWorkerSignals
+from autofixes import AutoFixResult
+from enums import ProblemType, Tab
 from helpers import ProblemInfo, SimpleProblemInfo
+from qt_helpers import CMCheckerInterface, CMCTabWidget
 from qt_modal_dialogs import TreeDialog
+from qt_threading import ThreadManager
+from qt_widgets import QtBoolVar, QtDoubleVar, QtStringVar
 from scan_settings import (
-	DATA_WHITELIST,
-	JUNK_FILE_SUFFIXES,
-	JUNK_FILES,
-	PROPER_FORMATS,
+	IGNORE_FOLDERS,
 	ModFiles,
 	ScanSetting,
 	ScanSettings,
 )
+from scanner_threading import ScanWorker
 from utils import (
-	copy_text,
-	copy_text_button,
 	exists,
 	is_dir,
-	is_file,
-	read_text_encoded,
 )
+
+# Type alias for problem info
+ProblemInfoType = ProblemInfo | SimpleProblemInfo
+
+
+class QtScanSettings(ScanSettings):
+	"""Qt-compatible version of ScanSettings that works with the Qt SidePane."""
+
+	def __init__(self, side_pane: "SidePane") -> None:
+		# Initialize the parent dict without calling ScanSettings.__init__
+		super(ScanSettings, self).__init__()
+
+		self.skip_data_scan = True
+		self.mod_files: ModFiles | None = None
+
+		non_data = {
+			ScanSetting.OverviewIssues,
+			ScanSetting.RaceSubgraphs,
+		}
+
+		settings = side_pane.scanner_tab.cmc.settings
+		resave = False
+		for setting in ScanSetting:
+			self[setting] = side_pane.bool_vars[setting].get()
+			if self[setting] and setting not in non_data:
+				self.skip_data_scan = False
+
+			name = str(f"scanner_{setting.name}")
+			if settings.dict[name] != self[setting]:
+				settings.dict[name] = self[setting]
+				resave = True
+		if resave:
+			settings.save()
+
+		self.manager = side_pane.scanner_tab.cmc.game.manager
+		self.using_stage = side_pane.scanner_tab.using_stage
+		if self.manager and self.manager.name == "Mod Organizer":
+			self.skip_file_suffixes = (*self.manager.skip_file_suffixes, ".vortex_backup")
+			self.skip_directories = IGNORE_FOLDERS.union(self.manager.skip_directories)
+		else:
+			self.skip_file_suffixes = (".vortex_backup",)
+			self.skip_directories = IGNORE_FOLDERS
 
 
 class ScannerTab(CMCTabWidget):
@@ -78,20 +115,22 @@ class ScannerTab(CMCTabWidget):
 		self.loading_text = "Checking game data..."
 
 		self.using_stage = (
-			self.cmc.game.manager is not None and self.cmc.game.manager.name == "Vortex" and self.cmc.game.manager.staging_folder
+			self.cmc.game.manager is not None
+			and self.cmc.game.manager.name == "Vortex"
+			and bool(self.cmc.game.manager.stage_path)
 		)
 
 		self.tree_results_data: dict[str, ProblemInfo | SimpleProblemInfo] = {}
-		self.side_pane: Optional["SidePane"] = None
-		self.details_pane: Optional[QDialog] = None
+		self.side_pane: SidePane | None = None
+		self.details_pane: ResultDetailsPane | None = None
 
 		self.scan_results: list[ProblemInfo | SimpleProblemInfo] = []
-		self.scan_worker: Optional[ScanWorker] = None
+		self.scan_worker: ScanWorker | None = None
 		self.thread_manager = ThreadManager()
 
 		self.dv_progress = QtDoubleVar()
 		self.sv_scanning_text = QtStringVar()
-		self.label_scanning_text: Optional[QLabel] = None
+		self.label_scanning_text: QLabel | None = None
 		self.scan_folders: tuple[str, ...] = ("",)
 		self.sv_results_info = QtStringVar()
 
@@ -127,7 +166,7 @@ class ScannerTab(CMCTabWidget):
 		# Stop any running scans
 		self.thread_manager.stop_all()
 
-	def closeEvent(self, event):
+	def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
 		"""Handle tab close event."""
 		# Clean up windows
 		if self.side_pane:
@@ -185,7 +224,7 @@ class ScannerTab(CMCTabWidget):
 		small_font = QFont()
 		small_font.setPointSize(8)
 		label_results_info.setFont(small_font)
-		label_results_info.setStyleSheet(f"color: {COLOR_NEUTRAL_2};")
+		label_results_info.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2};")
 		self.sv_results_info.changed.connect(label_results_info.setText)
 		controls_layout.addWidget(label_results_info)
 
@@ -203,21 +242,24 @@ class ScannerTab(CMCTabWidget):
 
 		# Configure tree
 		self.tree_results.setFont(small_font)
-		self.tree_results.setSelectionMode(QTreeWidget.SingleSelection)
-		self.tree_results.setContextMenuPolicy(Qt.CustomContextMenu)
-		self.tree_results.customContextMenuRequested.connect(self.show_context_menu)
+		self.tree_results.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+		self.tree_results.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 		header = self.tree_results.header()
-		header.setSectionResizeMode(0, QHeaderView.Stretch)
+		header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
 		if self.using_stage:
-			header.setSectionResizeMode(1, QHeaderView.Stretch)
+			header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
 		self.main_layout.addWidget(self.tree_results, 1, 0, 2, 1)
 
 		# Progress bar
 		self.progress_bar = QProgressBar()
 		self.progress_bar.setMaximum(100)
-		self.dv_progress.changed.connect(lambda v: self.progress_bar.setValue(int(v)))
+		self.dv_progress.changed.connect(self._on_progress_changed)
 		self.main_layout.addWidget(self.progress_bar, 3, 0, 1, 2)
+
+	def _on_progress_changed(self, value: float) -> None:
+		"""Handle progress value changes."""
+		self.progress_bar.setValue(int(value))
 
 	def start_threaded_scan(self) -> None:
 		"""Start the scanning process in a separate thread."""
@@ -241,7 +283,7 @@ class ScannerTab(CMCTabWidget):
 			font = QFont()
 			font.setPointSize(10)
 			self.label_scanning_text.setFont(font)
-			self.label_scanning_text.setStyleSheet(f"color: {COLOR_NEUTRAL_2};")
+			self.label_scanning_text.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2};")
 			self.sv_scanning_text.changed.connect(self.label_scanning_text.setText)
 			self.main_layout.addWidget(self.label_scanning_text, 2, 0, 1, 2)
 
@@ -249,14 +291,8 @@ class ScannerTab(CMCTabWidget):
 		self.sv_scanning_text.set("Refreshing Overview...")
 		self.cmc.refresh_tab(Tab.Overview)
 
-		# Get scan settings
-		scan_settings = ScanSettings()
-		scan_settings.using_stage = self.using_stage
-		scan_settings.manager = self.cmc.game.manager
-
-		# Apply checkbox settings
-		for setting, var in self.side_pane.bool_vars.items():
-			scan_settings[setting] = var.get()
+		# Get scan settings - create a Qt-compatible version
+		scan_settings = QtScanSettings(self.side_pane)
 
 		# Get overview problems if enabled
 		overview_problems = None
@@ -284,17 +320,17 @@ class ScannerTab(CMCTabWidget):
 		self.thread_manager.start_worker(self.scan_worker, "scanner_thread")
 
 	@Slot(int)
-	def on_progress(self, value: int):
+	def on_progress(self, value: int) -> None:
 		"""Handle progress updates."""
 		self.dv_progress.set(value)
 
 	@Slot(tuple)
-	def on_folder_update(self, folders: tuple):
+	def on_folder_update(self, folders: tuple[str, ...]) -> None:
 		"""Handle folder list updates."""
 		self.scan_folders = folders
 
 	@Slot(str)
-	def on_current_folder(self, folder: str):
+	def on_current_folder(self, folder: str) -> None:
 		"""Handle current folder updates."""
 		try:
 			current_index = self.scan_folders.index(folder)
@@ -304,24 +340,24 @@ class ScannerTab(CMCTabWidget):
 			pass
 
 	@Slot(list)
-	def on_problems_found(self, problems: list):
+	def on_problems_found(self, problems: list[ProblemInfoType]) -> None:
 		"""Handle batch of problems found."""
 		self.scan_results.extend(problems)
 
 	@Slot(object)
-	def on_scan_complete(self, results: list):
+	def on_scan_complete(self, results: list[ProblemInfoType]) -> None:
 		"""Handle scan completion."""
 		self.scan_results = results
 		self.populate_results()
 
 	@Slot(str, str)
-	def on_scan_error(self, error: str, traceback: str):
+	def on_scan_error(self, error: str, traceback: str) -> None:  # noqa: ARG002
 		"""Handle scan errors."""
 		self.sv_scanning_text.set(f"Scan error: {error}")
 		# TODO: Show error dialog
 
 	@Slot()
-	def on_scan_finished(self):
+	def on_scan_finished(self) -> None:
 		"""Handle scan thread finishing."""
 		self.dv_progress.set(100)
 		if self.side_pane:
@@ -329,7 +365,7 @@ class ScannerTab(CMCTabWidget):
 			self.side_pane.button_scan.setText("Scan Game")
 
 	def populate_results(self) -> None:
-		"""Populate the tree with scan results."""
+		"""Populate the tree with scan results using batched updates for better performance."""
 		if self.side_pane is None:
 			raise ValueError
 
@@ -352,80 +388,135 @@ class ScannerTab(CMCTabWidget):
 			self.button_batch_fix.setText("Batch Auto-Fix")
 
 		# Clear previous selection handler to avoid duplicate connections
-		try:
+		with contextlib.suppress(TypeError):
 			self.tree_results.itemSelectionChanged.disconnect()
-		except TypeError:
-			pass  # No connections
 
-		# Group results by problem type
-		groups = {p.type for p in self.scan_results}
+		# Clear existing tree data
+		self.tree_results.clear()
+		self.tree_results_data.clear()
 
 		# Define problem severity for sorting and coloring
 		problem_severity = {
-			ProblemType.FileNotFound: (1, QColor(COLOR_BAD)),
-			ProblemType.WrongVersion: (2, QColor(COLOR_BAD)),
-			ProblemType.InvalidModule: (3, QColor(COLOR_BAD)),
-			ProblemType.ComplexSorter: (4, QColor(COLOR_BAD)),
-			ProblemType.MisplacedDLL: (5, QColor(COLOR_WARNING)),
-			ProblemType.InvalidArchive: (6, QColor(COLOR_WARNING)),
-			ProblemType.InvalidArchiveName: (7, QColor(COLOR_WARNING)),
-			ProblemType.F4SEOverride: (8, QColor(COLOR_WARNING)),
-			ProblemType.LoosePrevis: (9, QColor(COLOR_WARNING)),
-			ProblemType.AnimTextDataFolder: (10, QColor(COLOR_WARNING)),
-			ProblemType.UnexpectedFormat: (11, QColor(COLOR_INFO)),
-			ProblemType.JunkFile: (12, QColor(COLOR_NEUTRAL_2)),
+			ProblemType.FileNotFound: (1, QColor(cmt_globals.COLOR_BAD)),
+			ProblemType.WrongVersion: (2, QColor(cmt_globals.COLOR_BAD)),
+			ProblemType.InvalidModule: (3, QColor(cmt_globals.COLOR_BAD)),
+			ProblemType.ComplexSorter: (4, QColor(cmt_globals.COLOR_BAD)),
+			ProblemType.MisplacedDLL: (5, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.InvalidArchive: (6, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.InvalidArchiveName: (7, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.F4SEOverride: (8, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.LoosePrevis: (9, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.AnimTextDataFolder: (10, QColor(cmt_globals.COLOR_WARNING)),
+			ProblemType.UnexpectedFormat: (11, QColor(cmt_globals.COLOR_INFO)),
+			ProblemType.JunkFile: (12, QColor(cmt_globals.COLOR_NEUTRAL_2)),
 		}
 
-		# Sort groups by severity
-		sorted_groups = sorted(groups, key=lambda g: problem_severity.get(g, (99, None))[0])
+		# Start batched population
+		self._populate_results_batched(problem_severity)
 
+	def _populate_results_batched(self, problem_severity: dict[ProblemType, tuple[int, QColor]]) -> None:
+		"""Populate tree with batched updates to avoid UI blocking."""
+		# Disable updates during population for better performance
+		self.tree_results.setUpdatesEnabled(False)
+
+		# Group and sort results
+		groups = {p.type for p in self.scan_results}
+		sorted_groups = sorted(
+			groups,
+			key=lambda g: problem_severity.get(g, (99, QColor()))[0] if isinstance(g, ProblemType) else 99,
+		)
+
+		# Create group items first
+		self._group_items: dict[str, QTreeWidgetItem] = {}
 		for group in sorted_groups:
 			group_item = QTreeWidgetItem(self.tree_results)
 			group_item.setText(0, group)
 			group_item.setExpanded(True)
 
 			# Set group color based on severity
-			severity_info = problem_severity.get(group)
-			if severity_info and severity_info[1]:
-				group_item.setForeground(0, severity_info[1])
+			if isinstance(group, ProblemType):
+				severity_info = problem_severity.get(group)
+				if severity_info:
+					group_item.setForeground(0, severity_info[1])
 
-			# Get problems for this group and sort them
+			self._group_items[group] = group_item
+
+		# Prepare sorted problems for batch processing
+		self._sorted_problems: list[tuple[str, ProblemInfoType]] = []
+		for group in sorted_groups:
 			group_problems = [p for p in self.scan_results if p.type == group]
 
 			# Sort by mod name first, then by path/name
-			def sort_key(p):
+			def sort_key(p: ProblemInfoType) -> tuple[str, str]:
 				mod_name = p.mod if hasattr(p, "mod") else ""
-				if isinstance(p, ProblemInfo):
-					path_name = p.path.name if hasattr(p.path, "name") else str(p.path)
-				else:
-					path_name = p.path
+				path_name = (p.path.name if hasattr(p.path, "name") else str(p.path)) if isinstance(p, ProblemInfo) else p.path
 				return (mod_name.lower(), path_name.lower())
 
 			sorted_problems = sorted(group_problems, key=sort_key)
+			for problem in sorted_problems:
+				self._sorted_problems.append((group, problem))
 
-			# Add problems to group
-			for problem_info in sorted_problems:
-				# Create item for problem
-				item = QTreeWidgetItem(group_item)
+		# Start batch processing
+		self._batch_index = 0
+		self._batch_size = 50  # Process 50 items per batch
+		self._populate_next_batch()
 
-				if isinstance(problem_info, ProblemInfo):
-					item.setText(0, problem_info.path.name)
-					if self.using_stage:
-						item.setText(1, problem_info.mod)
-				else:
-					# SimpleProblemInfo
-					item.setText(0, problem_info.path)
-					if self.using_stage:
-						item.setText(1, problem_info.mod)
+	def _populate_next_batch(self) -> None:
+		"""Process the next batch of items."""
+		end_index = min(self._batch_index + self._batch_size, len(self._sorted_problems))
 
-				# Store data reference using string ID
-				item_id = str(id(item))
-				self.tree_results_data[item_id] = problem_info
+		# Process current batch
+		for i in range(self._batch_index, end_index):
+			group, problem_info = self._sorted_problems[i]
+			group_item = self._group_items[group]
+
+			# Create item for problem
+			item = QTreeWidgetItem(group_item)
+
+			if isinstance(problem_info, ProblemInfo):
+				item.setText(0, problem_info.path.name)
+				if self.using_stage:
+					item.setText(1, problem_info.mod)
+			else:
+				# SimpleProblemInfo
+				item.setText(0, problem_info.path)
+				if self.using_stage:
+					item.setText(1, problem_info.mod)
+
+			# Store data reference using string ID
+			item_id = str(id(item))
+			self.tree_results_data[item_id] = problem_info
+
+		self._batch_index = end_index
+
+		# Schedule next batch or finish
+		if self._batch_index < len(self._sorted_problems):
+			# Process next batch after a short delay to keep UI responsive
+			QTimer.singleShot(5, self._populate_next_batch)
+		else:
+			# Finished - clean up and enable tree
+			self._finish_population()
+
+	def _finish_population(self) -> None:
+		"""Finish tree population and clean up."""
+		# Clean up temporary attributes
+		if hasattr(self, "_group_items"):
+			delattr(self, "_group_items")
+		if hasattr(self, "_sorted_problems"):
+			delattr(self, "_sorted_problems")
+		if hasattr(self, "_batch_index"):
+			delattr(self, "_batch_index")
+		if hasattr(self, "_batch_size"):
+			delattr(self, "_batch_size")
+
+		# Re-enable updates and refresh tree
+		self.tree_results.setUpdatesEnabled(True)
+		self.tree_results.expandAll()
 
 		# Connect selection handler
 		self.tree_results.itemSelectionChanged.connect(self.on_row_select)
 
-	def on_row_select(self):
+	def on_row_select(self) -> None:
 		"""Handle tree selection changes."""
 		selected_items = self.tree_results.selectedItems()
 		if not selected_items:
@@ -441,7 +532,7 @@ class ScannerTab(CMCTabWidget):
 			self.details_pane.show()
 			self.details_pane.update_position()
 
-	def show_context_menu(self, position):
+	def show_context_menu(self, position: QPoint) -> None:
 		"""Show context menu for tree item."""
 		item = self.tree_results.itemAt(position)
 		if not item:
@@ -474,7 +565,7 @@ class ScannerTab(CMCTabWidget):
 		# Auto-Fix (if available)
 		if problem_info.solution in AUTOFIX_REGISTRY:
 			action_autofix = menu.addAction("Auto-Fix")
-			action_autofix.triggered.connect(lambda: do_autofix_qt(self.details_pane, item_id))
+			action_autofix.triggered.connect(lambda: self._autofix_from_context_menu(item_id))
 
 		# Ignore Problem
 		action_ignore = menu.addAction("Ignore Problem")
@@ -483,7 +574,20 @@ class ScannerTab(CMCTabWidget):
 		# Show menu at cursor position
 		menu.exec_(self.tree_results.viewport().mapToGlobal(position))
 
-	def browse_to_file(self, problem_info):
+	def _autofix_from_context_menu(self, item_id: str) -> None:
+		"""Handle autofix from context menu by ensuring details pane exists."""
+		# Ensure details pane exists and is showing the correct item
+		if self.details_pane is None:
+			self.details_pane = ResultDetailsPane(self)
+
+		self.details_pane.set_info(item_id, using_stage=self.using_stage)
+		self.details_pane.show()
+		self.details_pane.update_position()
+
+		# Now call autofix with the properly initialized details pane
+		do_autofix_qt(self.details_pane, item_id)
+
+	def browse_to_file(self, problem_info: ProblemInfoType) -> None:  # noqa: PLR6301
 		"""Browse to the problem file location."""
 		target = problem_info.path
 		if isinstance(target, Path):
@@ -496,28 +600,22 @@ class ScannerTab(CMCTabWidget):
 			elif exists(target.parent):
 				os.startfile(target.parent)
 
-	def copy_path_from_menu(self, problem_info):
+	def copy_path_from_menu(self, problem_info: ProblemInfoType) -> None:  # noqa: PLR6301
 		"""Copy file path to clipboard from context menu."""
 		path_text = str(problem_info.path)
 		clipboard = QApplication.clipboard()
 		clipboard.setText(path_text)
 
-	def copy_details_from_menu(self, problem_info):
+	def copy_details_from_menu(self, problem_info: ProblemInfoType) -> None:
 		"""Copy problem details to clipboard from context menu."""
-		if self.using_stage:
-			mod = f"Mod: {problem_info.mod}\n"
-		else:
-			mod = ""
+		mod = f"Mod: {problem_info.mod}\n" if self.using_stage else ""
 
 		# Handle different problem info types
-		if isinstance(problem_info, ProblemInfo):
-			problem_type = problem_info.type
-		else:
-			problem_type = problem_info.problem
+		problem_type = problem_info.type if isinstance(problem_info, ProblemInfo) else problem_info.problem
 
 		details = (
 			f"{mod}Type: {problem_type}\n"
-			f"Path: {str(problem_info.relative_path)}\n"
+			f"Path: {problem_info.relative_path!s}\n"
 			f"Summary: {problem_info.summary}\n"
 			f"Solution: {problem_info.solution or 'Solution not found.'}\n"
 		)
@@ -529,7 +627,7 @@ class ScannerTab(CMCTabWidget):
 		clipboard = QApplication.clipboard()
 		clipboard.setText(details)
 
-	def ignore_problem(self, problem_info):
+	def ignore_problem(self, problem_info: ProblemInfoType) -> None:
 		"""Add problem to ignore list and refresh display."""
 		# TODO: Implement ignore list functionality
 		# For now, just remove from display
@@ -548,7 +646,7 @@ class ScannerTab(CMCTabWidget):
 				self.scan_results.remove(problem_info)
 				self.sv_results_info.set(f"{len(self.scan_results)} Results ~ Select an item for details")
 
-	def show_batch_autofix(self):
+	def show_batch_autofix(self) -> None:
 		"""Show batch autofix dialog."""
 		# Get all fixable problems
 		fixable_problems = [(p, str(id(p))) for p in self.scan_results if p.solution in AUTOFIX_REGISTRY]
@@ -558,37 +656,38 @@ class ScannerTab(CMCTabWidget):
 			return
 
 		# Create dialog
-		from autofix_handlers import BatchAutofixDialog
+		from autofix_handlers import BatchAutofixDialog  # noqa: PLC0415
 
 		dialog = BatchAutofixDialog(self, fixable_problems)
-		if dialog.exec() == dialog.Accepted:
+		if dialog.exec() == 1:  # QDialog.Accepted
 			selected_problems = dialog.get_selected_problems()
 			if selected_problems:
 				self.run_batch_autofix(selected_problems)
 
-	def run_batch_autofix(self, problems_to_fix):
+	def run_batch_autofix(self, problems_to_fix: list[tuple[ProblemInfoType, str]]) -> None:
 		"""Run batch autofix on selected problems."""
-		from autofix_handlers import BatchAutofixWorker
-		from PySide6.QtWidgets import QProgressDialog
-		from PySide6.QtCore import Qt
+		from PySide6.QtCore import Qt  # noqa: PLC0415
+		from PySide6.QtWidgets import QProgressDialog  # noqa: PLC0415
+
+		from autofix_handlers import BatchAutofixWorker  # noqa: PLC0415
 
 		# Create progress dialog
 		progress = QProgressDialog("Running batch auto-fix...", "Cancel", 0, len(problems_to_fix), self)
 		progress.setWindowTitle("Batch Auto-Fix Progress")
-		progress.setWindowModality(Qt.WindowModal)
+		progress.setWindowModality(Qt.WindowModality.WindowModal)
 		progress.setMinimumDuration(0)
 
 		# Create worker
 		worker = BatchAutofixWorker(problems_to_fix, self.tree_results_data)
 
 		# Connect signals
-		def on_progress(current, total, message):
+		def on_progress(current: int, _total: int, message: str) -> None:
 			progress.setValue(current)
 			progress.setLabelText(message)
 			if progress.wasCanceled():
 				worker.cancel()
 
-		def on_finished(results):
+		def on_finished(results: list[AutoFixResult]) -> None:
 			progress.close()
 			# Show results summary
 			success_count = sum(1 for r in results if r.success)
@@ -596,12 +695,12 @@ class ScannerTab(CMCTabWidget):
 
 			msg = QMessageBox(self)
 			msg.setWindowTitle("Batch Auto-Fix Complete")
-			msg.setIcon(QMessageBox.Information)
+			msg.setIcon(QMessageBox.Icon.Information)
 			msg.setText(f"Batch auto-fix completed.\n\nSuccessful: {success_count}\nFailed: {fail_count}")
 
 			if fail_count > 0:
 				details = "\n\nFailed fixes:\n"
-				for problem, result in zip(problems_to_fix, results):
+				for problem, result in zip(problems_to_fix, results, strict=False):
 					if not result.success:
 						details += f"\n{problem[0].path}: {result.details}"
 				msg.setDetailedText(details)
@@ -621,13 +720,13 @@ class ScannerTab(CMCTabWidget):
 class MainWindowEventFilter(QObject):
 	"""Event filter to track main window movements and resizes."""
 
-	def __init__(self, scanner_tab: ScannerTab):
+	def __init__(self, scanner_tab: ScannerTab) -> None:
 		super().__init__()
 		self.scanner_tab = scanner_tab
 
-	def eventFilter(self, obj, event):
+	def eventFilter(self, _obj: QObject, event: QEvent) -> bool:  # noqa: N802
 		"""Filter events from the main window."""
-		if event.type() in (QEvent.Move, QEvent.Resize, QEvent.WindowStateChange):
+		if event.type() in {QEvent.Type.Move, QEvent.Type.Resize, QEvent.Type.WindowStateChange}:
 			# Update side pane position when main window moves, resizes, or changes screen
 			if self.scanner_tab.side_pane and self.scanner_tab.side_pane.isVisible():
 				self.scanner_tab.side_pane.update_position()
@@ -644,8 +743,8 @@ class SidePane(QDialog):
 		self.scanner_tab = scanner_tab
 		self.setWindowTitle("Scanner Settings")
 		# Set window flags to create a frameless tool window
-		self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-		self.setAttribute(Qt.WA_ShowWithoutActivating)
+		self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)  # type: ignore[arg-type]
+		self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
 
 		# Keep windows grouped with main window
 		self.setModal(False)
@@ -685,9 +784,9 @@ class SidePane(QDialog):
 		settings_group = QGroupBox("Scan Settings")
 		settings_layout = QVBoxLayout(settings_group)
 
-		self.bool_vars = {}
+		self.bool_vars: dict[ScanSetting, QtBoolVar] = {}
 		for setting in ScanSetting:
-			var = QtBoolVar(True)
+			var = QtBoolVar(True)  # noqa: FBT003
 			checkbox = QCheckBox(setting.value[0])  # Use display name from tuple
 			checkbox.setChecked(True)
 			checkbox.setToolTip(setting.value[1])  # Use tooltip from tuple
@@ -707,10 +806,10 @@ class SidePane(QDialog):
 
 	def on_checkbox_toggle(self) -> None:
 		"""Handle checkbox state changes."""
-		any_checked = any(var.get() for var in self.bool_vars.values())
+		any_checked: bool = any(var.get() for var in self.bool_vars.values())
 		self.button_scan.setEnabled(any_checked)
 
-	def update_position(self):
+	def update_position(self) -> None:
 		"""Update side pane position relative to main window."""
 		if not self.isVisible():
 			return
@@ -752,27 +851,27 @@ class SidePane(QDialog):
 
 		self.move(x, y)
 
-	def showEvent(self, event):
+	def showEvent(self, event: QShowEvent) -> None:  # noqa: N802
 		"""Handle show event."""
 		super().showEvent(event)
 		self.update_position()
 
-	def mousePressEvent(self, event):
+	def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse press for window dragging."""
-		if event.button() == Qt.LeftButton:
+		if event.button() == Qt.MouseButton.LeftButton and event.y() <= 40:  # Title bar height
 			self._is_dragging = True
 			self._drag_start_pos = event.globalPos() - self.frameGeometry().topLeft()
 			event.accept()
 
-	def mouseMoveEvent(self, event):
+	def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse move for window dragging."""
-		if self._is_dragging and event.buttons() == Qt.LeftButton:
+		if self._is_dragging and event.buttons() == Qt.MouseButton.LeftButton and self._drag_start_pos is not None:
 			self.move(event.globalPos() - self._drag_start_pos)
 			event.accept()
 
-	def mouseReleaseEvent(self, event):
+	def mouseReleaseEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse release."""
-		if event.button() == Qt.LeftButton:
+		if event.button() == Qt.MouseButton.LeftButton:
 			self._is_dragging = False
 			event.accept()
 
@@ -784,10 +883,10 @@ class ResultDetailsPane(QDialog):
 		super().__init__(scanner_tab.window())
 		self.scanner_tab = scanner_tab
 		self.setWindowTitle("Problem Details")
-		# Set window flags to create a frameless tool window
-		self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-		self.setAttribute(Qt.WA_ShowWithoutActivating)
-		self.setAttribute(Qt.WA_DeleteOnClose)
+		# Set window flags to create a frameless tool window (type: ignore[arg-type] is needed for Qt.FramelessWindowHint)
+		self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)  # type: ignore[arg-type]
+		self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+		self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
 		# Keep windows grouped with main window
 		self.setModal(False)
@@ -796,7 +895,7 @@ class ResultDetailsPane(QDialog):
 		self._is_dragging = False
 		self._drag_start_pos = None
 
-		self.problem_info: Optional[ProblemInfo | SimpleProblemInfo] = None
+		self.problem_info: ProblemInfo | SimpleProblemInfo | None = None
 		self.sv_mod_name = QtStringVar()
 		self.sv_file_path = QtStringVar()
 		self.sv_problem = QtStringVar()
@@ -830,10 +929,10 @@ class ResultDetailsPane(QDialog):
 		title_layout.addStretch()
 
 		# Close button
-		close_button = QPushButton("×")
+		close_button = QPushButton("x")
 		close_button.setFixedSize(20, 20)
 		close_button.setStyleSheet(
-			"QPushButton { border: none; font-size: 16px; }QPushButton:hover { background-color: #ff4444; }"
+			"QPushButton { border: none; font-size: 16px; }QPushButton:hover { background-color: #ff4444; }",
 		)
 		close_button.clicked.connect(self.hide)
 		title_layout.addWidget(close_button)
@@ -848,41 +947,41 @@ class ResultDetailsPane(QDialog):
 		start_row = 0
 		if scanner_tab.using_stage:
 			start_row = 1
-			layout.addWidget(QLabel("Mod:"), 0, 0, Qt.AlignRight | Qt.AlignTop)
+			layout.addWidget(QLabel("Mod:"), 0, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 			mod_label = QLabel()
 			self.sv_mod_name.changed.connect(mod_label.setText)
-			mod_label.setStyleSheet(f"color: {COLOR_NEUTRAL_2};")
+			mod_label.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2};")
 			layout.addWidget(mod_label, 0, 1)
 
 		# Problem type row
-		layout.addWidget(QLabel("Type:"), start_row, 0, Qt.AlignRight | Qt.AlignTop)
+		layout.addWidget(QLabel("Type:"), start_row, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 		type_label = QLabel()
-		type_label.setStyleSheet(f"color: {COLOR_INFO};")
+		type_label.setStyleSheet(f"color: {cmt_globals.COLOR_INFO};")
 		self.sv_problem_type.changed.connect(type_label.setText)
 		layout.addWidget(type_label, start_row, 1)
 
 		# File path row
-		layout.addWidget(QLabel("Path:"), start_row + 1, 0, Qt.AlignRight | Qt.AlignTop)
+		layout.addWidget(QLabel("Path:"), start_row + 1, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 		self.label_file_path = QLabel()
-		self.label_file_path.setStyleSheet(f"color: {COLOR_NEUTRAL_2}; text-decoration: underline;")
-		self.label_file_path.setCursor(Qt.PointingHandCursor)
+		self.label_file_path.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2}; text-decoration: underline;")
+		self.label_file_path.setCursor(Qt.CursorShape.PointingHandCursor)
 		self.label_file_path.setWordWrap(True)
 		self.sv_file_path.changed.connect(self.label_file_path.setText)
 		layout.addWidget(self.label_file_path, start_row + 1, 1)
 
 		# Summary row
-		layout.addWidget(QLabel("Summary:"), start_row + 2, 0, Qt.AlignRight | Qt.AlignTop)
+		layout.addWidget(QLabel("Summary:"), start_row + 2, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 		summary_label = QLabel()
 		summary_label.setWordWrap(True)
-		summary_label.setStyleSheet(f"color: {COLOR_NEUTRAL_2};")
+		summary_label.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2};")
 		self.sv_problem.changed.connect(summary_label.setText)
 		layout.addWidget(summary_label, start_row + 2, 1)
 
 		# Solution row
-		layout.addWidget(QLabel("Solution:"), start_row + 3, 0, Qt.AlignRight | Qt.AlignTop)
+		layout.addWidget(QLabel("Solution:"), start_row + 3, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 		self.label_solution = QLabel()
 		self.label_solution.setWordWrap(True)
-		self.label_solution.setStyleSheet(f"color: {COLOR_NEUTRAL_2};")
+		self.label_solution.setStyleSheet(f"color: {cmt_globals.COLOR_NEUTRAL_2};")
 		self.label_solution.setOpenExternalLinks(False)  # We'll handle clicks manually
 		self.sv_solution.changed.connect(self.label_solution.setText)
 		layout.addWidget(self.label_solution, start_row + 3, 1)
@@ -892,12 +991,12 @@ class ResultDetailsPane(QDialog):
 		self.label_extra_title = QLabel("Extra Data:")
 		self.label_extra_data = QLabel()
 		self.label_extra_data.setWordWrap(True)
-		self.label_extra_data.setStyleSheet(f"color: {COLOR_WARNING};")
+		self.label_extra_data.setStyleSheet(f"color: {cmt_globals.COLOR_WARNING};")
 		self.sv_extra_data.changed.connect(self.label_extra_data.setText)
 		# Initially hidden
 		self.label_extra_title.hide()
 		self.label_extra_data.hide()
-		layout.addWidget(self.label_extra_title, self.extra_data_row, 0, Qt.AlignRight | Qt.AlignTop)
+		layout.addWidget(self.label_extra_title, self.extra_data_row, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 		layout.addWidget(self.label_extra_data, self.extra_data_row, 1)
 
 		# Buttons
@@ -925,7 +1024,7 @@ class ResultDetailsPane(QDialog):
 		self.setMinimumWidth(700)
 		self.setMaximumWidth(900)
 
-	def browse_to_file(self):
+	def browse_to_file(self) -> None:
 		"""Browse to the problem file location."""
 		if not self.problem_info:
 			return
@@ -941,18 +1040,25 @@ class ResultDetailsPane(QDialog):
 			elif exists(target.parent):
 				os.startfile(target.parent)
 
-	def copy_path(self):
+	def copy_path(self) -> None:
 		"""Copy file path to clipboard."""
 		if self.problem_info:
 			path_text = str(self.problem_info.path)
-			copy_text_button(self.button_copy_path, path_text)
+			clipboard = QApplication.clipboard()
+			clipboard.setText(path_text)
 
-	def copy_details(self):
+			# Provide visual feedback
+			original_text = self.button_copy_path.text()
+			self.button_copy_path.setText("Copied!")
+			self.button_copy_path.setEnabled(False)
+			QTimer.singleShot(
+				3000,
+				lambda: (self.button_copy_path.setText(original_text), self.button_copy_path.setEnabled(True)),
+			)
+
+	def copy_details(self) -> None:
 		"""Copy problem details to clipboard."""
-		if self.scanner_tab.using_stage:
-			mod = f"Mod: {self.sv_mod_name.get()}\n"
-		else:
-			mod = ""
+		mod = f"Mod: {self.sv_mod_name.get()}\n" if self.scanner_tab.using_stage else ""
 
 		extra = ""
 		if self.label_extra_data.isVisible():
@@ -965,9 +1071,16 @@ class ResultDetailsPane(QDialog):
 			f"Solution: {self.sv_solution.get()}\n"
 			f"{extra}"
 		)
-		copy_text_button(self.button_copy, details)
+		clipboard = QApplication.clipboard()
+		clipboard.setText(details)
 
-	def set_info(self, selection: str, *, using_stage: bool):
+		# Provide visual feedback
+		original_text = self.button_copy.text()
+		self.button_copy.setText("Copied!")
+		self.button_copy.setEnabled(False)
+		QTimer.singleShot(3000, lambda: (self.button_copy.setText(original_text), self.button_copy.setEnabled(True)))
+
+	def set_info(self, selection: str, *, using_stage: bool) -> None:
 		"""Set problem information."""
 		self.problem_info = self.scanner_tab.tree_results_data.get(selection)
 		if not self.problem_info:
@@ -991,12 +1104,12 @@ class ResultDetailsPane(QDialog):
 		if isinstance(target, Path) and (exists(target) or exists(target.parent)):
 			if not is_dir(target):
 				target = target.parent
-			self.label_file_path.mousePressEvent = lambda e: os.startfile(target)
+			self.label_file_path.mousePressEvent = lambda _: os.startfile(target)
 			self.label_file_path.setToolTip("Click to open location")
-			self.label_file_path.setCursor(Qt.PointingHandCursor)
+			self.label_file_path.setCursor(Qt.CursorShape.PointingHandCursor)
 		else:
-			self.label_file_path.mousePressEvent = None
-			self.label_file_path.setCursor(Qt.ForbiddenCursor)
+			self.label_file_path.mousePressEvent = lambda _: None
+			self.label_file_path.setCursor(Qt.CursorShape.ForbiddenCursor)
 			self.label_file_path.setToolTip("Location not found")
 
 		# Set problem summary
@@ -1019,57 +1132,70 @@ class ResultDetailsPane(QDialog):
 			# Check if first extra is URL
 			url = self.problem_info.extra_data[0]
 			if url.startswith("http"):
-				self.label_solution.mousePressEvent = lambda e: webbrowser.open(url)
-				self.label_solution.setCursor(Qt.PointingHandCursor)
+				self.label_solution.mousePressEvent = lambda _: (webbrowser.open(url), None)[1]
+				self.label_solution.setCursor(Qt.CursorShape.PointingHandCursor)
 				self.label_solution.setToolTip("Click to open URL")
 				# Add URL indicator to solution text
 				self.sv_solution.set(f"{solution_text}\n[Click to open: {url}]")
 			else:
-				self.label_solution.mousePressEvent = None
-				self.label_solution.setCursor(Qt.ArrowCursor)
+				self.label_solution.mousePressEvent = lambda _: None
+				self.label_solution.setCursor(Qt.CursorShape.ArrowCursor)
 				self.label_solution.setToolTip("")
 		else:
 			# Hide extra data
 			self.label_extra_title.hide()
 			self.label_extra_data.hide()
 			self.sv_extra_data.set("")
-			self.label_solution.mousePressEvent = None
-			self.label_solution.setCursor(Qt.ArrowCursor)
+			self.label_solution.mousePressEvent = lambda _: None
+			self.label_solution.setCursor(Qt.CursorShape.ArrowCursor)
 			self.label_solution.setToolTip("")
 
 		# Update button states
 		self.button_browse.setEnabled(
-			isinstance(self.problem_info.path, Path) and (exists(self.problem_info.path) or exists(self.problem_info.path.parent))
+			isinstance(self.problem_info.path, Path)
+			and (exists(self.problem_info.path) or exists(self.problem_info.path.parent)),
 		)
 
 		# Handle file list button
 		if self.button_files:
-			layout = self.button_files.parent().layout()
-			layout.removeWidget(self.button_files)
+			parent_widget = self.button_files.parent()
+			if isinstance(parent_widget, QWidget):
+				layout = parent_widget.layout()
+				if layout is not None:
+					layout.removeWidget(self.button_files)
 			self.button_files.deleteLater()
 			self.button_files = None
 
 		if self.problem_info.file_list:
 			self.button_files = QPushButton("Show File List")
 			self.button_files.clicked.connect(self.show_file_list)
-			button_layout = self.button_copy.parent().layout()
-			button_layout.insertWidget(3, self.button_files)
+			parent_widget = self.button_copy.parent()
+			if isinstance(parent_widget, QWidget):
+				button_layout = parent_widget.layout()
+				if isinstance(button_layout, QVBoxLayout):
+					button_layout.insertWidget(3, self.button_files)
 
 		# Handle auto-fix button
 		if self.button_autofix:
-			layout = self.button_autofix.parent().layout()
-			layout.removeWidget(self.button_autofix)
+			parent_widget = self.button_autofix.parent()
+			if isinstance(parent_widget, QWidget):
+				layout = parent_widget.layout()
+				if layout is not None:
+					layout.removeWidget(self.button_autofix)
 			self.button_autofix.deleteLater()
 			self.button_autofix = None
 
 		if self.problem_info.solution in AUTOFIX_REGISTRY:
 			self.button_autofix = QPushButton("Auto-Fix")
 			self.button_autofix.clicked.connect(lambda: do_autofix_qt(self, selection))
-			button_layout = self.button_copy.parent().layout()
-			position = 4 if self.button_files else 3
-			button_layout.insertWidget(position, self.button_autofix)
+			parent_widget = self.button_copy.parent()
+			if isinstance(parent_widget, QWidget):
+				button_layout = parent_widget.layout()
+				if isinstance(button_layout, QVBoxLayout):
+					position = 4 if self.button_files else 3
+					button_layout.insertWidget(position, self.button_autofix)
 
-	def show_file_list(self):
+	def show_file_list(self) -> None:
 		"""Show the file list in a TreeWindow."""
 		if not self.problem_info or not self.problem_info.file_list:
 			return
@@ -1084,32 +1210,30 @@ class ResultDetailsPane(QDialog):
 			title="File List",
 			text="",
 			headers=headers,
-			items=self.problem_info.file_list,
+			items=self.problem_info.file_list,  # type: ignore[arg-type]
 		)
 		tree_dialog.exec()
 
-	def mousePressEvent(self, event):
+	def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse press for window dragging."""
-		if event.button() == Qt.LeftButton:
-			# Only start dragging if clicking on title bar area
-			if event.y() <= 40:  # Title bar height
-				self._is_dragging = True
-				self._drag_start_pos = event.globalPos() - self.frameGeometry().topLeft()
-				event.accept()
+		if event.button() == Qt.MouseButton.LeftButton and event.y() <= 40:  # Title bar height
+			self._is_dragging = True
+			self._drag_start_pos = event.globalPos() - self.frameGeometry().topLeft()
+			event.accept()
 
-	def mouseMoveEvent(self, event):
+	def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse move for window dragging."""
-		if self._is_dragging and event.buttons() == Qt.LeftButton:
+		if self._is_dragging and event.buttons() == Qt.MouseButton.LeftButton and self._drag_start_pos is not None:
 			self.move(event.globalPos() - self._drag_start_pos)
 			event.accept()
 
-	def mouseReleaseEvent(self, event):
+	def mouseReleaseEvent(self, event: QMouseEvent) -> None:  # noqa: N802
 		"""Handle mouse release."""
-		if event.button() == Qt.LeftButton:
+		if event.button() == Qt.MouseButton.LeftButton:
 			self._is_dragging = False
 			event.accept()
 
-	def update_position(self):
+	def update_position(self) -> None:
 		"""Update details pane position relative to main window and side pane."""
 		if not self.isVisible():
 			return
@@ -1151,7 +1275,7 @@ class ResultDetailsPane(QDialog):
 
 		self.move(x, y)
 
-	def showEvent(self, event):
+	def showEvent(self, event: QShowEvent) -> None:  # noqa: N802
 		"""Handle show event."""
 		super().showEvent(event)
 		self.update_position()
