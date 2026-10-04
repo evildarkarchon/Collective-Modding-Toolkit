@@ -146,6 +146,28 @@ public sealed class ErrorWindowTests
     }
 
     [AvaloniaFact]
+    [Trait("Parity", "SHELL-12")]
+    public void An_exception_in_a_click_handler_is_reported_and_the_app_survives()
+    {
+        var runtime = new AppRuntime(new CapturingLogger());
+        var probe = InputProbe.Show(runtime);
+        var button = probe.Window.GetVisualDescendants().OfType<Button>().Single();
+        button.Click += (_, _) => throw new InvalidOperationException("from a real click");
+
+        using (runtime.Errors.InstallGlobalHandlers())
+        {
+            probe.ClickButton();
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: from a real click",
+            runtime.Errors.Window!.Text);
+        // The probe's own click counter, registered first, still ran: the app carried on.
+        Assert.Equal(1, probe.Clicks);
+    }
+
+    [AvaloniaFact]
     public async Task An_operation_failure_that_escapes_ui_thread_code_is_not_reported_twice()
     {
         var logger = new CapturingLogger();

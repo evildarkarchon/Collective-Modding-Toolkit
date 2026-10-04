@@ -26,7 +26,10 @@
       a separate lowercase assets\ folder would be the same directory; Link puts it at the lowercase path the
       release archive uses. The repo copy says "github", like the Reference Implementation's.
     -->
-    <None Update="Assets\download-source.txt" Link="assets\download-source.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="Assets\download-source.txt"
+          Link="assets\download-source.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

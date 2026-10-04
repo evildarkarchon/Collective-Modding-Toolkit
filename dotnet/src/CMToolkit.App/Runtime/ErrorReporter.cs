@@ -32,6 +32,7 @@ public sealed class ErrorReporter
     private readonly ILogger _logger;
     private ErrorWindow? _window;
 
+    /// <param name="logger">The app log; must be safe to call from any thread, since reports come from workers.</param>
     public ErrorReporter(ILogger logger)
     {
         _logger = logger;

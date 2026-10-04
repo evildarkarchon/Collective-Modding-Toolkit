@@ -24,7 +24,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            StartAsync(desktop);
+            RunStartup(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -36,7 +36,7 @@ public partial class App : Application
     /// the UI thread, as it ran at import time in the Reference Implementation, before the main window exists. Only
     /// then is a window shown: the main window, or the startup failure dialog (SHELL-13).
     /// </summary>
-    private static async void StartAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    private static async void RunStartup(IClassicDesktopStyleApplicationLifetime desktop)
     {
         // The Settings-and-log-file slice replaces the null logger with the cm-toolkit.log provider.
         var runtime = new AppRuntime(NullLogger.Instance);

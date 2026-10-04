@@ -8,6 +8,7 @@ namespace CMToolkit.App.Views;
 /// </summary>
 public partial class ErrorWindow : Window
 {
+    /// <summary>An empty Error Window; <see cref="Append"/> adds the reports.</summary>
     public ErrorWindow()
     {
         InitializeComponent();

@@ -29,6 +29,11 @@ public enum MessageBoxKind
 /// <remarks>
 /// Like the native boxes: Enter presses the first button. Escape dismisses an OK box; a Yes/No box has no Cancel, so it
 /// ignores Escape. Closing a box from its title bar answers No.
+/// <para>
+/// A message box is deliberately not under the <see cref="Runtime.InputBlocker"/>. In the reference, a box ran its
+/// own modal loop, so it took input even while the code that showed it was mid-callback; here the code that shows one
+/// awaits the answer, and blocking the box would deadlock that wait.
+/// </para>
 /// </remarks>
 public sealed class MessageBoxWindow : Window
 {

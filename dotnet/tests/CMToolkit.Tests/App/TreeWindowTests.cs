@@ -115,6 +115,15 @@ public sealed class TreeWindowTests
     }
 
     [AvaloniaFact]
+    public void An_empty_text_still_takes_one_line_like_an_empty_ttk_label()
+    {
+        var tree = ShowTree<int>([(1, "a.esp")], key => key.ToString(), text: "");
+
+        var label = tree.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "");
+        Assert.Equal(17, label.Bounds.Height);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "MOD-1")]
     public void The_tree_window_is_a_modal_that_closes_on_space_escape_or_close()
     {

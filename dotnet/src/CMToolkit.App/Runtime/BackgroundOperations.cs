@@ -19,6 +19,8 @@ public sealed class BackgroundOperations
     private readonly ErrorReporter _errors;
     private readonly InputBlocker _input;
 
+    /// <param name="errors">Where a failing operation's exception is reported.</param>
+    /// <param name="input">The input block that <see cref="OperationPhase.Blocking"/> phases hold.</param>
     public BackgroundOperations(ErrorReporter errors, InputBlocker input)
     {
         _errors = errors;

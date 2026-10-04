@@ -12,9 +12,5 @@ public sealed class OperationFailedException : Exception
     public OperationFailedException(string operationName, Exception innerException)
         : base($"Background operation '{operationName}' failed; the error has been reported.", innerException)
     {
-        OperationName = operationName;
     }
-
-    /// <summary>The operation's name.</summary>
-    public string OperationName { get; }
 }
