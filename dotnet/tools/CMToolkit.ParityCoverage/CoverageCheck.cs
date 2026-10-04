@@ -31,9 +31,10 @@ public sealed record RepoLayout(string Root)
     {
         for (var dir = new DirectoryInfo(Path.GetFullPath(start)); dir is not null; dir = dir.Parent)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "docs", "parity-inventory.md")))
+            var candidate = new RepoLayout(dir.FullName);
+            if (File.Exists(candidate.Inventory))
             {
-                return new RepoLayout(dir.FullName);
+                return candidate;
             }
         }
 
@@ -41,10 +42,35 @@ public sealed record RepoLayout(string Root)
     }
 }
 
+/// <summary>The kinds of evidence the check accepts.</summary>
+public enum ProofKind
+{
+    /// <summary>A recorded scenario's <c>parity</c> list.</summary>
+    Scenario,
+
+    /// <summary>A <c>[Trait("Parity", …)]</c> on a test.</summary>
+    Trait,
+
+    /// <summary>A <c>coverage-manual.json</c> entry.</summary>
+    Manual,
+}
+
 /// <summary>One piece of evidence that an ID is proven.</summary>
 /// <param name="Id">The Parity Inventory ID.</param>
-/// <param name="Source">Where it comes from: <c>scenario &lt;id&gt;</c>, <c>trait &lt;file&gt;</c> or <c>manual &lt;kind&gt;</c>.</param>
-public sealed record Proof(string Id, string Source);
+/// <param name="Kind">What kind of evidence it is.</param>
+/// <param name="Location">
+/// Where it is: the scenario ID, the test file (repo-relative), or the manual proof kind (<c>exempt</c>, …).
+/// </param>
+public sealed record Proof(string Id, ProofKind Kind, string Location)
+{
+    /// <summary>How error messages name the proof, for example <c>scenario settings/download-source-bom</c>.</summary>
+    public string Source => Kind switch
+    {
+        ProofKind.Scenario => $"scenario {Location}",
+        ProofKind.Trait => $"trait {Location}",
+        _ => $"manual {Location} (coverage-manual.json)",
+    };
+}
 
 /// <summary>What the check found.</summary>
 /// <param name="InventoryIds">Every inventory ID, in document order.</param>
@@ -158,7 +184,7 @@ public static partial class CoverageCheck
 
             foreach (var parityId in cited)
             {
-                yield return new Proof(parityId, $"scenario {id}");
+                yield return new Proof(parityId, ProofKind.Scenario, id);
             }
         }
     }
@@ -182,7 +208,7 @@ public static partial class CoverageCheck
             var relative = Path.GetRelativePath(layout.Root, file).Replace('\\', '/');
             foreach (Match match in ParityTrait().Matches(File.ReadAllText(file)))
             {
-                yield return new Proof(match.Groups["id"].Value, $"trait {relative}");
+                yield return new Proof(match.Groups["id"].Value, ProofKind.Trait, relative);
             }
         }
     }
@@ -190,6 +216,11 @@ public static partial class CoverageCheck
     private static bool IsBuildOutput(string root, string file)
         => Path.GetRelativePath(root, file).Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj");
 
+    /// <summary>
+    /// The entries of <c>coverage-manual.json</c>. Each must have an <c>id</c>, a <c>proof</c> from
+    /// <see cref="ManualProofKinds"/> and a non-empty <c>reason</c>; a malformed entry is an error and proves nothing.
+    /// A missing file means no manual proofs.
+    /// </summary>
     private static IEnumerable<Proof> ManualProofs(RepoLayout layout, List<string> errors)
     {
         if (!File.Exists(layout.Manual))
@@ -224,13 +255,14 @@ public static partial class CoverageCheck
             }
             else
             {
-                proofs.Add(new Proof(id, $"manual {kind} (coverage-manual.json)"));
+                proofs.Add(new Proof(id, ProofKind.Manual, kind));
             }
         }
 
         return proofs;
     }
 
+    /// <summary>The IDs in <c>covered.txt</c>: one per line, with <c>#</c> starting a comment and blank lines ignored.</summary>
     private static List<string> ReadCovered(RepoLayout layout)
         => File.Exists(layout.Covered)
             ? File.ReadAllLines(layout.Covered)

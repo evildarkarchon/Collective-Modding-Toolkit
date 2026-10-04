@@ -116,6 +116,11 @@ public sealed class MaterializedScenario : IDisposable
         }
     }
 
+    /// <summary>
+    /// The folder to create roots in: <paramref name="requested"/>, else <c>CMT_PARITY_TEMP</c>, else the system temp
+    /// folder.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">That folder isn't on NTFS.</exception>
     private static string TempBase(string? requested)
     {
         var path = Path.GetFullPath(requested
@@ -149,6 +154,8 @@ public sealed class MaterializedScenario : IDisposable
         }
     }
 
+    /// <summary>Adds the entry's attributes to whatever <paramref name="path"/> already has.</summary>
+    /// <exception cref="InvalidDataException">The path doesn't exist, or an attribute isn't in the vocabulary.</exception>
     private static void ApplyAttributes(ParityScenario scenario, string path, AttributeEntry entry)
     {
         var isDirectory = Directory.Exists(path);

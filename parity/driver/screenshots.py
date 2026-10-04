@@ -64,6 +64,8 @@ gdi32.DeleteDC.argtypes = [wintypes.HDC]
 
 
 class BitmapInfoHeader(ctypes.Structure):
+	"""Win32 ``BITMAPINFOHEADER``: describes the 32-bit top-down DIB that ``GetDIBits`` copies the capture into."""
+
 	_fields_ = [
 		("biSize", wintypes.DWORD),
 		("biWidth", wintypes.LONG),
@@ -177,14 +179,21 @@ def label_panel(image: Image.Image, caption: str) -> Image.Image:
 	return panel
 
 
-def compose_side_by_side(tk: Image.Image, avalonia: Image.Image, gap: int = 10) -> Image.Image:
-	"""Tk, Avalonia and their 50/50 blend side by side, each captioned."""
+def _aligned(tk: Image.Image, avalonia: Image.Image) -> tuple[Image.Image, Image.Image, Image.Image]:
+	"""Both captures padded to a common size (windows can differ by a frame pixel or two), plus their 50/50 blend."""
 	width, height = max(tk.width, avalonia.width), max(tk.height, avalonia.height)
 	tk_full, av_full = (_pad(i, width, height) for i in (tk, avalonia))
+	return tk_full, av_full, Image.blend(tk_full, av_full, 0.5)
+
+
+def compose_side_by_side(tk: Image.Image, avalonia: Image.Image, gap: int = 10) -> Image.Image:
+	"""Tk, Avalonia and their 50/50 blend side by side, each captioned."""
+	tk_full, av_full, blend = _aligned(tk, avalonia)
+	width = tk_full.width
 	panels = [
 		label_panel(tk_full, "Tk reference (src/main.py)"),
 		label_panel(av_full, "Avalonia (cm-toolkit.exe)"),
-		label_panel(Image.blend(tk_full, av_full, 0.5), "50/50 blend"),
+		label_panel(blend, "50/50 blend"),
 	]
 	out = Image.new("RGB", (sum(p.width for p in panels) + gap * 2, panels[0].height), "black")
 	for index, panel in enumerate(panels):
@@ -195,11 +204,10 @@ def compose_side_by_side(tk: Image.Image, avalonia: Image.Image, gap: int = 10) 
 def compose_crop(tk: Image.Image, avalonia: Image.Image, box: tuple[int, int, int, int], scale: int = 2, gap: int = 10) -> Image.Image:
 	"""The same window region from Tk, Avalonia and the blend, stacked and scaled up for pixel-level reading."""
 	x, y, w, h = box
-	width, height = max(tk.width, avalonia.width), max(tk.height, avalonia.height)
-	w = width - x if w < 0 else w
-	h = height - y if h < 0 else h
-	tk_full, av_full = (_pad(i, width, height) for i in (tk, avalonia))
-	crops = [i.crop((x, y, x + w, y + h)) for i in (tk_full, av_full, Image.blend(tk_full, av_full, 0.5))]
+	images = _aligned(tk, avalonia)
+	w = images[0].width - x if w < 0 else w
+	h = images[0].height - y if h < 0 else h
+	crops = [i.crop((x, y, x + w, y + h)) for i in images]
 	crops = [c.resize((c.width * scale, c.height * scale), Image.Resampling.NEAREST) for c in crops]
 	out = Image.new("RGB", (crops[0].width, sum(c.height for c in crops) + gap * scale * 2), "black")
 	for index, crop in enumerate(crops):
@@ -208,6 +216,7 @@ def compose_crop(tk: Image.Image, avalonia: Image.Image, box: tuple[int, int, in
 
 
 def _pad(image: Image.Image, width: int, height: int) -> Image.Image:
+	"""``image`` on a black canvas of ``width`` x ``height``, anchored top-left."""
 	if image.size == (width, height):
 		return image
 	padded = Image.new("RGB", (width, height), "black")
@@ -216,6 +225,10 @@ def _pad(image: Image.Image, width: int, height: int) -> Image.Image:
 
 
 def parse_crop(text: str) -> tuple[str, tuple[int, int, int, int]]:
+	"""Parses a ``--crop`` value, ``name=x,y,width,height``, into the name and the box.
+
+	Raises ``argparse.ArgumentTypeError`` for anything else, so argparse reports it as a usage error.
+	"""
 	name, _, numbers = text.partition("=")
 	parts = [int(n) for n in numbers.split(",")]
 	if not name or len(parts) != 4:
@@ -234,6 +247,7 @@ def run_reference_child(scenario_id: str, root: str) -> None:
 
 
 def main() -> int:
+	"""Captures the pair and writes the images, or (``--reference-child``) runs the Tk reference. Returns the exit code."""
 	# The child mode has its own arguments, so it is handled before the user-facing parser requires --slice.
 	if len(sys.argv) == 4 and sys.argv[1] == "--reference-child":
 		run_reference_child(sys.argv[2], sys.argv[3])

@@ -10,7 +10,7 @@ namespace CMToolkit.Tests.Parity;
 /// Reference Implementation (ADR-0004).
 /// </summary>
 /// <remarks>
-/// It is <see cref="IXunitSerializable"/> so that each scenario shows up as its own test case. Only the scenarios root
+/// It is <see cref="IXunitSerializable"/> so that each scenario shows up as its own row in test explorers and results. Only the scenarios root
 /// and the ID are serialized; the manifest and golden are read from disk when first used.
 /// </remarks>
 public sealed class ParityScenario : IXunitSerializable

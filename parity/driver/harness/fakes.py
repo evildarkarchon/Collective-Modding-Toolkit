@@ -39,6 +39,7 @@ class ModuleProxy:
 		object.__setattr__(self, "_overrides", overrides)
 
 	def __getattr__(self, name: str) -> Any:
+		"""Called only for names not set on the proxy itself: an override if there is one, else the real module's."""
 		overrides = self._overrides
 		if name in overrides:
 			return overrides[name]
@@ -101,6 +102,7 @@ class FakeWinreg(ModuleProxy):
 		object.__setattr__(self, "_keys", keys)
 
 	def _open_key(self, key: int | FakeKey, sub_key: str, *_: Any, **__: Any) -> FakeKey:
+		"""``winreg.OpenKey``: opens ``sub_key`` under a hive or an open key, or raises ``FileNotFoundError``."""
 		hive, base = (key.hive, key.path) if isinstance(key, FakeKey) else (key, "")
 		path = "\\".join(p for p in (base, sub_key) if p).lower()
 		keys: dict[tuple[int, str], Any] = self._keys
@@ -109,6 +111,7 @@ class FakeWinreg(ModuleProxy):
 		return FakeKey(hive, path)
 
 	def _query_value_ex(self, key: FakeKey, value_name: str) -> tuple[Any, int]:
+		"""``winreg.QueryValueEx``: ``(value, type)``, or ``FileNotFoundError`` if the key has no such value."""
 		values = self._keys.get((key.hive, key.path), {})
 		if (value_name or "").lower() not in values:
 			raise FileNotFoundError(2, "The system cannot find the file specified")
@@ -131,6 +134,7 @@ class FakeProcess:
 		self._expand = expand
 
 	def name(self) -> str:
+		"""The image name, such as ``ModOrganizer.exe``; empty for the nameless parent of an empty chain."""
 		return self._chain[self._index]["name"] if self._index < len(self._chain) else ""
 
 	def exe(self) -> str:
@@ -141,6 +145,7 @@ class FakeProcess:
 		return self._expand(exe)
 
 	def parent(self) -> FakeProcess | None:
+		"""The next process up the chain, or ``None`` past its end (as for a process whose parent has exited)."""
 		return FakeProcess(self._chain, self._index + 1, self._expand) if self._index + 1 < len(self._chain) else None
 
 	@contextmanager

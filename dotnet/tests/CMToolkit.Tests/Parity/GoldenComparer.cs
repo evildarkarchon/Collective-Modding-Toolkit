@@ -22,7 +22,7 @@ public enum GoldenCompareMode
 /// Compares a recorded golden with the C# side's projection of the same results (ADR-0004). The comparison is exact:
 /// same object keys, arrays in the same order, same value kinds and values. The one relaxation is the unordered
 /// marker, <c>{"$unordered": [...]}</c>, whose items are compared as a multiset; the driver writes it for hash-ordered
-/// dimensions (T-15, B-4) and fields a scenario marks unordered, and the C# projection must write it for the same
+/// dimensions (T-15, B-4) and other fields its operation marks unordered, and the C# projection must write it for the same
 /// fields. Numbers compare by value, so Python's <c>1.0</c> matches a C# <c>1</c>; the rendered form of a float (T-3)
 /// belongs in a <c>display</c> string, where it is compared exactly.
 /// </summary>
@@ -45,6 +45,7 @@ public static class GoldenComparer
         return diffs;
     }
 
+    /// <summary>Compares two nodes at <paramref name="path"/>, appending each difference to <paramref name="diffs"/>.</summary>
     private static void Compare(JsonNode? expected, JsonNode? actual, string path, GoldenCompareMode mode, List<string> diffs)
     {
         var expectedKind = KindOf(expected);
@@ -78,6 +79,7 @@ public static class GoldenComparer
         }
     }
 
+    /// <summary>Same key set (minus <c>display</c> in <see cref="GoldenCompareMode.Semantic"/>), then each value in turn.</summary>
     private static void CompareObjects(JsonObject expected, JsonObject actual, string path, GoldenCompareMode mode, List<string> diffs)
     {
         bool Included(string key) => mode is GoldenCompareMode.Full || key != DisplayKey;
@@ -108,6 +110,7 @@ public static class GoldenComparer
         }
     }
 
+    /// <summary>Same length, then item by item in order.</summary>
     private static void CompareArrays(JsonArray expected, JsonArray actual, string path, GoldenCompareMode mode, List<string> diffs)
     {
         if (expected.Count != actual.Count)
@@ -147,6 +150,9 @@ public static class GoldenComparer
         diffs.AddRange(unmatched.Select(item => $"{path}: unordered item unexpected: {Show(item)}"));
     }
 
+    /// <summary>
+    /// Scalar equality: same JSON kind, then ordinal string equality or numeric equality by value. Null equals only null.
+    /// </summary>
     private static bool ValuesEqual(JsonNode? expected, JsonNode? actual)
     {
         if (expected is null || actual is null)

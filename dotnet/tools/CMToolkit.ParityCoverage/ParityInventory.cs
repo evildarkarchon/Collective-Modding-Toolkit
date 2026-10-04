@@ -57,6 +57,11 @@ public static partial class ParityInventory
         return ids;
     }
 
+    /// <summary>
+    /// The IDs one first-column cell stands for: the part before any <c>·</c>, split on commas, with en-dash ranges
+    /// expanded. Later comma items without a prefix inherit the previous item's.
+    /// </summary>
+    /// <exception cref="FormatException">An item isn't an ID, or a range mixes letters or runs backwards.</exception>
     private static IEnumerable<string> ExpandCell(string cell)
     {
         var text = cell.Split('·', 2)[0].Trim();
@@ -85,6 +90,11 @@ public static partial class ParityInventory
         }
     }
 
+    /// <summary>
+    /// Parses a full ID (<c>OVW-P5</c>), or a shorthand (<c>P6</c>) when <paramref name="inheritedPrefix"/> is set.
+    /// <paramref name="cell"/> is only for the error message.
+    /// </summary>
+    /// <exception cref="FormatException">Neither form matches.</exception>
     private static Id ParseId(string text, string? inheritedPrefix, string cell)
     {
         var full = FullId().Match(text);

@@ -129,9 +129,9 @@ public sealed class CoverageCheckTests : IDisposable
         var report = Run();
 
         Assert.Empty(report.Errors);
-        Assert.Equal(["SET-2"], report.Proofs.Where(p => p.Source.StartsWith("scenario ", StringComparison.Ordinal)).Select(p => p.Id));
-        Assert.Equal(["OVW-P5", "SET-1"], report.Proofs.Where(p => p.Source.StartsWith("trait ", StringComparison.Ordinal)).Select(p => p.Id).Order());
-        Assert.Equal(["B-1"], report.Proofs.Where(p => p.Source.StartsWith("manual ", StringComparison.Ordinal)).Select(p => p.Id));
+        Assert.Equal(["SET-2"], report.Proofs.Where(p => p.Kind == ProofKind.Scenario).Select(p => p.Id));
+        Assert.Equal(["OVW-P5", "SET-1"], report.Proofs.Where(p => p.Kind == ProofKind.Trait).Select(p => p.Id).Order());
+        Assert.Equal(["B-1"], report.Proofs.Where(p => p.Kind == ProofKind.Manual).Select(p => p.Id));
         Assert.Equal(["OVW-P6", "OVW-P15", "OVW-P16", "OVW-P17", "OVW-P18"], report.Unproven);
     }
 

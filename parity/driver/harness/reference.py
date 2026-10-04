@@ -169,12 +169,14 @@ class Session:
 		return CmcStub(self.root, **state)
 
 	def _os(self, key: str) -> Any:
+		"""One field of the host block's ``os``. Raises ``HostError`` if the scenario doesn't describe the OS."""
 		if "os" not in self.machine.host:
 			msg = f"The host block has no os, but the reference read os.{key}"
 			raise HostError(msg)
 		return self.machine.host["os"][key]
 
 	def _virtual_memory(self) -> Any:
+		"""``psutil.virtual_memory()`` from the host block's ``pc``. Raises ``HostError`` if it isn't described."""
 		if "pc" not in self.machine.host:
 			msg = "The host block has no pc, but the reference read the total memory"
 			raise HostError(msg)

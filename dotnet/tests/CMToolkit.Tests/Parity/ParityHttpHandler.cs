@@ -79,7 +79,8 @@ public sealed class ParityHttpHandler : HttpMessageHandler
                        ?? throw new InvalidOperationException($"{url} isn't a logical resource the parity harness knows.");
         _requests.Add(new ParityHttpRequest(request.Method, url, resource, request.Headers.ToDictionary(h => h.Key, h => string.Join(", ", h.Value))));
 
-        var metaPath = Path.Combine(_httpDirectory, resource.Replace('/', Path.DirectorySeparatorChar) + ".response.json");
+        var basePath = Path.Combine(_httpDirectory, resource.Replace('/', Path.DirectorySeparatorChar));
+        var metaPath = basePath + ".response.json";
         if (!File.Exists(metaPath))
         {
             throw new InvalidOperationException($"Unscripted HTTP request: the scenario has no {resource}.response.json for {url}.");
@@ -100,7 +101,7 @@ public sealed class ParityHttpHandler : HttpMessageHandler
                 throw new InvalidDataException($"{metaPath}: unknown failure '{meta.Failure}'; use timeout or connection.");
         }
 
-        var bodyPath = Path.Combine(_httpDirectory, resource.Replace('/', Path.DirectorySeparatorChar) + ".body");
+        var bodyPath = basePath + ".body";
         var body = File.Exists(bodyPath) ? await File.ReadAllBytesAsync(bodyPath, cancellationToken) : [];
         var headers = meta.Headers ?? new Dictionary<string, string>();
 

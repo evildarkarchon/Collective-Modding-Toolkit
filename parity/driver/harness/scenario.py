@@ -135,9 +135,7 @@ class Machine:
 		"""Deletes the root, clearing read-only and other attributes first so ``rmtree`` can remove everything."""
 		if not self.root.exists():
 			return
-		for dirpath, dirnames, filenames in os.walk(self.root):
-			for name in dirnames + filenames:
-				_kernel32.SetFileAttributesW(str(Path(dirpath) / name), FILE_ATTRIBUTE_NORMAL)
+		_reset_attributes(self.root, include_dirs=True)
 		shutil.rmtree(self.root, ignore_errors=True)
 
 
@@ -176,9 +174,7 @@ def _build_tree(machine: Machine) -> None:
 	if tree.is_dir():
 		shutil.copytree(tree, machine.root, dirs_exist_ok=True, copy_function=shutil.copyfile)
 		# New files get the archive bit; clear it so both sides start from the same (empty) attribute set.
-		for dirpath, _, filenames in os.walk(machine.root):
-			for name in filenames:
-				_kernel32.SetFileAttributesW(str(Path(dirpath) / name), FILE_ATTRIBUTE_NORMAL)
+		_reset_attributes(machine.root, include_dirs=False)
 
 	for entry in scenario.manifest.get("emptyDirs", []):
 		path = machine.path_of(entry)
@@ -191,7 +187,18 @@ def _build_tree(machine: Machine) -> None:
 		_apply_attributes(scenario, machine.path_of(entry["path"]), entry)
 
 
+def _reset_attributes(root: Path, *, include_dirs: bool) -> None:
+	"""Sets ``FILE_ATTRIBUTE_NORMAL`` on every file under ``root``, and on every folder too when ``include_dirs``."""
+	for dirpath, dirnames, filenames in os.walk(root):
+		for name in (dirnames + filenames) if include_dirs else filenames:
+			_kernel32.SetFileAttributesW(str(Path(dirpath) / name), FILE_ATTRIBUTE_NORMAL)
+
+
 def _apply_attributes(scenario: Scenario, path: Path, entry: dict[str, Any]) -> None:
+	"""Adds the entry's attributes (from the closed ``ATTRIBUTES`` vocabulary) to whatever ``path`` already has.
+
+	Raises ``ScenarioError`` for a missing path or an unknown attribute, and ``OSError`` if Windows refuses the change.
+	"""
 	current = _kernel32.GetFileAttributesW(str(path))
 	if current == INVALID_FILE_ATTRIBUTES:
 		msg = f"{scenario.id}: attributes entry {entry['path']!r} doesn't exist in the tree"
