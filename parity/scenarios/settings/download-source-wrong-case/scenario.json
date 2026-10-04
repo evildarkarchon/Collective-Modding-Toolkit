@@ -1,0 +1,10 @@
+{
+  "description": "The comparison is case-sensitive.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

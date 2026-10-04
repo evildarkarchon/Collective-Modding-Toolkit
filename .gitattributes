@@ -17,3 +17,8 @@
 *.ipynb  text eol=lf
 *.md     text
 * text=auto
+
+# Parity Scenario trees and canned HTTP bodies must reach both the Python driver and the C# tests byte for byte
+# (a CRLF, a BOM or an invalid UTF-8 byte is often the point of the scenario), so git must never convert them.
+parity/scenarios/**/tree/** -text
+parity/scenarios/**/http/** -text

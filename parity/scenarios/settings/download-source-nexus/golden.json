@@ -1,0 +1,15 @@
+{
+  "downloadSource": {
+    "display": {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Download source: 'nexus'"
+        }
+      ]
+    },
+    "outcome": "valid",
+    "rawValue": "nexus",
+    "source": "nexus"
+  }
+}

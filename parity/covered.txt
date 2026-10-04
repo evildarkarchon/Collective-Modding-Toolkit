@@ -1,0 +1,11 @@
+# The ratchet: Parity Inventory IDs proven so far. CI fails if any of them loses its proof (a scenario, a test with
+# [Trait("Parity", "<ID>")], or a coverage-manual.json entry). A slice adds the IDs it proves when it merges; an ID that
+# several slices prove in part goes in when the last of them merges. See parity/README.md.
+
+# Walking skeleton (#45)
+SET-2
+SHELL-3
+SHELL-6
+SHELL-14
+SHELL-15
+SHELL-16

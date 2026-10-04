@@ -1,0 +1,7 @@
+[
+  {
+    "id": "SHELL-15",
+    "proof": "exempt",
+    "reason": "The walking skeleton (#45) drops the DWM dark-title-bar call; RequestedThemeVariant=\"Dark\" gives Avalonia windows a dark title bar instead. Recorded as exempt in that slice."
+  }
+]

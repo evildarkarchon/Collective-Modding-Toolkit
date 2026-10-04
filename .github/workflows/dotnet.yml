@@ -51,8 +51,15 @@ jobs:
       - name: Build
         run: dotnet build CMToolkit.slnx --configuration Release --no-restore
 
+      # The tests include the Parity Scenario replays against goldens the Python driver recorded; CI never runs Python
+      # (ADR-0004).
       - name: Test
         run: dotnet test CMToolkit.slnx --configuration Release --no-build
+
+      # Ratchet mode: fails if an ID in parity/covered.txt has lost its proof, or a proof cites an unknown ID. The
+      # Verify full parity slice adds --strict, which also fails on every ID not yet proven.
+      - name: Parity coverage check
+        run: dotnet run --project tools/CMToolkit.ParityCoverage --configuration Release --no-build
 
       # ILLink and ILC warnings are errors too (IlcTreatWarningsAsErrors), so a successful publish has zero warnings.
       - name: Publish (NativeAOT, win-x64)

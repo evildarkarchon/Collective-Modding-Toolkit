@@ -1,0 +1,11 @@
+# The parity driver follows the repo's Ruff setup, with a few rules off that don't fit a harness of fakes and tests.
+extend = "../../pyproject.toml"
+
+[lint]
+extend-ignore = [
+	"any-type",  # The fakes stand in for dynamically typed modules (winreg, requests, psutil); Any is the honest type.
+	"pytest-unittest-assertion",   # The driver's tests use unittest (no pytest dependency), so unittest-style asserts are the idiom.
+	"pytest-unittest-raises-assertion",   # As above, for assertRaises.
+	"non-empty-init-module",  # harness/__init__.py holds the package's path constants on purpose.
+	"noqa-comments",  # The reference in src/ uses `# noqa`; the driver matches it.
+]

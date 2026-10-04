@@ -24,5 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CMToolkit.Core\CMToolkit.Core.csproj" />
     <ProjectReference Include="..\..\src\CMToolkit.App\CMToolkit.App.csproj" />
+    <ProjectReference Include="..\..\tools\CMToolkit.ParityCoverage\CMToolkit.ParityCoverage.csproj" />
   </ItemGroup>
 </Project>

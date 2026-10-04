@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
+using CMToolkit.Core;
 
 namespace CMToolkit.App;
 
@@ -20,7 +21,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow { DataContext = MainWindowViewModel.Load(AppContext.BaseDirectory) };
+            desktop.MainWindow = new MainWindow { DataContext = MainWindowViewModel.Load(SystemHostEnvironment.Instance) };
         }
 
         base.OnFrameworkInitializationCompleted();

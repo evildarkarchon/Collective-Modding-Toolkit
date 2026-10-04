@@ -1,0 +1,16 @@
+{
+  "window": {
+    "height": 450,
+    "resizable": false,
+    "tabs": [
+      "Overview",
+      "F4SE",
+      "Scanner",
+      "Tools",
+      "Settings",
+      "About"
+    ],
+    "title": "Collective Modding Toolkit v0.6.2-dev",
+    "width": 760
+  }
+}

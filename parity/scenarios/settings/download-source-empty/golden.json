@@ -1,0 +1,15 @@
+{
+  "downloadSource": {
+    "display": {
+      "log": [
+        {
+          "level": "ERROR",
+          "message": "Settings : Invalid download source: ''"
+        }
+      ]
+    },
+    "outcome": "invalid",
+    "rawValue": "",
+    "source": "nexus"
+  }
+}
