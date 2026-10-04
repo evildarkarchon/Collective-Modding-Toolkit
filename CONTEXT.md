@@ -35,8 +35,12 @@ The Python/tkinter app in `src/`, whose behaviour at the Parity Baseline defines
 _Avoid_: old app, legacy version
 
 **Parity Baseline**:
-The frozen commit of the Reference Implementation the port is measured against; later Python changes reach the port only as explicit "mirror this change" issues.
+The frozen commit of the Reference Implementation the port is measured against; later Python changes reach the port only as explicit "mirror this change" issues. It is retired at Cutover: after that, upstream Python changes are ported like any other feature or fix.
 _Avoid_: HEAD, latest Python
+
+**Cutover**:
+The one change that removes the Reference Implementation from the repo and makes the C# app the product. It ships as the first C# release, and every "mirror this change" issue must be closed before it.
+_Avoid_: migration, launch, go-live
 
 **Behaviour Parity**:
 The C# app producing the same observable results as the Reference Implementation at the Parity Baseline — including its known bugs, which are logged separately rather than fixed in the port. Failure Outcomes are part of it; how unhandled errors are surfaced is not.
