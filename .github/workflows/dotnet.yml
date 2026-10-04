@@ -1,0 +1,83 @@
+# Build, test and NativeAOT-publish the C# port (dotnet/), then check the published exe.
+# Also callable as a reusable workflow: the release workflow gates on it (issue #63), so a tag can never ship a build
+# that this workflow would reject.
+name: .NET
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dotnet-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build, test, publish (win-x64 NativeAOT)
+    # The hosted Windows image ships Visual Studio with the C++ build tools, which NativeAOT's link step needs.
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: dotnet
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: dotnet/global.json
+
+      # The ILC link step finds link.exe through vswhere.exe, which must be on PATH (issue #9). The installer folder
+      # that holds it isn't on PATH by default.
+      - name: Put vswhere.exe on PATH
+        run: |
+          $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer'
+          if (-not (Test-Path (Join-Path $installer 'vswhere.exe'))) { throw "vswhere.exe not found in $installer" }
+          $installer | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Restore
+        run: dotnet restore CMToolkit.slnx
+
+      # Directory.Build.props makes every warning an error, trim/AOT analyzer warnings (IL2xxx/IL3xxx) included.
+      - name: Build
+        run: dotnet build CMToolkit.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test CMToolkit.slnx --configuration Release --no-build
+
+      # ILLink and ILC warnings are errors too (IlcTreatWarningsAsErrors), so a successful publish has zero warnings.
+      - name: Publish (NativeAOT, win-x64)
+        run: dotnet publish src/CMToolkit.App --configuration Release --runtime win-x64 --output artifacts/publish
+
+      # ADR-0002: a CET-compatible exe crashes before Main when launched from MO2 2.5.2 on CET-capable CPUs.
+      - name: Check the exe is not CET-compatible
+        run: ./eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
+
+      # Catches AOT failures that only show at runtime, such as XAML loaded by URI ("No precompiled XAML found").
+      - name: Smoke-test the published exe
+        run: ./eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Screenshot artifacts/shots/shell.png
+
+      - name: List the publish folder
+        run: Get-ChildItem artifacts/publish -Recurse -File | Format-Table Name, Length, DirectoryName -AutoSize
+
+      # Symbols are left out: the native libraries' PDBs alone are over 100 MB.
+      - name: Upload the published exe and the shell screenshot
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cm-toolkit-win-x64
+          path: |
+            dotnet/artifacts/publish/
+            !dotnet/artifacts/publish/**/*.pdb
+            dotnet/artifacts/shots/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CMToolkit.App/CMToolkit.App.csproj" />
+    <Project Path="src/CMToolkit.Core/CMToolkit.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CMToolkit.Tests/CMToolkit.Tests.csproj" />
+  </Folder>
+</Solution>

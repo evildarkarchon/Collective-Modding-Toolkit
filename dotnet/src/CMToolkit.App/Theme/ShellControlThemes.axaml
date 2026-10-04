@@ -1,0 +1,128 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls">
+  <converters:BorderGapMaskConverter x:Key="GapMask" />
+  <!--
+    Our own ControlThemes, only where sv_ttk's *shape* differs from Fluent's: the notebook (TabControl/TabItem) and
+    the Labelframe gutter (GroupBox). Button, ScrollBar, ToolTip, CheckBox and TableView stay on Fluent's templates
+    and are reached through the resource keys in SvPalette.axaml. Chosen over selector Styles into Fluent's
+    template parts, which only win by copying Fluent's own pseudo-class selectors and break silently if Fluent
+    renames a part (issue #9).
+  -->
+
+  <!-- ttk.Notebook -->
+  <ControlTheme x:Key="{x:Type TabControl}" TargetType="TabControl">
+    <Setter Property="Background" Value="{DynamicResource SvBg}" />
+    <Setter Property="Padding" Value="1,0,1,1" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <!-- notebook-border sprite: the strip and a 2 px frame around the page are one #2f2f2f surface. -->
+        <Border Background="{DynamicResource SvStrip}" Padding="2,1,2,2">
+          <DockPanel>
+            <ItemsPresenter Name="PART_ItemsPresenter"
+                            DockPanel.Dock="Top"
+                            ItemsPanel="{TemplateBinding ItemsPanel}" />
+            <Border Background="{TemplateBinding Background}" ClipToBounds="True">
+              <Panel>
+                <!-- TabControl drives page transitions through the second host; keep it, as Fluent does. -->
+                <ContentPresenter Name="PART_SelectedContentHost2"
+                                  Margin="{TemplateBinding Padding}"
+                                  IsVisible="False" />
+                <ContentPresenter Name="PART_SelectedContentHost"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              </Panel>
+            </Border>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ttk.Notebook.Tab: tab-rest is the strip colour, tab-hover #292929, tab-selected #1c1c1c merged into the page. -->
+  <ControlTheme x:Key="{x:Type TabItem}" TargetType="TabItem">
+    <Setter Property="FontFamily" Value="{DynamicResource CmtFont}" />
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontNormal}" />
+    <Setter Property="Foreground" Value="{DynamicResource CmtDefault}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="13,0,13,0" />
+    <!-- sv_ttk tab padding is 16 px, but the tab sprite draws ~3 px inside it: 13 px padding + 4 px gap keeps text 32 px apart. -->
+    <Setter Property="Margin" Value="2,6,4,0" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="CornerRadius" Value="4,4,0,0" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- utils.set_theme overrides the Tab layout to drop the dotted focus ring (SHELL-14). -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_LayoutRoot"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Header}"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}"
+                            RecognizesAccessKey="True" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SvHover}" />
+    </Style>
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource SvBg}" />
+    </Style>
+  </ControlTheme>
+
+  <!--
+    ttk.Labelframe: Fluent's notched shape is already right, but its template hard-codes a 6 px gutter inside the
+    border where sv_ttk's Labelframe has ~4 px, which lifts the bottom buttons by 6 px. Same template, 4 px gutters.
+  -->
+  <ControlTheme x:Key="{x:Type GroupBox}" TargetType="GroupBox">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GroupBoxBorderBrush}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid UseLayoutRounding="True" ColumnDefinitions="4,Auto,*,4" RowDefinitions="Auto,Auto,*,4">
+          <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BorderBrush="Transparent"
+                  Background="{TemplateBinding Background}" />
+          <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BorderBrush="{TemplateBinding BorderBrush}">
+            <Border.OpacityMask>
+              <MultiBinding Converter="{StaticResource GapMask}" ConverterParameter="4">
+                <Binding ElementName="Header" Path="Bounds.Width" />
+                <Binding RelativeSource="{RelativeSource Self}" Path="Bounds.Width" />
+                <Binding RelativeSource="{RelativeSource Self}" Path="Bounds.Height" />
+              </MultiBinding>
+            </Border.OpacityMask>
+          </Border>
+          <Border x:Name="Header" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Padding="3,0">
+            <ContentPresenter Name="PART_HeaderPresenter"
+                              Content="{TemplateBinding Header}"
+                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                              Foreground="{DynamicResource GroupBoxHeaderForeground}" />
+          </Border>
+          <ContentPresenter Name="PART_ContentPresenter" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Margin="{TemplateBinding Padding}" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The app's logic, kept free of any Avalonia reference so it can be tested without a UI and so the trim/AOT
+    analyzers see it as a library (IsAotCompatible turns them on at build time, not only at publish).
+  -->
+  <PropertyGroup>
+    <RootNamespace>CMToolkit.Core</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+</Project>
