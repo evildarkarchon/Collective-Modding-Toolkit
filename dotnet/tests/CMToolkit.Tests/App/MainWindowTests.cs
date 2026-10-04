@@ -4,9 +4,12 @@ using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using CMToolkit.App.Runtime;
+using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.App;
 
@@ -15,7 +18,7 @@ public sealed class MainWindowTests
 {
     private static MainWindow ShowShell()
     {
-        var window = new MainWindow
+        var window = new MainWindow(new AppRuntime(new CapturingLogger()), PlaceholderTab.Shell())
         {
             DataContext = new MainWindowViewModel(
                 new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null)),

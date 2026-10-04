@@ -27,6 +27,12 @@
     <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
     <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
   </Style>
+  <!-- FONT_LARGE (20 pt): the tabs' loading labels, and later the About tab title. -->
+  <Style Selector=":is(TextBlock).large">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontLarge}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineLarge}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingLarge}" />
+  </Style>
   <!-- Tooltips are a tk.Message in TkDefaultFont (Segoe UI 9 pt), not Cascadia, so the Cascadia tuning is undone. -->
   <Style Selector="ToolTip :is(TextBlock)">
     <Setter Property="FontSize" Value="12" />

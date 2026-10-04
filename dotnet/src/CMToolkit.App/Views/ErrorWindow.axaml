@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CMToolkit.App.Views.ErrorWindow"
+        Title="An Error Occurred"
+        Icon="avares://cm-toolkit/Assets/Images/icon-32.png"
+        Width="970" Height="435"
+        CanResize="True"
+        WindowStartupLocation="CenterScreen">
+  <!--
+    The Error Window (SHELL-12; decided on issue #18): helpers.StdErr's Toplevel, a Text widget 120x25 characters.
+    Width/Height are those 120x25 Cascadia Mono 13 px cells (8 px advance, 17 px line under Tk's GDI rounding; see
+    SvPalette), plus the text box's 4 px padding and 1 px border on each side. The window is resizable and the text box
+    stretches with it. One deliberate deviation: the text is read-only (still selectable and copyable), where Tk's
+    Text was accidentally editable.
+  -->
+  <TextBox x:Name="Output"
+           IsReadOnly="True"
+           AcceptsReturn="True"
+           TextWrapping="Wrap"
+           Padding="4"
+           BorderThickness="1"
+           CornerRadius="0"
+           FontSize="{DynamicResource CmtFontSmall}"
+           LineHeight="{DynamicResource CmtLineSmall}" />
+</Window>
