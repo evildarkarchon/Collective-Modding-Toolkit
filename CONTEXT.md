@@ -39,5 +39,13 @@ The frozen commit of the Reference Implementation the port is measured against; 
 _Avoid_: HEAD, latest Python
 
 **Behaviour Parity**:
-The C# app producing the same observable results as the Reference Implementation at the Parity Baseline — including its known bugs, which are logged separately rather than fixed in the port.
+The C# app producing the same observable results as the Reference Implementation at the Parity Baseline — including its known bugs, which are logged separately rather than fixed in the port. Failure Outcomes are part of it; how unhandled errors are surfaced is not.
 _Avoid_: feature parity (too loose — parity here covers behaviour, not just features)
+
+**Failure Outcome**:
+What the app is left doing after it fails on bad input — a tab stuck on its loading text, a scan that never finishes, a file deleted or left behind — and the input that triggers it. Part of Behaviour Parity even when the outcome is a bug; the error type and its wording are not, unless the Reference Implementation wrote that message for the user.
+_Avoid_: crash (the app usually keeps running), error (ambiguous with the message)
+
+**Error Window**:
+The "An Error Occurred" window that reports unhandled errors while the app runs. The port shows every unhandled error in it, and in the log, the moment it happens, where the Reference Implementation surfaced some late and others never.
+_Avoid_: StdErr window (names the Python mechanism, not the thing), error dialog (ambiguous with the message boxes)
