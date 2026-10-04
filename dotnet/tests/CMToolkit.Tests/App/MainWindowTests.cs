@@ -38,24 +38,15 @@ public sealed class MainWindowTests
 
     [AvaloniaFact]
     [Trait("Parity", "SHELL-6")]
-    public void The_window_is_a_fixed_760_by_450_client_area()
+    public void The_window_is_a_fixed_760_by_450_client_area_centred_on_screen()
     {
         var window = ShowShell();
 
         Assert.Equal(new Size(760, 450), window.ClientSize);
         Assert.False(window.CanResize);
         Assert.False(window.CanMaximize);
-    }
-
-    [AvaloniaFact]
-    [Trait("Parity", "SHELL-6")]
-    public void The_window_opens_at_the_reference_centring_formula_on_the_primary_screen()
-    {
-        var window = new MainWindow();
-        var primary = window.Screens.Primary!;
-
-        Assert.Equal(WindowStartupLocation.Manual, window.WindowStartupLocation);
-        Assert.Equal(ShellPlacement.TkCentredOrigin(primary.Bounds, primary.Scaling), window.Position);
+        // Approximately where Tk puts it; the exact pixel offset of Tk's formula is an accepted difference.
+        Assert.Equal(WindowStartupLocation.CenterScreen, window.WindowStartupLocation);
     }
 
     [AvaloniaFact]

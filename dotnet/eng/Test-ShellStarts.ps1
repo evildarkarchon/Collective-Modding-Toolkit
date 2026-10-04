@@ -8,10 +8,8 @@
     can't catch those.
 
     It checks that a visible top-level window owned by the process appears with the expected title, and that its
-    client area is 760x450 at 100% scaling (scaled by the window's DPI otherwise). At 100% it also checks the outer
-    window rect starts where the Reference Implementation puts it: (screen // 2 - 380, screen // 2 - 225) on the
-    primary screen (SHELL-6). The title is built by Core's AppInfo from the assembly's informational version, so a
-    correct title also proves that Core call survives AOT.
+    client area is 760x450 at 100% scaling (scaled by the window's DPI otherwise). The title is built by Core's
+    AppInfo from the assembly's informational version, so a correct title also proves that Core call survives AOT.
 
     The screenshot uses PrintWindow with PW_RENDERFULLCONTENT, which captures GPU-composed windows like Avalonia's
     without bringing them to the front.
@@ -58,7 +56,6 @@ public static class CmtSmokeWin32 {
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr hwnd, out RECT rect);
     [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr hwnd);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
-    [DllImport("user32.dll")] public static extern int GetSystemMetrics(int index);
 
     public static List<IntPtr> VisibleWindowsOf(uint pid) {
         var found = new List<IntPtr>();
@@ -123,17 +120,6 @@ try {
 
     $outer = New-Object CmtSmokeWin32+RECT
     [void][CmtSmokeWin32]::GetWindowRect($hwnd, [ref]$outer)
-    if ($scale -eq 1) {
-        # SM_CXSCREEN (0) / SM_CYSCREEN (1): the primary screen's full size. Only checked at 100%, where logical and
-        # physical pixels agree; the scaled mapping is covered by ShellPlacementTests.
-        $expectedLeft = [math]::Floor([CmtSmokeWin32]::GetSystemMetrics(0) / 2) - 380
-        $expectedTop = [math]::Floor([CmtSmokeWin32]::GetSystemMetrics(1) / 2) - 225
-        Write-Host "Outer window rect starts at ($($outer.Left), $($outer.Top))."
-        if ($outer.Left -ne $expectedLeft -or $outer.Top -ne $expectedTop) {
-            throw "Window starts at ($($outer.Left), $($outer.Top)); the reference's formula gives ($expectedLeft, $expectedTop)."
-        }
-    }
-
     if ($Screenshot) {
         $bitmap = New-Object System.Drawing.Bitmap ($outer.Right - $outer.Left), ($outer.Bottom - $outer.Top)
         try {

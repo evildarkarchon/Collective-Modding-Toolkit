@@ -54,5 +54,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
 
 ## Known residuals
 
+- The window opens with Avalonia's `CenterScreen`, which centres the outer frame in the work area. The Reference
+  Implementation offsets the client size from the full screen, so it sits ~20 px lower and ~8 px further right (at
+  100 %, 1440p). Accepted rather than reproduced.
 - The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see `docs/screenshots/shell/`). The
   main-window-shell prototype has the same offset, so it predates this tree. Horizontal positions match exactly.
