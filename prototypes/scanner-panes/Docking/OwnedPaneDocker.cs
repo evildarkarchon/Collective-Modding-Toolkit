@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace CmtPanesPrototype.Docking;
 
@@ -19,6 +20,8 @@ public enum PaneSlot
 /// </summary>
 public sealed class PaneWindow : Window
 {
+    private readonly LayoutTransformControl _host = new();
+
     public PaneWindow(PaneSlot slot, Control content)
     {
         Slot = slot;
@@ -28,10 +31,30 @@ public sealed class PaneWindow : Window
         ShowInTaskbar = false;
         WindowStartupLocation = WindowStartupLocation.Manual;
         SizeToContent = SizeToContent.Manual;
-        Content = content;
+        _host.Child = content;
+        Content = _host;
     }
 
     public PaneSlot Slot { get; }
+
+    /// <summary>The pane's view, without the counter-scaling wrapper.</summary>
+    public Control? View
+    {
+        get => _host.Child;
+        set => _host.Child = value;
+    }
+
+    /// <summary>
+    /// Lays the view out in the owner's DIPs. When the pane sits on a monitor with another DPI than its owner (it
+    /// straddles two monitors), Windows gives it that monitor's scaling, so 200 physical px would be only 133 DIPs
+    /// at 150 % and the content would render 1.5x too big for its box. Scaling by owner/pane undoes that; text is
+    /// still rasterised at the pane's own density, so it stays sharp.
+    /// </summary>
+    public void MatchOwnerScale(double ownerScaling)
+    {
+        var k = ownerScaling / RenderScaling;
+        _host.LayoutTransform = Math.Abs(k - 1) < 0.001 ? null : new ScaleTransform(k, k);
+    }
 }
 
 /// <summary>
@@ -72,7 +95,7 @@ public sealed class OwnedPaneDocker : IDisposable
     {
         if (_panes.TryGetValue(slot, out var existing))
         {
-            existing.Content = content;
+            existing.View = content;
             return;
         }
 
@@ -163,5 +186,6 @@ public sealed class OwnedPaneDocker : IDisposable
         var ps = pane.DesktopScaling;
         pane.Width = target.Width / ps;
         pane.Height = target.Height / ps;
+        pane.MatchOwnerScale(_owner.RenderScaling);
     }
 }

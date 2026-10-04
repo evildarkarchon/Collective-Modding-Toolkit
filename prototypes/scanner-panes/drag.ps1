@@ -1,7 +1,9 @@
 # PROTOTYPE: drags a main window by its title bar with real mouse input (the OS modal move loop, which programmatic
 # moves don't exercise) and samples the main/side/details window rects while the button is held. Reports, per
 # sample, how far each pane is from where the Tk formulas put it relative to the main window's client origin.
-# Works for both apps: windows are found by process id and outer size (main 776x489, side 200x405, details 760x200).
+# Works for both apps: windows are found by process id, then by title (Avalonia panes are titled "... pane (Side)")
+# or, for the Tk app whose panes share the main title, by their 100 % outer size (side 200x405, details 760x200).
+# Expected offsets are scaled by the main window's DPI, so it also runs at 150 % / mixed DPI.
 # Usage: pwsh ./drag.ps1 -ProcessId <pid> [-Steps 40] [-Dx 12] [-Dy 4] [-Shot <png path>]
 param(
     [Parameter(Mandatory)] [int]$ProcessId,
@@ -25,6 +27,10 @@ public static class D {
     [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint f, int x, int y, uint d, UIntPtr e);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+    [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr h);
+    [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr c);
+    public static string Title(IntPtr h) { var s = new System.Text.StringBuilder(256); GetWindowText(h, s, 256); return s.ToString(); }
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
     [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
     public static List<IntPtr> ForPid(uint pid) {
@@ -36,18 +42,30 @@ public static class D {
 "@
 function Rect($h) { $r = New-Object D+RECT; [void][D]::GetWindowRect($h, [ref]$r); $r }
 function Find($w, $hh) { [D]::ForPid($ProcessId) | Where-Object { $r = Rect $_; ($r.R - $r.L) -eq $w -and ($r.B - $r.T) -eq $hh } | Select-Object -First 1 }
+function ByTitle($pattern) { [D]::ForPid($ProcessId) | Where-Object { [D]::Title($_) -match $pattern } | Select-Object -First 1 }
 
-$main = Find 776 489; $side = Find 200 405; $details = Find 760 200
-if (-not $main) { throw "main window (776x489) not found for pid $ProcessId" }
+# Physical coordinates for every window regardless of its monitor (-4 = PER_MONITOR_AWARE_V2); a no-op if pwsh already is.
+[void][D]::SetProcessDpiAwarenessContext([IntPtr]-4)
+$main = [D]::ForPid($ProcessId) | Where-Object { [D]::Title($_) -match '^Collective Modding Toolkit v' } |
+    Sort-Object { $r = Rect $_; -(($r.R - $r.L) * ($r.B - $r.T)) } | Select-Object -First 1
+$side = ByTitle 'pane \(Side\)'; if (-not $side) { $side = Find 200 405 }
+$details = ByTitle 'pane \(Details\)'; if (-not $details) { $details = Find 760 200 }
+if (-not $main) { throw "main window not found for pid $ProcessId" }
 [void][D]::SetForegroundWindow($main)
 Start-Sleep -Milliseconds 300
 
 function Sample($label) {
     $o = New-Object D+POINT; [void][D]::ClientToScreen($main, [ref]$o)
-    $line = "{0,-6} client=({1},{2})" -f $label, $o.X, $o.Y
+    $k = [D]::GetDpiForWindow($main) / 96.0
+    $line = "{0,-6} client=({1},{2}) scale={3}" -f $label, $o.X, $o.Y, $k
     $worst = 0
-    if ($side) { $s = Rect $side; $ex = $o.X + 760; $ey = $o.Y + 40; $d = [Math]::Max([Math]::Abs($s.L - $ex), [Math]::Abs($s.T - $ey)); $worst = [Math]::Max($worst, $d); $line += " side off by $d" }
-    if ($details) { $s = Rect $details; $ex = $o.X; $ey = $o.Y + 450; $d = [Math]::Max([Math]::Abs($s.L - $ex), [Math]::Abs($s.T - $ey)); $worst = [Math]::Max($worst, $d); $line += " details off by $d" }
+    # Position and size both count: at mixed DPI a pane can sit in the right place at the wrong physical size.
+    function Off($h, $ex, $ey, $ew, $eh) {
+        $s = Rect $h
+        @([Math]::Abs($s.L - $ex), [Math]::Abs($s.T - $ey), [Math]::Abs(($s.R - $s.L) - $ew), [Math]::Abs(($s.B - $s.T) - $eh)) | Measure-Object -Maximum | ForEach-Object { [int]$_.Maximum }
+    }
+    if ($side) { $d = Off $side ($o.X + [Math]::Round(760 * $k)) ($o.Y + [Math]::Round(40 * $k)) ([Math]::Round(200 * $k)) ([Math]::Round(405 * $k)); $worst = [Math]::Max($worst, $d); $line += " side off by $d" }
+    if ($details) { $d = Off $details $o.X ($o.Y + [Math]::Round(450 * $k)) ([Math]::Round(760 * $k)) ([Math]::Round(200 * $k)); $worst = [Math]::Max($worst, $d); $line += " details off by $d" }
     Write-Host $line
     return $worst
 }

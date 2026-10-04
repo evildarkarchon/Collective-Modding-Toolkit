@@ -35,10 +35,17 @@ public static class SelfTest
             var offset = main.Position - here.Bounds.Position;
             await Step($"moved to other monitor ({other.Bounds}, scale {other.Scaling})", () => main.Position = other.Bounds.Position + offset, 800);
 
-            var outer = Native.WindowRect(main);
-            await Step("straddling: side pane spills onto the neighbouring monitor",
-                () => main.Position = new PixelPoint(here.Bounds.Right - outer.Width - 60, here.Bounds.Y + 200), 800);
             await Step("back to the original monitor", () => main.Position = here.Bounds.Position + offset, 800);
+
+            // Measured back on the original monitor: the outer/client geometry depends on the monitor's DPI. Put the
+            // client's right edge 60 px short of the monitor edge, so 140 of the side pane's 200 px (and its centre,
+            // which decides its DPI) are on the neighbour while the owner stays here.
+            var outer = Native.WindowRect(main);
+            var clientLeft = main.PointToScreen(default).X - outer.X;
+            var clientWidth = (int)Math.Round(main.ClientSize.Width * main.RenderScaling);
+            await Step("straddling: owner here, side pane mostly on the neighbouring monitor",
+                () => main.Position = new PixelPoint(here.Bounds.Right - 60 - clientWidth - clientLeft, here.Bounds.Y + 200), 800);
+            await Step("back again", () => main.Position = here.Bounds.Position + offset, 800);
         }
 
         await Step("minimised (panes should be hidden by the OS)", () => main.WindowState = WindowState.Minimized, 800);

@@ -71,10 +71,23 @@ A magenta **PROTOTYPE controls** window opens left of the main window. It is not
    `Border` has one brush for all four sides. Tree selection is `TreeViewItemBackgroundSelected=#292929`, not
    Fluent's accent.
 
+## 150 % and mixed DPI (DISPLAY1 temporarily at 150 %, DISPLAY2 at 100 %)
+
+9. **At 150 %** the panes come out at 300×608 and 1140×300 physical, exactly 1.5× the Tk sizes, anchored on
+   the scaled client origin. The self-test reads OK at every step.
+10. **Straddling** (owner at 100 %, side pane mostly on the 150 % monitor): Windows gives the pane its monitor's
+    DPI (144). Converting the physical rect back to DIPs with the **pane's own** `DesktopScaling` keeps it at
+    exactly 200×405 physical. But its content then lays out in only 133×270 DIPs and renders 1.5× too big:
+    `shots/mixed-dpi-A-straddle.png` shows "Scan Settings" overflowing and checkboxes clipped. **Fix:** wrap the
+    pane content in a `LayoutTransformControl` scaled by owner/pane scaling (`PaneWindow.MatchOwnerScale`). The
+    pane then looks identical to the 100 % case (`shots/mixed-dpi-A-straddle-fixed.png`), and text stays sharp
+    because it is still rasterised at the pane's density.
+11. **Real drag across the DPI boundary:** 80 samples, **0 px** off in position and size. The owner itself
+    switches from 1.0 to 1.5 scaling at sample 57, and both panes follow through `ScalingChanged`.
+12. The Python reference is DPI-unaware, so at mixed DPI Windows bitmap-stretches each of its windows per monitor.
+    That isn't a parity target; the DPI-baseline decision (per-monitor-v2, Tk px → DIPs 1:1) already covers it.
+
 ## Not yet verified
 
-- **150 % and mixed-DPI.** Both monitors here are 100 %. The docker already converts as the DPI-baseline ticket
-  prescribes: physical rect from the owner's `RenderScaling`, size back to DIPs with the pane's own
-  `DesktopScaling`, and re-place on either window's `ScalingChanged`. The readout shows OK/DRIFT at a glance once a
-  monitor is at another scale.
-- Pane activation: clicking a pane activates it, so the main title bar goes inactive. Not compared against Tk yet.
+- Pane activation: clicking a pane activates it, so the main title bar goes inactive. Not compared against Tk yet;
+  check it in the Scanner build slice.
