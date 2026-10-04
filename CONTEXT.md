@@ -42,6 +42,14 @@ _Avoid_: HEAD, latest Python
 The C# app producing the same observable results as the Reference Implementation at the Parity Baseline — including its known bugs, which are logged separately rather than fixed in the port. Failure Outcomes are part of it; how unhandled errors are surfaced is not.
 _Avoid_: feature parity (too loose — parity here covers behaviour, not just features)
 
+**Parity Inventory**:
+The catalogue of the Reference Implementation's observable behaviours, each under a stable checklist ID. The port is at full Behaviour Parity when every ID is proven.
+_Avoid_: feature list, spec
+
+**Parity Scenario**:
+A fake game and mod-manager setup, together with the results the Reference Implementation produced for it at the Parity Baseline. It is recorded once and kept after the Reference Implementation is removed. It proves the checklist IDs it names.
+_Avoid_: test case (a scenario can back several tests), golden (that is the recorded result alone, not the setup)
+
 **Failure Outcome**:
 What the app is left doing after it fails on bad input — a tab stuck on its loading text, a scan that never finishes, a file deleted or left behind — and the input that triggers it. Part of Behaviour Parity even when the outcome is a bug; the error type and its wording are not, unless the Reference Implementation wrote that message for the user.
 _Avoid_: crash (the app usually keeps running), error (ambiguous with the message)
