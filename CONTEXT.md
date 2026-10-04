@@ -8,6 +8,16 @@ A Windows desktop tool for troubleshooting and optimizing Fallout 4 mod setups, 
 The edition of Fallout 4 the game folder contains — Old-Gen, Next-Gen, Anniversary, Down-Grade, and the not-found/unknown/obsolete states — as detected from the game binaries.
 _Avoid_: game version (a specific executable build number, not the edition), OG/NG/AE as standalone nouns in prose
 
+## Distribution
+
+**Download Source**:
+The site an archive was published to — Nexus Mods or GitHub — baked into that archive; it seeds the default Update Source in a fresh settings file.
+_Avoid_: release channel (implies stable/beta tracks, which don't exist)
+
+**Update Source**:
+The user's setting for which site(s) the update check queries: Nexus Mods, GitHub, both, or none.
+_Avoid_: Download Source (that is fixed per archive; this is the user's choice)
+
 ## The port
 
 **Reference Implementation**:
