@@ -1,0 +1,15 @@
+{
+  "downloadSource": {
+    "display": {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Download source: 'github'"
+        }
+      ]
+    },
+    "outcome": "valid",
+    "rawValue": "github",
+    "source": "github"
+  }
+}

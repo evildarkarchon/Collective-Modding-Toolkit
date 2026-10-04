@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The Parity Inventory coverage check (ADR-0004, issue #46). CI runs it in ratchet mode; the Verify full parity
+    slice adds the strict switch. It is a .NET tool rather than a script because CI never runs Python, and the check
+    outlives the Python driver, which is deleted at cutover.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CMToolkit.ParityCoverage</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

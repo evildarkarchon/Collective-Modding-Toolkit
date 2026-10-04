@@ -1,0 +1,10 @@
+{
+  "description": "Spaces, a tab and CRLF around a valid value are stripped.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

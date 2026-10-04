@@ -12,9 +12,9 @@ ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-ups
 | `Directory.Build.props` | Shared settings: .NET 10, the single `<Version>`, warnings-as-errors (trim/AOT included), `<CETCompat>false</CETCompat>`. |
 | `src/CMToolkit.Core` | The app's logic. No Avalonia reference; trim/AOT analyzers on (`IsAotCompatible`). |
 | `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. |
-| `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. |
+| `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
+| `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
 | `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. |
-| `docs/screenshots/` | Hand-captured screenshot pairs against the Tk reference, at 100 % DPI. |
 
 ## Build, test and publish
 
@@ -25,6 +25,7 @@ dotnet test CMToolkit.slnx
 dotnet publish src/CMToolkit.App -c Release -r win-x64 -o artifacts/publish
 pwsh eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe
+dotnet run --project tools/CMToolkit.ParityCoverage
 ```
 
 The NativeAOT publish needs the Visual Studio C++ build tools. Its link step finds `link.exe` through `vswhere.exe`,
@@ -57,5 +58,5 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
 - The window opens with Avalonia's `CenterScreen`, which centres the outer frame in the work area. The Reference
   Implementation offsets the client size from the full screen, so it sits ~20 px lower and ~8 px further right (at
   100 %, 1440p). Accepted rather than reproduced.
-- The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see `docs/screenshots/shell/`). The
+- The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see [`parity/screenshots/shell/`](../parity/screenshots/shell/)). The
   main-window-shell prototype has the same offset, so it predates this tree. Horizontal positions match exactly.

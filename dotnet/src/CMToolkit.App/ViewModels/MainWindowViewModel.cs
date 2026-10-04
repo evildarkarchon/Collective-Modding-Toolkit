@@ -22,4 +22,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     /// <summary>Runs the startup Core calls against <paramref name="appDirectory"/>, the folder holding the exe.</summary>
     public static MainWindowViewModel Load(string appDirectory) => new(DownloadSourceFile.Read(appDirectory));
+
+    /// <summary>Runs the startup Core calls against <paramref name="host"/>'s exe folder.</summary>
+    public static MainWindowViewModel Load(IHostEnvironment host) => Load(host.AppDirectory);
 }

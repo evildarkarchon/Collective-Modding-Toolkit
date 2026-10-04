@@ -1,0 +1,16 @@
+{
+  "downloadSource": {
+    "display": {
+      "log": [
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "Settings : Failed to detect download source."
+        }
+      ]
+    },
+    "outcome": "readFailed",
+    "rawValue": null,
+    "source": "nexus"
+  }
+}

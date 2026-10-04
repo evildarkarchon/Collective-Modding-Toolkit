@@ -1,0 +1,10 @@
+{
+  "description": "Python's str.strip() also strips U+001C..U+001F and U+3000, which .NET's char.IsWhiteSpace partly doesn't.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

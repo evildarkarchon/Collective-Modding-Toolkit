@@ -1,0 +1,10 @@
+{
+  "description": "A UTF-8 BOM survives decoding with 'utf-8' and strip(), so the value is invalid.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "description": "The other valid value.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

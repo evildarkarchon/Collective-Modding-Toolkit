@@ -1,0 +1,13 @@
+{
+  "description": "No file: the read fails and the source becomes nexus.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  },
+  "emptyDirs": [
+    "App/assets"
+  ]
+}

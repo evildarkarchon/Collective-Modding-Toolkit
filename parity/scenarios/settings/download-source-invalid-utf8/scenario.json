@@ -1,0 +1,10 @@
+{
+  "description": "An undecodable byte is dropped (errors='ignore'), leaving a valid value.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

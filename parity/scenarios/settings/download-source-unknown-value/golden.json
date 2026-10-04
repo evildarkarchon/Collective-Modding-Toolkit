@@ -1,0 +1,15 @@
+{
+  "downloadSource": {
+    "display": {
+      "log": [
+        {
+          "level": "ERROR",
+          "message": "Settings : Invalid download source: 'steam'"
+        }
+      ]
+    },
+    "outcome": "invalid",
+    "rawValue": "steam",
+    "source": "nexus"
+  }
+}

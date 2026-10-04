@@ -1,0 +1,10 @@
+{
+  "description": "'both' is a valid Update Source but not a Download Source.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}

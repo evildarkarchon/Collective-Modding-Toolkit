@@ -32,3 +32,8 @@ test.*
 # Runtime-Created Files
 *.xdelta
 cm-toolkit.log
+
+# Parity Scenario trees and canned HTTP bodies are fake machines committed verbatim: an empty Fallout4.exe or a
+# *.xdelta there is a fixture, not a build or runtime artifact.
+!parity/scenarios/**/tree/**
+!parity/scenarios/**/http/**

@@ -1,0 +1,10 @@
+{
+  "description": "An empty file is read but invalid.",
+  "operation": "download-source",
+  "parity": [
+    "SET-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App"
+  }
+}
