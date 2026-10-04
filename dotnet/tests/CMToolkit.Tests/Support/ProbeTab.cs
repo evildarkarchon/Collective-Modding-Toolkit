@@ -26,6 +26,9 @@ public sealed class ProbeTab : TabPage
     /// <summary>The body of the load, run after <see cref="Gate"/>; returns whether it succeeded. Succeeds by default.</summary>
     public Func<ProbeTab, Task<bool>> Load { get; set; } = _ => Task.FromResult(true);
 
+    /// <summary>Runs inside every <c>switch_to</c>, after it is recorded; lets a test make it throw.</summary>
+    public Action? OnSwitchTo { get; set; }
+
     /// <summary>The content the tab builds.</summary>
     public TextBlock Built { get; } = new() { Text = "built" };
 
@@ -51,7 +54,11 @@ public sealed class ProbeTab : TabPage
     }
 
     /// <inheritdoc/>
-    protected override void SwitchTo() => Calls.Add("switch_to");
+    protected override void SwitchTo()
+    {
+        Calls.Add("switch_to");
+        OnSwitchTo?.Invoke();
+    }
 
     /// <inheritdoc/>
     protected override void SwitchFrom() => Calls.Add("switch_from");

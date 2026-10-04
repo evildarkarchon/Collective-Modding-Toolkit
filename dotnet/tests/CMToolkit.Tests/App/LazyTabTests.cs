@@ -166,6 +166,8 @@ public sealed class LazyTabTests
         });
 
         shell.Select(1);
+        // The load fails on a worker; wait for the failure to come back and be reported before moving on.
+        DispatcherWait.Until(() => shell.Runtime.Errors.Window is not null);
         shell.Select(0);
         shell.Select(1);
 
@@ -188,6 +190,22 @@ public sealed class LazyTabTests
         Assert.Equal("", Assert.IsType<TextBlock>(shell.Tab(2).Content).Text);
         Assert.StartsWith(
             $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: ui side", shell.Runtime.Errors.Window!.Text);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SHELL-8")]
+    public void An_exception_switching_back_to_a_loaded_tab_is_reported()
+    {
+        var shell = ShowShell();
+        shell.Select(1);
+        shell.Select(0);
+        shell.Pages[1].OnSwitchTo = () => throw new InvalidOperationException("switch_to failed");
+
+        shell.Select(1);
+
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: switch_to failed",
+            shell.Runtime.Errors.Window!.Text);
     }
 
     [AvaloniaFact]

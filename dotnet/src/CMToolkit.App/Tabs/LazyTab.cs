@@ -37,10 +37,34 @@ public sealed class LazyTab : ContentControl
 
     /// <summary>
     /// Handles this tab becoming the selected one: switches to it if it is loaded, or loads it the first time.
-    /// Exceptions are reported to the Error Window rather than thrown.
+    /// Exceptions, from the load or from a later switch, are reported to the Error Window rather than thrown, so the
+    /// returned task never faults and callers may discard it.
     /// </summary>
     /// <returns>A task that completes when the load, if any, has finished or failed.</returns>
     public async Task SelectAsync()
+    {
+        try
+        {
+            await SwitchToOrLoadAsync();
+        }
+        catch (OperationFailedException)
+        {
+            // The runner reported it when the operation died. A load stays on its loading text with _loading set.
+        }
+        catch (Exception ex)
+        {
+            // Reported here, not left in the task: the caller discards the task, so a fault would only surface if the
+            // garbage collector raised it as unobserved, maybe never. The input block is already released, but
+            // deferred input replays from a posted job, so the Error Window is up first.
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+        }
+    }
+
+    /// <summary>
+    /// <c>CMCTabFrame.load</c>. An exception leaves the flags where it found them, as in the reference: one thrown
+    /// mid-load never clears <c>_loading</c>, which is what stops every later selection from retrying.
+    /// </summary>
+    private async Task SwitchToOrLoadAsync()
     {
         _runtime.Logger.LogDebug("Switch Tab : {Tab}", Page.LogName);
         if (_loaded)
@@ -68,34 +92,23 @@ public sealed class LazyTab : ContentControl
         Content = _label;
 
         using var block = _runtime.Input.Block();
-        try
+        if (await Page.LoadAsync())
         {
-            if (await Page.LoadAsync())
-            {
-                Content = null;
-                _label = null;
-                _loaded = true;
-                Content = Page.BuildContent();
-                Page.SwitchTo();
-            }
-            else
-            {
-                // The reference logs loading_error with %s, so a missing one is logged as "None".
-                _runtime.Logger.LogError("Load Tab : {Tab} : Failed : {Error}", Page.LogName, Page.LoadingError ?? "None");
-                _label.Text = Page.LoadingError ?? "Failed to load tab.";
-                _label.Bind(TextBlock.ForegroundProperty, _label.GetResourceObservable("CmtBad"));
-            }
+            Content = null;
+            _label = null;
+            _loaded = true;
+            Content = Page.BuildContent();
+            Page.SwitchTo();
+        }
+        else
+        {
+            // The reference logs loading_error with %s, so a missing one is logged as "None".
+            _runtime.Logger.LogError("Load Tab : {Tab} : Failed : {Error}", Page.LogName, Page.LoadingError ?? "None");
+            _label.Text = Page.LoadingError ?? "Failed to load tab.";
+            _label.Bind(TextBlock.ForegroundProperty, _label.GetResourceObservable("CmtBad"));
+        }
 
-            _loading = false;
-        }
-        catch (OperationFailedException)
-        {
-            // The runner reported it when the operation died. The tab stays on its loading text with _loading set.
-        }
-        catch (Exception ex)
-        {
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
+        _loading = false;
     }
 
     /// <summary>Handles another tab being selected while this one was current.</summary>

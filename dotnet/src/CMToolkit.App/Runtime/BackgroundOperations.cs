@@ -46,12 +46,14 @@ public sealed class BackgroundOperations
 
     /// <summary>
     /// Runs <paramref name="work"/> off the UI thread as one operation that switches between phases as it goes, like
-    /// the Downgrader's run. Each phase marker the work reports is applied on the UI thread, in order; a marker that
-    /// arrives after the work has ended is ignored.
+    /// the Downgrader's run. Each phase marker the work reports is applied on the UI thread, in order, and
+    /// <see cref="IProgress{T}.Report"/> returns only once it has been: after reporting
+    /// <see cref="OperationPhase.Blocking"/>, the work can rely on input already being blocked.
     /// </summary>
     /// <param name="name">Names the operation in the Error Window if it fails.</param>
     /// <param name="initialPhase">The phase it starts in, applied before this method returns.</param>
-    /// <param name="work">The Core operation. It receives the sink for its phase markers.</param>
+    /// <param name="work">The Core operation. It receives the sink for its phase markers, which it must only call from
+    /// its own worker thread or the UI thread; the UI thread must never wait synchronously on the work.</param>
     /// <returns>The work's result, back on the UI thread.</returns>
     /// <exception cref="OperationFailedException">The work threw; the error has been reported.</exception>
     public async Task<T> RunPhasedAsync<T>(
@@ -74,7 +76,8 @@ public sealed class BackgroundOperations
 
     /// <summary>
     /// Maps an operation's phase markers onto the input block: it holds a block exactly while the current phase is
-    /// <see cref="OperationPhase.Blocking"/>. Touched only on the UI thread; reports from the worker are posted there.
+    /// <see cref="OperationPhase.Blocking"/>. Touched only on the UI thread; a report from the worker is marshalled
+    /// there, and the worker waits for it.
     /// </summary>
     private sealed class PhaseTracker : IProgress<OperationPhase>, IDisposable
     {
@@ -90,16 +93,11 @@ public sealed class BackgroundOperations
 
         public void Report(OperationPhase value)
         {
-            // Posting keeps the markers in order. The block lands a moment after the worker reports it, which is fine:
-            // the worker reports a phase before starting the work that phase covers.
-            if (Dispatcher.UIThread.CheckAccess())
-            {
-                Apply(value);
-            }
-            else
-            {
-                Dispatcher.UIThread.Post(() => Apply(value));
-            }
+            // Invoke, not Post: the worker waits until the UI thread has applied the phase. With a post, the worker
+            // would start blocking work while the block was still queued, so a click, Escape or close could land in
+            // work the reference ran with the UI frozen. Waiting can't deadlock, because the runner awaits the work
+            // rather than blocking the UI thread on it. A marker reported after the work has ended is ignored.
+            Dispatcher.UIThread.Invoke(() => Apply(value));
         }
 
         public void Dispose()

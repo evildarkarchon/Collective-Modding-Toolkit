@@ -157,6 +157,27 @@ public sealed class BackgroundOperationsTests
     }
 
     [AvaloniaFact]
+    public async Task Reporting_a_blocking_phase_returns_only_once_the_block_is_held()
+    {
+        // The worker must not start blocking work while input still gets through. IsBlocking is read on the worker
+        // itself: reading it through the dispatcher would run a queued phase change first and hide a late block.
+        var runtime = new AppRuntime(new CapturingLogger());
+
+        var (blockedAfterBlocking, blockedAfterInteractive) = await runtime.Operations.RunPhasedAsync(
+            "downgrade", OperationPhase.Interactive, phases =>
+            {
+                phases.Report(OperationPhase.Blocking);
+                var afterBlocking = runtime.Input.IsBlocking;
+                phases.Report(OperationPhase.Interactive);
+                var afterInteractive = runtime.Input.IsBlocking;
+                return Task.FromResult((afterBlocking, afterInteractive));
+            }).WithTimeout();
+
+        Assert.True(blockedAfterBlocking);
+        Assert.False(blockedAfterInteractive);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "THR-4")]
     public async Task A_failing_operation_is_reported_dies_alone_and_releases_the_block()
     {
