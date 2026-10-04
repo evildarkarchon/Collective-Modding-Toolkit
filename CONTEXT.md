@@ -8,6 +8,12 @@ A Windows desktop tool for troubleshooting and optimizing Fallout 4 mod setups, 
 The edition of Fallout 4 the game folder contains — Old-Gen, Next-Gen, Anniversary, Down-Grade, and the not-found/unknown/obsolete states — as detected from the game binaries.
 _Avoid_: game version (a specific executable build number, not the edition), OG/NG/AE as standalone nouns in prose
 
+## Downgrading
+
+**Delta Patch**:
+A downloaded binary diff that turns one Install Type's game or Creation Kit file into another's. The Downgrader fetches one per file, as needed, from a fixed release.
+_Avoid_: xdelta (that is the tool and file format, not the artifact), patch on its own (ambiguous with the Archive Patcher)
+
 ## Distribution
 
 **Download Source**:
