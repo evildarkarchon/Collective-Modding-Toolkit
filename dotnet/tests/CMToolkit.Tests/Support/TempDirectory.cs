@@ -31,9 +31,9 @@ internal sealed class TempDirectory : IDisposable
         {
             Directory.Delete(Path, recursive: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Best effort: a leftover temp folder must not fail the test that used it.
+            // Best effort: a leftover temp folder (locked or read-only file) must not fail the test that used it.
         }
     }
 }

@@ -7,11 +7,12 @@
         Icon="avares://cm-toolkit/Assets/Images/icon-32.png"
         Width="760" Height="450"
         CanResize="False"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="Manual">
   <!--
     cm_checker.CMChecker.setup_window (SHELL-6, SHELL-7). Width/Height are the client area, as Tk's WxH geometry is,
     and Tk pixels carry over 1:1 as DIPs (issue #13), so 760x450 is exact. CanResize=False also removes maximise,
-    matching wm_resizable(False, False) and -fullscreen false.
+    matching wm_resizable(False, False) and -fullscreen false. The position is Tk's centring formula, set in code
+    (ShellPlacement), because CenterScreen lands 8 px left and 20 px higher than the reference.
   -->
   <Grid RowDefinitions="Auto,*">
     <!-- Row 0 holds the optional update banner, added by the update-check slice. -->
