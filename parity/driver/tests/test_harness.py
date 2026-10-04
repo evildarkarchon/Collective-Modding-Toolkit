@@ -14,6 +14,7 @@ import tempfile
 import unittest
 import winreg
 from pathlib import Path
+from unittest import mock
 
 import psutil
 import requests
@@ -29,7 +30,7 @@ from harness.fakes import (
 	process_factory,
 )
 from harness.golden import GoldenContext, dumps
-from harness.scenario import ScenarioError, discover, load, materialize
+from harness.scenario import TEMP_OVERRIDE_VARIABLE, ScenarioError, discover, load, materialize
 
 
 def identity(value: str) -> str:
@@ -118,6 +119,36 @@ class ScenarioTests(unittest.TestCase):
 
 		with self.assertRaises(ScenarioError):
 			materialize(load("m/s", self.root))
+
+	def test_manifest_paths_that_escape_the_root_are_rejected(self) -> None:
+		# Machine roots go in ``base``, so every escape targets ``base`` itself: a regression shows up as a leftover there
+		# rather than as a change somewhere else on the machine.
+		base = self.root / "base"
+		base.mkdir()
+		cases = {
+			"m/up": {"emptyDirs": ["../escaped"]},
+			"m/abs": {"emptyDirs": [f"{base.as_posix()}/escaped"]},
+			"m/self": {"emptyDirs": [""]},
+			"m/attr": {"attributes": [{"path": "..", "set": ["hidden"]}]},
+		}
+		for scenario_id, extra in cases.items():
+			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}, **extra})
+
+		with mock.patch.dict(os.environ, {TEMP_OVERRIDE_VARIABLE: str(base)}):
+			for scenario_id in cases:
+				with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "beneath the tree root"):
+					materialize(load(scenario_id, self.root))
+		self.assertEqual(list(base.iterdir()), [])
+		self.assertFalse(base.stat().st_file_attributes & 0x2)
+
+	def test_a_name_that_merely_starts_with_two_dots_stays_inside_the_root(self) -> None:
+		self.author("m/s", {"operation": "op", "parity": [], "host": {}, "emptyDirs": ["..data"]})
+
+		machine = materialize(load("m/s", self.root))
+		try:
+			self.assertTrue((machine.root / "..data").is_dir())
+		finally:
+			machine.cleanup()
 
 
 class RegistryTests(unittest.TestCase):
@@ -274,6 +305,31 @@ class SessionTests(unittest.TestCase):
 			result.stdout.strip(),
 			repr(("Windows 11 24H2", 64, "AMD Ryzen 7 7800X3D", "NVIDIA GeForce RTX 4070", 12, None, True, "en")),
 		)
+
+
+class ScreenshotShutdownTests(unittest.TestCase):
+	def test_kill_tree_takes_the_descendants_down_too(self) -> None:
+		"""A parent that starts a grandchild-style child (like a venv redirector) leaves no orphan behind."""
+		from screenshots import kill_tree  # noqa: PLC0415 - imports PIL and user32, so only this test pays for it
+
+		script = (
+			"import subprocess, sys, time\n"
+			"child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\n"
+			"print(child.pid, flush=True)\n"
+			"time.sleep(60)\n"
+		)
+		parent = subprocess.Popen([sys.executable, "-c", script], stdout=subprocess.PIPE, text=True)
+		try:
+			child_pid = int(parent.stdout.readline())
+
+			kill_tree(parent.pid)
+
+			self.assertIsNotNone(parent.poll())
+			self.assertFalse(psutil.pid_exists(child_pid))
+		finally:
+			parent.kill()
+			parent.stdout.close()
+			parent.wait()
 
 
 if __name__ == "__main__":

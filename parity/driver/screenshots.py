@@ -13,9 +13,12 @@ A human approves the pair in the slice PR; nothing compares pixels automatically
 
 The reference runs as ``src/main.py`` itself, unmodified, in a child process with the scenario's host fakes installed
 (``Session`` in show mode). The C# exe starts in the scenario's ``cwd``. Each app gets its own copy of the tree.
+The exe sees no other host fact, which holds only while nothing it renders reads one; see "Screenshots" in
+``parity/README.md`` before capturing a screen that does.
 """
 
 import argparse
+import contextlib
 import ctypes
 import os
 import runpy
@@ -167,7 +170,29 @@ def run_and_capture(command: list[str], cwd: Path, env: dict[str, str] | None, l
 			try:
 				process.wait(5)
 			except subprocess.TimeoutExpired:
-				process.kill()
+				kill_tree(process.pid)
+
+
+def kill_tree(pid: int, timeout: float = 5) -> None:
+	"""Kills ``pid`` and its descendants and waits for them to exit, so the caller can delete the tree they used.
+
+	Killing only ``pid`` isn't enough: under a venv redirector the window belongs to a descendant, which would survive
+	as an orphan. The descendants are listed before anything is killed, since an orphan no longer shows up as a child.
+	Raises ``RuntimeError`` if any are still running after ``timeout`` seconds.
+	"""
+	try:
+		root = psutil.Process(pid)
+		processes = [*root.children(recursive=True), root]
+	except psutil.NoSuchProcess:
+		return
+	for proc in processes:
+		# A process that exited on its own between listing and killing is the outcome wanted anyway.
+		with contextlib.suppress(psutil.NoSuchProcess):
+			proc.kill()
+	_, alive = psutil.wait_procs(processes, timeout=timeout)
+	if alive:
+		msg = f"processes {sorted(p.pid for p in alive)} survived being killed"
+		raise RuntimeError(msg)
 
 
 def label_panel(image: Image.Image, caption: str) -> Image.Image:

@@ -130,6 +130,41 @@ public sealed class ParityScenarioTests : IDisposable
         Assert.Throws<InvalidDataException>(() => scenario.Materialize());
     }
 
+    [Theory]
+    [InlineData("emptyDirs", "../escaped")]
+    [InlineData("emptyDirs", "<ABS>/escaped")]
+    [InlineData("emptyDirs", "")]
+    [InlineData("attributes", "..")]
+    [InlineData("attributes", "<ABS>")]
+    public void Manifest_paths_that_dont_resolve_beneath_the_root_are_rejected_without_touching_anything(string field, string entry)
+    {
+        // Every escape lands in tempBase (the root's parent), so a regression would show up as a leftover there rather
+        // than as a change somewhere else on the machine.
+        using var tempBase = new TempDirectory();
+        entry = entry.Replace("<ABS>", tempBase.Path.Replace('\\', '/'), StringComparison.Ordinal);
+        var extra = field == "emptyDirs"
+            ? $"\"emptyDirs\": [{JsonSerializer.Serialize(entry)}]"
+            : $"\"attributes\": [{{\"path\": {JsonSerializer.Serialize(entry)}, \"set\": [\"hidden\"]}}]";
+        var scenario = Author("m/s", $$"""{"operation": "op", "parity": [], "host": {}, {{extra}}}""");
+
+        var ex = Assert.Throws<InvalidDataException>(() => scenario.Materialize(tempBase.Path));
+
+        Assert.Contains("doesn't resolve beneath the tree root", ex.Message);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(tempBase.Path));
+        Assert.False(File.GetAttributes(tempBase.Path).HasFlag(FileAttributes.Hidden));
+    }
+
+    [Fact]
+    public void A_name_that_merely_starts_with_two_dots_stays_inside_the_root()
+    {
+        var scenario = Author("m/s", """{"operation": "op", "parity": [], "host": {}, "emptyDirs": ["..data"]}""");
+
+        using var machine = scenario.Materialize();
+
+        Assert.True(Directory.Exists(machine.PathOf("..data")));
+        Assert.Equal($"{MaterializedScenario.RootToken}/..data", machine.ToGoldenPath(machine.PathOf("..data")));
+    }
+
     [Fact]
     public void Unknown_manifest_keys_are_rejected_so_typos_fail_loudly()
     {

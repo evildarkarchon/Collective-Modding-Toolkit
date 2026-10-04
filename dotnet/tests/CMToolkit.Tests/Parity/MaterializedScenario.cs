@@ -53,7 +53,38 @@ public sealed class MaterializedScenario : IDisposable
     public ParityHttpHandler CreateHttpHandler() => new(HttpDirectory);
 
     /// <summary>The absolute path of a tree-relative path such as <c>Game/Data</c>.</summary>
-    public string PathOf(string treeRelative) => Path.GetFullPath(Path.Combine(Root, treeRelative));
+    /// <exception cref="ArgumentException">The path doesn't resolve to something beneath the root (it is absolute, or climbs out with <c>..</c>).</exception>
+    public string PathOf(string treeRelative)
+        => ResolveBeneathRoot(treeRelative)
+           ?? throw new ArgumentException($"'{treeRelative}' doesn't resolve beneath the scenario root '{Root}'.", nameof(treeRelative));
+
+    /// <summary>
+    /// The absolute path of a manifest entry, which must resolve strictly beneath the root. Without the check an absolute
+    /// path or a <c>..</c> in <c>emptyDirs</c> or <c>attributes</c> would change the real machine, and
+    /// <see cref="Dispose"/> only cleans up the root.
+    /// </summary>
+    /// <exception cref="InvalidDataException">The entry resolves to the root itself or outside it.</exception>
+    private string ManifestPath(string field, string treeRelative)
+        => ResolveBeneathRoot(treeRelative)
+           ?? throw new InvalidDataException($"{Scenario.Id}: {field} entry '{treeRelative}' doesn't resolve beneath the tree root.");
+
+    /// <summary><paramref name="treeRelative"/> made absolute against <see cref="Root"/>, or null if that isn't strictly beneath it.</summary>
+    private string? ResolveBeneathRoot(string treeRelative)
+    {
+        var full = Path.GetFullPath(Path.Combine(Root, treeRelative));
+        return IsBeneath(Path.GetRelativePath(Root, full)) ? full : null;
+    }
+
+    /// <summary>
+    /// Whether a <see cref="Path.GetRelativePath"/> result names something strictly beneath its base. That method
+    /// returns <c>.</c> for the base itself, a <c>..</c> segment for a path above it, and the full path for one on
+    /// another volume.
+    /// </summary>
+    private static bool IsBeneath(string relative)
+        => relative != "."
+           && relative != ".."
+           && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+           && !Path.IsPathRooted(relative);
 
     /// <summary>
     /// A path as goldens write it: <c>&lt;ROOT&gt;</c> plus the root-relative part with forward slashes, for example
@@ -68,7 +99,7 @@ public sealed class MaterializedScenario : IDisposable
             return RootToken;
         }
 
-        if (relative.StartsWith("..", StringComparison.Ordinal) || Path.IsPathRooted(relative))
+        if (!IsBeneath(relative))
         {
             throw new ArgumentException($"'{path}' is outside the scenario root '{Root}'.", nameof(path));
         }
@@ -93,7 +124,7 @@ public sealed class MaterializedScenario : IDisposable
 
             foreach (var dir in manifest.EmptyDirs ?? [])
             {
-                var full = machine.PathOf(dir);
+                var full = machine.ManifestPath("emptyDirs", dir);
                 if (File.Exists(full))
                 {
                     throw new InvalidDataException($"{scenario.Id}: emptyDirs entry '{dir}' is a file in the tree.");
@@ -104,7 +135,7 @@ public sealed class MaterializedScenario : IDisposable
 
             foreach (var entry in manifest.Attributes ?? [])
             {
-                ApplyAttributes(scenario, machine.PathOf(entry.Path), entry);
+                ApplyAttributes(scenario, machine.ManifestPath("attributes", entry.Path), entry);
             }
 
             return machine;

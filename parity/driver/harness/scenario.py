@@ -128,8 +128,17 @@ class Machine:
 		return str(self.root) + value[len(ROOT_TOKEN) :] if value.startswith(ROOT_TOKEN) else value
 
 	def path_of(self, tree_relative: str) -> Path:
-		"""The absolute path of a tree-relative path such as ``Game/Data``."""
-		return self.root / tree_relative
+		"""The absolute path of a tree-relative path such as ``Game/Data``.
+
+		Raises ``ScenarioError`` unless it resolves strictly beneath the root: an absolute path or a ``..`` in a manifest
+		would otherwise change the real machine, and ``cleanup`` only removes the root. ``normpath`` collapses ``..``
+		lexically, like ``Path.GetFullPath`` on the C# side; ``Path.resolve`` would also follow links, which C# doesn't.
+		"""
+		full = Path(os.path.normpath(self.root / tree_relative))
+		if full == self.root or not full.is_relative_to(self.root):
+			msg = f"{self.scenario.id}: {tree_relative!r} doesn't resolve beneath the tree root"
+			raise ScenarioError(msg)
+		return full
 
 	def cleanup(self) -> None:
 		"""Deletes the root, clearing read-only and other attributes first so ``rmtree`` can remove everything."""
