@@ -37,6 +37,8 @@ A magenta **PROTOTYPE controls** window opens left of the main window. It is not
   like the shipped build), running a **real scan** of this machine's install. Driven by `reference/drive_python.py`,
   captured by `reference/capture-python.ps1`. The uv-managed CPython ships Tk 9, which sv_ttk rejects; see the
   script header for the scratch venv.
+- All captures are run through `mask.py`, which blacks out everything outside the app's own windows (screen grabs
+  pick up whatever is behind them).
 - `shots/avalonia-<variant>-<pick>.png`: the same screen region with the client origin in the same place
   (`capture.ps1`). `shots/compare-*.png` = `[python | A | B | C]` (`compose.py`).
 - `drag.ps1`: drags a window by its title bar with **real mouse input** (the OS modal move loop) and samples all three
