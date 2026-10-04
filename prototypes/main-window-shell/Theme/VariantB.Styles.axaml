@@ -1,0 +1,35 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        x:Class="CmtShellPrototype.Theme.VariantBStyles"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    PROTOTYPE variant B: keep Fluent's templates, reshape them with selector Styles. Reaches into template
+    parts by name (PART_ItemsPresenter, PART_SelectedPipe), so it silently breaks if Fluent renames them.
+  -->
+
+  <!-- ttk.Notebook: a #2f2f2f frame (tab strip + 2 px page border) around a #1c1c1c page. -->
+  <Style Selector="TabControl">
+    <Setter Property="Background" Value="{DynamicResource SvBg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SvStrip}" />
+    <Setter Property="BorderThickness" Value="2,1,2,2" />
+    <Setter Property="Padding" Value="1,0,1,1" />
+  </Style>
+  <Style Selector="TabControl /template/ ItemsPresenter#PART_ItemsPresenter">
+    <Setter Property="Margin" Value="0" />
+  </Style>
+  <Style Selector="TabControl /template/ ItemsPresenter#PART_ItemsPresenter > WrapPanel">
+    <Setter Property="Background" Value="{DynamicResource SvStrip}" />
+  </Style>
+
+  <!-- Boxed tabs: rounded top corners, selected tab merges into the page, no Fluent underline pipe. -->
+  <Style Selector="TabItem">
+    <!-- sv_ttk tab padding is 16 px, but the tab sprite draws ~3 px inside it: 13 px padding + 4 px gap keeps text 32 px apart. -->
+    <Setter Property="Margin" Value="2,6,4,0" />
+    <Setter Property="CornerRadius" Value="4,4,0,0" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+  </Style>
+  <!-- A plain "TabItem /template/ Border#PART_SelectedPipe" loses to Fluent's own ^:selected rule, so the pipe
+       stays visible. The override has to mirror Fluent's pseudo-class selector to win. -->
+  <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+</Styles>

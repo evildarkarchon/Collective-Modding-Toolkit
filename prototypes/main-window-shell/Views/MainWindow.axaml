@@ -1,0 +1,198 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:CmtShellPrototype"
+        x:Class="CmtShellPrototype.Views.MainWindow"
+        x:DataType="local:OverviewData"
+        Title="Collective Modding Toolkit v0.6.2-dev"
+        Icon="avares://CmtShellPrototype/Assets/icon.ico"
+        Width="760" Height="450"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+  <!--
+    PROTOTYPE main window (cm_checker.CMChecker.setup_window) + Overview tab (tabs/_overview.py).
+    Client area 760x450 DIPs; Tk pixel numbers carry over 1:1 (DPI baseline ticket).
+  -->
+  <Window.Styles>
+    <!-- Version labels swap Install Type -> file version while hovered (_overview.py on_enter/on_leave). -->
+    <Style Selector="Panel.swap > TextBlock.version">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Panel.swap:pointerover > TextBlock.version">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Panel.swap:pointerover > TextBlock.installtype">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="TextBlock.right">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="TextAlignment" Value="Right" />
+    </Style>
+    <Style Selector="TextBlock.link">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="TextDecorations" Value="Underline" />
+      <Setter Property="Foreground" Value="{StaticResource CmtUpdateLink}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+    <!-- Update banner (CMChecker.check_for_updates): pale green Update.TFrame above the notebook. -->
+    <Border Grid.Row="0" Background="{StaticResource CmtUpdateBanner}" IsVisible="{Binding ShowUpdateBanner}">
+      <Grid ColumnDefinitions="*,Auto,Auto,*">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5" Spacing="0">
+          <Image Source="avares://CmtShellPrototype/Assets/Images/update-24.png" Width="24" Height="24" />
+          <TextBlock Text="An update is available:" Foreground="{StaticResource CmtUpdateText}" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Grid.Column="1" Classes="link" Text="v0.7.0 (NexusMods)" ToolTip.Tip="Open Nexus Mods" />
+        <TextBlock Grid.Column="2" Text=" / " Foreground="{StaticResource CmtUpdateText}" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="3" Classes="link" Text="v0.7.0 (GitHub)" ToolTip.Tip="Open GitHub" HorizontalAlignment="Left" />
+      </Grid>
+    </Border>
+
+    <TabControl Grid.Row="1">
+      <TabItem Header="Overview">
+        <DockPanel>
+          <!-- frame_top -->
+          <Grid DockPanel.Dock="Top" Margin="0,5" ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Classes="right" Margin="5,0" Text="Mod Manager:" />
+            <TextBlock Grid.Row="1" Classes="right" Margin="5,0" Text="Game Path:" />
+            <TextBlock Grid.Row="2" Classes="right" Margin="5,0" Text="Version:" />
+            <TextBlock Grid.Row="3" Classes="right" Margin="5,0" Text="PC Specs:" VerticalAlignment="Top" />
+
+            <Image Grid.Row="0" Grid.Column="1" Margin="0,0,5,0" Width="16" Height="16" Cursor="Hand"
+                   Source="avares://CmtShellPrototype/Assets/Images/info-16.png"
+                   IsVisible="{Binding ShowModManagerInfoIcon}" ToolTip.Tip="Detection details" />
+            <Image Grid.Row="3" Grid.Column="1" Margin="0,3,5,0" Width="16" Height="16" VerticalAlignment="Top"
+                   Source="avares://CmtShellPrototype/Assets/Images/warning-16.png"
+                   IsVisible="{Binding ShowOsWarningIcon}">
+              <ToolTip.Tip>Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.&#x0a;Python apps such as Wrye Bash and CLASSIC may give errors&#x0a;such as FileNotFound or fail to detect files that are only&#x0a;present in the VFS and not the Data folder.</ToolTip.Tip>
+            </Image>
+
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding ModManager}" Foreground="{Binding ModManagerBrush}" />
+            <TextBlock x:Name="GamePathText" Grid.Row="1" Grid.Column="2" Text="{Binding GamePath}" Foreground="{StaticResource CmtNeutral2}"
+                       Cursor="Hand" ToolTip.Tip="Click to open folder" HorizontalAlignment="Left" />
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding InstallType}" Foreground="{StaticResource CmtGood}" />
+            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Spacing="30">
+              <TextBlock Text="{Binding Specs1}" Foreground="{StaticResource CmtNeutral2}" />
+              <TextBlock Text="{Binding Specs2}" Foreground="{StaticResource CmtNeutral2}" />
+            </StackPanel>
+
+            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" Margin="10,0" Padding="4"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip.Tip="Refresh">
+              <Image Source="avares://CmtShellPrototype/Assets/Images/refresh-32.png" Width="32" Height="32" />
+            </Button>
+          </Grid>
+
+          <local:PackRow>
+            <!-- Binaries (EXE/DLL/BIN) -->
+            <GroupBox>
+              <GroupBox.Header><TextBlock Classes="small" Text="Binaries (EXE/DLL/BIN)" /></GroupBox.Header>
+              <Grid RowDefinitions="Auto,Auto,*" Grid.IsSharedSizeScope="True">
+                <ItemsControl Grid.Row="0" ItemsSource="{Binding Binaries}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="local:BinaryRow">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="BinName" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="BinValue" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Classes="right" Margin="5,0" Text="{Binding Name, StringFormat='{}{0}:'}" />
+                        <!-- ttk.Label(width=11): 11 GDI-rounded Cascadia Mono advances at 16 px = 11 x 9. -->
+                        <Panel Grid.Column="1" Classes="swap" Width="99" Background="Transparent">
+                          <TextBlock Classes="installtype" Text="{Binding InstallType}" Foreground="{Binding Brush}" />
+                          <TextBlock Classes="version" Text="{Binding Version}" Foreground="{Binding Brush}" />
+                        </Panel>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid Grid.Row="1">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="BinName" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="BinValue" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Classes="right" Margin="5,0" Text="Address Library:" />
+                  <TextBlock Grid.Column="1" Text="{Binding AddressLibrary}" Foreground="{Binding AddressLibraryBrush}"
+                             ToolTip.Tip="Address Library is required for many F4SE mods." />
+                </Grid>
+                <!-- Tk pady=10, but the sv_ttk button sprite is drawn inset in its cell, so the visible gap to the border is ~11 px. -->
+                <Button Grid.Row="2" Content="Downgrade Manager..." Padding="9,8"
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,10,0,4"
+                        Click="OnDowngradeManager" />
+              </Grid>
+            </GroupBox>
+
+            <!-- Archives (BA2) -->
+            <GroupBox>
+              <GroupBox.Header><TextBlock Classes="small" Text="Archives (BA2)" /></GroupBox.Header>
+              <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*">
+                <TextBlock Grid.Row="0" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[0].Label}" />
+                <TextBlock Grid.Row="1" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[1].Label}" />
+                <TextBlock Grid.Row="2" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[2].Label}" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[0].Count}" Foreground="{Binding Archives[0].Brush}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[1].Count}" Foreground="{Binding Archives[1].Brush}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Archives[2].Count}" Foreground="{Binding Archives[2].Brush}" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Archives[0].Limit}" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Archives[1].Limit}" />
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Archives[2].Limit}" />
+
+                <TextBlock Grid.Row="3" Classes="right" Margin="5,0,0,0" Text="Unreadable:" Foreground="{Binding ArchivesUnreadableBrush}"
+                           ToolTip.Tip="Files that could not be read due to permissions, unexpected format, or corruption." />
+                <TextBlock Grid.Row="3" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding ArchivesUnreadable}" Foreground="{Binding ArchivesUnreadableBrush}" />
+
+                <!-- utils.add_separator: padx/pady 10, ipady 1 -->
+                <Separator Grid.Row="4" Grid.ColumnSpan="3" Margin="10" Height="2" Background="{StaticResource SvSep}" />
+
+                <TextBlock Grid.Row="5" Classes="right" Margin="5,0,0,0" Text="v1 (OG):" />
+                <TextBlock Grid.Row="6" Classes="right" Margin="5,0,0,0" Text="v7/8 (NG):" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding ArchivesOg}" />
+                <TextBlock Grid.Row="6" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding ArchivesNg}" />
+
+                <Button Grid.Row="7" Grid.ColumnSpan="3" Content="Archive Patcher..." Padding="9,8"
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,10,0,4" />
+              </Grid>
+            </GroupBox>
+
+            <!-- Modules (ESM/ESL/ESP) -->
+            <GroupBox>
+              <GroupBox.Header><TextBlock Classes="small" Text="Modules (ESM/ESL/ESP)" /></GroupBox.Header>
+              <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*">
+                <TextBlock Grid.Row="0" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[0].Label}" />
+                <TextBlock Grid.Row="1" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[1].Label}" />
+                <TextBlock Grid.Row="2" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[2].Label}" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[0].Count}" Foreground="{Binding Modules[0].Brush}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[1].Count}" Foreground="{Binding Modules[1].Brush}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Modules[2].Count}" Foreground="{Binding Modules[2].Brush}" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Modules[0].Limit}" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Modules[1].Limit}" />
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Modules[2].Limit}" />
+
+                <TextBlock Grid.Row="3" Classes="right" Margin="5,0,0,0" Text="Unreadable:" Foreground="{Binding ModulesUnreadableBrush}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding ModulesUnreadable}" Foreground="{Binding ModulesUnreadableBrush}" />
+
+                <Separator Grid.Row="4" Grid.ColumnSpan="3" Margin="10" Height="2" Background="{StaticResource SvSep}" />
+
+                <TextBlock Grid.Row="5" Classes="right" Margin="5,0,0,0" Text="HEDR v1.00:" />
+                <TextBlock Grid.Row="6" Classes="right" Margin="5,0,0,0" Text="HEDR v0.95:" />
+                <TextBlock Grid.Row="7" Classes="right" Margin="5,0,0,0" Text="HEDR v????:" Foreground="{Binding HedrUnknownBrush}" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Hedr100}" />
+                <TextBlock Grid.Row="6" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding Hedr95}" />
+                <TextBlock Grid.Row="7" Grid.Column="1" Classes="right" Margin="5,0,0,0" Text="{Binding HedrUnknown}" Foreground="{Binding HedrUnknownBrush}" />
+                <Image Grid.Row="7" Grid.Column="2" Margin="5,0,0,0" Width="16" Height="16" HorizontalAlignment="Left"
+                       Cursor="Hand" ToolTip.Tip="Detection details"
+                       Source="avares://CmtShellPrototype/Assets/Images/info-16.png"
+                       IsVisible="{Binding ShowHedrInfoIcon}" PointerPressed="OnHedrDetails" />
+              </Grid>
+            </GroupBox>
+          </local:PackRow>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="F4SE"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="Scanner"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="Tools"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="Settings"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="About"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+    </TabControl>
+  </Grid>
+</Window>

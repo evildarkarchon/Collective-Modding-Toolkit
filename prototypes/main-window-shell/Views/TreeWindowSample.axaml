@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:CmtShellPrototype"
+        x:Class="CmtShellPrototype.Views.TreeWindowSample"
+        Title="Detected Invalid Module Versions"
+        Width="400" Height="500"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <!-- PROTOTYPE modal_window.TreeWindow: flat ttk.Treeview with headings -> core TableView (Avalonia 12.1). -->
+  <Grid RowDefinitions="Auto,*,Auto">
+    <TextBlock Grid.Row="0" Margin="10" Classes="small" Text=" " />
+    <TableView Grid.Row="1" ItemsSource="{x:Static local:OverviewData.HedrRows}"
+               CanUserResizeColumns="False" SelectionMode="Single"
+               ScrollViewer.VerticalScrollBarVisibility="Visible">
+      <TableView.Columns>
+        <TableViewColumn Header="HEDR" Width="65" Binding="{Binding Hedr, DataType=local:HedrRow}" />
+        <TableViewColumn Header=" Module" Width="*" Binding="{Binding Module, DataType=local:HedrRow}" />
+      </TableView.Columns>
+    </TableView>
+    <Button Grid.Row="2" Content="Close" Width="200" HorizontalContentAlignment="Center"
+            HorizontalAlignment="Center" Margin="10" Click="OnClose" />
+  </Grid>
+</Window>

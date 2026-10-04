@@ -1,0 +1,35 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CmtShellPrototype.App"
+             RequestedThemeVariant="Dark">
+  <!-- Resources must come before Styles: XAML populates in document order and AppStyles uses these keys. -->
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Layer 2 (every variant): Fluent resource-key overrides. -->
+        <ResourceInclude Source="avares://CmtShellPrototype/Theme/SvPalette.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <!-- PROTOTYPE. Layer 1 (every variant): Fluent dark, recoloured through ColorPaletteResources. -->
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <!-- sv_ttk dark (src/sv_ttk/theme/dark.tcl + spritesheet samples). Fluent derives most brushes from
+             alpha overlays of BaseX/AltX, so the opaque sv_ttk greys still need the per-key overrides in SvPalette. -->
+        <ColorPaletteResources x:Key="Dark"
+                               Accent="#3CD648"
+                               RegionColor="#1C1C1C"
+                               BaseHigh="#FAFAFA"
+                               ErrorText="#AF5A66"
+                               ChromeMedium="#2A2A2A"
+                               ChromeMediumLow="#1C1C1C"
+                               ChromeLow="#1C1C1C"
+                               AltHigh="#1C1C1C" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://CmtShellPrototype/Theme/AppStyles.axaml" />
+  </Application.Styles>
+
+</Application>

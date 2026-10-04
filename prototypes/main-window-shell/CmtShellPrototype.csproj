@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    PROTOTYPE - throwaway. Answers "what should the Avalonia main window shell and Overview tab look like
+    to read as the same app?" for the wayfinder ticket "Prototype the main window shell and Overview tab".
+    Lives only on the prototype/main-window-shell branch. Do not merge, do not build on top of it.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CmtShellPrototype</AssemblyName>
+    <RootNamespace>CmtShellPrototype</RootNamespace>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <!-- LibraryImport (MessageBoxW / DwmSetWindowAttribute) generates unsafe marshalling stubs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <PackageReference Include="MessageBox.Avalonia" Version="12.0.0" />
+  </ItemGroup>
+</Project>
