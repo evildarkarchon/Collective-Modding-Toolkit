@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Same probe source as ../probe, but with a requireAdministrator manifest. Covers the T-5 case where
+    a non-elevated MO2 launches an elevated child: the parent link then comes from the AppInfo service,
+    and usvfs may not be injected at all. A separate project keeps the two publishes from sharing obj/.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AssemblyName>cmt-vfs-probe-admin</AssemblyName>
+    <RootNamespace>CmtVfsProbe</RootNamespace>
+    <ApplicationManifest>app.admin.manifest</ApplicationManifest>
+    <DefineConstants>$(DefineConstants);PROBE_ADMIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../probe/*.cs" />
+  </ItemGroup>
+
+</Project>
