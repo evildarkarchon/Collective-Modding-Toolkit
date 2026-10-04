@@ -372,27 +372,27 @@ From [Map the remaining Python dependencies to .NET equivalents](https://github.
 
 ## Suspected bugs
 
-Each is reproduced as-is in the port and tracked as a follow-up issue (see the resolution comment on [Inventory the Python app's features and behaviours](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/6) for the issue links).
+Each is reproduced as-is in the port and tracked as a follow-up `bug` issue (linked in the ID column). B-9, B-10 and B-14 were already filed during earlier research tickets, and the inventory's extra findings were added to them as comments.
 
 | ID | Bug | Where |
 |---|---|---|
-| B-1 | The Scanner's checkboxes always start ticked; the saved `scanner_*` settings are never read. | SET-8, SCN-3 |
-| B-2 | The scan worker clears `thread_scan` *before* enqueuing its results, so the UI can populate first and drop the data-scan results. | SCN-S4 |
-| B-3 | A scan-worker exception (for example a missing `modlist.txt` or MO2 settings) leaves the scan stuck on "Scanning..." with the button disabled. | SCN-S4, SCN-S6 |
-| B-4 | Result group order is random per run (set iteration). | SCN-R3 |
-| B-5 | MO2 default `skip_file_suffixes` / `skip_directories` are corrupted by CSV-parsing `str(tuple)` / `str(set)`, so `.mohidden` files aren't skipped unless the INI sets the key. Verified: they parse to `["('.mohidden'", ')']` and `['set()']`. | MO2-7 |
-| B-6 | *(Suspected; confirm that MO2 writes this form.)* `%BASE_DIR%/mods` resolves to `<drive>:\mods`. | MO2-6 |
-| B-7 | `"1.70"` in `MODULE_VERSION_SUPPORT` can never match, because `str(round(1.7, 2))` is `"1.7"`. | OVW-M7 |
-| B-8 | The MO2 Win11 warning matches only `Windows 11 24H2` exactly, not 25H2+, even though its tooltip says "24H2+". | OVW-5 |
-| B-9 | Downgrader: a failed xdelta decode still deletes the backup input when Keep Backups is off, which can leave the game without the file. | DG-6 |
-| B-10 | Downgrader: download failures (HTTP error body saved as `.xdelta`, network error, no `content-length` → `ZeroDivisionError`) kill the thread without signalling. Polling then runs forever and the window can't be closed. A cached `.xdelta` is reused without validation. | DG-6, NET-3 |
-| B-11 | Downgrader: the Patch button's re-enable depends only on the **last** file. It can stay disabled forever (for example an unknown-CRC `Archive2Interop.dll`) or re-enable during downloads. | DG-4 |
-| B-12 | Escape on the main window destroys it without the close guard, even while a scan thread is running. | SHELL-10 |
-| B-13 | `Unknown` binaries render green and raise no `Wrong Version` problem when the game itself is `Unknown`, because of the `case game.install_type` match. | OVW-B7 |
-| B-14 | Game INI parsing doesn't trim keys/values (`bNVFlexEnable = 1` isn't seen), a BOM breaks the first section, and non-UTF-8 INIs are fatal. | INI-3 |
-| B-15 | A missing `[Archive]` section (for example `Fallout4.ini` never generated) raises and fails the Overview tab. | OVW-A2 |
-| B-16 | The update check queries the **wxMichael** releases while the app version and banner link are the **RowanSkie** fork. | NET-2 |
-| B-17 | *(Suspected; confirm with a real MO2 `plugins.txt`.)* CC modules listed in both `Fallout4.ccc` and `plugins.txt` are counted twice. | OVW-M4 |
-| B-18 | One unloadable DLL in `F4SE/Plugins` fails the whole F4SE tab ("Scanning DLLs..." stays forever). | F4SE-3 |
+| B-1 · [#20](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/20) | The Scanner's checkboxes always start ticked; the saved `scanner_*` settings are never read. | SET-8, SCN-3 |
+| B-2 · [#21](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/21) | The scan worker clears `thread_scan` *before* enqueuing its results, so the UI can populate first and drop the data-scan results. | SCN-S4 |
+| B-3 · [#22](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/22) | A scan-worker exception (for example a missing `modlist.txt` or MO2 settings) leaves the scan stuck on "Scanning..." with the button disabled. | SCN-S4, SCN-S6 |
+| B-4 · [#23](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/23) | Result group order is random per run (set iteration). | SCN-R3 |
+| B-5 · [#24](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/24) | MO2 default `skip_file_suffixes` / `skip_directories` are corrupted by CSV-parsing `str(tuple)` / `str(set)`, so `.mohidden` files aren't skipped unless the INI sets the key. Verified: they parse to `["('.mohidden'", ')']` and `['set()']`. | MO2-7 |
+| B-6 · [#25](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/25) | *(Suspected; confirm that MO2 writes this form.)* `%BASE_DIR%/mods` resolves to `<drive>:\mods`. | MO2-6 |
+| B-7 · [#26](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/26) | `"1.70"` in `MODULE_VERSION_SUPPORT` can never match, because `str(round(1.7, 2))` is `"1.7"`. | OVW-M7 |
+| B-8 · [#27](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/27) | The MO2 Win11 warning matches only `Windows 11 24H2` exactly, not 25H2+, even though its tooltip says "24H2+". | OVW-5 |
+| B-9 · [#14](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/14) | Downgrader: a failed xdelta decode still deletes the backup input when Keep Backups is off, which can leave the game without the file. | DG-6 |
+| B-10 · [#15](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/15) | Downgrader: download failures (HTTP error body saved as `.xdelta`, network error, no `content-length` → `ZeroDivisionError`) kill the thread without signalling. Polling then runs forever and the window can't be closed. A cached `.xdelta` is reused without validation. | DG-6, NET-3 |
+| B-11 · [#28](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/28) | Downgrader: the Patch button's re-enable depends only on the **last** file. It can stay disabled forever (for example an unknown-CRC `Archive2Interop.dll`) or re-enable during downloads. | DG-4 |
+| B-12 · [#29](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/29) | Escape on the main window destroys it without the close guard, even while a scan thread is running. | SHELL-10 |
+| B-13 · [#30](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/30) | `Unknown` binaries render green and raise no `Wrong Version` problem when the game itself is `Unknown`, because of the `case game.install_type` match. | OVW-B7 |
+| B-14 · [#17](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/17) | Game INI parsing doesn't trim keys/values (`bNVFlexEnable = 1` isn't seen), a BOM breaks the first section, and non-UTF-8 INIs are fatal. | INI-3 |
+| B-15 · [#31](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/31) | A missing `[Archive]` section (for example `Fallout4.ini` never generated) raises and fails the Overview tab. | OVW-A2 |
+| B-16 · [#32](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/32) | The update check queries the **wxMichael** releases while the app version and banner link are the **RowanSkie** fork. | NET-2 |
+| B-17 · [#33](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/33) | *(Suspected; confirm with a real MO2 `plugins.txt`.)* CC modules listed in both `Fallout4.ccc` and `plugins.txt` are counted twice. | OVW-M4 |
+| B-18 · [#34](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/34) | One unloadable DLL in `F4SE/Plugins` fails the whole F4SE tab ("Scanning DLLs..." stays forever). | F4SE-3 |
 
 Minor quirks to keep, with no issue filed. A module missing the HEDR tag is unreadable but produces no problem entry (OVW-M6). Non-F4SE DLL rows leave `Your Game` blank (F4SE-4). The `msdia` prefix check is case-sensitive (F4SE-2). The Address Library name falls back to the CRC when `Fallout4.exe` has no version resource (OVW-B5). WARNING log level has no radio (SETT-1).
