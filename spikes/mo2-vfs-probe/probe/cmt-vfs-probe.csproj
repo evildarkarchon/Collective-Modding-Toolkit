@@ -13,6 +13,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PublishAot>true</PublishAot>
+    <!--
+      NativeAOT links /CETCOMPAT by default on x64. Under MO2 2.5.2 (usvfs 0.5.6.1) a CET-compatible exe
+      crashes before Main: usvfs's injection stub returns to RtlUserThreadStart with a `ret` the shadow
+      stack never saw. Off here to test that hypothesis; cmt-vfs-probe-cet.exe is the CET-on build.
+    -->
+    <CETCompat>false</CETCompat>
     <InvariantGlobalization>true</InvariantGlobalization>
     <AssemblyName>cmt-vfs-probe</AssemblyName>
     <RootNamespace>CmtVfsProbe</RootNamespace>
