@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CmtPanesPrototype"
+             x:Class="CmtPanesPrototype.Views.ScannerView">
+  <!--
+    PROTOTYPE of the Scanner tab body (ScannerTab._build_gui): Collapse/Expand buttons + results label, the results
+    Treeview with its scrollbar, the "Scanning..." label and the progress bar. Rough; the panes are the question.
+  -->
+  <UserControl.Styles>
+    <Style Selector="TreeViewItem">
+      <!-- Groups start expanded, as populate_results leaves them; Collapse/Expand All flip the realized items. -->
+      <Setter Property="IsExpanded" Value="True" />
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="Auto,*,Auto,Auto">
+    <DockPanel Grid.Row="0" Margin="5">
+      <Button Classes="small" Content="Collapse All" Padding="4,1" Margin="0,0,5,0" Click="OnCollapse" />
+      <Button Classes="small" Content="Expand All" Padding="4,1" Margin="0,0,5,0" Click="OnExpand" />
+      <TextBlock x:Name="ResultsInfo" Classes="small" Foreground="{DynamicResource CmtNeutral2}"
+                 HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" />
+    </DockPanel>
+    <Border Grid.Row="1" BorderBrush="{DynamicResource SvStrip}" BorderThickness="1">
+      <TreeView x:Name="Tree" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+        <TreeView.DataTemplates>
+          <TreeDataTemplate DataType="local:ProblemGroup" ItemsSource="{Binding Items}">
+            <TextBlock Text="{Binding Title}" />
+          </TreeDataTemplate>
+          <DataTemplate DataType="local:ProblemItem">
+            <TextBlock Text="{Binding Text}" />
+          </DataTemplate>
+        </TreeView.DataTemplates>
+      </TreeView>
+    </Border>
+    <TextBlock x:Name="ScanningText" Grid.Row="2" Margin="5" Foreground="{DynamicResource CmtNeutral2}" IsVisible="False" />
+    <ProgressBar x:Name="Progress" Grid.Row="3" Classes="results" Minimum="0" Maximum="100" Value="100" />
+  </Grid>
+</UserControl>

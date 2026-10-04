@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CmtPanesPrototype"
+             x:Class="CmtPanesPrototype.Views.SidePaneView">
+  <!--
+    PROTOTYPE of tabs/_scanner.py SidePane: Toplevel(bd=2, relief=GROOVE) holding a Labelframe(text="Scan Settings",
+    labelanchor=N, padding=5) packed expand/fill with padx/pady 5, and an Accent "Scan Game" button packed BOTTOM
+    with padx/pady 10. Same view in every variant; only where it is hosted changes.
+  -->
+  <local:GrooveBorder>
+    <DockPanel>
+      <Button x:Name="ScanButton" DockPanel.Dock="Bottom" Classes="accent" HorizontalAlignment="Center"
+              Margin="10" Padding="9,8" Content="Scan Game" Click="OnScan" />
+      <GroupBox Theme="{StaticResource CentredGroupBox}" Margin="5">
+        <GroupBox.Header><TextBlock Classes="small" Text="Scan Settings" /></GroupBox.Header>
+        <!-- Labelframe padding=5, but no right inset: Tk lets "Wrong File Formats" run to the frame edge. -->
+        <StackPanel x:Name="Checks" Margin="5,0,0,5" />
+      </GroupBox>
+    </DockPanel>
+  </local:GrooveBorder>
+</UserControl>

@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:CmtPanesPrototype.Views"
+        x:Class="CmtPanesPrototype.Views.MainWindow"
+        Title="Collective Modding Toolkit v0.6.2-dev"
+        Icon="avares://CmtPanesPrototype/Assets/icon.ico"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+  <!--
+    PROTOTYPE main window. SizeToContent + a fixed 760x450 notebook gives the decided 760x450 client in variants A
+    and C; in variant B the extra cells (SideHost, DetailsHost) become visible and the window grows around them.
+  -->
+  <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto">
+    <TabControl x:Name="Tabs" Grid.Row="0" Grid.Column="0" Width="760" Height="450" SelectionChanged="OnTabChanged">
+      <TabItem Header="Overview"><TextBlock Margin="10" Text="(not prototyped - see prototype/main-window-shell)" /></TabItem>
+      <TabItem Header="F4SE"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem x:Name="ScannerTab" Header="Scanner">
+        <!-- Variant C hosts the panes in these two cells; A and B leave them empty. -->
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
+          <views:ScannerView x:Name="Scanner" Grid.Row="0" Grid.Column="0" />
+          <ContentControl x:Name="InTabSideHost" Grid.Row="0" Grid.Column="1" Width="200" IsVisible="False" />
+          <ContentControl x:Name="InTabDetailsHost" Grid.Row="1" Grid.ColumnSpan="2" IsVisible="False" />
+        </Grid>
+      </TabItem>
+      <TabItem Header="Tools"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="Settings"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+      <TabItem Header="About"><TextBlock Margin="10" Text="(not prototyped)" /></TabItem>
+    </TabControl>
+
+    <!-- Variant B: the Tk offsets, but inside the window. Side: +40 from the top, 5 short of the notebook's bottom. -->
+    <ContentControl x:Name="GrownSideHost" Grid.Row="0" Grid.Column="1" Width="200" Margin="0,40,0,5" IsVisible="False" />
+    <ContentControl x:Name="GrownDetailsHost" Grid.Row="1" Grid.Column="0" Width="760" Height="200" IsVisible="False" />
+
+    <TextBlock x:Name="VariantTag" Grid.Row="0" Grid.Column="0" Classes="variant-tag"
+               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,6,0" IsHitTestVisible="False" />
+  </Grid>
+</Window>

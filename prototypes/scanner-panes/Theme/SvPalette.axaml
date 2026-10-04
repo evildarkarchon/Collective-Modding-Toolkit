@@ -1,0 +1,123 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    PROTOTYPE layer 2, shared by every variant: Fluent resource-key overrides. Values are measured from
+    python-overview.png / python-downgrader.png (Tk 8.6, sv_ttk dark) or taken from src/globals.py.
+    App-level resources win over the keys FluentTheme defines, and Fluent's control themes read them via
+    DynamicResource, so this layer recolours/resizes without touching any template.
+  -->
+
+  <!-- Fonts. Tk rounds 8/10/12/20 pt to 11/13/16/27 px (DPI baseline ticket); FontSize is in DIPs, 1:1. -->
+  <FontFamily x:Key="CmtFont">avares://CmtPanesPrototype/Assets/Fonts#Cascadia Mono</FontFamily>
+  <x:Double x:Key="CmtFontSmaller">11</x:Double>
+  <x:Double x:Key="CmtFontSmall">13</x:Double>
+  <x:Double x:Key="CmtFontNormal">16</x:Double>
+  <x:Double x:Key="CmtFontLarge">27</x:Double>
+  <!-- Line pitch Tk actually uses: GDI tmHeight = round(usWinAscent*s) + round(usWinDescent*s) with Cascadia's
+       2226/480 per 2048 em. Avalonia defaults to typo/hhea metrics (USE_TYPO_METRICS is set), ~13% tighter. -->
+  <x:Double x:Key="CmtLineSmaller">15</x:Double>
+  <x:Double x:Key="CmtLineSmall">17</x:Double>
+  <x:Double x:Key="CmtLineNormal">21</x:Double>
+  <x:Double x:Key="CmtLineLarge">35</x:Double>
+  <!-- GDI hinting snaps Cascadia's 1200/2048 em advance to whole pixels; Skia doesn't. LetterSpacing = rounded - exact
+       restores Tk's line widths: 16 px 9.375->9, 13 px 7.617->8, 11 px 6.445->6, 27 px 15.82->16. -->
+  <x:Double x:Key="CmtSpacingSmaller">-0.445</x:Double>
+  <x:Double x:Key="CmtSpacingSmall">0.383</x:Double>
+  <x:Double x:Key="CmtSpacingNormal">-0.375</x:Double>
+  <x:Double x:Key="CmtSpacingLarge">0.18</x:Double>
+
+  <!-- src/globals.py COLOR_* (Tk named colours resolved through the Tk 8.6 table). -->
+  <SolidColorBrush x:Key="CmtDefault" Color="#CACACA" />
+  <SolidColorBrush x:Key="CmtGood" Color="#619267" />
+  <SolidColorBrush x:Key="CmtBad" Color="#AF5A66" />
+  <SolidColorBrush x:Key="CmtInfo" Color="#1E90FF" />
+  <SolidColorBrush x:Key="CmtNeutral1" Color="#808080" />
+  <SolidColorBrush x:Key="CmtNeutral2" Color="#FFE4C4" />
+  <SolidColorBrush x:Key="CmtWarning" Color="#FFA500" />
+  <SolidColorBrush x:Key="CmtUpdateBanner" Color="#98FB98" />
+  <SolidColorBrush x:Key="CmtUpdateText" Color="#006400" />
+  <SolidColorBrush x:Key="CmtUpdateLink" Color="#36648B" />
+
+  <!-- sv_ttk greys, measured. -->
+  <SolidColorBrush x:Key="SvBg" Color="#1C1C1C" />
+  <SolidColorBrush x:Key="SvStrip" Color="#2F2F2F" />
+  <SolidColorBrush x:Key="SvHover" Color="#292929" />
+  <SolidColorBrush x:Key="SvSep" Color="#2F2F2F" />
+
+  <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <!-- Window -->
+      <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#1C1C1C" />
+
+      <!-- TabItem: sizes from the tab strip in python-overview.png (36 px tall boxes, 13 px side padding). -->
+      <x:Double x:Key="TabItemHeaderFontSize">16</x:Double>
+      <x:Double x:Key="TabItemMinHeight">36</x:Double>
+      <FontWeight x:Key="TabItemHeaderThemeFontWeight">Normal</FontWeight>
+      <Thickness x:Key="TabItemHeaderMargin">13,0,13,0</Thickness>
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundUnselected" Color="Transparent" />
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundUnselectedPointerOver" Color="#292929" />
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundUnselectedPressed" Color="#292929" />
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundSelected" Color="#1C1C1C" />
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundSelectedPointerOver" Color="#1C1C1C" />
+      <SolidColorBrush x:Key="TabItemHeaderBackgroundSelectedPressed" Color="#1C1C1C" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundUnselected" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundUnselectedPointerOver" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundUnselectedPressed" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundSelected" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundSelectedPointerOver" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderForegroundSelectedPressed" Color="#CACACA" />
+      <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="#3CD648" />
+      <SolidColorBrush x:Key="TabControlBackground" Color="Transparent" />
+      <Thickness x:Key="TabItemMargin">0</Thickness>
+
+      <!-- Button: sv_ttk button-* sprites. -->
+      <SolidColorBrush x:Key="ButtonBackground" Color="#2A2A2A" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2F2F2F" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#232323" />
+      <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#2F2F2F" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#CACACA" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#CACACA" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#D0D0D0" />
+      <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#7A7A7A" />
+      <SolidColorBrush x:Key="ButtonBorderBrush" Color="#313131" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#353535" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#2C2C2C" />
+      <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#2F2F2F" />
+
+      <!-- GroupBox (ttk.Labelframe): thin rounded #2f2f2f outline, label in the notch - already Fluent's shape. -->
+      <SolidColorBrush x:Key="GroupBoxBackground" Color="Transparent" />
+      <SolidColorBrush x:Key="GroupBoxBorderBrush" Color="#2F2F2F" />
+      <SolidColorBrush x:Key="GroupBoxHeaderForeground" Color="#CACACA" />
+      <x:Double x:Key="GroupBoxHeaderFontSize">13</x:Double>
+      <Thickness x:Key="GroupBoxBorderThickness">1</Thickness>
+      <Thickness x:Key="GroupBoxPadding">0,2,0,0</Thickness>
+
+      <!-- ToolTip: tkinter-tooltip draws a tk.Message in a 1 px black-bordered Toplevel, palette colours. -->
+      <SolidColorBrush x:Key="ToolTipBackground" Color="#1C1C1C" />
+      <SolidColorBrush x:Key="ToolTipForeground" Color="#FAFAFA" />
+      <SolidColorBrush x:Key="ToolTipBorderBrush" Color="#000000" />
+      <Thickness x:Key="ToolTipBorderThemeThickness">1</Thickness>
+      <x:Double x:Key="ToolTipContentThemeFontSize">12</x:Double>
+
+      <!-- ScrollBar: sv_ttk scrollbar-* sprites (trough #292929, thumb #9e9e9e, always visible). -->
+      <SolidColorBrush x:Key="ScrollBarTrackFill" Color="#292929" />
+      <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="#292929" />
+      <Color x:Key="ScrollBarThumbBackgroundColor">#9E9E9E</Color>
+      <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#B0B0B0" />
+      <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#B0B0B0" />
+      <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="#9E9E9E" />
+
+      <!-- TableView rows / headers (sv_ttk heading-* sprites, Treeview selected row #292929). -->
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#2A2A2A" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#1C1C1C" />
+      <!-- ttk.Treeview rowheight = sv_ttk body linespace + 3 = ~22 px; Fluent's TableView rows are 42 px (6,9,6,12). -->
+      <Thickness x:Key="TableViewRowPadding">0,2,0,3</Thickness>
+      <Thickness x:Key="TableViewColumnResizerMargin">0,-2,-6,-3</Thickness>
+      <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="Transparent" />
+      <SolidColorBrush x:Key="TableViewRowBackgroundSelected" Color="#292929" />
+      <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="#292929" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

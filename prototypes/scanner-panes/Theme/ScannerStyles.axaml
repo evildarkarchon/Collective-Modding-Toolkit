@@ -1,0 +1,98 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    PROTOTYPE. Scanner-tab-only styling, measured from reference/python-scanner-*.png (Tk 8.6, 100 %).
+    Rough: enough that the panes read as the original's, not a pixel match. The panes are the question here.
+  -->
+
+  <!-- ttk.Treeview selection: sv_ttk's grey #292929 row with bright text, not Fluent's accent fill. Styles resources
+       come after FluentTheme in Application.Styles, so these keys win over Fluent's. -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <x:Double x:Key="TreeViewItemMinHeight">21</x:Double>
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#292929" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#292929" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPressed" Color="#292929" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundPointerOver" Color="Transparent" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelected" Color="#FAFAFA" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPointerOver" Color="#FAFAFA" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPressed" Color="#FAFAFA" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- style.configure("Treeview", font=FONT_SMALL): ~21 px rows (143 -> 164 in the reference), not Fluent's 32. -->
+  <Style Selector="TreeViewItem">
+    <Setter Property="MinHeight" Value="21" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot">
+    <Setter Property="MinHeight" Value="21" />
+  </Style>
+  <Style Selector="TreeView :is(TextBlock)">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontSmall}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
+  </Style>
+
+  <!-- sv_ttk checkbuttons pitch 28 px in the side pane (133 -> 161). Label in FONT_SMALL. -->
+  <Style Selector="CheckBox">
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="6,0,0,0" />
+  </Style>
+  <Style Selector="CheckBox :is(TextBlock)">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontSmall}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
+  </Style>
+
+  <!-- Accent.TButton: sv_ttk accent sprite, dark text on the green. -->
+  <Style Selector="Button.accent">
+    <Setter Property="Foreground" Value="#000000" />
+  </Style>
+
+  <!-- Results progress bar: 3 px green bar, no visible trough (ipady=1). -->
+  <Style Selector="ProgressBar.results">
+    <Setter Property="MinHeight" Value="3" />
+    <Setter Property="Height" Value="3" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="#48D651" />
+  </Style>
+
+  <!-- Details pane: labels FONT_SMALL, values bisque (COLOR_NEUTRAL_2). -->
+  <Style Selector="TextBlock.key">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontSmall}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="TextAlignment" Value="Right" />
+    <Setter Property="Margin" Value="5" />
+  </Style>
+  <!-- wraplength = WINDOW_WIDTH - 200 = 560 px. -->
+  <Style Selector="TextBlock.value">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontSmall}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
+    <Setter Property="Foreground" Value="{DynamicResource CmtNeutral2}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxWidth" Value="560" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="0,5" />
+  </Style>
+  <Style Selector="TextBlock.link">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+
+  <!-- Prototype-only marker so a casual viewer can tell which variant is on screen. -->
+  <Style Selector="TextBlock.variant-tag">
+    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="LineHeight" Value="NaN" />
+    <Setter Property="LetterSpacing" Value="0" />
+    <Setter Property="Foreground" Value="Magenta" />
+  </Style>
+</Styles>

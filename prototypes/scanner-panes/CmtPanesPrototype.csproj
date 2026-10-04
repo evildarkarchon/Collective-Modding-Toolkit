@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    PROTOTYPE - throwaway. Answers "can the Scanner tab's docked panes be reproduced in Avalonia, and if not as
+    separate windows, what's the faithful alternative?" for the wayfinder ticket "Prototype the Scanner's docked
+    side and details panes". Lives only on the prototype/scanner-panes branch. Do not merge, do not build on it.
+    Theme/ is copied from prototype/main-window-shell (the decided styling layers), not shared with it.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CmtPanesPrototype</AssemblyName>
+    <RootNamespace>CmtPanesPrototype</RootNamespace>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <!-- LibraryImport (GetWindowRect for the drift readout) generates unsafe marshalling stubs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+  </ItemGroup>
+</Project>

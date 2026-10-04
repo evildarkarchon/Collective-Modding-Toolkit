@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CmtPanesPrototype"
+             x:Class="CmtPanesPrototype.Views.DetailsPaneView">
+  <!--
+    PROTOTYPE of tabs/_scanner.py ResultDetailsPane: Toplevel(bd=2, relief=GROOVE) gridded as
+    col 0 right-aligned keys (sticky NE, padx/pady 5), col 1 values (weight 1, wraplength 560, pady 5),
+    col 2 a button frame (rowspan 10) with Copy Details / File List / Auto-Fix packed TOP, fill X, padx 5, pady (5,0).
+    No "Mod:" row: the reference machine has no mod manager staging folder.
+  -->
+  <local:GrooveBorder>
+    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,*">
+      <TextBlock Grid.Row="0" Classes="key" Text="Problem:" />
+      <TextBlock Grid.Row="1" Classes="key" Text="Summary:" />
+      <TextBlock Grid.Row="2" Classes="key" Text="Solution:" />
+
+      <TextBlock x:Name="FilePath" Grid.Row="0" Grid.Column="1" Classes="value" />
+      <TextBlock x:Name="Summary" Grid.Row="1" Grid.Column="1" Classes="value" />
+      <TextBlock x:Name="Solution" Grid.Row="2" Grid.Column="1" Classes="value" />
+
+      <StackPanel x:Name="Buttons" Grid.Column="2" Grid.RowSpan="4" />
+    </Grid>
+  </local:GrooveBorder>
+</UserControl>
