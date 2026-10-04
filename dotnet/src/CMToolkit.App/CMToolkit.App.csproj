@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Drop-in replacement for the Python build's exe name (ADR-0001). -->
+    <AssemblyName>cm-toolkit</AssemblyName>
+    <RootNamespace>CMToolkit.App</RootNamespace>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!--
+      Shipped as a NativeAOT win-x64 exe (ADR-0002). Setting PublishAot here, not only on the publish command line,
+      also turns the trim/AOT analyzers on for ordinary builds, so IL2xxx/IL3xxx show up (as errors) before publish.
+    -->
+    <PublishAot>true</PublishAot>
+    <!-- No built-in COM under NativeAOT (ADR-0002); Avalonia doesn't need it. -->
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The font and images are embedded in the exe (ADR-0002); only download-source.txt ships loose. -->
+    <AvaloniaResource Include="Assets\**" Exclude="Assets\download-source.txt;Assets\Fonts\*-LICENSE" />
+    <!--
+      The Download Source file is resolved against the exe folder at runtime, so it has to sit beside the exe in
+      both build and publish output. The file lives under Assets\ because Windows paths are case-insensitive and
+      a separate lowercase assets\ folder would be the same directory; Link puts it at the lowercase path the
+      release archive uses. The repo copy says "github", like the Reference Implementation's.
+    -->
+    <None Update="Assets\download-source.txt"
+          Link="assets\download-source.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CMToolkit.Core\CMToolkit.Core.csproj" />
+  </ItemGroup>
+</Project>

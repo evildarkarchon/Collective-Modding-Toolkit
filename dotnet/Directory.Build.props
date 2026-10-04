@@ -1,0 +1,38 @@
+<Project>
+  <!--
+    Shared by every project under dotnet/. ADR-0002 (NativeAOT in the upstream archive layout) is the source for
+    the version, trim/AOT and CET settings below.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!--
+      The single version source. The title, the log's start line and the update check all read it back through
+      AssemblyInformationalVersion, so it uses the Reference Implementation's PEP 440-style form. The title keeps
+      0.6.2-dev until the cutover decides the first C# version, which only has to compare greater than 0.6.2.
+    -->
+    <Version>0.6.2-dev</Version>
+    <!-- Without this the SDK appends "+<commit sha>" to the informational version, and the title would show it. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <!--
+      Every warning is an error, so trim/AOT warnings (IL2xxx/IL3xxx) fail the build from day one and the
+      "publish with zero warnings" acceptance criterion is enforced rather than eyeballed. ILLink and ILC take
+      their own switches, which default to TreatWarningsAsErrors; they are set explicitly so that a later
+      relaxation of the global switch can't silently let AOT warnings through.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
+    <IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
+
+    <!--
+      Links /CETCOMPAT:NO. NativeAOT marks x64 exes CET-compatible by default, and a CET-compatible exe launched
+      from Mod Organizer 2.5.2 on a CPU with shadow stacks crashes before Main (usvfs's injection stub returns
+      with a ret the shadow stack never saw). CI checks the published PE. See ADR-0002 and issue #35.
+    -->
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
+</Project>

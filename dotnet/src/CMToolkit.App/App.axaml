@@ -1,0 +1,42 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CMToolkit.App.App"
+             RequestedThemeVariant="Dark">
+  <!--
+    RequestedThemeVariant="Dark" also darkens the Windows 11 title bar, which replaces the Reference Implementation's
+    DwmSetWindowAttribute call (SHELL-15 is exempt; see issue #9).
+
+    Every include below is declared here in XAML, so the XAML compiler links it in directly. Loading an include by
+    URI at runtime (new StyleInclude(uri) / new ResourceInclude(uri)) throws "No precompiled XAML found" under
+    NativeAOT, because nothing roots the compiled loader for that file.
+  -->
+
+  <!-- Resources come before Styles: XAML populates in document order, and AppStyles reads these keys. -->
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://cm-toolkit/Theme/SvPalette.axaml" />
+        <ResourceInclude Source="avares://cm-toolkit/Theme/ShellControlThemes.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <!-- sv_ttk dark (src/sv_ttk/theme/dark.tcl and spritesheet samples). Fluent derives most brushes from alpha
+             overlays of BaseX/AltX, so the opaque sv_ttk greys still need the per-key overrides in SvPalette. -->
+        <ColorPaletteResources x:Key="Dark"
+                               Accent="#3CD648"
+                               RegionColor="#1C1C1C"
+                               BaseHigh="#FAFAFA"
+                               ErrorText="#AF5A66"
+                               ChromeMedium="#2A2A2A"
+                               ChromeMediumLow="#1C1C1C"
+                               ChromeLow="#1C1C1C"
+                               AltHigh="#1C1C1C" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://cm-toolkit/Theme/AppStyles.axaml" />
+  </Application.Styles>
+</Application>

@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CMToolkit.App.ViewModels"
+        x:Class="CMToolkit.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Icon="avares://cm-toolkit/Assets/Images/icon-32.png"
+        Width="760" Height="450"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+  <!--
+    cm_checker.CMChecker.setup_window (SHELL-6, SHELL-7). Width/Height are the client area, as Tk's WxH geometry is,
+    and Tk pixels carry over 1:1 as DIPs (issue #13), so 760x450 is exact. CanResize=False also removes maximise,
+    matching wm_resizable(False, False) and -fullscreen false. CenterScreen is close to, not exactly, Tk's
+    (screen // 2 - 760 // 2, screen // 2 - 450 // 2): Tk offsets the client size from the full screen, so its window
+    sits ~20 px lower and ~8 px further right. That difference is accepted rather than reproduced.
+  -->
+  <Grid RowDefinitions="Auto,*">
+    <!-- Row 0 holds the optional update banner, added by the update-check slice. -->
+
+    <TabControl x:Name="Tabs" Grid.Row="1">
+      <!-- Tabs in the reference's order. Each is an empty placeholder until its slice fills it. -->
+      <TabItem Header="Overview" />
+      <TabItem Header="F4SE" />
+      <TabItem Header="Scanner" />
+      <TabItem Header="Tools" />
+      <TabItem Header="Settings" />
+      <TabItem Header="About" />
+    </TabControl>
+  </Grid>
+</Window>
