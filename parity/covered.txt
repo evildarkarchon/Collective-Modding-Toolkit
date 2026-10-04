@@ -9,3 +9,15 @@ SHELL-6
 SHELL-14
 SHELL-15
 SHELL-16
+
+# App runtime: background operations, Error Window and modals (#47)
+SHELL-4
+SHELL-8
+SHELL-9
+SHELL-10
+SHELL-12
+SHELL-13
+THR-4
+MOD-1
+MOD-2
+B-12

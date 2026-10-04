@@ -18,14 +18,7 @@
   <Grid RowDefinitions="Auto,*">
     <!-- Row 0 holds the optional update banner, added by the update-check slice. -->
 
-    <TabControl x:Name="Tabs" Grid.Row="1">
-      <!-- Tabs in the reference's order. Each is an empty placeholder until its slice fills it. -->
-      <TabItem Header="Overview" />
-      <TabItem Header="F4SE" />
-      <TabItem Header="Scanner" />
-      <TabItem Header="Tools" />
-      <TabItem Header="Settings" />
-      <TabItem Header="About" />
-    </TabControl>
+    <!-- The tabs come from the TabPages the window is built with (PlaceholderTab.Shell until each slice lands). -->
+    <TabControl x:Name="Tabs" Grid.Row="1" />
   </Grid>
 </Window>

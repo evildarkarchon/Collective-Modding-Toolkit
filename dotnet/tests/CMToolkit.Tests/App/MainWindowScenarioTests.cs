@@ -2,9 +2,12 @@ using System.Text.Json.Nodes;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
+using CMToolkit.App.Runtime;
+using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Tests.Support;
 using CMToolkit.Tests.Parity;
 
 namespace CMToolkit.Tests.App;
@@ -24,7 +27,7 @@ public sealed class MainWindowScenarioTests
     {
         using var machine = scenario.Materialize();
         // The shell reads nothing from the machine yet; later slices build the view model from machine.Host.
-        var window = new MainWindow
+        var window = new MainWindow(new AppRuntime(new CapturingLogger()), PlaceholderTab.Shell())
         {
             DataContext = new MainWindowViewModel(
                 new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null)),
