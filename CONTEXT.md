@@ -5,8 +5,12 @@ A Windows desktop tool for troubleshooting and optimizing Fallout 4 mod setups, 
 ## Game installs
 
 **Install Type**:
-The edition of Fallout 4 the game folder contains — Old-Gen, Next-Gen, Anniversary, Down-Grade, and the not-found/unknown/obsolete states — as detected from the game binaries.
+The edition of Fallout 4 the game folder contains — Old-Gen, Next-Gen, Anniversary, Down-Grade, and the not-found/unknown/obsolete states — as detected from the game binaries. Anniversary means the current Anniversary build, the one with the raised archive limits; earlier Anniversary-era builds are Obsolete.
 _Avoid_: game version (a specific executable build number, not the edition), OG/NG/AE as standalone nouns in prose
+
+**Obsolete**:
+An Install Type for a superseded build that the toolkit recognises but doesn't support, such as an early Anniversary build without the raised archive limits.
+_Avoid_: outdated, unsupported version (the Downgrader also calls Unknown files unsupported)
 
 ## Downgrading
 
