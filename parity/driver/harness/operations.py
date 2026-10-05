@@ -50,7 +50,7 @@ def capture_logs() -> _Capture:
 
 def log_lines(records: list[logging.LogRecord], logger_name: str) -> list[dict[str, Any]]:
 	"""The rendered log lines one logger wrote. Tracebacks are left out; only the fact of one is recorded, since the
-	error type and wording are not part of Behaviour Parity (CONTEXT.md, Failure Outcome).
+	error type and wording are not part of Behaviour Parity (GLOSSARY.md, Failure Outcome).
 	"""
 	lines = []
 	for record in records:
