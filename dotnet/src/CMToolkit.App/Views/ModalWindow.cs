@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using CMToolkit.App.Runtime;
 
 namespace CMToolkit.App.Views;
@@ -65,19 +64,11 @@ public abstract class ModalWindow : Window
     }
 
     /// <summary>
-    /// The toplevel's <c>&lt;Escape&gt;</c> binding: <see cref="RequestClose"/>, unless a log pane in the modal has
-    /// keyboard focus. The pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for every key, Escape included, which
-    /// stopped Tk from running the toplevel's binding at all (bug #88, reproduced, not fixed).
+    /// The toplevel's <c>&lt;Escape&gt;</c> binding: <see cref="RequestClose"/>, wherever the focus is. In the reference
+    /// a focused log pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for Escape too, which stopped Tk from running
+    /// this binding at all (bug #88, fixed per ADR-0006).
     /// </summary>
-    private void Escape()
-    {
-        if (this.GetLogicalDescendants().OfType<LogPane>().Any(pane => pane.HasKeyboardFocus))
-        {
-            return;
-        }
-
-        RequestClose();
-    }
+    private void Escape() => RequestClose();
 
     /// <summary>
     /// Makes Space close the modal from anywhere in it, as the AboutWindow and TreeWindow <c>&lt;space&gt;</c> bindings do.
