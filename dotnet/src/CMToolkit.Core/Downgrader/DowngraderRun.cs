@@ -9,7 +9,8 @@ namespace CMToolkit.Core.Downgrader;
 /// <summary>
 /// The Downgrader's Patch All run (DG-4..DG-6): the state one Downgrader window keeps across its runs (its detected
 /// versions, the patch queue, the download in flight) and the reference's sequence over it, reproduced step for step,
-/// except for the reference bugs fixed as Deviations (ADR-0006): the Patch All button follows the queue (B-11, #28).
+/// except for the reference bugs fixed as Deviations (ADR-0006): the Patch All button follows the queue (B-11, #28),
+/// and a failed decode puts the backup back (B-9, #14).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -339,28 +340,63 @@ public sealed class DowngraderRun
     }
 
     /// <summary>
-    /// <c>apply_patch</c> (DG-6): decodes the patch from the current-version backup to the live file, logs the outcome,
-    /// then deletes the backup unless Keep Backups is on, even when the decode failed (B-9), and the patch if Delete
-    /// Patches is on.
+    /// <c>apply_patch</c> (DG-6): decodes the patch from the current-version backup to the live file and logs the
+    /// outcome. After a good decode it deletes the backup unless Keep Backups is on; after a failed one it puts the
+    /// backup back as the live file instead (bug #14). Then it deletes the patch if Delete Patches is on.
     /// </summary>
     private void ApplyPatch(QueuedPatch patch, IDowngraderHost host, IProgress<OperationEvent> events)
     {
         var source = HostPaths.Resolve(_host, patch.Source);
+        var target = HostPaths.Resolve(_host, patch.Target);
         var patchFile = PatchFile(patch);
-        var decoded = DeltaPatches.Decode(source, patchFile, HostPaths.Resolve(_host, patch.Target));
+        var decoded = DeltaPatches.Decode(source, patchFile, target);
         events.Report(decoded
             ? new LogLine(LogType.Good, $"Patched {patch.Target.Name}")
             : new LogLine(LogType.Bad, $"Failed patching {patch.Target.Name}"));
 
-        // B-9: the backup is the only copy of the file when the decode failed, and it goes anyway.
-        if (!host.KeepBackups)
+        if (decoded)
         {
-            Unlink(source);
+            if (!host.KeepBackups)
+            {
+                Unlink(source);
+            }
+        }
+        else
+        {
+            RestoreBackup(source, target, host);
         }
 
         if (host.DeletePatches)
         {
             Unlink(patchFile);
+        }
+    }
+
+    /// <summary>
+    /// Undoes a patch that failed: deletes whatever part of the live file the decode wrote, then puts the
+    /// current-version backup back in its place, copied with Keep Backups on and moved otherwise, as
+    /// <c>patch_file</c>'s restore from a backup does.
+    /// </summary>
+    /// <remarks>
+    /// Bug #14 (B-9), fixed as a Deviation (ADR-0006): the reference deleted the backup after a failed decode whenever
+    /// Keep Backups was off, and xdelta3 had left nothing, or only the windows it verified, as the live file, so the
+    /// game could be left with neither version of the file.
+    /// </remarks>
+    private static void RestoreBackup(string backup, string target, IDowngraderHost host)
+    {
+        if (File.Exists(target))
+        {
+            File.Delete(target);
+        }
+
+        if (host.KeepBackups)
+        {
+            // shutil.copy2, as in patch_file: the data, the attributes and the times.
+            File.Copy(backup, target);
+        }
+        else
+        {
+            File.Move(backup, target);
         }
     }
 

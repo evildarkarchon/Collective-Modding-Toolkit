@@ -286,25 +286,45 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-9")]
-    public async Task Bug_14_a_failed_decode_still_deletes_the_backup_when_keep_backups_is_off()
+    [Trait("Parity", "B-9"), Deviation(14, "A failed decode puts the backup back as the live file instead of deleting it.")]
+    public async Task Bug_14_a_failed_decode_puts_the_backup_back_when_keep_backups_is_off()
     {
-        // Bug #14 (B-9), reproduced: the 404 page is saved as the patch, the decode fails, and the backup, the only copy
-        // of Fallout4.exe left, is deleted.
+        // Bug #14 (B-9), fixed (ADR-0006): a patch that doesn't decode (here a garbage one already in the working
+        // directory) left the reference with neither the file nor its backup when Keep Backups was off. The port moves
+        // the backup back into place, so the game is as it was before the click.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
-        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body("Not Found"u8.ToArray(), HttpStatusCode.NotFound) };
+        File.WriteAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta"), "not a patch");
         var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
 
-        await machine.Run(server).PatchAllAsync(InstallType.NextGen, host, host.Events);
-        server.Release();
+        await machine.Run().PatchAllAsync(InstallType.NextGen, host, host.Events);
         await host.RunPollsAsync();
 
         Assert.Contains("Bad: Failed patching Fallout4.exe", host.Lines);
-        Assert.False(File.Exists(machine.GamePath("Fallout4.exe")));
+        Assert.DoesNotContain("Good: Patched Fallout4.exe", host.Lines);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
         Assert.False(File.Exists(machine.GamePath("Fallout4_upgradeBackup.exe")));
-        Assert.Equal("Not Found", File.ReadAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
-        Assert.Equal("versions: Not Found, Not Found, Not Found, Not Found, Not Found, Not Found", host.Script.Single(s => s.StartsWith("versions", StringComparison.Ordinal)));
+        Assert.Equal("versions: Old-Gen, Not Found, Not Found, Not Found, Not Found, Not Found", host.Script.Single(s => s.StartsWith("versions", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-9"), Deviation(14, "A failed decode removes its partial output and copies the backup back, keeping it with Keep Backups on.")]
+    public async Task Bug_14_a_decode_failing_mid_file_leaves_the_original_and_keeps_the_backup_when_keep_backups_is_on()
+    {
+        // The real launcher patch cut short: xdelta3 writes the windows it verified before the cut, so the reference left
+        // a fragment as the launcher. The port deletes the fragment and copies the backup back.
+        using var machine = new Machine();
+        machine.Place("Fallout4Launcher.exe", "02445570", fromFile: Path.Combine(Patches, "big", "og", "Fallout4Launcher.exe"));
+        var big = File.ReadAllBytes(Path.Combine(Patches, "big", "OG-to-NG-Fallout4Launcher.exe.xdelta"));
+        File.WriteAllBytes(machine.CwdPath("OG-to-NG-Fallout4Launcher.exe.xdelta"), big[..(big.Length / 2)]);
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+
+        await machine.Run().PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
+
+        Assert.Contains("Bad: Failed patching Fallout4Launcher.exe", host.Lines);
+        Assert.Equal("02445570", FileCrc32.Of(machine.GamePath("Fallout4Launcher.exe")));
+        Assert.Equal("02445570", FileCrc32.Of(machine.GamePath("Fallout4Launcher_upgradeBackup.exe")));
     }
 
     [Fact]

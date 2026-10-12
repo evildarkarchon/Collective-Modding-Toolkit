@@ -145,10 +145,16 @@
         "size": 0
       },
       {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
         "path": "<ROOT>/Game/Fallout4Launcher.exe",
         "readonly": false,
-        "sha256": "8df18035e747f588a961c1fa860e54ce489b8c26ece91adfa2534e15bf4b7fa3",
-        "size": 16384
+        "sha256": "d895ad2da67cf2d5aa0d018b97cafe9cf61c9cbc0ee202603ccecef04f0d8942",
+        "size": 65540
       }
     ],
     "final": {
@@ -172,12 +178,12 @@
         "game": {
           "values": [
             {
-              "color": "gray",
-              "text": "Not Found"
+              "color": "dodger blue",
+              "text": "Old-Gen"
             },
             {
-              "color": "#AF5A66",
-              "text": "Unknown"
+              "color": "dodger blue",
+              "text": "Old-Gen"
             },
             {
               "color": "gray",
@@ -302,11 +308,11 @@
       "versions": [
         {
           "file": "Fallout4.exe",
-          "installType": "Not Found"
+          "installType": "Old-Gen"
         },
         {
           "file": "Fallout4Launcher.exe",
-          "installType": "Unknown"
+          "installType": "Old-Gen"
         },
         {
           "file": "steam_api64.dll",
