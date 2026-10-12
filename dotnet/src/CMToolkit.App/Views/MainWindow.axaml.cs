@@ -34,9 +34,9 @@ public partial class MainWindow : Window
             Tabs.Items.Add(new TabItem { Header = page.Header, Content = new LazyTab(page, runtime) });
         }
 
-        // Escape calls root.destroy() directly, bypassing the close guard (SHELL-10, B-12); a user close goes through
-        // it (SHELL-9).
-        runtime.Input.Attach(this, onEscape: Close, onCloseRequest: RequestClose);
+        // Escape and a user close both go through the close guard (SHELL-9, SHELL-10). The reference's Escape called
+        // root.destroy() directly, bypassing it (B-12); that is bug #29, fixed here as a Deviation (ADR-0006).
+        runtime.Input.Attach(this, onEscape: RequestClose, onCloseRequest: RequestClose);
 
         Tabs.SelectionChanged += (_, e) =>
         {
@@ -75,7 +75,10 @@ public partial class MainWindow : Window
         set => UpdateBannerHost.Content = value;
     }
 
-    /// <summary>Closes the window unless <see cref="ProcessingData"/> is set (<c>CMChecker.on_close</c>).</summary>
+    /// <summary>
+    /// Closes the window unless <see cref="ProcessingData"/> is set (<c>CMChecker.on_close</c>): for a user close, and
+    /// for Escape too since bug #29 was fixed.
+    /// </summary>
     public void RequestClose()
     {
         if (!ProcessingData)
