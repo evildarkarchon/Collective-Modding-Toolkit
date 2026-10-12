@@ -74,5 +74,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 84,
+      "reason": "A missing Fallout4.exe no longer matches the other missing binaries: each missing binary is red with a File Not Found problem (CreationKit and Archive2 stay grey), and the Not Found game version is red."
+    }
+  ]
 }

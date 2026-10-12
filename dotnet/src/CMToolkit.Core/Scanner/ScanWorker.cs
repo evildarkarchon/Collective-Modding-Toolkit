@@ -92,8 +92,9 @@ public static class ScanWorker
     {
         var modules = new List<(int Count, PythonPath File)>();
         var total = 0;
-        // Bug #90, reproduced: a module listed twice in modules_enabled (in Fallout4.ccc and plugins.txt, #33) is read,
-        // totalled and listed twice (scanner/details). The fix counts each path once, in first-seen order.
+        // Bug #90, fixed (ADR-0006): the reference read, totalled and listed a module twice when modules_enabled had it
+        // twice (in Fallout4.ccc and plugins.txt, #33; scanner/details). The Overview now lists each module once, in
+        // first-seen order, so each is counted once here.
         foreach (var module in settings.ModulesEnabled)
         {
             int count;

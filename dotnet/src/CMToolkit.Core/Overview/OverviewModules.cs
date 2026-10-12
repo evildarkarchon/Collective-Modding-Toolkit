@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
+using CMToolkit.Core.Scanner;
 using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core.Overview;
@@ -16,7 +17,9 @@ public sealed record UnknownHedrModule(PythonPath Module, double Version);
 /// </summary>
 /// <param name="Enabled">
 /// <c>modules_enabled</c>: the game masters, the CC modules, then plugins.txt's (or every module in Data), in that
-/// order and not de-duplicated, so a module listed twice is here, and counted, twice (B-17).
+/// order. The reference didn't de-duplicate it, so a CC module also in plugins.txt was listed, and counted, twice
+/// (B-17). The port keeps each module once, in first-listed order, compared regardless of case (T-8) as Python's
+/// <c>Path</c> equality does (deviation, bugs #33 and #90).
 /// </param>
 /// <param name="Unreadable"><c>modules_unreadable</c>, a set: one entry per module however often it is listed.</param>
 /// <param name="Hedr95"><c>modules_hedr_95</c>, a set.</param>
@@ -58,8 +61,9 @@ internal sealed class ModulesGathering(
     ];
 
     /// <summary>
-    /// <c>MODULE_VERSION_SUPPORT</c> (<c>globals.py</c>), verbatim and in order: the HEDR versions each game accepts, as
-    /// the text <c>str(round(version, 2))</c> must equal. <c>1.70</c> can never match, since Python prints 1.7 (B-7).
+    /// <c>MODULE_VERSION_SUPPORT</c> (<c>globals.py</c>), verbatim and in order: the HEDR versions each game accepts. The
+    /// reference matched them as text against <c>str(round(version, 2))</c>, so <c>1.70</c> never matched, since Python
+    /// prints 1.7 (B-7). The port matches them by value (deviation, bug #26).
     /// </summary>
     private static readonly (string Game, string[] Versions)[] VersionSupport =
     [
@@ -86,8 +90,11 @@ internal sealed class ModulesGathering(
     private int _light;
     private int _hedr100;
 
-    /// <summary><c>modules_enabled</c> as gathered so far; the archives read it next.</summary>
-    public List<PythonPath> Enabled { get; } = [];
+    // modules_enabled, de-duplicated (bugs #33, #90): the game loads a module once however often it is listed.
+    private readonly PathSet _enabled = new();
+
+    /// <summary><c>modules_enabled</c> as gathered so far, each module once; the archives read it next.</summary>
+    public IReadOnlyList<PythonPath> Enabled => _enabled.Items;
 
     /// <summary>What has been gathered so far, as a report part.</summary>
     public OverviewModules Snapshot()
@@ -98,7 +105,6 @@ internal sealed class ModulesGathering(
     /// on the first load only.
     /// </summary>
     /// <exception cref="FileNotFoundException">The local app data folder doesn't exist (as at startup, INI-1).</exception>
-    /// <exception cref="System.Text.DecoderFallbackException">Fallout4.ccc or plugins.txt isn't UTF-8 (T-1).</exception>
     public void Run()
     {
         logger.Write(LogLevel.Debug, "Gathering Info: Modules");
@@ -113,7 +119,7 @@ internal sealed class ModulesGathering(
         }
 
         // exists(), not is_file(): a folder named like a master is listed, and then can't be read (OVW-M2).
-        Enabled.AddRange(GameMasters.Select(data.Join).Where(path => HostPaths.Exists(host, path)));
+        AddEnabled(GameMasters.Select(data.Join).Where(path => HostPaths.Exists(host, path)));
         AddCreationClub(data);
         AddPlugins(data);
 
@@ -123,13 +129,28 @@ internal sealed class ModulesGathering(
         }
     }
 
+    /// <summary>Lists each module not already listed (deviation, bugs #33 and #90), keeping the first spelling.</summary>
+    private void AddEnabled(IEnumerable<PythonPath> modules)
+    {
+        foreach (var module in modules)
+        {
+            _enabled.Add(module);
+        }
+    }
+
     /// <summary><c>Fallout4.ccc</c>: each line that is a file in Data, or a problem and a warning without it (OVW-M3).</summary>
     private void AddCreationClub(PythonPath data)
     {
         var ccc = game.GamePath.Join("Fallout4.ccc");
         if (HostPaths.IsFile(host, ccc))
         {
-            Enabled.AddRange(PythonText.SplitLines(HeaderFiles.ReadText(host, ccc))
+            var content = HeaderFiles.ReadTextLeniently(host, ccc, out var valid);
+            if (!valid)
+            {
+                AddNotUtf8(ccc.Name, "CC modules on lines that aren't UTF-8 can't be detected.", SolutionTypes.VerifyFiles);
+            }
+
+            AddEnabled(PythonText.SplitLines(content)
                 .Select(data.Join)
                 .Where(path => HostPaths.IsFile(host, path)));
             return;
@@ -152,9 +173,10 @@ internal sealed class ModulesGathering(
     {
         var plugins = KnownFolders.Get(host, KnownFolder.LocalAppData).Join("Fallout4\\plugins.txt");
         string content;
+        bool valid;
         try
         {
-            content = HeaderFiles.ReadText(host, plugins);
+            content = HeaderFiles.ReadTextLeniently(host, plugins, out valid);
         }
         catch (Exception ex) when (HeaderFiles.IsPermissionOrNotFound(ex))
         {
@@ -174,18 +196,38 @@ internal sealed class ModulesGathering(
                 var path = data.Join(Path.GetFileName(entry));
                 if (ModuleSuffixes.Contains(path.Suffix.ToLowerInvariant()) && !current.Contains(path))
                 {
-                    Enabled.Add(path);
+                    _enabled.Add(path);
                 }
             }
 
             return;
         }
 
-        Enabled.AddRange(PythonText.SplitLines(content)
+        if (!valid)
+        {
+            AddNotUtf8(
+                plugins.Name,
+                "Modules on lines that aren't UTF-8 can't be detected, so counts may be lower than your actual counts.",
+                "Save plugins.txt as UTF-8, or have your mod manager write it again.");
+        }
+
+        AddEnabled(PythonText.SplitLines(content)
             .Where(line => line.StartsWith('*'))
             .Select(line => data.Join(line[1..]))
             .Where(path => HostPaths.IsFile(host, path)));
     }
+
+    /// <summary>
+    /// The problem for a list file (Fallout4.ccc or plugins.txt) that isn't valid UTF-8. The reference's strict read
+    /// raised and failed the Overview (T-1); the port reads its UTF-8 lines and reports the file instead (deviation,
+    /// bug #86). No warning box is shown, unlike a missing file.
+    /// </summary>
+    /// <param name="name">The file's name, the problem's path text.</param>
+    /// <param name="consequence">The summary's second line: what can't be detected.</param>
+    /// <param name="solution">The solution text.</param>
+    private void AddNotUtf8(string name, string consequence, string solution)
+        => OverviewReport.AddSimple(logger, problems, Problem.Simple(
+            name, ScanProblemTypes.UnexpectedFormat, $"{name} is not valid UTF-8.\n{consequence}", solution));
 
     /// <summary>One module's first 34 bytes: readable, TES4, HEDR, its version (OVW-M6, OVW-M7) and type (OVW-M8).</summary>
     private void Check(PythonPath module)
@@ -240,12 +282,17 @@ internal sealed class ModulesGathering(
 
     /// <summary>
     /// An unsupported HEDR version: recorded against the module (a dict, so a module listed twice keeps its first place)
-    /// and reported, naming the games whose versions include its text (OVW-P12, T-3, B-7).
+    /// and reported, naming the games whose versions include its value (OVW-P12, T-3; by value since bug #26, B-7).
     /// </summary>
     private void AddUnknown(PythonPath module, double hedr)
     {
         var text = PythonFloat.Repr(hedr);
-        var games = VersionSupport.Where(s => s.Versions.Contains(text)).Select(s => s.Game).ToList();
+        // By value, not by text: "1.70" is 1.7 (bug #26). Both sides are the nearest double to a two-decimal number,
+        // so equal values compare exactly.
+        var games = VersionSupport
+            .Where(s => s.Versions.Any(v => double.Parse(v, System.Globalization.CultureInfo.InvariantCulture) == hedr))
+            .Select(s => s.Game)
+            .ToList();
         var validGames = games.Count > 0 ? $"\nGames supporting v{text}: " + string.Join(", ", games) : string.Empty;
         if (_hedrUnknownIndex.TryGetValue(module, out var index))
         {

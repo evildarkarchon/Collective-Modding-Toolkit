@@ -1,0 +1,570 @@
+{
+  "overview": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": "<ROOT>\\Game\\Fallout4.exe",
+        "hash": "BDED20F7",
+        "installType": "Unknown",
+        "name": "Fallout4.exe",
+        "version": null,
+        "versionString": "BDED20F7"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "steam_api64.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_loader.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": null
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Unknown",
+            "text": "Unknown"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: Fallout4.exe | Problem: Unknown Game Version"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "<ROOT>\\Game"
+          },
+          "text": "<ROOT>\\Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "#AF5A66",
+          "text": "Not Found",
+          "tooltip": "Your mod manager must launch the app to be detected."
+        },
+        "modManagerIcon": null,
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Unknown"
+        }
+      }
+    },
+    "installType": "Unknown",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "cm-toolkit.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "cm-toolkit.exe",
+        "solution": "Your mod manager must launch the app to be detected.",
+        "summary": "No Mod Manager Detected",
+        "type": "No Mod Manager"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "Fallout4.exe",
+        "solution": "Either update the game/verify files in Steam, or report this issue.",
+        "summary": "BDED20F7 is an unknown version.\nPossible causes:\n1. The game is an old version and should be updated.\n2. The exe file may be corrupted.\n3. The game is a new version and the Toolkit needs to be updated.",
+        "type": "Unknown Game Version"
+      },
+      {
+        "extraData": [
+          "https://www.nexusmods.com/fallout4/mods/47327"
+        ],
+        "itemText": "version-BDED20F7.bin",
+        "mod": "",
+        "path": "<ROOT>\\Game\\Data\\F4SE\\Plugins\\version-BDED20F7.bin",
+        "relativePath": "F4SE\\Plugins\\version-BDED20F7.bin",
+        "solution": "Download the mod here:",
+        "summary": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "steam_api64.dll",
+        "mod": "",
+        "path": "steam_api64.dll",
+        "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "",
+        "path": "f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_steam_loader.dll",
+        "mod": "",
+        "path": "f4se_steam_loader.dll",
+        "relativePath": "f4se_steam_loader.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      }
+    ]
+  },
+  "refresh": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": "<ROOT>\\Game\\Fallout4.exe",
+        "hash": "BDED20F7",
+        "installType": "Unknown",
+        "name": "Fallout4.exe",
+        "version": null,
+        "versionString": "BDED20F7"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "steam_api64.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_loader.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": null
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Unknown",
+            "text": "Unknown"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: Fallout4.exe | Problem: Unknown Game Version"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "<ROOT>\\Game"
+          },
+          "text": "<ROOT>\\Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "#AF5A66",
+          "text": "Not Found",
+          "tooltip": "Your mod manager must launch the app to be detected."
+        },
+        "modManagerIcon": null,
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Unknown"
+        }
+      }
+    },
+    "installType": "Unknown",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "cm-toolkit.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "cm-toolkit.exe",
+        "solution": "Your mod manager must launch the app to be detected.",
+        "summary": "No Mod Manager Detected",
+        "type": "No Mod Manager"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "Fallout4.exe",
+        "solution": "Either update the game/verify files in Steam, or report this issue.",
+        "summary": "BDED20F7 is an unknown version.\nPossible causes:\n1. The game is an old version and should be updated.\n2. The exe file may be corrupted.\n3. The game is a new version and the Toolkit needs to be updated.",
+        "type": "Unknown Game Version"
+      },
+      {
+        "extraData": [
+          "https://www.nexusmods.com/fallout4/mods/47327"
+        ],
+        "itemText": "version-BDED20F7.bin",
+        "mod": "",
+        "path": "<ROOT>\\Game\\Data\\F4SE\\Plugins\\version-BDED20F7.bin",
+        "relativePath": "F4SE\\Plugins\\version-BDED20F7.bin",
+        "solution": "Download the mod here:",
+        "summary": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "steam_api64.dll",
+        "mod": "",
+        "path": "steam_api64.dll",
+        "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "",
+        "path": "f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_steam_loader.dll",
+        "mod": "",
+        "path": "f4se_steam_loader.dll",
+        "relativePath": "f4se_steam_loader.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      }
+    ]
+  }
+}

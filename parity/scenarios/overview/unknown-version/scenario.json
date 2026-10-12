@@ -68,5 +68,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 30,
+      "reason": "An Unknown binary never matches an Unknown game: Fallout4.exe's row is red (its Unknown Game Version problem stands) and the Unknown f4se_loader.exe is red with a Wrong Version problem."
+    }
+  ]
 }

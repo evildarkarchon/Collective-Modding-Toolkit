@@ -29,17 +29,17 @@ public sealed class OverviewTabFailureTests
         var loaded = state.Report!;
         var countBefore = Text(window, "ArchiveCount0");
 
-        // Since the load: one enabled archive's format stopped being UTF-8, which kills the archive step (T-1).
-        var archive = machine.PathOf(@"Game\Data\Fo76 - Main.ba2");
-        var bytes = File.ReadAllBytes(archive);
-        bytes.AsSpan(8, 4).Fill(0xFF);
-        File.WriteAllBytes(archive, bytes);
+        // Since the load: the local app data folder went away, which kills the modules step when it looks for
+        // plugins.txt. (An archive format that isn't UTF-8 did this before the port fixed bug #86.)
+        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
         MouseClick.On(Named<Button>(window, "Refresh"));
         DispatcherWait.Until(() => !ReferenceEquals(state.Report, loaded) && !runtime.Input.IsBlocking);
 
         Assert.NotNull(runtime.Errors.Window);
-        // The modules were gathered again; the frames weren't rebuilt and their problems weren't appended.
-        Assert.Equal(loaded.Modules.Enabled.Count, state.Report!.Modules.Enabled.Count);
+        // The modules were gathered again up to plugins.txt; the archives step never ran, so they are the load's; the
+        // frames weren't rebuilt and their problems weren't appended.
+        Assert.InRange(state.Report!.Modules.Enabled.Count, 1, loaded.Modules.Enabled.Count - 1);
+        Assert.Same(loaded.Archives, state.Report.Archives);
         Assert.DoesNotContain(state.Report.Problems, p => p.Kind == "Wrong Version");
         Assert.Equal(countBefore, Text(window, "ArchiveCount0"));
         // This machine has its CC list and plugins.txt, so neither the load nor the failed refresh showed a warning.

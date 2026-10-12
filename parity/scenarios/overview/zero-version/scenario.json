@@ -65,5 +65,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 30,
+      "reason": "An Unknown Fallout4.exe no longer matches the Unknown game it sets: its row is red, with its Unknown Game Version problem only."
+    }
+  ]
 }

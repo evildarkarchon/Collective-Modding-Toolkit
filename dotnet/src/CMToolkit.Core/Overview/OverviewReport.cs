@@ -104,9 +104,9 @@ public sealed record OverviewReport(
     /// as the reference's shared state did.
     /// </param>
     /// <exception cref="OverviewIncompleteException">
-    /// A step raised: a binary, module or archive that exists but can't be read, no local app data folder, a
-    /// Fallout4.ccc, plugins.txt or archive format that isn't UTF-8 (T-1), or no <c>[Archive]</c> section (OVW-A2, B-15).
-    /// It carries what had been gathered.
+    /// A step raised: a binary, module or archive that exists but can't be read, or no local app data folder. It
+    /// carries what had been gathered. (Text that isn't UTF-8 and a missing <c>[Archive]</c> section failed the
+    /// reference here too, T-1 and OVW-A2; the port reports them instead, bugs #86 and #31.)
     /// </exception>
     public static OverviewReport Gather(GameInstall game, IHostEnvironment host, ILogger logger, OverviewReport? previous = null)
         => Gather(game, host, logger, previous, modulesAndArchives: true);
@@ -215,18 +215,31 @@ public sealed record OverviewReport(
     }
 
     /// <summary>
-    /// A row's colour and problem, decided in OVW-B7's order: equal to the game's type (even <c>Unknown</c> or
-    /// <c>Not Found</c>, B-13) is good; Old-Gen is good only on a Down-Grade game; a missing binary is expected for the
-    /// Creation Kit, Archive2 and, on Next-Gen/Anniversary, f4se_steam_loader.dll; anything else is the wrong version.
+    /// A row's colour and problem, decided in OVW-B7's order: equal to the game's type is good; Old-Gen is good only on
+    /// a Down-Grade game; a missing binary is expected for the Creation Kit, Archive2 and, on Next-Gen/Anniversary,
+    /// f4se_steam_loader.dll; anything else is the wrong version.
     /// </summary>
+    /// <remarks>
+    /// Deviations (bugs #84 and #30, B-13): the reference matched <c>case self.cmc.game.install_type</c> first, so with
+    /// no Fallout4.exe (the game <c>Not Found</c>) every missing binary equalled the game and was green with no
+    /// problem, and with an <c>Unknown</c> Fallout4.exe every <c>Unknown</c> binary was green with no problem. Neither
+    /// type ever matches the game here: a missing binary is judged as missing, and an unknown one is the wrong version.
+    /// </remarks>
     private static (BinaryStatus Status, Problem? Problem) Judge(BinaryFile file, InstallType game)
     {
         // file_info[name]["File"] or Path(name): a missing file's problem names it without a folder.
         var path = file.File ?? new PythonPath(file.Name);
         var relative = new PythonPath(path.Name);
-        if (file.InstallType == game)
+        if (file.InstallType == game && game is not (InstallType.NotFound or InstallType.Unknown))
         {
             return (BinaryStatus.Good, null);
+        }
+
+        // An unknown Fallout4.exe is already the Unknown Game Version problem; "does not match your installed game
+        // version" would say nothing about the game's own exe (bug #30).
+        if (file.Name == "Fallout4.exe" && file.InstallType == InstallType.Unknown)
+        {
+            return (BinaryStatus.Bad, null);
         }
 
         switch (file.InstallType)

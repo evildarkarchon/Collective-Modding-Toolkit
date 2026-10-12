@@ -85,5 +85,15 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 33,
+      "reason": "Each enabled module is listed and counted once (first-listed, compared regardless of case), so a module named in both Fallout4.ccc and plugins.txt, or listed twice, is counted once."
+    },
+    {
+      "bug": 26,
+      "reason": "A HEDR version is matched to MODULE_VERSION_SUPPORT by value, so a v1.70 module names Skyrim LE, Skyrim VR and Skyrim SE as the games supporting v1.7."
+    }
+  ]
 }

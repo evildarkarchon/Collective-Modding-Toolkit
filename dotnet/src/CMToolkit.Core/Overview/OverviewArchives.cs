@@ -50,12 +50,10 @@ internal sealed class ArchivesGathering(
     public OverviewArchives Snapshot()
         => new(_enabled.Snapshot(), _unreadable.Snapshot(), _oldGen.Snapshot(), _nextGen.Snapshot(), _general, _texture);
 
-    /// <summary>Runs <c>get_info_archives</c>.</summary>
-    /// <exception cref="InvalidDataException">
-    /// The INIs have no <c>[Archive]</c> section: <c>Archive section missing from INIs</c>, which fails the Overview
-    /// (OVW-A2, B-15).
-    /// </exception>
-    /// <exception cref="System.Text.DecoderFallbackException">An archive's format bytes aren't UTF-8 (OVW-A4, T-1, bug #86).</exception>
+    /// <summary>
+    /// Runs <c>get_info_archives</c>. INIs without an <c>[Archive]</c> section are a problem rather than the
+    /// reference's <c>ValueError</c> (OVW-A2, B-15; deviation, bug #31).
+    /// </summary>
     public void Run()
     {
         logger.Write(LogLevel.Debug, "Gathering Info: Archives");
@@ -69,17 +67,26 @@ internal sealed class ArchivesGathering(
             return;
         }
 
-        if (!game.Inis.Settings.TryGetValue("archive", out var section))
+        if (game.Inis.Settings.TryGetValue("archive", out var section))
         {
-            throw new InvalidDataException("Archive section missing from INIs");
-        }
-
-        foreach (var list in ArchiveLists)
-        {
-            foreach (var name in (section.TryGetValue(list, out var value) ? value : string.Empty).Split(','))
+            foreach (var list in ArchiveLists)
             {
-                AddIfFile(data.Join(PythonText.Strip(name)));
+                foreach (var name in (section.TryGetValue(list, out var value) ? value : string.Empty).Split(','))
+                {
+                    AddIfFile(data.Join(PythonText.Strip(name)));
+                }
             }
+        }
+        else
+        {
+            // The reference raised ValueError("Archive section missing from INIs") here, which failed the Overview and
+            // every Scanner run's refresh (OVW-A2, B-15). The port reports it and goes on without the INI lists
+            // (deviation, bug #31).
+            OverviewReport.AddSimple(logger, problems, Problem.Simple(
+                "[Archive]",
+                ProblemTypes.FileNotFound,
+                "The [Archive] section was not found in your game INIs (Fallout4.ini may not have been generated yet).\nArchives listed only in the INIs can't be detected, so archive counts may be lower than your actual counts.",
+                "Launch the game once with its launcher to generate Fallout4.ini.\nOtherwise, verify files with Steam or reinstall the game."));
         }
 
         // Each enabled module's "<stem> - <suffix>.ba2" beside it, for every language suffix (INI-4).
@@ -177,12 +184,13 @@ internal sealed class ArchivesGathering(
         }
         else
         {
-            // The reference adds it to the unreadable set before it formats the problem text, whose decode can raise.
+            // The reference decoded the format strictly, so bytes that aren't UTF-8 raised and failed the Overview
+            // (T-1). The port replaces them with U+FFFD, as errors="replace" would (deviation, bug #86).
             _unreadable.Add(archive);
             problems.Add(Problem.ForOverviewFile(
                 ProblemTypes.InvalidArchive,
                 archive,
-                $"Archive format ({HeaderFiles.StrictUtf8.GetString(format)}) is not valid for Fallout 4.",
+                $"Archive format ({HeaderFiles.LenientUtf8.GetString(format)}) is not valid for Fallout 4.",
                 null));
             return;
         }

@@ -19,6 +19,12 @@ internal static class HeaderFiles
     public static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     /// <summary>
+    /// UTF-8 that replaces each maximal invalid subsequence with U+FFFD, as <c>bytes.decode("utf-8", "replace")</c>
+    /// does. The port decodes with it where the reference's strict decode failed the Overview (bug #86).
+    /// </summary>
+    public static readonly UTF8Encoding LenientUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+
+    /// <summary>
     /// Up to <paramref name="count"/> bytes from the start of the file, fewer if it is shorter, or null when opening it
     /// raised what Python reports as <c>PermissionError</c> or <c>FileNotFoundError</c>. A folder is a
     /// <c>PermissionError</c> on Windows, so it is null too. The file is opened with read and write sharing, as the C
@@ -41,15 +47,33 @@ internal static class HeaderFiles
     }
 
     /// <summary>
-    /// <c>path.read_text("utf-8")</c> (T-1): strict UTF-8, a BOM kept as U+FEFF, opened with read and write sharing.
+    /// <c>path.read_text("utf-8")</c> (T-1): UTF-8, a BOM kept as U+FEFF, opened with read and write sharing. The
+    /// reference's strict decode raised on a file that isn't valid UTF-8 and failed the Overview; the port decodes it
+    /// with U+FFFD for each bad sequence instead (bug #86), and <paramref name="valid"/> says whether that happened.
     /// </summary>
-    /// <exception cref="DecoderFallbackException">The file isn't valid UTF-8.</exception>
-    public static string ReadText(IHostEnvironment host, PythonPath path)
+    /// <param name="valid">False when the file had bytes that aren't UTF-8.</param>
+    public static string ReadTextLeniently(IHostEnvironment host, PythonPath path, out bool valid)
+    {
+        var bytes = ReadAll(host, path);
+        try
+        {
+            valid = true;
+            return StrictUtf8.GetString(bytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            valid = false;
+            return LenientUtf8.GetString(bytes);
+        }
+    }
+
+    /// <summary>The whole file, opened with read and write sharing as Python's <c>open</c> shares it.</summary>
+    private static byte[] ReadAll(IHostEnvironment host, PythonPath path)
     {
         using var stream = new FileStream(HostPaths.Resolve(host, path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         using var bytes = new MemoryStream();
         stream.CopyTo(bytes);
-        return StrictUtf8.GetString(bytes.GetBuffer(), 0, (int)bytes.Length);
+        return bytes.ToArray();
     }
 
     /// <summary>

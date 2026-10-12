@@ -148,7 +148,8 @@ public sealed class OverviewTab : TabPage
 
     /// <summary>
     /// <c>OverviewTab._load</c>: gathers the first report, then shows its warnings in order (OVW-M3, OVW-M5), which the
-    /// reference showed mid-gathering, before the frames were built. If the gathering dies (OVW-A2, B-15), what it had
+    /// reference showed mid-gathering, before the frames were built. If the gathering dies (in the reference OVW-A2,
+    /// B-15, which the port now reports instead, bug #31; still possible with no local app data folder), what it had
     /// gathered becomes the current report, as the reference's shared state kept it, the warnings raised before it died
     /// are still shown, and the failure propagates so the tab stays on its loading text.
     /// </summary>
@@ -311,12 +312,13 @@ public sealed class OverviewTab : TabPage
         grid.Children.Add(path);
 
         // textvariable=install_type_sv: the Install Type as it is now, whichever report set it.
-        var version = Label(_state.InstallType.DisplayName(), "CmtGood", "Version");
+        var version = Label(_state.InstallType.DisplayName(), VersionColour(_state.InstallType), "Version");
         _state.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(OverviewState.InstallType))
             {
                 version.Text = _state.InstallType.DisplayName();
+                version.Bind(TextBlock.ForegroundProperty, version.GetResourceObservable(VersionColour(_state.InstallType)));
             }
         };
         Place(version, 2, 2);
@@ -645,6 +647,12 @@ public sealed class OverviewTab : TabPage
     }
 
     /// <summary>A normal-size label in one of the palette's colours, named for tests.</summary>
+    /// <summary>
+    /// The Version value's colour. The reference always drew it in <c>COLOR_GOOD</c>; a game with no Fallout4.exe
+    /// (<c>Not Found</c>) is red instead (deviation, bug #84), so the top block doesn't call a missing game good.
+    /// </summary>
+    private static string VersionColour(InstallType type) => type == InstallType.NotFound ? "CmtBad" : "CmtGood";
+
     private static TextBlock Label(string text, string colourKey, string name, Thickness margin = default)
     {
         var label = new TextBlock
