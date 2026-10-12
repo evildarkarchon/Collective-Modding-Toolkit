@@ -148,7 +148,8 @@ public sealed class OverviewTab : TabPage
 
     /// <summary>
     /// <c>OverviewTab._load</c>: gathers the first report, then shows its warnings in order (OVW-M3, OVW-M5), which the
-    /// reference showed mid-gathering, before the frames were built. If the gathering dies (OVW-A2, B-15), what it had
+    /// reference showed mid-gathering, before the frames were built. If the gathering dies (in the reference OVW-A2,
+    /// B-15, which the port now reports instead, bug #31; still possible with no local app data folder), what it had
     /// gathered becomes the current report, as the reference's shared state kept it, the warnings raised before it died
     /// are still shown, and the failure propagates so the tab stays on its loading text.
     /// </summary>

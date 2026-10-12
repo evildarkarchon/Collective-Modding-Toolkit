@@ -59,5 +59,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 31,
+      "reason": "A missing [Archive] section is reported as a File Not Found problem and the archives are gathered without the INI lists, so the Overview loads."
+    }
+  ]
 }
