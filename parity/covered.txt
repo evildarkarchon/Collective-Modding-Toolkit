@@ -163,6 +163,21 @@ B-7
 B-15
 B-17
 
+# F4SE tab (#54)
+F4SE-1
+F4SE-2
+F4SE-3
+F4SE-4
+F4SE-5
+F4SE-6
+F4SE-7
+B-18
+# T-4: #49 (all-zero version), #51 (version resource read like pywin32), #53 (PEP 440) and this slice (packed
+# compatibleVersions compared unsigned). T-5: #49 (parent process across elevation) and this slice (plugins mapped by
+# the real loader, not a managed PE reader). #54 is the last claimant of both.
+T-4
+T-5
+
 # Archive Patcher and the log pane (#59)
 # TOOL-1: the last claimant (#55 rendered the buttons, #60 wired Downgrade Manager, this wires Archive Patcher).
 AP-1

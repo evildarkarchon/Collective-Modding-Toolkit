@@ -20,8 +20,10 @@ public sealed class CoverageCheckTests : IDisposable
     /// <summary>
     /// Writes a C# source fixture. The check scans sources as text, so a literal parity trait in this file's string
     /// literals would count as a proof (of IDs that don't exist); fixtures spell it TRAIT and it is fixed up here.
+    /// Deviation attributes are scanned the same way, so fixtures spell them DEVIATION.
     /// </summary>
-    private void WriteSource(string path, string text) => Write(path, text.Replace("TRAIT", "Trait", StringComparison.Ordinal));
+    private void WriteSource(string path, string text)
+        => Write(path, text.Replace("TRAIT", "Trait", StringComparison.Ordinal).Replace("DEVIATION", "Deviation", StringComparison.Ordinal));
 
     private const string Inventory = """
         # Inventory
@@ -191,6 +193,118 @@ public sealed class CoverageCheckTests : IDisposable
         Layout(manual: manual);
 
         Assert.Contains(Run().Errors, e => e.Contains(expected, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// A synthetic deviating scenario (ADR-0006): bug 1 and the goldens exist only to exercise the mechanism.
+    /// </summary>
+    private void DeviatingScenario(string id, string deviationsJson, string? portGolden = """{"value": "fixed"}""")
+    {
+        Write($"parity/scenarios/{id}/scenario.json", $$$"""{"operation": "op", "parity": ["SET-2"], "host": {}, "deviations": {{{deviationsJson}}}}""");
+        Write($"parity/scenarios/{id}/golden.json", """{"value": "buggy"}""");
+        if (portGolden is not null)
+        {
+            Write($"parity/scenarios/{id}/golden.port.json", portGolden);
+        }
+    }
+
+    [Fact]
+    public void Deviations_are_listed_from_scenarios_and_tests_and_still_prove_their_ids()
+    {
+        Layout(covered: "SET-1\nSET-2\n");
+        DeviatingScenario("settings/a", """[{"bug": 1, "reason": "Synthetic: reads the file."}]""");
+        Scenario("settings/b", """["SET-2"]""");
+        WriteSource("dotnet/tests/X/FooTests.cs", """
+            [Fact, TRAIT("Parity", "SET-1"), DEVIATION(2, "Synthetic: no longer hangs.")]
+            public void A() { }
+            [DEVIATION( 3 , "Synthetic: escaped \"quotes\" and (parentheses).")]
+            [TRAIT("Parity", "SET-1")]
+            public void B() { }
+            """);
+
+        var report = Run();
+
+        Assert.Empty(report.Errors);
+        Assert.Equal(
+            [
+                new Deviation(1, "Synthetic: reads the file.", "scenario settings/a"),
+                new Deviation(2, "Synthetic: no longer hangs.", "test dotnet/tests/X/FooTests.cs"),
+                new Deviation(3, """Synthetic: escaped \"quotes\" and (parentheses).""", "test dotnet/tests/X/FooTests.cs"),
+            ],
+            report.Deviations);
+        Assert.Contains(report.Proofs, p => p is { Id: "SET-2", Location: "settings/a" });
+    }
+
+    [Fact]
+    public void A_repo_without_deviations_lists_none()
+    {
+        Layout(covered: "SET-2\n");
+        Scenario("settings/a", """["SET-2"]""");
+
+        var report = Run();
+
+        Assert.Empty(report.Errors);
+        Assert.Empty(report.Deviations);
+    }
+
+    [Theory]
+    [InlineData("""[{"bug": "#77", "reason": "x"}]""", "bug number")]
+    [InlineData("""[{"bug": 0, "reason": "x"}]""", "bug number")]
+    [InlineData("""[{"bug": 7.5, "reason": "x"}]""", "bug number")]
+    [InlineData("""[{"reason": "x"}]""", "bug number")]
+    [InlineData("""[{"bug": 77}]""", "needs a reason")]
+    [InlineData("""[{"bug": 77, "reason": " "}]""", "needs a reason")]
+    [InlineData("""[]""", "names no bug")]
+    [InlineData("""{"bug": 77, "reason": "x"}""", "must be an array")]
+    public void A_malformed_scenario_deviation_fails(string deviations, string expected)
+    {
+        Layout();
+        DeviatingScenario("settings/a", deviations);
+
+        Assert.Contains(Run().Errors, e => e.Contains("scenario settings/a", StringComparison.Ordinal) && e.Contains(expected, StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("""[DEVIATION(0, "x")]""", "bug number")]
+    [InlineData("""[DEVIATION(Bugs.Escape, "x")]""", "bug number")]
+    [InlineData("""[DEVIATION(77, "")]""", "needs a reason")]
+    [InlineData("""[DEVIATION(77, "   ")]""", "needs a reason")]
+    [InlineData("""[DEVIATION(77, Reasons.Escape)]""", "needs a reason")]
+    [InlineData("""[DEVIATION(77)]""", "needs a reason")]
+    public void A_malformed_test_deviation_fails(string attribute, string expected)
+    {
+        Layout();
+        WriteSource("dotnet/tests/FooTests.cs", attribute);
+
+        Assert.Contains(Run().Errors, e => e.Contains("FooTests.cs", StringComparison.Ordinal) && e.Contains(expected, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_deviation_without_a_port_golden_fails()
+    {
+        Layout();
+        DeviatingScenario("settings/a", """[{"bug": 1, "reason": "x"}]""", portGolden: null);
+
+        Assert.Contains("scenario settings/a declares deviations but has no golden.port.json.", Run().Errors);
+    }
+
+    [Fact]
+    public void A_port_golden_without_a_declared_deviation_fails()
+    {
+        Layout();
+        Scenario("settings/a", """["SET-2"]""");
+        Write("parity/scenarios/settings/a/golden.port.json", "{}");
+
+        Assert.Contains("scenario settings/a has a golden.port.json but declares no deviations.", Run().Errors);
+    }
+
+    [Fact]
+    public void A_port_golden_identical_to_the_reference_golden_fails()
+    {
+        Layout();
+        DeviatingScenario("settings/a", """[{"bug": 1, "reason": "x"}]""", portGolden: """{"value": "buggy"}""");
+
+        Assert.Contains("scenario settings/a: golden.port.json is identical to golden.json, so it deviates from nothing.", Run().Errors);
     }
 
     [Fact]

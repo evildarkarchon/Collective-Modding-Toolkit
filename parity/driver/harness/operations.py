@@ -1159,6 +1159,188 @@ def overview_full(session: Session, golden: GoldenContext) -> dict[str, Any]:
 	return {"overview": loaded, "refresh": read(before_refresh)}
 
 
+_F4SE_LOGGERS = {"helpers", "tabs._f4se"}
+
+# The F4SE tree's cell glyphs (tabs._f4se EMOJI_*), by the semantic verdict each shows. The OG/NG/AE cells show
+# "unsupported" as an empty cell, Your Game as a cross mark.
+_F4SE_VERDICTS = {
+	"\N{HEAVY CHECK MARK}": "supported",
+	"\N{HEAVY ASTERISK}": "independent",
+	"\N{WARNING SIGN}": "note",
+	"\N{BLACK QUESTION MARK ORNAMENT}": "unknown",
+	"\N{CROSS MARK}": "unsupported",
+	"": "unsupported",
+}
+
+
+@operation("f4se-tab")
+def f4se_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""F4SE-1..F4SE-7, T-4, T-5, B-18: the real ``CMChecker`` with its Overview loaded as at startup (which sets the
+	Install Type the "Your Game" column reads), then the F4SE tab selected, as the user selects it.
+
+	The Overview's Modules and Archives gathering is skipped, as in ``overview-tab``: neither changes the Install Type,
+	and their message boxes aren't this tab's. The plugin DLLs are real files in the tree, loaded by the reference's own
+	``parse_dll``; the only patch there records each ``WinDLL`` so the DLLs can be unmapped afterwards, which the
+	reference never does, and the temp root couldn't otherwise be deleted.
+
+	``dlls`` is ``dll_info`` (the inspection, F4SE-2/F4SE-3) and ``verdicts`` the semantic value of each row's cells
+	(F4SE-5/F4SE-6), read off the Treeview. An exception out of the tab's load is recorded by kind only (B-18): the
+	Error Window's wording isn't part of Behaviour Parity. ``display`` is the tree, the heading and the text as built
+	(F4SE-4/F4SE-7), or the loading label left up when the load failed (F4SE-1), plus the log lines of the selection.
+	"""
+	import ctypes  # noqa: PLC0415
+
+	import utils  # noqa: PLC0415
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	_overview.OverviewTab.get_info_modules = lambda _self, *, refresh=False: None  # type: ignore[method-assign]  # noqa: ARG005
+	_overview.OverviewTab.get_info_archives = lambda _self: None  # type: ignore[method-assign]
+
+	mapped: list[Any] = []
+
+	def win_dll(*args: Any, **kwargs: Any) -> Any:
+		dll = ctypes.WinDLL(*args, **kwargs)
+		mapped.append(dll)
+		return dll
+
+	utils.ctypes = ModuleProxy(ctypes, WinDLL=win_dll)
+
+	root = session.root
+	assert root is not None
+	errors: list[BaseException] = []
+	# What Tk does with an exception out of a callback (an event binding here): the reference's default prints it.
+	root.report_callback_exception = lambda _type, value, _traceback: errors.append(value)  # type: ignore[method-assign]
+
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	tab = checker.tabs[Tab.F4SE]
+	capture = capture_logs()
+	first_record = len(capture.records)
+	tab.master.select(tab)
+	root.update()
+
+	try:
+		failure = None
+		if errors:
+			if not isinstance(errors[0], OSError):
+				raise errors[0]
+			failure = {"kind": "os"}
+
+		result: dict[str, Any] = {
+			"installType": str(checker.game.install_type),
+			"loaded": tab.is_loaded,
+			"loadingError": tab.loading_error,
+			"failure": failure,
+			"dlls": None,
+			"verdicts": None,
+		}
+		display: dict[str, Any] = {}
+		if tab.is_loaded:
+			result["dlls"] = [
+				{
+					"name": name,
+					"isF4se": info["IsF4SE"],
+					"supportsOg": info["SupportsOG"],
+					"supportsNgAe": info["SupportsNGAE"],
+					"supportsNg": info["SupportsNG"],
+					"supportsAe": info["SupportsAE"],
+					"addressIndependent": info["AddrIndependent"],
+					"structureIndependent": info["StructIndependent"],
+				}
+				for name, info in tab.dll_info.items()
+			]
+			display = _f4se_display(tab)
+			result["verdicts"] = [
+				{
+					"name": row["text"],
+					"og": _F4SE_VERDICTS[row["values"][0]],
+					"ng": _F4SE_VERDICTS[row["values"][1]],
+					"ae": _F4SE_VERDICTS[row["values"][2]],
+					"yourGame": _F4SE_VERDICTS[row["values"][3]] if len(row["values"]) > 3 else None,
+				}
+				for row in display["tree"]["rows"]
+			]
+		else:
+			label = tab.label_loading
+			display["loading"] = {
+				"text": tab.sv_loading_text.get(),
+				"color": _tk_colour(label, str(label.cget("foreground"))),
+			}
+
+		display["log"] = log_lines_of(golden, capture.records[first_record:], _F4SE_LOGGERS)
+		result["display"] = display
+		return {"f4se": result}
+	finally:
+		for dll in mapped:
+			ctypes.windll.kernel32.FreeLibrary(ctypes.c_void_p(dll._handle))  # noqa: SLF001
+
+
+def _f4se_display(tab: Any) -> dict[str, Any]:
+	"""The built F4SE tab as shown: the Treeview's columns, rows and tag colours, its scrollbar, the heading and the
+	read-only text with its coloured runs (as Tk ``line.char`` index ranges).
+	"""
+	from tkinter import Text, ttk  # noqa: PLC0415
+
+	children = _grid_children(tab)
+	tree = next(c for c in children if isinstance(c, ttk.Treeview))
+	scrollbar = next(c for c in children if isinstance(c, ttk.Scrollbar))
+	heading = next(c for c in children if isinstance(c, ttk.Label))
+	text = next(c for c in children if isinstance(c, Text))
+
+	columns = []
+	for column in ("#0", *tree.cget("columns")):
+		options = tree.column(column)
+		columns.append({
+			"id": column,
+			"heading": str(tree.heading(column, "text")),
+			"width": int(options["width"]),
+			"stretch": bool(options["stretch"]),
+			"anchor": str(options["anchor"]),
+		})
+	rows = []
+	for item in tree.get_children():
+		options = tree.item(item)
+		rows.append({
+			"text": str(options["text"]),
+			"values": [str(v) for v in options["values"]],
+			"tags": [str(t) for t in options["tags"]],
+		})
+	tags = sorted({tag for row in rows for tag in row["tags"]} | {"neutral", "good", "bad", "note", "independent"})
+
+	return {
+		"tree": {
+			"columns": columns,
+			"rows": rows,
+			"tagColors": {tag: _tk_colour(tree, str(tree.tag_configure(tag, "foreground"))) for tag in tags},
+		},
+		"scrollbar": {"orient": str(scrollbar.cget("orient")), "column": int(scrollbar.grid_info()["column"])},
+		"heading": {"text": str(heading.cget("text")), "font": _tk_font(heading)},
+		"about": {
+			"text": text.get("1.0", "end-1c"),
+			"font": _tk_font(text),
+			"wrap": str(text.cget("wrap")),
+			"state": str(text.cget("state")),
+			"runs": [
+				{
+					"tag": tag,
+					"color": _tk_colour(text, str(text.tag_cget(tag, "foreground"))),
+					"ranges": [str(index) for index in text.tag_ranges(tag)],
+				}
+				for tag in ("neutral", "good", "independent", "note")
+			],
+		},
+	}
+
+
 # The name filter the archive-patcher operation types: a capital sharp s, which str.casefold() turns into "ss" (and
 # str.lower() into "ß"), so it matches names spelled with "ß" or "ss" in any case (AP-2).
 ARCHIVE_PATCHER_FILTER = "ẞ"
