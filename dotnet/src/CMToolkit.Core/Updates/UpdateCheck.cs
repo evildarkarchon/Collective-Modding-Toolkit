@@ -47,10 +47,11 @@ public sealed class UpdateCheck
     public const string NexusPageUrl = "https://www.nexusmods.com/fallout4/mods/87907";
 
     /// <summary>
-    /// The release the GitHub check asks for. It is still the original author's repository (B-16, bug #32), while the
-    /// banner's link and the running version are RowanSkie's fork.
+    /// The release the GitHub check asks for: the latest of the fork that publishes the C# releases (ADR-0005), the
+    /// repository the banner's link opens. The reference asked the original author's (wxMichael's) releases while its
+    /// link and version were RowanSkie's fork, so it never saw a C# release (B-16, bug #32, fixed per ADR-0006).
     /// </summary>
-    public const string GitHubLatestReleaseUrl = "https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest";
+    public const string GitHubLatestReleaseUrl = "https://api.github.com/repos/evildarkarchon/Collective-Modding-Toolkit/releases/latest";
 
     /// <summary>The line before the version on the Nexus page, matched after stripping leading whitespace.</summary>
     private const string VersionLabelLine = "<meta property=\"twitter:label1\" content=\"Version\"";

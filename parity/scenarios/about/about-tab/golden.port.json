@@ -1,0 +1,69 @@
+{
+  "aboutTab": {
+    "icon": "images/icon-256.png",
+    "links": [
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "https://www.nexusmods.com/fallout4/mods/87907",
+          "revertAfterMs": 3000,
+          "reverted": {
+            "enabled": true,
+            "text": "Copy Link"
+          },
+          "text": "Copy Link"
+        },
+        "logo": "images/logo-nexusmods.png",
+        "open": {
+          "opens": "https://www.nexusmods.com/fallout4/mods/87907",
+          "text": "Open Link"
+        }
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "https://discord.gg/tktyEyYHZH",
+          "revertAfterMs": 3000,
+          "reverted": {
+            "enabled": true,
+            "text": "Copy Invite"
+          },
+          "text": "Copy Invite"
+        },
+        "logo": "images/logo-discord.png",
+        "open": {
+          "opens": "https://discord.gg/tktyEyYHZH",
+          "text": "Open Invite"
+        }
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
+          "revertAfterMs": 3000,
+          "reverted": {
+            "enabled": true,
+            "text": "Copy Link"
+          },
+          "text": "Copy Link"
+        },
+        "logo": "images/logo-github.png",
+        "open": {
+          "opens": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
+          "text": "Open Link"
+        }
+      }
+    ],
+    "text": "v0.6.2-dev\n\nCreated by wxMichael for the\nCollective Modding Community\n#cm-toolkit on Discord\nModified by RowanSkie",
+    "title": "Collective Modding\nToolkit"
+  }
+}

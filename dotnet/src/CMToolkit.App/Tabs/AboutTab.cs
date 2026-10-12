@@ -21,8 +21,12 @@ public sealed class AboutTab : TabPage
     /// <summary><c>DISCORD_INVITE</c>.</summary>
     public const string DiscordInvite = "https://discord.gg/tktyEyYHZH";
 
-    /// <summary><c>GITHUB_LINK</c>.</summary>
-    public const string GitHubLink = "https://github.com/RowanSkie/Collective-Modding-Toolkit";
+    /// <summary>
+    /// <c>GITHUB_LINK</c>, opened and copied here and by the update banner: the fork that publishes the C# releases
+    /// (ADR-0005), whose latest release the update check asks for. The reference linked RowanSkie's fork while checking
+    /// wxMichael's releases (bug #32, fixed per ADR-0006).
+    /// </summary>
+    public const string GitHubLink = "https://github.com/evildarkarchon/Collective-Modding-Toolkit";
 
     private readonly AppRuntime _runtime;
 

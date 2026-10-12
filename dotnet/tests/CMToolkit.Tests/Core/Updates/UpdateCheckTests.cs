@@ -40,8 +40,8 @@ public sealed class UpdateCheckTests
 
     [Fact]
     [Trait("Parity", "NET-2")]
-    [Trait("Parity", "B-16")]
-    public async Task The_github_check_asks_wxmichaels_repository_with_the_api_headers()
+    [Trait("Parity", "B-16"), Deviation(32, "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases.")]
+    public async Task The_github_check_asks_the_repository_that_publishes_the_releases_with_the_api_headers()
     {
         var handler = new StubHandler(_ => Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
 
@@ -49,8 +49,10 @@ public sealed class UpdateCheckTests
 
         Assert.Equal("0.7.0", version);
         var request = Assert.Single(handler.Requests);
-        // B-16: the original author's releases, while the banner links to RowanSkie's fork.
-        Assert.Equal(new Uri("https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest"), request.RequestUri);
+        // B-16: the reference asked the original author's (wxMichael's) releases while its banner linked to RowanSkie's
+        // fork. The port asks the fork that publishes its releases (ADR-0005), the one its links open (bug #32, fixed
+        // per ADR-0006).
+        Assert.Equal(new Uri("https://api.github.com/repos/evildarkarchon/Collective-Modding-Toolkit/releases/latest"), request.RequestUri);
         Assert.Equal("application/vnd.github+json", string.Join(", ", request.Headers.GetValues("Accept")));
         Assert.Equal("2022-11-28", string.Join(", ", request.Headers.GetValues("X-GitHub-Api-Version")));
     }
