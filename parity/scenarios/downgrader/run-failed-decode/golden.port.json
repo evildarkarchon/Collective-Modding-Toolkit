@@ -115,18 +115,6 @@
     },
     "files": [
       {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4.exe.xdelta",
-        "readonly": false,
-        "sha256": "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
-        "size": 9
-      },
-      {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4Launcher.exe.xdelta",
-        "readonly": false,
-        "sha256": "ac32e8d2ba63466a56307ece8dd5b4e5859e135a5ff4f12cc046ee87b6625ba2",
-        "size": 5343
-      },
-      {
         "path": "<ROOT>/Cwd/settings.json",
         "readonly": false,
         "sha256": "69e87441e4a160f88a840c825682ccb92ef06d4dad4c48d1928ada5f0a4abaf4",
@@ -215,6 +203,11 @@
           {
             "color": "#AF5A66",
             "emoji": "\u274c ",
+            "text": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found)."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
             "text": "Failed patching Fallout4.exe"
           },
           {
@@ -224,6 +217,10 @@
           }
         ],
         "logLines": [
+          {
+            "level": "ERROR",
+            "message": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found)."
+          },
           {
             "level": "ERROR",
             "message": "Failed patching Fallout4.exe"

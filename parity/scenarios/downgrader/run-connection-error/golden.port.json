@@ -116,7 +116,7 @@
     },
     "errors": {
       "callback": 0,
-      "thread": 1
+      "thread": 0
     },
     "files": [
       {
@@ -136,6 +136,12 @@
         "readonly": false,
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "size": 0
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
       },
       {
         "path": "<ROOT>/Game/Fallout4_upgradeBackup.exe",
@@ -203,12 +209,99 @@
             "color": "dodger blue",
             "emoji": "\ud83d\udcad ",
             "text": "Skipped Archive2Interop.dll: Not Found."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection failure for delta/OG-to-NG-Fallout4.exe.xdelta."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed patching Fallout4.exe"
           }
         ],
-        "logLines": []
+        "logLines": [
+          {
+            "level": "ERROR",
+            "message": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection failure for delta/OG-to-NG-Fallout4.exe.xdelta."
+          },
+          {
+            "level": "ERROR",
+            "message": "Failed patching Fallout4.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Refresh Tab : Overview"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Archives"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Archives"
+          },
+          {
+            "$unordered": [
+              {
+                "level": "DEBUG",
+                "message": "Archives: Checking Fallout4 - Startup.ba2"
+              }
+            ]
+          }
+        ]
       },
-      "patchEnabled": false,
-      "processingData": true,
+      "patchEnabled": true,
+      "processingData": false,
       "progress": 0.0,
       "versions": [
         {

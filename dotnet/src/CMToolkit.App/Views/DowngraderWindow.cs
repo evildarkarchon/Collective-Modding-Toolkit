@@ -321,8 +321,9 @@ public sealed class DowngraderWindow : ModalWindow
             }
             catch (OperationFailedException)
             {
-                // Already reported by the runner. A failed download (B-10) leaves the queue stuck for good, as the
-                // reference's dead thread left its poll waiting forever.
+                // Already reported by the runner. A failed download no longer gets here (bug #15, fixed: the run logs
+                // it and moves on); an unexpected error does, and leaves the queue stuck, as the exception left the
+                // reference's poll.
             }
             finally
             {

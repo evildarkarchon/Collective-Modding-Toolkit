@@ -264,8 +264,8 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-10")]
-    public async Task Bug_15_a_patch_already_in_the_working_directory_is_used_without_a_download_or_a_check()
+    [Trait("Parity", "B-10"), Deviation(15, "A saved patch is checked by decoding it; a good one is used without a download, as before.")]
+    public async Task Bug_15_a_patch_already_in_the_working_directory_that_decodes_is_used_without_a_download()
     {
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
@@ -329,50 +329,132 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-10"), Deviation(28, "Patch All stays off while the stuck download's queue runs.")]
-    public async Task Bug_15_a_response_without_a_content_length_fails_after_its_first_chunk_and_the_queue_never_moves_again()
+    [Trait("Parity", "B-10"), Deviation(15, "A saved patch that doesn't decode is deleted, so the next Patch All downloads it afresh.")]
+    public async Task Bug_15_a_saved_patch_that_does_not_decode_is_deleted_so_the_next_run_downloads_it()
     {
-        // Bug #15 (B-10), reproduced: ZeroDivisionError on the first chunk, after writing it. The poll ends with the
-        // error; the button stays off, the window stays unclosable, and the launcher's patch stays queued.
+        // Bug #15 (B-10), fixed (ADR-0006): the reference reused a same-named patch in the working directory without a
+        // check, so an error page or a truncated file from an earlier run failed every run after it. The port deletes a
+        // patch that doesn't decode, whatever Delete Patches says, and the next click downloads a good one.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
-        machine.Place("Fallout4Launcher.exe", "02445570");
-        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body(new byte[3000], contentLength: false) };
-        var host = new ScriptedHost { KeepBackups = true };
+        File.WriteAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta"), "Not Found");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
         var run = machine.Run(server);
 
         await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+
+        Assert.Empty(server.Requested);
+        Assert.Equal(["Bad: Failed patching Fallout4.exe"], host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+
         server.Release();
-        await Assert.ThrowsAsync<DivideByZeroException>(host.RunPollsAsync);
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
 
-        Assert.Equal(1024, new FileInfo(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")).Length);
-        Assert.True(run.InProgress);
-        Assert.DoesNotContain("idle", host.Script);
-        Assert.DoesNotContain(host.Script, s => s.StartsWith("versions", StringComparison.Ordinal));
         Assert.Equal(["OG-to-NG-Fallout4.exe.xdelta"], server.Requested);
-
-        // The reference's B-11 left the button on here (the last file wasn't there), so a later click could run into
-        // Fallout4.exe renamed to its backup. The button stays off while the queue runs (bug #28, fixed).
-        Assert.Equal("button off", host.Script.Last(s => s.StartsWith("button", StringComparison.Ordinal)));
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.True(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
     }
 
     [Fact]
-    [Trait("Parity", "B-10")]
-    [Trait("Parity", "NET-3")]
-    public async Task Bug_15_a_network_error_fails_the_download_before_anything_is_saved()
+    [Trait("Parity", "DG-6")]
+    [Trait("Parity", "B-10"), Deviation(15, "A response without a Content-Length downloads in full; the bar jumps to 100 when it's done.")]
+    public async Task Bug_15_a_response_without_a_content_length_downloads_and_applies()
     {
+        // Bug #15 (B-10), fixed (ADR-0006): the reference divided by the missing Content-Length on the first chunk, and
+        // its poll then waited forever with the window unclosable. The port downloads the whole patch, showing no
+        // progress until it is done.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
-        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Failure() };
-        var host = new ScriptedHost();
+        var patch = File.ReadAllBytes(Path.Combine(Patches, "OG-to-NG-Fallout4.exe.xdelta"));
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body(patch, contentLength: false) };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
         var run = machine.Run(server);
 
         await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
         server.Release();
-        await Assert.ThrowsAsync<HttpRequestException>(host.RunPollsAsync);
+        await host.RunPollsAsync();
 
+        Assert.Equal(patch, File.ReadAllBytes(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal([0.0, 100.0], host.Events.Items.OfType<Percent>().Select(p => p.Value));
+        Assert.False(run.InProgress);
+        Assert.Equal(["button on", "idle"], host.Script.TakeLast(2));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A failed download is logged, its file is put back from its backup, and the queue moves on to its end.")]
+    [Trait("Parity", "NET-3")]
+    public async Task Bug_15_a_network_error_fails_that_file_and_the_queue_moves_on()
+    {
+        // Bug #15 (B-10), fixed (ADR-0006): the reference's download thread died, and the poll waited for it forever
+        // with the button off and the window unclosable. The port logs the failure, puts the file back, patches the
+        // next file and finishes the queue.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        machine.Place("Fallout4Launcher.exe", "02445570");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Failure() };
+        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Equal(
+            [
+                "Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection failure.",
+                "Bad: Failed patching Fallout4.exe",
+                "Good: Patched Fallout4Launcher.exe",
+            ],
+            host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
         Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
-        Assert.True(run.InProgress);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(File.Exists(machine.GamePath("Fallout4_upgradeBackup.exe")));
+        Assert.Equal("F6A06FF5", FileCrc32.Of(machine.GamePath("Fallout4Launcher.exe")));
+        Assert.False(run.InProgress);
+        Assert.Equal(["versions: Old-Gen, Next-Gen, Not Found, Not Found, Not Found, Not Found", "button on", "idle"], host.Script.TakeLast(3));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "An HTTP error status fails the download without saving the error page as the patch.")]
+    public async Task Bug_15_an_error_page_is_not_saved_as_the_patch()
+    {
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body("Not Found"u8.ToArray(), HttpStatusCode.NotFound) };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+
+        await machine.Run(server).PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Contains("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found).", host.Lines);
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4_upgradeBackup.exe")));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A download cut off mid-body leaves no partial patch behind.")]
+    public async Task Bug_15_a_download_cut_off_mid_body_leaves_no_partial_patch()
+    {
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.CutOff(new byte[3000], after: 2048) };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Contains(host.Lines, l => l.StartsWith("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: ", StringComparison.Ordinal));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(run.InProgress);
     }
 
     [Theory]
@@ -844,6 +926,14 @@ public sealed class DowngraderRunTests
 
         public static Func<HttpResponseMessage> Failure() => () => throw new HttpRequestException(HttpRequestError.ConnectionError, "Canned connection failure.");
 
+        /// <summary>A 200 with the whole body's Content-Length whose body fails with an I/O error after <paramref name="after"/> bytes.</summary>
+        public static Func<HttpResponseMessage> CutOff(byte[] body, int after) => () =>
+        {
+            var content = new StreamContent(new CutOffStream(body, after));
+            content.Headers.ContentLength = body.Length;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        };
+
         public void Release() => _released.TrySetResult();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -864,6 +954,37 @@ public sealed class DowngraderRunTests
         private sealed class NonSeekable(byte[] data) : MemoryStream(data, writable: false)
         {
             public override bool CanSeek => false;
+        }
+
+        /// <summary>A body whose connection drops after <paramref name="after"/> bytes.</summary>
+        private sealed class CutOffStream(byte[] data, int after) : MemoryStream(data, writable: false)
+        {
+            public override bool CanSeek => false;
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (Position >= after)
+                {
+                    throw new IOException("Canned connection reset.");
+                }
+
+                // MemoryStream's array overload reads directly; its span overload would call back into this one.
+                return base.Read(buffer, offset, (int)Math.Min(count, after - Position));
+            }
+
+            public override int Read(Span<byte> buffer)
+            {
+                var chunk = new byte[buffer.Length];
+                var read = Read(chunk, 0, chunk.Length);
+                chunk.AsSpan(0, read).CopyTo(buffer);
+                return read;
+            }
+
+            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+                => ValueTask.FromResult(Read(buffer.Span));
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => Task.FromResult(Read(buffer, offset, count));
         }
     }
 }

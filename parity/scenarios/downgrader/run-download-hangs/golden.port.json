@@ -107,15 +107,9 @@
     },
     "errors": {
       "callback": 0,
-      "thread": 1
+      "thread": 0
     },
     "files": [
-      {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4.exe.xdelta",
-        "readonly": false,
-        "sha256": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
-        "size": 1024
-      },
       {
         "path": "<ROOT>/Cwd/settings.json",
         "readonly": false,
@@ -135,9 +129,21 @@
         "size": 0
       },
       {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
         "path": "<ROOT>/Game/Fallout4_upgradeBackup.exe",
         "readonly": false,
         "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4Launcher.exe",
+        "readonly": false,
+        "sha256": "f066ba222844238acb536c119d30a0f071266ee0a4737dac04a8dd26338a1f59",
         "size": 2564
       },
       {
@@ -201,12 +207,108 @@
             "color": "dodger blue",
             "emoji": "\ud83d\udcad ",
             "text": "Skipped Archive2Interop.dll: Not Found."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed patching Fallout4.exe"
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed downloading OG-to-NG-Fallout4Launcher.exe.xdelta: Unscripted HTTP request: the scenario has no delta/OG-to-NG-Fallout4Launcher.exe.xdelta.response.json for https://github.com/evildarkarchon/Collective-Modding-Toolkit/releases/download/delta-patches/OG-to-NG-Fallout4Launcher.exe.xdelta."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed patching Fallout4Launcher.exe"
           }
         ],
-        "logLines": []
+        "logLines": [
+          {
+            "level": "ERROR",
+            "message": "Failed patching Fallout4.exe"
+          },
+          {
+            "level": "ERROR",
+            "message": "Failed downloading OG-to-NG-Fallout4Launcher.exe.xdelta: Unscripted HTTP request: the scenario has no delta/OG-to-NG-Fallout4Launcher.exe.xdelta.response.json for https://github.com/evildarkarchon/Collective-Modding-Toolkit/releases/download/delta-patches/OG-to-NG-Fallout4Launcher.exe.xdelta."
+          },
+          {
+            "level": "ERROR",
+            "message": "Failed patching Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Refresh Tab : Overview"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Archives"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Archives"
+          },
+          {
+            "$unordered": [
+              {
+                "level": "DEBUG",
+                "message": "Archives: Checking Fallout4 - Startup.ba2"
+              }
+            ]
+          }
+        ]
       },
-      "patchEnabled": false,
-      "processingData": true,
+      "patchEnabled": true,
+      "processingData": false,
       "progress": 0.0,
       "versions": [
         {
@@ -249,6 +351,13 @@
         "timeout": 10
       },
       "resource": "delta/OG-to-NG-Fallout4.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Fallout4Launcher.exe.xdelta"
     }
   ]
 }

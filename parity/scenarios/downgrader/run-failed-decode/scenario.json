@@ -15,6 +15,10 @@
     {
       "bug": 14,
       "reason": "A failed decode removes any partial output and puts the backup back as the live file (kept as a backup only with Keep Backups on), instead of deleting the only copy."
+    },
+    {
+      "bug": 15,
+      "reason": "A failed download (error status, network error, cut-off body) is logged, saves nothing, puts the file back from its backup and lets the queue finish; a missing Content-Length is no error; a patch that doesn't decode is deleted."
     }
   ],
   "host": {

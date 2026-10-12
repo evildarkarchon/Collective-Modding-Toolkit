@@ -10,7 +10,8 @@ namespace CMToolkit.Core.Downgrader;
 /// The Downgrader's Patch All run (DG-4..DG-6): the state one Downgrader window keeps across its runs (its detected
 /// versions, the patch queue, the download in flight) and the reference's sequence over it, reproduced step for step,
 /// except for the reference bugs fixed as Deviations (ADR-0006): the Patch All button follows the queue (B-11, #28),
-/// and a failed decode puts the backup back (B-9, #14).
+/// a failed decode puts the backup back (B-9, #14), and a failed download is logged and moved past while nothing
+/// unchecked is saved or reused (B-10, #15).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -72,8 +73,9 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// Whether the patch queue is being worked through (<c>download_or_patch_in_progress</c>): set by the first file a
-    /// click patches, cleared when the queue empties. It stays set for good after a failed download (B-10), so a later
-    /// click only adds to a queue nothing works through.
+    /// click patches, cleared when the queue empties. In the reference it stayed set for good after a failed download
+    /// (B-10); the port's queue moves on past a failed download and empties (bug #15). It stays set only if the poll
+    /// itself fails unexpectedly or the Overview refresh fails.
     /// </summary>
     public bool InProgress => _inProgress;
 
@@ -267,8 +269,8 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// <c>check_download_queue</c>: works through the queue until it starts a download or empties. A patch already in
-    /// the working directory is applied at once, unvalidated (B-10); otherwise its download starts on a worker thread.
-    /// An empty queue runs the "finished" step.
+    /// the working directory is applied at once; decoding it is its check, and one that fails is deleted (bug #15).
+    /// Otherwise its download starts on a worker thread. An empty queue runs the "finished" step.
     /// </summary>
     /// <returns>The download it started, which the caller polls; null when the queue emptied.</returns>
     private async Task<StartedDownload?> CheckDownloadQueueAsync(IDowngraderHost host, IProgress<OperationEvent> events)
@@ -314,11 +316,20 @@ public sealed class DowngraderRun
                 }
 
                 phases.Report(OperationPhase.Blocking);
-                // B-10: a failed download killed the reference's thread without a word, and the poll waited for it
-                // forever, changing nothing: the button stays disabled and the window can't be closed. Here the
-                // operation ends with the failure reported, leaving that same state.
-                await current.Download.ConfigureAwait(false);
-                ApplyPatch(current.Patch, host, events);
+                if (await DownloadFailure(current.Download).ConfigureAwait(false) is { } reason)
+                {
+                    // Bug #15 (B-10), fixed as a Deviation (ADR-0006): a failed download killed the reference's thread
+                    // without a word, and the poll waited for it forever: the button stayed disabled and the window
+                    // couldn't be closed. The port logs it, puts the file back and moves on through the queue.
+                    events.Report(new LogLine(LogType.Bad, $"Failed downloading {PatchName(current.Patch)}: {reason}"));
+                    events.Report(new LogLine(LogType.Bad, $"Failed patching {current.Patch.Target.Name}"));
+                    RestoreBackup(HostPaths.Resolve(_host, current.Patch.Source), HostPaths.Resolve(_host, current.Patch.Target), host);
+                }
+                else
+                {
+                    ApplyPatch(current.Patch, host, events);
+                }
+
                 if (await CheckDownloadQueueAsync(host, events).ConfigureAwait(false) is not { } next)
                 {
                     return;
@@ -341,8 +352,9 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// <c>apply_patch</c> (DG-6): decodes the patch from the current-version backup to the live file and logs the
-    /// outcome. After a good decode it deletes the backup unless Keep Backups is on; after a failed one it puts the
-    /// backup back as the live file instead (bug #14). Then it deletes the patch if Delete Patches is on.
+    /// outcome. After a good decode it deletes the backup unless Keep Backups is on, and the patch if Delete Patches is
+    /// on. After a failed one it puts the backup back as the live file instead (bug #14), and deletes the patch whatever
+    /// Delete Patches says, so a bad one is never used again (bug #15).
     /// </summary>
     private void ApplyPatch(QueuedPatch patch, IDowngraderHost host, IProgress<OperationEvent> events)
     {
@@ -366,7 +378,10 @@ public sealed class DowngraderRun
             RestoreBackup(source, target, host);
         }
 
-        if (host.DeletePatches)
+        // Bug #15 (B-10), fixed as a Deviation (ADR-0006): the reference reused a patch it found in the working
+        // directory without a check, so an error page or a truncated download failed every run after it. Decoding is
+        // the check: a patch that fails it goes, and the next Patch All downloads a fresh one.
+        if (host.DeletePatches || !decoded)
         {
             Unlink(patchFile);
         }
@@ -421,10 +436,17 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// <c>_threaded_download</c>: streams the patch to the working directory in 1 KiB chunks, queueing each chunk's
-    /// progress for the poll, then 100. Nothing is checked (B-10): an error page is saved as the patch, a failed request
-    /// or read ends the download with what it wrote so far, and a response without a <c>Content-Length</c> fails on its
-    /// first chunk, as Python's division by zero did, after writing it.
+    /// progress for the poll, then 100.
     /// </summary>
+    /// <remarks>
+    /// Bug #15 (B-10), fixed as a Deviation (ADR-0006). The reference checked nothing: it saved an error page as the
+    /// patch, left what it had written when a request or read failed, and failed on the first chunk of a response
+    /// without a <c>Content-Length</c> (a division by zero). Here an error status fails before anything is written, a
+    /// failure part-way deletes the partial file, and a response without a <c>Content-Length</c> downloads in full with
+    /// no progress shown until it is done.
+    /// </remarks>
+    /// <exception cref="HttpRequestException">The server answered with an error status, or the request failed.</exception>
+    /// <exception cref="InvalidOperationException">There is no network handler to download through.</exception>
     private async Task DownloadAsync(string url, string patchFile)
     {
         if (_http is null)
@@ -437,33 +459,66 @@ public sealed class DowngraderRun
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.UserAgent.ParseAdd(UpdateCheck.UserAgent);
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-        var total = response.Content.Headers.ContentLength ?? 0;
-        await using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        await using var file = new FileStream(patchFile, FileMode.Create, FileAccess.Write, FileShare.Read);
-        var buffer = new byte[ChunkSize];
-        long downloaded = 0;
-        while (true)
+        if (!response.IsSuccessStatusCode)
         {
-            // urllib3 fills each chunk unless the body ends, so every chunk but the last is a full 1 KiB.
-            var read = await body.ReadAtLeastAsync(buffer, ChunkSize, throwOnEndOfStream: false).ConfigureAwait(false);
-            if (read == 0)
-            {
-                break;
-            }
+            throw new HttpRequestException(
+                $"The server answered {(int)response.StatusCode} ({response.ReasonPhrase}).", null, response.StatusCode);
+        }
 
-            downloaded += read;
-            await file.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
-            if (total == 0)
+        var total = response.Content.Headers.ContentLength ?? 0;
+        try
+        {
+            await using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using var file = new FileStream(patchFile, FileMode.Create, FileAccess.Write, FileShare.Read);
+            var buffer = new byte[ChunkSize];
+            long downloaded = 0;
+            while (true)
             {
-                // downloaded_size / total_size * 100 with no content-length: ZeroDivisionError, after the write.
-                throw new DivideByZeroException("division by zero");
-            }
+                // urllib3 fills each chunk unless the body ends, so every chunk but the last is a full 1 KiB.
+                var read = await body.ReadAtLeastAsync(buffer, ChunkSize, throwOnEndOfStream: false).ConfigureAwait(false);
+                if (read == 0)
+                {
+                    break;
+                }
 
-            _progress.Enqueue((double)downloaded / total * 100);
+                downloaded += read;
+                await file.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+                if (total > 0)
+                {
+                    _progress.Enqueue((double)downloaded / total * 100);
+                }
+            }
+        }
+        catch
+        {
+            // A partial patch would be found and used by the next run; the file is closed by now (the usings above).
+            File.Delete(patchFile);
+            throw;
         }
 
         _progress.Enqueue(100);
     }
+
+    /// <summary>
+    /// Waits for a download and says why it failed, if it did: any failure of the download (an error status, the
+    /// network, a timeout, the file it writes, no network handler at all) fails that one patch, not the run.
+    /// </summary>
+    /// <returns>Null when the download succeeded; otherwise the failure's message for the log pane.</returns>
+    private static async Task<string?> DownloadFailure(Task download)
+    {
+        try
+        {
+            await download.ConfigureAwait(false);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+    }
+
+    /// <summary>The patch's file name, the last segment of its URL.</summary>
+    private static string PatchName(QueuedPatch patch) => WorkingDirectoryFiles.DeltaPatch(patch.Url);
 
     /// <summary>
     /// Sets the bar to everything the download has queued since the last poll. Tk drew only the last of the values one

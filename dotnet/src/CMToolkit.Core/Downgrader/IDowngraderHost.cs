@@ -33,8 +33,9 @@ public interface IDowngraderHost
     /// </summary>
     /// <param name="poll">
     /// The chain. It starts <see cref="OperationPhase.Interactive"/> (the download runs on a worker thread, the UI is
-    /// live) and reports <see cref="OperationPhase.Blocking"/> while it applies a patch on the reference's UI thread. It
-    /// fails with a download's exception (B-10).
+    /// live) and reports <see cref="OperationPhase.Blocking"/> while it applies a patch on the reference's UI thread. A
+    /// failed download doesn't fail it: the run logs it and moves on (B-10, bug #15, fixed). It fails only on an
+    /// unexpected error, such as a file it can't delete or restore.
     /// </param>
     void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll);
 }
