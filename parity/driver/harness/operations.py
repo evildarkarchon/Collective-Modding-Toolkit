@@ -1157,3 +1157,242 @@ def overview_full(session: Session, golden: GoldenContext) -> dict[str, Any]:
 	before_refresh = len(capture.records)
 	_grid_at(tab.pack_slaves()[0], 0, 3).invoke()
 	return {"overview": loaded, "refresh": read(before_refresh)}
+
+
+# The loggers a scan writes: the Overview refresh (cm_checker's Refresh Tab line, then the Overview's own), the settings
+# save, and the Scanner tab's lifecycle (helpers).
+_SCANNER_LOGGERS = {"cm_checker", "helpers", "tabs._overview", "game_info", "app_settings", "tabs._scanner"}
+
+
+@operation("scanner-tab")
+def scanner_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""SCN-1..SCN-5, SCN-S1..SCN-S3, SCN-R1, SCN-R2 (no index), SCN-R3, SET-7, SET-8, B-1, B-4: the real ``CMChecker``
+	with its Overview tab loaded (nothing stubbed), then its Scanner tab selected and driven like a user would.
+
+	The script: read the side pane as created (``side``) and the empty results (``initial``); untick every box but
+	Overview Issues, then Overview Issues too, then tick it again, reading Scan Game's state after each (``toggles``);
+	press Scan Game and read the tab at once (``during``: the Overview refresh has run on the UI thread, the worker is
+	started but not polled), then pump Tk until the results are populated (``results``), with ``settings.json`` as the
+	scan left it and the log lines written. Then select a group row and an item row (``selection``: whether the details
+	pane exists after each), leave the tab and come back (``returned``), untick the same boxes, delete ``settings.json``,
+	select an item and scan again (``rescan``): the details pane is destroyed and, since no box differs from the stored
+	settings, the file isn't written back.
+
+	The panes are withdrawn as they are created (their placement is the App's OwnedPaneDocker's, proven by its own
+	tests); the worker thread runs for real, and the result group order is Python set order, so ``groups`` is unordered
+	(B-4). If the tab fails to load (SCN-1), ``loaded`` is false and ``switchAway`` is what leaving it does: selecting
+	the Overview, then the never-loaded Tools tab.
+	"""
+	import time  # noqa: PLC0415
+	from itertools import groupby  # noqa: PLC0415
+
+	from app_settings import SETTINGS_PATH, AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview, _scanner  # noqa: PLC0415, PLC2701 - the modules the patched names are used in
+
+	tooltips = _Tooltips()
+	_scanner.ToolTip = tooltips
+	_overview.ToolTip = _Tooltips()
+
+	real_side, real_details = _scanner.SidePane, _scanner.ResultDetailsPane
+
+	class HiddenSidePane(real_side):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+
+	class HiddenDetailsPane(real_details):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+
+	_scanner.SidePane = HiddenSidePane
+	_scanner.ResultDetailsPane = HiddenDetailsPane
+
+	root = session.root
+	assert root is not None
+	errors: list[BaseException] = []
+	# Tab loads and switches run inside Tk callbacks; record what they raise instead of printing it.
+	root.report_callback_exception = lambda _type, value, _tb: errors.append(value)  # type: ignore[method-assign]
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	capture = capture_logs()
+	scanner = checker.tabs[Tab.Scanner]
+	notebook = scanner.master
+
+	def select(tab: Any) -> None:
+		notebook.select(tab)
+		root.update()
+
+	select(scanner)
+	if not scanner.is_loaded:
+		label = scanner.label_loading
+		loading = {"text": scanner.sv_loading_text.get(), "color": str(label.cget("foreground"))}
+		before = len(errors)
+		select(checker.tabs[Tab.Overview])
+		to_overview = {"errors": len(errors) - before, "currentTab": type(checker.current_tab).__name__}
+		before = len(errors)
+		select(checker.tabs[Tab.Tools])
+		to_tools = {
+			"errors": len(errors) - before,
+			"currentTab": type(checker.current_tab).__name__,
+			"loaded": checker.tabs[Tab.Tools].is_loaded,
+		}
+		return {
+			"scanner": {
+				"loaded": False,
+				"display": {
+					"loadingLabel": loading,
+					"switchAway": {"overview": to_overview, "tools": to_tools},
+					"log": log_lines_of(golden, capture.records, _SCANNER_LOGGERS),
+				},
+			},
+		}
+
+	def checks() -> list[Any]:
+		side = scanner.side_pane
+		frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+		return frame.pack_slaves()
+
+	def read_side() -> dict[str, Any]:
+		side = scanner.side_pane
+		frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+		button = side.button_scan
+		return {
+			"title": str(frame.cget("text")),
+			"checks": [
+				{
+					"text": str(check.cget("text")),
+					"checked": bool(side.getvar(str(check.cget("variable")))),
+					"enabled": not check.instate(["disabled"]),
+					"tooltip": tooltips.of(check),
+				}
+				for check in frame.pack_slaves()
+			],
+			"scan": {"text": str(button.cget("text")), "enabled": not button.instate(["disabled"]), "style": str(button.cget("style"))},
+		}
+
+	def read_tab() -> dict[str, Any]:
+		tree = scanner.tree_results
+		groups = []
+		for group in tree.get_children():
+			items = []
+			for item in tree.get_children(group):
+				values = tree.item(item, "values")
+				items.append({
+					"text": str(tree.item(item, "text")),
+					"values": [str(v) for v in values] if values else [],
+					"problem": _overview_problem(golden, scanner.tree_results_data[item]),
+				})
+			text = str(tree.item(group, "text"))
+			if text == "Invalid Archive":
+				# The Overview adds these in enabled-archive set order (T-15), and the stable sort by type + mod keeps
+				# that order among items with the same mod: each such run is unordered.
+				items = [golden.unordered(sorted(run, key=str)) for _, run in groupby(items, key=lambda i: i["problem"]["mod"])]
+			groups.append({"text": text, "open": bool(tree.item(group, "open")), "items": items})
+		side = scanner.side_pane
+		return {
+			"resultsInfo": scanner.sv_results_info.get(),
+			"scanningLabel": None if scanner.label_scanning_text is None else scanner.sv_scanning_text.get(),
+			"progress": float(scanner.dv_progress.get()),
+			"selectable": str(tree.cget("selectmode")) != "none",
+			"groups": golden.unordered(sorted(groups, key=lambda g: g["text"])),
+			"scan": None if side is None else {"text": str(side.button_scan.cget("text")), "enabled": not side.button_scan.instate(["disabled"])},
+			"detailsPane": scanner.details_pane is not None,
+			"sidePane": side is not None,
+		}
+
+	def untick_data_boxes() -> list[dict[str, Any]]:
+		toggles = []
+		for check in checks()[1:]:
+			check.invoke()
+			toggles.append({"check": str(check.cget("text")), "scanEnabled": not scanner.side_pane.button_scan.instate(["disabled"])})
+		return toggles
+
+	def scan() -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+		first = len(capture.records)
+		scanner.side_pane.button_scan.invoke()
+		during = read_tab()
+		deadline = time.monotonic() + 30
+		while str(scanner.side_pane.button_scan.cget("text")) != "Scan Game":
+			if time.monotonic() > deadline:
+				msg = "the scan didn't finish"
+				raise RuntimeError(msg)
+			root.update()
+			time.sleep(0.01)
+		log = log_lines_of(golden, capture.records[first:], _SCANNER_LOGGERS)
+		return during, read_tab(), unordered_runs(golden, log, _is_archive_check)
+
+	def first_group() -> Any:
+		tree = scanner.tree_results
+		return sorted(tree.get_children(), key=lambda g: str(tree.item(g, "text")))[0]
+
+	def select_row(row: Any) -> bool:
+		scanner.tree_results.selection_set(row)
+		root.update()
+		return scanner.details_pane is not None
+
+	side = read_side()
+	initial = read_tab()
+	toggles = untick_data_boxes()
+	overview_check = checks()[0]
+	overview_check.invoke()
+	toggles.append({"check": str(overview_check.cget("text")), "scanEnabled": not scanner.side_pane.button_scan.instate(["disabled"])})
+	overview_check.invoke()
+	toggles.append({"check": str(overview_check.cget("text")), "scanEnabled": not scanner.side_pane.button_scan.instate(["disabled"])})
+
+	settings_path = Path(SETTINGS_PATH).resolve()
+	settings_before = file_snapshot(settings_path)
+	during, results, log = scan()
+	settings_after = file_snapshot(settings_path)
+
+	selection = None
+	if scanner.tree_results.get_children():
+		group = first_group()
+		selection = {
+			"group": select_row(group),
+			"item": select_row(scanner.tree_results.get_children(group)[0]),
+		}
+
+	select(checker.tabs[Tab.Overview])
+	left = {"sidePane": scanner.side_pane is not None, "detailsPane": scanner.details_pane is not None}
+	select(scanner)
+	returned = read_tab()
+	returned["side"] = read_side()
+	returned["selection"] = list(scanner.tree_results.selection())
+
+	untick_data_boxes()
+	settings_path.unlink()
+	if scanner.tree_results.get_children():
+		select_row(scanner.tree_results.get_children(first_group())[0])
+	rescan_during, rescan_results, _ = scan()
+
+	return {
+		"scanner": {
+			"loaded": True,
+			"usingStage": scanner.using_stage,
+			"columns": list(scanner.tree_results.cget("columns")),
+			"display": {
+				"side": side,
+				"initial": initial,
+				"toggles": toggles,
+				"during": during,
+				"results": results,
+				"log": log,
+				"selection": selection,
+				"left": left,
+				"returned": returned,
+				"rescanDuring": rescan_during,
+				"rescan": rescan_results,
+			},
+			"settingsBefore": settings_before,
+			"settingsAfter": settings_after,
+			"settingsAfterRescan": file_snapshot(settings_path),
+			"errors": len(errors),
+		},
+	}

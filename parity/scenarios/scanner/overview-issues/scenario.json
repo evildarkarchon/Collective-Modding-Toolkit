@@ -1,0 +1,80 @@
+{
+  "description": "No mod manager, an Old-Gen Data folder with every module and archive outcome (the overview-full tree): the Scanner loads, its side pane starts with every box ticked though settings.json has them all on, Scan Game is disabled only while no box is ticked, and an Overview Issues scan refreshes the Overview, saves the changed boxes, and lists the Overview problems: one expanded group per problem type, items sorted by type + mod, the OVERVIEW modules and archives given an empty mod because there's no mod file index. Selecting an item creates the details pane; leaving the tab destroys both panes; coming back recreates the side pane all ticked; a rescan with unchanged boxes doesn't save.",
+  "operation": "scanner-tab",
+  "parity": [
+    "SCN-2",
+    "SCN-3",
+    "SCN-4",
+    "SCN-5",
+    "SCN-S1",
+    "SCN-S2",
+    "SCN-S3",
+    "SCN-R1",
+    "SCN-R2",
+    "SCN-R3",
+    "SET-7",
+    "SET-8",
+    "T-15",
+    "B-1",
+    "B-4"
+  ],
+  "emptyDirs": [
+    "Game/Data/DLCRobot.esm",
+    "Game/Data/Folder.esp"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

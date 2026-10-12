@@ -116,6 +116,18 @@
       <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="Transparent" />
       <SolidColorBrush x:Key="TableViewRowBackgroundSelected" Color="#292929" />
       <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="#292929" />
+
+      <!-- The Scanner's results ttk.Treeview: sv_ttk's grey #292929 selected row with bright text, no hover fill. -->
+      <x:Double x:Key="TreeViewItemMinHeight">21</x:Double>
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPressed" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundPointerOver" Color="Transparent" />
+      <SolidColorBrush x:Key="TreeViewItemForeground" Color="#CACACA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundPointerOver" Color="#CACACA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelected" Color="#FAFAFA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPointerOver" Color="#FAFAFA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPressed" Color="#FAFAFA" />
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

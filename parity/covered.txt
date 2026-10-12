@@ -162,3 +162,26 @@ T-8
 B-7
 B-15
 B-17
+
+# Scanner: tab, docked panes and Overview-issues scan (#56)
+SCN-1
+SCN-2
+SCN-3
+SCN-4
+SCN-5
+SCN-S1
+SCN-S2
+SCN-S3
+SCN-R1
+SCN-R3
+THR-1
+SET-8
+B-1
+B-3
+B-4
+SHELL-11
+# T-15: #52 proved the enabled-archive order; #56, its last claimant, the result group order (B-4) and the archive
+# items' order within their group (scanner-tab goldens).
+T-15
+# SCN-R2 is proven in part (the empty-mod fallback without an index) and deferred: #58 also claims it.
+# SET-7 is proven in part (the Scanner saves only a changed box) and deferred: #61 also claims it.

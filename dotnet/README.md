@@ -14,7 +14,7 @@ ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-ups
 | `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test). |
 | `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
 | `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
-| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. |
+| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). |
 
 ## Build, test and publish
 
@@ -119,3 +119,16 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
   progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
   pane's key handling (Ctrl+A/C only, T-13) is the Archive Patcher slice's.
+- The Scanner's side and details panes are borderless windows owned by the main window (`Views/OwnedPaneDocker`),
+  placed by the reference's formulas from the client origin (see [`parity/screenshots/scanner/`](../parity/screenshots/scanner/)).
+  `pwsh eng/Test-ScannerPanes.ps1 -Exe artifacts/publish/cm-toolkit.exe [-Drag]` walks them through moves, a second
+  monitor, minimise/restore, tab switches and a rescan on a real desktop (`-Drag` drags the title bar with the real
+  mouse); it passed at 100 % on two 100 % monitors. It still needs a run at 150 % and with monitors at different
+  scales, which this machine's setup didn't allow. Win32 ownership replaces the reference's minimise/restore and
+  raise handling (SHELL-11). Clicking a pane activates it, so the main window's title bar goes inactive; a probe of
+  the reference was inconclusive (after a real click on its pane neither Tk window was in the foreground), so this is
+  open for a follow-up.
+- The results tree's open groups keep Fluent's down chevron, where sv_ttk draws the right-pointing indicator for
+  open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
+  the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
+  problem types first appear.
