@@ -1,0 +1,12 @@
+{
+  "description": "A valid custom file at WARNING, which no radio offers, so the Log Level frame starts with nothing selected; then every radio clicked in turn, each save keeping the other custom values and rewriting the file in the reference's format.",
+  "operation": "settings-tab",
+  "parity": [
+    "SETT-1",
+    "SET-7"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

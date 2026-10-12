@@ -5,6 +5,7 @@ using Avalonia.LogicalTree;
 using CMToolkit.App;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
+using CMToolkit.App.Tabs;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Tests.Parity;
@@ -145,6 +146,13 @@ public sealed class StartupOrderTests
         // PC-4's cleanup of the scenario's "AMD Ryzen 7 7800X3D 8-Core Processor           ".
         Assert.Equal("AMD Ryzen 7 7800X3D", checkedSession.Pc.Cpu);
         Assert.Same(runtime, checkedSession.Runtime);
+
+        // The single composition point: the reference's tab order, with the tabs whose slices have landed real.
+        var pages = MainTabs.Compose(checkedSession);
+        Assert.Equal(["Overview", "F4SE", "Scanner", "Tools", "Settings", "About"], pages.Select(p => p.Header));
+        Assert.IsType<ToolsTab>(pages[3]);
+        Assert.IsType<SettingsTab>(pages[4]);
+        Assert.IsType<AboutTab>(pages[5]);
     }
 
     [AvaloniaFact]

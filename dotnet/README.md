@@ -74,6 +74,16 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   two characters) and a word-final capital sigma (`ς`); no scenario covers them.
 - `platform.release()` and the build come from `RtlGetVersion` (version and product type), where Python asks WMI. They
   report the same numbers; a machine whose WMI is broken makes Python fall back to `ver`, which isn't reproduced.
+- A tab page is 754x404 at (3, 43), where Tk's is 758x407 at (1, 42) (the notebook theme's frame), so tab content
+  sits 2 px right and 1 px lower, and anything anchored to the page's right or bottom edge 2 px further left or up.
+  On the Tools tab the 4 px narrower page also leaves the columns 1-2 px narrower. See
+  [`parity/screenshots/tools/`](../parity/screenshots/tools/), `settings/` and `about/`.
+- The About tab's 20 pt title measures 289 px where Tk's is 288, so it sits half a pixel off centre. The Settings
+  tab's Log Level frame is 86 px wide where Tk's is 88: Tk keeps 8 px either side of a labelframe's title where the
+  GroupBox theme keeps 7.
+- A link that the shell can't open (no handler for its scheme) does nothing. Python's `webbrowser.open` would then
+  try the browsers it found on PATH and Edge's install folder; the reference's links are all `https://`, which
+  Windows always has a handler for.
 - The startup file picker (GP-2) is the native one Avalonia opens, owned by a window that is created but never shown,
   where Tk's was owned by its withdrawn root. The yes/no and error boxes are the app's sv-styled message boxes (issue
   #9), centred on the screen, since no main window exists yet.

@@ -186,6 +186,11 @@ The script runs the unmodified `src/main.py` with the scenario's host fakes, and
 `compare.png` (side by side plus a 50/50 blend) and a `compare-<name>.png` per crop to `screenshots/<slice>/`. A human
 approves the pair in the slice PR. There is no automated pixel diff, and no capture in CI.
 
+`--tab <Name>` captures another tab than the Overview. The reference selects it in-process, two seconds after
+`CMChecker` is built (Tk reads the real mouse-button state, so a posted click doesn't reach it); the exe gets a posted
+click on the tab's header, whose position is fixed in the script's `TAB_CENTRES`. The Tools, Settings and About pairs
+reuse `shell/main-window`, whose `settings.json` the Settings tab shows (`update_source` none, `log_level` INFO).
+
 Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
 `CMT_PARITY_ROOT` (its copy of the tree) set, and then runs on `ScenarioHostEnvironment`
 (`dotnet/src/CMToolkit.App/Parity/`) instead of the real machine: the same rules as the tests' `FakeHostEnvironment`,

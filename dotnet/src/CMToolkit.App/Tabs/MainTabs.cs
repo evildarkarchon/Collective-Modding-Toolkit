@@ -13,8 +13,8 @@ public static class MainTabs
         PlaceholderTab.Overview(),
         PlaceholderTab.F4se(),
         PlaceholderTab.Scanner(),
-        PlaceholderTab.Tools(),
-        PlaceholderTab.Settings(),
-        PlaceholderTab.About(),
+        new ToolsTab(session.Runtime),
+        new SettingsTab(session.Settings),
+        new AboutTab(session.Runtime),
     ];
 }

@@ -1,0 +1,10 @@
+{
+  "description": "The Tools tab as built: three columns of buttons, each invoked to see what it opens, with its tooltips. Reads nothing from the machine.",
+  "operation": "tools-tab",
+  "parity": [
+    "TOOL-1",
+    "TOOL-2",
+    "NET-4"
+  ],
+  "host": {}
+}
