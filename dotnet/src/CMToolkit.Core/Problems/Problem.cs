@@ -39,6 +39,12 @@ public sealed record Problem(
     public ModSource ModSource { get; init; }
 
     /// <summary>
+    /// <c>file_list</c>: the counted files a simple problem lists in the details pane's File List window (SCN-R7), each
+    /// count with its file, in the order found; null for none. Only the race subgraph count (SCN-S5) makes one.
+    /// </summary>
+    public IReadOnlyList<(int Count, PythonPath File)>? FileList { get; init; }
+
+    /// <summary>
     /// <c>ProblemInfo(problem, path, relative_path, mod, summary, solution)</c>: a problem about a file.
     /// </summary>
     /// <param name="kind">The <c>ProblemType</c> value, such as <see cref="ProblemTypes.FileNotFound"/>.</param>

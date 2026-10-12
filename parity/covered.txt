@@ -225,3 +225,28 @@ SET-7
 # T-14: the last claimant (#53 the update check's per-read handler and User-Agent; here the Downgrader's 10 s
 # per-read download handler, no total timeout, redirects followed).
 T-14
+# Scanner: details pane (#57)
+SCN-R4
+SCN-R5
+SCN-R6
+SCN-R7
+SCN-R8
+# THR-3: #55 proved the About tab's copy buttons; #57, its last claimant, the Scanner's Copy Details (scanner-details goldens).
+THR-3
+# Scanner: data walk, mod file index and race subgraphs (#58)
+SCN-S4
+SCN-S5
+SCN-S6
+SCN-C1
+SCN-C2
+SCN-C3
+SCN-C4
+SCN-C5
+SCN-C6
+SCN-C7
+SCN-C8
+SCN-C9
+# SCN-R2: #56 proved the empty-mod fallback without an index; #58, its last claimant, the with-index remap
+# (scanner/data-walk-mo2).
+SCN-R2
+B-2

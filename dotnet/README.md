@@ -154,3 +154,6 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   with the error reported, where the reference's poll went on waiting forever; nothing else differs (B-10). Decoding
   is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
   on, to leave exactly the windows xdelta3 would on a failed decode.
+- The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
+  a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
+  no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.

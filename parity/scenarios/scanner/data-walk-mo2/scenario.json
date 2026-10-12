@@ -1,0 +1,81 @@
+{
+  "description": "MO2 stage mode (the Anniversary tree of overview-issues-mo2) with a profile whose modlist.txt, read bottom-up, enables LowMod then HighMod (a disabled mod, a missing mod folder and a DLC line are skipped), plus the overwrite folder; INI skip_directories 'Extra, Junk Dir' (pruned case-insensitively) and the default skip_file_suffixes, which B-5 corrupts to ('.mohidden' and ')'): .mohidden files are indexed and flagged, a name ending in ')' is skipped. Data mirrors the staged files plus unmanaged ones. The mod file index gives each problem its mod and staged path (HighMod's Shared.png wins over LowMod's shared.png), an F4SE script in Scripts from a mod is an F4SE Script Override (SCN-C6), and the Overview's BadMagic module and archive get their mods by file name (SCN-R2). Race Subgraphs: exactly 100 SADD records, not over the threshold. Each mod's root (and the overwrite folder's) is indexed as the folder '.', the last one winning, and no modules or archives are indexed (bug #89).",
+  "operation": "scanner-scan",
+  "parity": [
+    "SCN-S4",
+    "SCN-S5",
+    "SCN-S6",
+    "SCN-C3",
+    "SCN-C4",
+    "SCN-C5",
+    "SCN-C6",
+    "SCN-C7",
+    "SCN-R2",
+    "B-5"
+  ],
+  "host": {
+    "cwd": "<ROOT>",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKCU\\Software\\Mod Organizer Team\\Mod Organizer": {
+        "CurrentInstance": {
+          "type": "REG_SZ",
+          "value": "Fallout 4"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}
