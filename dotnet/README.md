@@ -100,7 +100,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   (bug #82, which struck the reference on some pages only). HttpClient does not follow an https-to-http
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
-  its link tooltips are Avalonia's, not tktooltip's.
+  its link tooltips are Avalonia's, not tktooltip's. That pair predates the fix for bug #83: the port's GitHub link
+  now reads `v0.7.1 (GitHub)` where Tk's reads `vv0.7.1 (GitHub)`.
 - Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
   built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
   unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side

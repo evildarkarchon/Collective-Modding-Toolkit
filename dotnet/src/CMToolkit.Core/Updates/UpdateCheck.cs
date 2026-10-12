@@ -6,7 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core.Updates;
 
-/// <summary>What the update check found (UPD-1): each source's newer version, as the source wrote it, or null.</summary>
+/// <summary>
+/// What the update check found (UPD-1): each source's newer version, as the source wrote it less the surrounding
+/// whitespace and leading <c>v</c> PEP 440 allows (bug #83), or null.
+/// </summary>
 /// <param name="NexusVersion">The Nexus Mods version when it is newer than the running one.</param>
 /// <param name="GitHubVersion">The GitHub release tag when it is newer than the running one.</param>
 public sealed record UpdateCheckResult(string? NexusVersion, string? GitHubVersion)
@@ -144,7 +147,10 @@ public sealed class UpdateCheck
     /// quote, or a page with no usable encoding, which the reference didn't survive, bug #81) is logged with its
     /// exception. Reading stops at the version line.
     /// </summary>
-    /// <returns>The version as the page wrote it when it is newer than the running one; otherwise null.</returns>
+    /// <returns>
+    /// The version as the page wrote it (less the padding and leading <c>v</c>, <see cref="WithoutPrefix"/>) when it is
+    /// newer than the running one; otherwise null.
+    /// </returns>
     /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<string?> CheckNexusAsync(CancellationToken cancellationToken = default)
     {
@@ -174,8 +180,9 @@ public sealed class UpdateCheck
                 var latest = versionLine[1];
                 if (Pep440Version.IsNewerThanRunning(latest))
                 {
-                    _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{latest}");
-                    return latest;
+                    var shown = WithoutPrefix(latest);
+                    _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{shown}");
+                    return shown;
                 }
             }
         }
@@ -197,7 +204,10 @@ public sealed class UpdateCheck
     /// JSON that isn't an object with a <c>tag_name</c>, which the reference didn't survive, bug #81) is logged with
     /// its exception.
     /// </summary>
-    /// <returns>The tag as GitHub wrote it when it is newer than the running version; otherwise null.</returns>
+    /// <returns>
+    /// The tag as GitHub wrote it (less the padding and leading <c>v</c>, <see cref="WithoutPrefix"/>) when it is newer
+    /// than the running version; otherwise null.
+    /// </returns>
     /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<string?> CheckGitHubAsync(CancellationToken cancellationToken = default)
     {
@@ -239,8 +249,9 @@ public sealed class UpdateCheck
                     var latest = TagName(release).Str();
                     if (Pep440Version.IsNewerThanRunning(latest))
                     {
-                        _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{latest}");
-                        return latest;
+                        var shown = WithoutPrefix(latest);
+                        _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{shown}");
+                        return shown;
                     }
                 }
                 catch (Exception ex) when (IsCheckFailure(ex, cancellationToken))
@@ -348,6 +359,36 @@ public sealed class UpdateCheck
         return previous < 0
             ? [line[..last], line[(last + 1)..]]
             : [line[..previous], line[(previous + 1)..last], line[(last + 1)..]];
+    }
+
+    /// <summary>
+    /// A newer version as the banner and the log show it after their own <c>v</c>: without the surrounding whitespace
+    /// and the one leading <c>v</c> or <c>V</c> that PEP 440 lets the source write. The reference showed the text as
+    /// written, so a <c>v0.7.0</c> tag read <c>vv0.7.0</c> (bug #83, fixed per ADR-0006). The rest of the spelling
+    /// is kept.
+    /// </summary>
+    /// <param name="latest">A version <see cref="Pep440Version"/> accepted.</param>
+    internal static string WithoutPrefix(string latest)
+    {
+        var start = 0;
+        var end = latest.Length;
+        // Version._regex's \s, which in Python is str.isspace() (U+001C..U+001F included).
+        while (start < end && PythonSemantics.PythonText.IsSpace(latest[start]))
+        {
+            start++;
+        }
+
+        while (end > start && PythonSemantics.PythonText.IsSpace(latest[end - 1]))
+        {
+            end--;
+        }
+
+        if (start < end && latest[start] is 'v' or 'V')
+        {
+            start++;
+        }
+
+        return latest[start..end];
     }
 
     /// <summary>The no-argument <c>str.lstrip()</c>.</summary>

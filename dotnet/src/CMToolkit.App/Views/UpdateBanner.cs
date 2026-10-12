@@ -14,8 +14,9 @@ namespace CMToolkit.App.Views;
 /// The update banner (<c>CMChecker.check_for_updates</c>, UPD-2): a pale green strip in the main window's row 0 above
 /// the tabs (SHELL-7) with the update icon and <c>An update is available:</c>, then a bold underlined link per source
 /// that has a newer version, <c>v{version} (NexusMods)</c> and/or <c>v{version} (GitHub)</c>, separated by
-/// <c> / </c>. A click opens <c>NEXUS_LINK</c> / <c>GITHUB_LINK</c> in the browser (NET-4). The version is shown as
-/// the source wrote it, so a <c>v</c>-prefixed tag reads <c>vv0.7.0</c> (bug #83, reproduced).
+/// <c> / </c>. A click opens <c>NEXUS_LINK</c> / <c>GITHUB_LINK</c> in the browser (NET-4). The version comes without
+/// the source's own leading <c>v</c>, so a <c>v0.7.0</c> tag reads <c>v0.7.0</c>, where the reference showed
+/// <c>vv0.7.0</c> (bug #83, fixed per ADR-0006; see <see cref="UpdateCheck"/>).
 /// </summary>
 public static class UpdateBanner
 {
