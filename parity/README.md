@@ -256,9 +256,10 @@ reference opens it in-process two seconds after `CMChecker` is built (told which
 gets a posted click on the opening button, fixed in `MODAL_BUTTONS`. The capture is the window with that title.
 
 `--tab Scanner --scan` runs an Overview Issues scan before capturing: the reference unticks the six data boxes and
-presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks at `SCAN_CLICKS` in its side
-pane. `--scan-all` scans with every box still ticked instead: only Scan Game is pressed (the last `SCAN_CLICKS`
-point on the exe). `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
+presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks in its side pane
+(`SCAN_BOXES`, `SCAN_GAME`). The exe's boxes start from the `scanner_*` settings in its folder's `settings.json` (bug
+#20, fixed), so only the boxes not already as wanted are clicked, then Scan Game. `--scan-all` scans with every box
+ticked instead. `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
 black, so the capture shows them in place.
 `--select TEXT --select-at X,Y` then selects a result so the details pane opens: the reference selects the item with
 that text in-process once the scan has listed it (told by `CMT_SCREENSHOT_SELECT`), the exe gets a posted click at
