@@ -101,13 +101,15 @@ can't be opened (SHELL-13).
   `python-requests/2.32.5` plus its other session defaults; GitHub needs some User-Agent. urllib3's own DEBUG lines
   ("Starting new HTTPS connection ...") that reached `cm-toolkit.log` at `log_level` DEBUG are not written.
   Response charsets other than the UTF-8/16/32, Latin-1 and ASCII codecs count as unknown (Python's `LookupError`,
-  which fails startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
+  which the port logs as a failed check where the reference failed startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
   chardet. Real chunk boundaries also differ:
   the port always reads the Nexus page in 512-byte chunks (as the parity harness does), while urllib3 follows the
-  server's chunked encoding, so bug #82 strikes on different pages. HttpClient does not follow an https-to-http
+  server's chunked encoding. That no longer changes the result, since the port joins a CRLF split across two reads
+  (bug #82, which struck the reference on some pages only). HttpClient does not follow an https-to-http
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
-  its link tooltips are Avalonia's, not tktooltip's.
+  its link tooltips are Avalonia's, not tktooltip's. That pair predates the fix for bug #83: the port's GitHub link
+  now reads `v0.7.1 (GitHub)` where Tk's reads `vv0.7.1 (GitHub)`.
 - Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
   built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
   unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side
