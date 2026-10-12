@@ -11,8 +11,9 @@ public static class GameInstallLocator
 {
     /// <summary>
     /// Finds the mod manager (MM-1) and MO2's configuration (MO2-1..MO2-3), then the game path (GP-1). If nothing finds
-    /// it, asks whether to locate it by hand, then for <c>Fallout4.exe</c> (GP-2); an invalid location, or a registry
-    /// path that isn't one, shows <c>Game not found</c> (GP-3). Then derives Data and F4SE Plugins (GP-4) and reads the
+    /// it (a stale registry path included, bug #80), asks whether to locate it by hand, then for <c>Fallout4.exe</c>
+    /// (GP-2); an invalid pick shows <c>Game not found</c>, naming the stale registry path if there was one (GP-3).
+    /// Then derives Data and F4SE Plugins (GP-4) and reads the
     /// game INIs (INI-1..INI-4).
     /// </summary>
     /// <param name="host">The machine.</param>
@@ -34,7 +35,7 @@ public static class GameInstallLocator
             return (manager, mo2, GamePathDetection.Detect(mo2, host));
         });
 
-        if (found is GamePathResult.NeedsUserLocation)
+        if (found is GamePathResult.NeedsUserLocation { RegistryPath: var registryPath })
         {
             if (!await dialogs.AskYesNoAsync(GamePathDetection.AskTitle, GamePathDetection.AskMessage))
             {
@@ -49,8 +50,9 @@ public static class GameInstallLocator
                 return null;
             }
 
-            // Asking happens only when no registry value existed, so the error never names one.
-            found = await Task.Run(() => GamePathDetection.ValidateUserLocation(picked, registryPath: null, host));
+            // A stale registry value (bug #80's fix asks after one too) is named in the error, as the reference's
+            // `if registry_path:` would; with none set, the error is the plain one.
+            found = await Task.Run(() => GamePathDetection.ValidateUserLocation(picked, registryPath, host));
         }
 
         switch (found)

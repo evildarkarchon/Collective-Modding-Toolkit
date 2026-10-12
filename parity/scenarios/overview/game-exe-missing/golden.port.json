@@ -185,7 +185,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
@@ -445,7 +445,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"

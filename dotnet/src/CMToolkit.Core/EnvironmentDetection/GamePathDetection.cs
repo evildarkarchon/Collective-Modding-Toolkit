@@ -17,10 +17,15 @@ public abstract record GamePathResult
     public sealed record Found(PythonPath GamePath) : GamePathResult;
 
     /// <summary>
-    /// Nothing found the game, and no registry value named a folder: the reference asks the user (GP-2). A location they
-    /// give is checked with <see cref="GamePathDetection.ValidateUserLocation"/>, with no registry path.
+    /// Nothing found the game, so the user is asked (GP-2). A location they give is checked with
+    /// <see cref="GamePathDetection.ValidateUserLocation"/>, passing <paramref name="RegistryPath"/> so a bad pick's
+    /// error names it.
     /// </summary>
-    public sealed record NeedsUserLocation : GamePathResult;
+    /// <param name="RegistryPath">
+    /// The first non-empty registry value (Steam's, else GOG's), which didn't name a Fallout 4 folder; null when none was
+    /// set. The reference only asks when none is set; asking after a stale one too is the fix for bug #80.
+    /// </param>
+    public sealed record NeedsUserLocation(string? RegistryPath = null) : GamePathResult;
 
     /// <summary>
     /// A location that isn't a Fallout 4 folder. The reference shows <see cref="GamePathDetection.NotFoundTitle"/> with
@@ -68,11 +73,13 @@ public static class GamePathDetection
     /// <list type="number">
     /// <item>MO2's <c>gamePath</c>, when MO2 has one. It is <b>not validated</b>; an empty value is <c>.</c>, the CWD (T-7).</item>
     /// <item>The CWD, if it is an FO4 dir (a folder holding a <c>Fallout4.exe</c> file).</item>
-    /// <item>The Steam <c>Installed Path</c>, else the GOG <c>path</c>: the first that is a non-empty <c>REG_SZ</c>. It is
-    /// validated as a user location would be, but an invalid one names itself in the error (GP-3), and is never
-    /// followed by the GOG value or by asking (bug #80).</item>
-    /// <item>Otherwise <see cref="GamePathResult.NeedsUserLocation"/>.</item>
+    /// <item>The Steam <c>Installed Path</c>, then the GOG <c>path</c>: the first non-empty <c>REG_SZ</c> that is a
+    /// Fallout 4 folder, checked as a user location would be (a file is reduced to its folder).</item>
+    /// <item>Otherwise <see cref="GamePathResult.NeedsUserLocation"/>, carrying the first non-empty registry value so a
+    /// bad pick's error still names it (GP-3).</item>
     /// </list>
+    /// The reference used the first non-empty registry value whether or not it was valid, so a stale Steam path hid a
+    /// valid GOG install and was never followed by asking; the port fixes that (bug #80, ADR-0006).
     /// </summary>
     /// <param name="mo2">The MO2 configuration, or null without MO2 (Vortex, or no manager).</param>
     /// <param name="host">The machine: the CWD and the registry.</param>
@@ -89,8 +96,18 @@ public static class GamePathDetection
             return new GamePathResult.Found(cwd);
         }
 
-        var registryPath = RegistryString(host, SteamKey, "Installed Path") ?? RegistryString(host, GogKey, "path");
-        return registryPath is null ? new GamePathResult.NeedsUserLocation() : ValidateUserLocation(registryPath, registryPath, host);
+        // Both values are read up front, as the reference's `steam or gog` reads GOG only when Steam is empty; reading it
+        // regardless is harmless (a registry failure is just null).
+        string?[] registryPaths = [RegistryString(host, SteamKey, "Installed Path"), RegistryString(host, GogKey, "path")];
+        foreach (var registryPath in registryPaths)
+        {
+            if (registryPath is not null && ValidateUserLocation(registryPath, registryPath, host) is GamePathResult.Found found)
+            {
+                return found;
+            }
+        }
+
+        return new GamePathResult.NeedsUserLocation(registryPaths.FirstOrDefault(p => p is not null));
     }
 
     /// <summary>

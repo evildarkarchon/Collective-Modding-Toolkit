@@ -79,6 +79,10 @@
     {
       "bug": 84,
       "reason": "A missing Fallout4.exe no longer matches the other missing binaries: each missing binary is red with a File Not Found problem (CreationKit and Archive2 stay grey), and the Not Found game version is red."
+    },
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
     }
   ]
 }

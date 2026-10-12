@@ -269,8 +269,9 @@ public sealed class OverviewTab : TabPage
                     }
                 };
 
-                // OVW-5, B-8: the exact OS string, so 25H2 and later get no warning despite the tooltip's "24H2+".
-                if (_pc.Os == "Windows 11 24H2" && AtMost(manager.Version, [2, 5, 2]))
+                // OVW-5, B-8: 24H2 and every later build, as the tooltip's "24H2+" says. The reference matched the exact
+                // OS string "Windows 11 24H2", so 25H2 and later got no warning (bug #27, fixed).
+                if (_pc.IsWindows24H2OrLater && AtMost(manager.Version, [2, 5, 2]))
                 {
                     var osIcon = Icon("images/warning-16.png", "OsWarning", 3, Win11Note);
                     osIcon.VerticalAlignment = VerticalAlignment.Top;

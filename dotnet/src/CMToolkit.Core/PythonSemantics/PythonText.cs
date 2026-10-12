@@ -26,6 +26,13 @@ public static class PythonText
     public static string ReadUtf8Strict(string path) => StrictUtf8.GetString(File.ReadAllBytes(path));
 
     /// <summary>
+    /// <c>bytes.decode("utf-8")</c>: <paramref name="bytes"/> as strict UTF-8, a BOM kept as U+FEFF, like
+    /// <see cref="ReadUtf8Strict"/> on bytes already read.
+    /// </summary>
+    /// <exception cref="DecoderFallbackException">The bytes aren't valid UTF-8 (Python's <c>UnicodeDecodeError</c>).</exception>
+    public static string DecodeUtf8Strict(ReadOnlySpan<byte> bytes) => StrictUtf8.GetString(bytes);
+
+    /// <summary>
     /// <c>str.splitlines()</c>: splits on <c>\n</c>, <c>\r</c>, <c>\r\n</c>, <c>\v</c>, <c>\f</c>, U+001C..U+001E,
     /// U+0085, U+2028 and U+2029, drops the separators, and yields no trailing empty line for a final separator.
     /// </summary>

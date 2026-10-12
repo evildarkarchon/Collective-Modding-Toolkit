@@ -29,5 +29,11 @@
     "env": {
       "LOCALAPPDATA": "<ROOT>\\LocalAppData"
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    }
+  ]
 }

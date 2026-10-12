@@ -67,6 +67,8 @@ public sealed class ScanSettingsTests
 
     [Fact]
     [Trait("Parity", "SCN-S2")]
+    [Trait("Parity", "B-5")]
+    [Deviation(24, "An INI without skip_file_suffixes / skip_directories gives MO2's defaults, .mohidden and .git, not corrupted ones.")]
     public async Task With_MO2_its_skip_lists_come_first_and_are_joined_to_the_fixed_ones()
     {
         using var machine = Scenario("scanner/overview-issues-mo2");
@@ -75,10 +77,11 @@ public sealed class ScanSettingsTests
         var settings = ScanSettings.Snapshot(Ticked([]), game);
 
         Assert.True(settings.UsingStage);
-        // MO2's defaults, as corrupted by CSV-parsing str(tuple) / str(set) (B-5), then .vortex_backup.
-        Assert.Equal([.. game.Mo2!.SkipFileSuffixes, ".vortex_backup"], settings.SkipFileSuffixes);
+        // The INI sets neither key, so MO2's defaults apply (bug #24, fixed: the reference CSV-parsed str(tuple) /
+        // str(set) into garbage, B-5), then .vortex_backup.
+        Assert.Equal([".mohidden", ".vortex_backup"], settings.SkipFileSuffixes);
         Assert.Equal(
-            new[] { "bodyslide", "fo4edit", "robco_patcher", "source" }.Union(game.Mo2.SkipDirectories).Order(StringComparer.Ordinal),
+            [".git", "bodyslide", "fo4edit", "robco_patcher", "source"],
             settings.SkipDirectories.Order(StringComparer.Ordinal));
     }
 

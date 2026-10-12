@@ -161,9 +161,11 @@ public static class Mo2ConfigurationReader
         settings["profile_local_inis"] = new Mo2SettingValue.FlagValue(false);
         settings["profile_local_saves"] = new Mo2SettingValue.FlagValue(false);
         settings["profiles_directory"] = new DefaultDirectory("profiles");
-        // The defaults are a tuple and a set; their str() is what the CSV pass below parses (B-5).
-        settings["skip_file_suffixes"] = new PythonRepr("('.mohidden',)");
-        settings["skip_directories"] = new PythonRepr("set()");
+        // MO2's own defaults (Settings::skipFileSuffixes / skipDirectories), already as lists. The reference held a tuple
+        // and a set, whose str() the CSV pass below then parsed into garbage such as "('.mohidden'" (B-5, bug #24,
+        // fixed). Its set() default was also not MO2's: MO2 skips .git folders unless told otherwise.
+        settings["skip_file_suffixes"] = new Mo2SettingValue.ListValue([".mohidden"]);
+        settings["skip_directories"] = new Mo2SettingValue.ListValue([".git"]);
 
         string? section = null;
         foreach (var line in PythonText.SplitLines(text))
@@ -222,9 +224,12 @@ public static class Mo2ConfigurationReader
             {
                 settings[name] = current switch
                 {
-                    // base / "/mods" lands on the drive root (B-6, T-7); a value without the placeholder is Path(value).
+                    // MO2's PathSettings::resolve: the placeholder is replaced by the base directory's text, so
+                    // "%BASE_DIR%/mods" is <base>\mods. The reference removed it and joined the now-rooted "/mods" onto
+                    // the base, landing on the drive root (B-6, bug #25, fixed). The base's raw text is used, as MO2
+                    // uses the stored string; a value without the placeholder is Path(value).
                     Mo2SettingValue.TextValue { Text: var raw } when raw.Contains(BaseDirPlaceholder, StringComparison.Ordinal)
-                        => new Mo2SettingValue.PathValue(baseDirectory.Join(raw.Replace(BaseDirPlaceholder, string.Empty, StringComparison.Ordinal))),
+                        => new Mo2SettingValue.PathValue(new PythonPath(raw.Replace(BaseDirPlaceholder, baseDirectory.Raw, StringComparison.Ordinal))),
                     Mo2SettingValue.TextValue { Text: var raw } => new Mo2SettingValue.PathValue(new PythonPath(raw)),
                     DefaultDirectory { Name: var sub } => new Mo2SettingValue.PathValue(baseDirectory.Join(sub)),
                     _ => current,
@@ -232,13 +237,13 @@ public static class Mo2ConfigurationReader
             }
             else if (name.StartsWith("skip_", StringComparison.Ordinal))
             {
-                var raw = current switch
+                // A value read from the INI is CSV-split; an unset key keeps its default list as is.
+                settings[name] = current switch
                 {
-                    Mo2SettingValue.TextValue t => t.Text,
-                    PythonRepr r => r.Repr,
+                    Mo2SettingValue.TextValue t => new Mo2SettingValue.ListValue(PythonCsv.ReadMo2Row(t.Text)),
+                    Mo2SettingValue.ListValue => current,
                     _ => throw new InvalidOperationException($"Unexpected {name} value {current}."),
                 };
-                settings[name] = new Mo2SettingValue.ListValue(PythonCsv.ReadMo2Row(raw));
             }
         }
 
@@ -291,12 +296,9 @@ public static class Mo2ConfigurationReader
     /// </summary>
     private sealed record DefaultDirectory(string Name);
 
-    /// <summary>A default <c>skip_*</c> value, as the <c>str()</c> of the Python tuple or set it is. Never left in a finished configuration.</summary>
-    private sealed record PythonRepr(string Repr);
-
     /// <summary>
     /// A string-keyed map that remembers first-insertion order, like a Python dict. Values are <see cref="Mo2SettingValue"/>s,
-    /// or a <see cref="DefaultDirectory"/> / <see cref="PythonRepr"/> until the resolution pass replaces them.
+    /// or a <see cref="DefaultDirectory"/> until the resolution pass replaces it.
     /// </summary>
     private sealed class OrderedSettings
     {

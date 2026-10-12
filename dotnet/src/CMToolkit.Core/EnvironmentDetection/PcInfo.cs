@@ -52,17 +52,31 @@ public sealed partial record PcInfo(bool UsingWine, string Os, long Ram, string 
     public static PcInfo Read(IHostEnvironment host, ILogger logger)
     {
         var usingWine = host.IsWine;
-        var os = usingWine ? "Linux (WINE)" : ReadOs(host);
+        // Under Wine the OS isn't read at all, as in the reference.
+        var info = usingWine ? null : host.OsInfo;
+        var os = info is null ? "Linux (WINE)" : FormatOs(info);
         var ram = RoundGibibytes(host.TotalPhysicalMemory);
         var cpu = ReadCpu(host, logger);
         var (gpu, vram) = ReadGpu(host, logger);
-        return new PcInfo(usingWine, os, ram, cpu, gpu, vram);
+        return new PcInfo(usingWine, os, ram, cpu, gpu, vram)
+        {
+            IsWindows24H2OrLater = info is { System: "Windows", Build: >= Windows24H2Build },
+        };
     }
 
+    /// <summary>The build of Windows 11 24H2, the reference's own <c>win11_24h2</c> threshold (<c>utils.py</c>).</summary>
+    private const int Windows24H2Build = 26100;
+
+    /// <summary>
+    /// Whether this is Windows at build 26100 (Windows 11 24H2) or later, not under Wine. The Overview's MO2 2.5.2
+    /// warning keys on this (OVW-5). The reference compared <see cref="Os"/> with <c>"Windows 11 24H2"</c> exactly, so
+    /// 25H2 and any build missing from its table got no warning despite the tooltip's "24H2+" (B-8, bug #27, fixed).
+    /// </summary>
+    public bool IsWindows24H2OrLater { get; init; }
+
     /// <summary><c>PCInfo._get_os</c>. The table is consulted only for <c>Windows</c>.</summary>
-    private static string ReadOs(IHostEnvironment host)
+    private static string FormatOs(OperatingSystemInfo info)
     {
-        var info = host.OsInfo;
         var version = info.System == "Windows" ? OsVersions.GetValueOrDefault(info.Build, string.Empty) : string.Empty;
         return $"{info.System} {info.Release} {version}";
     }

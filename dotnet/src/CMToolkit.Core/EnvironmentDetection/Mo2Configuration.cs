@@ -14,8 +14,8 @@ namespace CMToolkit.Core.EnvironmentDetection;
 /// <param name="StagePath"><c>mod_directory</c>, resolved (MO2-6).</param>
 /// <param name="OverwritePath"><c>overwrite_directory</c>, resolved.</param>
 /// <param name="ProfilesPath"><c>profiles_directory</c>, resolved.</param>
-/// <param name="SkipFileSuffixes">The CSV-split <c>skip_file_suffixes</c>, lowercased, in order (MO2-7, B-5).</param>
-/// <param name="SkipDirectories">The CSV-split <c>skip_directories</c>, lowercased; a set, so unordered (T-15).</param>
+/// <param name="SkipFileSuffixes">The CSV-split <c>skip_file_suffixes</c> (MO2's <c>.mohidden</c> when unset, bug #24), lowercased, in order (MO2-7, B-5).</param>
+/// <param name="SkipDirectories">The CSV-split <c>skip_directories</c> (MO2's <c>.git</c> when unset, bug #24), lowercased; a set, so unordered (T-15).</param>
 /// <param name="Settings">
 /// Every <c>mo2_settings</c> entry in dict order (defaults first, then keys first seen in the INI), shown verbatim in
 /// OVW-4.

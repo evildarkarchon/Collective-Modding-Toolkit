@@ -43,9 +43,13 @@ public sealed class PythonCsvTests
     public void ReadRow_matches_the_csv_module(string line, string[] expected)
         => Assert.Equal(expected, PythonCsv.ReadMo2Row(line));
 
-    /// <summary>B-5: the defaults are CSV-parsed as their Python <c>str()</c>, corrupting them.</summary>
+    /// <summary>
+    /// The <c>csv</c> module on the <c>str()</c> of a tuple and a set (MO2-7). This is how the reference corrupted MO2's
+    /// default skip lists (B-5); the port no longer parses the defaults at all (bug #24, fixed), so this is now only the
+    /// CSV rule.
+    /// </summary>
     [Fact]
-    [Trait("Parity", "B-5")]
+    [Trait("Parity", "MO2-7")]
     public void The_python_default_reprs_parse_to_garbage()
     {
         Assert.Equal(["('.mohidden'", ")"], PythonCsv.ReadMo2Row("('.mohidden',)"));

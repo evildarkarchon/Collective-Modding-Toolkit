@@ -37,11 +37,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -50,6 +45,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",
@@ -352,15 +352,15 @@
                   "problem": {
                     "extraData": null,
                     "fileList": null,
-                    "itemText": "hidden.dds.mohidden",
+                    "itemText": "tex.dds (2)",
                     "mod": "LowMod",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden",
-                    "relativePath": "Textures\\hidden.dds.mohidden",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)",
+                    "relativePath": "Textures\\tex.dds (2)",
                     "solution": "If this file type is expected here, please report it.",
                     "summary": "Format not in whitelist for textures.\nUnable to determine whether the game will use this file.",
                     "type": "Unexpected Format"
                   },
-                  "text": "hidden.dds.mohidden",
+                  "text": "tex.dds (2)",
                   "values": [
                     "LowMod"
                   ]
@@ -576,11 +576,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -589,6 +584,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",
@@ -746,11 +746,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -759,6 +754,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",
@@ -873,15 +873,15 @@
                   "problem": {
                     "extraData": null,
                     "fileList": null,
-                    "itemText": "hidden.dds.mohidden",
+                    "itemText": "tex.dds (2)",
                     "mod": "LowMod",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden",
-                    "relativePath": "Textures\\hidden.dds.mohidden",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)",
+                    "relativePath": "Textures\\tex.dds (2)",
                     "solution": "If this file type is expected here, please report it.",
                     "summary": "Format not in whitelist for textures.\nUnable to determine whether the game will use this file.",
                     "type": "Unexpected Format"
                   },
-                  "text": "hidden.dds.mohidden",
+                  "text": "tex.dds (2)",
                   "values": [
                     "LowMod"
                   ]
@@ -974,11 +974,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -987,6 +982,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",
@@ -1168,11 +1168,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -1181,6 +1176,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",
@@ -1362,11 +1362,6 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
             },
             {
-              "key": "Textures\\hidden.dds.mohidden",
-              "mod": "LowMod",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\hidden.dds.mohidden"
-            },
-            {
               "key": "Textures\\low.dds",
               "mod": "LowMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
@@ -1375,6 +1370,11 @@
               "key": "Textures\\shared.png",
               "mod": "HighMod",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
             },
             {
               "key": "BadMagic - Main.ba2",

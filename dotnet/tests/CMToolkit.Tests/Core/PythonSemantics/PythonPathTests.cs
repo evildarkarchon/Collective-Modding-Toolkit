@@ -62,9 +62,13 @@ public sealed class PythonPathTests
     public void Join_matches_the_slash_operator(string left, string right, string expected)
         => Assert.Equal(expected, new PythonPath(left).Join(right).ToString());
 
-    /// <summary>B-6: a <c>%BASE_DIR%/</c> value with its placeholder removed is rooted, so it lands on the drive root.</summary>
+    /// <summary>
+    /// pathlib's rooted join keeps only the left side's drive (T-7). The reference resolved MO2's <c>%BASE_DIR%/</c>
+    /// values through it with the placeholder removed, landing on the drive root (B-6); the port substitutes the
+    /// placeholder textually instead (bug #25, fixed), so this is now only the pathlib rule.
+    /// </summary>
     [Fact]
-    [Trait("Parity", "B-6")]
+    [Trait("Parity", "T-7")]
     public void A_rooted_value_joined_onto_the_base_lands_on_the_drive_root()
         => Assert.Equal("D:\\mods", new PythonPath("D:\\MO2").Join("/mods").ToString());
 

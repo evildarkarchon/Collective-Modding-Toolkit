@@ -134,7 +134,8 @@ public sealed class ScanSettings
     public bool UsingStage => Game.Mo2 is not null;
 
     /// <summary>
-    /// The file suffixes the mod file index skips: MO2's <c>skip_file_suffixes</c> (MO2-7, B-5's corruption included)
+    /// The file suffixes the mod file index skips: MO2's <c>skip_file_suffixes</c> (MO2-7; <c>.mohidden</c> when unset,
+    /// where the reference had B-5's corruption, bug #24)
     /// then <c>.vortex_backup</c>; just <c>.vortex_backup</c> without MO2.
     /// </summary>
     public IReadOnlyList<string> SkipFileSuffixes { get; }

@@ -1,0 +1,105 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.4.4"
+  },
+  "mo2": {
+    "gamePath": "X:\\Games\\Fallout 4",
+    "iniPath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+    "overwritePath": "X:\\Modding\\Fallout 4\\overwrite",
+    "portable": false,
+    "portableTxtPath": null,
+    "profilesPath": "X:\\Modding\\Fallout 4\\profiles",
+    "selectedProfile": "Default",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4\\webcache"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4\\downloads"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4\\mods"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4\\overwrite"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": false
+      },
+      {
+        "key": "profile_local_saves",
+        "value": {
+          "text": "false"
+        }
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "X:\\Modding\\Fallout 4\\profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": [
+          ".mohidden"
+        ]
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "Source",
+          ".git"
+        ]
+      },
+      {
+        "key": "gameName",
+        "value": {
+          "text": "Fallout 4"
+        }
+      },
+      {
+        "key": "gamePath",
+        "value": {
+          "path": "X:\\Games\\Fallout 4"
+        }
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": "Default"
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        ".git",
+        "source"
+      ]
+    },
+    "skipFileSuffixes": [
+      ".mohidden"
+    ],
+    "stagePath": "X:\\Modding\\Fallout 4\\mods"
+  }
+}

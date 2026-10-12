@@ -21,6 +21,10 @@
     {
       "bug": 89,
       "reason": "The walk's root is recognised by position, not identity: the Data folder tuple is queued so the scan shows 'Scanning... i/n: folder' progress, and each mod root goes into modules and archives instead of the folder '.'."
+    },
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
     }
   ],
   "host": {

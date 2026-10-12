@@ -4,7 +4,7 @@ namespace CMToolkit.Core.PythonSemantics;
 /// A <c>pathlib.PureWindowsPath</c> as CPython 3.14 builds it (T-7). Like Python, it keeps the raw string it was made
 /// from, joins raw strings with <c>ntpath.join</c> rules, and normalises only when rendered: <c>/</c> becomes <c>\</c>,
 /// doubled separators collapse, <c>.</c> segments and a trailing separator go, and <c>..</c> stays. A rooted right-hand
-/// side keeps the left side's drive, so <c>Path("D:/MO2") / "/mods"</c> is <c>D:\mods</c> (B-6), where
+/// side keeps the left side's drive, so <c>Path("D:/MO2") / "/mods"</c> is <c>D:\mods</c> (what made B-6), where
 /// <see cref="Path.Combine(string, string)"/> would give <c>/mods</c>.
 /// </summary>
 public sealed class PythonPath
