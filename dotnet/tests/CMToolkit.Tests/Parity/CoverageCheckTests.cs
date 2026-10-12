@@ -256,6 +256,7 @@ public sealed class CoverageCheckTests : IDisposable
     [InlineData("""[{"bug": 77, "reason": " "}]""", "needs a reason")]
     [InlineData("""[]""", "names no bug")]
     [InlineData("""{"bug": 77, "reason": "x"}""", "must be an array")]
+    [InlineData("""[{"bug": 77, "reason": "x"}, {"bug": 77, "reason": "y"}]""", "listed twice")]
     public void A_malformed_scenario_deviation_fails(string deviations, string expected)
     {
         Layout();
@@ -277,6 +278,59 @@ public sealed class CoverageCheckTests : IDisposable
         WriteSource("dotnet/tests/FooTests.cs", attribute);
 
         Assert.Contains(Run().Errors, e => e.Contains("FooTests.cs", StringComparison.Ordinal) && e.Contains(expected, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_scenario_json_with_a_duplicate_key_fails()
+    {
+        Layout();
+        Write("parity/scenarios/settings/a/scenario.json", """{"operation": "op", "parity": ["SET-2"], "host": {}, "parity": ["SET-1"]}""");
+        Write("parity/scenarios/settings/a/golden.json", "{}");
+
+        Assert.Contains(Run().Errors, e => e.Contains("scenario settings/a", StringComparison.Ordinal) && e.Contains("parity", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_test_deviation_without_a_parity_trait_on_its_method_or_class_fails()
+    {
+        Layout(covered: "SET-1\n");
+        WriteSource("dotnet/tests/FooTests.cs", """
+            public sealed class FooTests
+            {
+                [Fact]
+                [TRAIT("Parity", "SET-1")]
+                public void Proven() { }
+
+                [Fact]
+                [DEVIATION(77, "Synthetic: no trait.")]
+                public void Unproven() { }
+            }
+            """);
+
+        Assert.Contains(Run().Errors, e => e.Contains("FooTests.cs", StringComparison.Ordinal) && e.Contains("#77", StringComparison.Ordinal) && e.Contains("Parity", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_test_deviation_with_its_parity_trait_on_the_class_passes()
+    {
+        Layout(covered: "SET-1\n");
+        WriteSource("dotnet/tests/FooTests.cs", """
+            [TRAIT("Parity", "SET-1")]
+            public sealed class FooTests
+            {
+                [Fact]
+                public void Other() { }
+
+                [Fact]
+                [DEVIATION(77, "Synthetic: the class proves it.")]
+                public void Fixed() { }
+            }
+            """);
+
+        var report = Run();
+
+        Assert.Empty(report.Errors);
+        Assert.Equal([new Deviation(77, "Synthetic: the class proves it.", "test dotnet/tests/FooTests.cs")], report.Deviations);
     }
 
     [Fact]

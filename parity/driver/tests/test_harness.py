@@ -114,6 +114,21 @@ class ScenarioTests(unittest.TestCase):
 			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "deviation"):
 				load(scenario_id, self.root)
 
+	def test_duplicate_keys_are_rejected_like_the_csharp_side(self) -> None:
+		"""A repeated key would replace the first silently, hiding a deviation or a parity ID from the checks."""
+		cases = {
+			"m/top": '{"operation": "op", "parity": [], "host": {}, "parity": ["SET-1"]}',
+			"m/nested": '{"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 77, "reason": "x", "bug": 78}]}',
+		}
+		for scenario_id, text in cases.items():
+			directory = self.root / scenario_id
+			directory.mkdir(parents=True)
+			(directory / "scenario.json").write_text(text, "utf-8")
+
+		for scenario_id in cases:
+			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "duplicate key"):
+				load(scenario_id, self.root)
+
 	def test_discover_filters_by_glob_and_sorts_by_id(self) -> None:
 		for scenario_id in ("s/b", "s/a", "o/a"):
 			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}})

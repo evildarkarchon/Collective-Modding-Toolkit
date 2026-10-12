@@ -64,7 +64,8 @@ keys are errors. Nothing in the app reads `Script/`, and the golden echoes the s
 }
 ```
 
-Unknown keys are errors on both sides, so a typo fails instead of being ignored.
+Unknown keys are errors on both sides, so a typo fails instead of being ignored. So is a key repeated in any object,
+which JSON parsers otherwise resolve by keeping the last one.
 
 ### The `host` block
 
@@ -211,8 +212,9 @@ reference like any other, then flipped as above.
 
 The checks enforce the pairing. `LoadGolden()` (and therefore `CommittedScenarioTests`) and the coverage check both fail
 on a declared deviation with no `golden.port.json`, and on a `golden.port.json` with no declared deviation. The coverage
-check also fails on a malformed bug number, a missing or blank reason, an empty `deviations` list, and a port golden
-identical to the recording. It lists every deviation on each run.
+check also fails on a malformed bug number, a missing or blank reason, the same bug listed twice, an empty `deviations`
+list, a port golden identical to the recording, and a `Deviation` attribute on a test with no `Trait("Parity", ...)` on
+its method or class. It lists every deviation on each run.
 
 ## Coverage check
 

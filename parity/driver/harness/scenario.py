@@ -97,7 +97,11 @@ class Scenario:
 def load(scenario_id: str, scenarios_root: Path = SCENARIOS) -> Scenario:
 	"""Loads and validates ``<scenarios_root>/<scenario_id>/scenario.json``. Unknown keys are errors, as in C#."""
 	directory = scenarios_root / scenario_id
-	manifest = json.loads((directory / "scenario.json").read_text("utf-8"))
+	try:
+		manifest = json.loads((directory / "scenario.json").read_text("utf-8"), object_pairs_hook=_unique_keys)
+	except _DuplicateKeyError as error:
+		msg = f"{scenario_id}: scenario.json has a duplicate key {error.args[0]!r}"
+		raise ScenarioError(msg) from None
 	if not isinstance(manifest, dict):
 		msg = f"{scenario_id}: scenario.json must hold an object"
 		raise ScenarioError(msg)
@@ -110,6 +114,24 @@ def load(scenario_id: str, scenarios_root: Path = SCENARIOS) -> Scenario:
 	if "deviations" in manifest:
 		_validate_deviations(scenario_id, manifest["deviations"])
 	return Scenario(scenario_id, directory, manifest)
+
+
+class _DuplicateKeyError(ValueError):
+	"""A JSON object in scenario.json repeats a key; its argument is the key."""
+
+
+def _unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+	"""``json.loads`` object hook that rejects a repeated key, as the C# side's ``AllowDuplicateProperties = false``
+	does. By default the last one wins, which would hide a deviation or a parity ID from every check.
+
+	Raises ``_DuplicateKeyError`` naming the key.
+	"""
+	result: dict[str, Any] = {}
+	for key, value in pairs:
+		if key in result:
+			raise _DuplicateKeyError(key)
+		result[key] = value
+	return result
 
 
 def _validate_deviations(scenario_id: str, deviations: Any) -> None:
