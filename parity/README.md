@@ -191,8 +191,9 @@ approves the pair in the slice PR. There is no automated pixel diff, and no capt
 click on the tab's header, whose position is fixed in the script's `TAB_CENTRES`. The Tools, Settings and About pairs
 reuse `shell/main-window`, whose `settings.json` the Settings tab shows (`update_source` none, `log_level` INFO).
 
-Only the Tk side sees the rest of the `host` block. The exe gets `cwd` and otherwise runs on `SystemHostEnvironment`,
-which is sound only while no screen it renders reads the host: today the shell reads `AppDirectory`, and only for the
-Download Source, which it doesn't display. The first slice whose screenshot depends on a host fact (registry, known
-folders, environment, processes, OS, or an `appDir` other than the exe's folder) must first give the exe a way to run on
-the scenario's host. Otherwise its pair compares two different machines.
+Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
+`CMT_PARITY_ROOT` (its copy of the tree) set, and then runs on `ScenarioHostEnvironment`
+(`dotnet/src/CMToolkit.App/Parity/`) instead of the real machine: the same rules as the tests' `FakeHostEnvironment`,
+which `ScenarioHostEnvironmentTests` checks on every committed scenario. Two differences: with no `appDir` the exe uses
+its own folder, and `dialogs` aren't scripted on the exe side (it shows real ones), so screenshot scenarios should find
+the game without asking. The smoke test (`dotnet/eng/Test-ShellStarts.ps1 -Scenario <folder>`) uses the same variables.

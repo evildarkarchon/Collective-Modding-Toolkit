@@ -1,0 +1,27 @@
+{
+  "description": "The registry names Fallout4.exe itself, which is reduced to its folder (GP-3).",
+  "operation": "game-info",
+  "parity": [
+    "GP-3",
+    "GP-4"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents",
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game\\Fallout4.exe"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

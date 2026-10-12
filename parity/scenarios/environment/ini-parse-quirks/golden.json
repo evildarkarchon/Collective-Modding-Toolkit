@@ -1,0 +1,38 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\Game",
+    "language": "en",
+    "prefs": {},
+    "settings": {
+      "": {
+        "semptysection": "yes"
+      },
+      "NO-SECTION": {
+        "borphan": "1"
+      },
+      "nvflex": {
+        "  sindented": "  padded  ",
+        "[weird": "entry]x",
+        "bnvflexenable ": " 1",
+        "fafterbadheader": "2",
+        "mixed case key": "Mixed Case Value",
+        "sequation": "a=b=c"
+      },
+      "splits": {
+        "sa": "1",
+        "sb": "2",
+        "sc": "3",
+        "sd": "4",
+        "se": "5",
+        "sf": "6"
+      }
+    }
+  }
+}

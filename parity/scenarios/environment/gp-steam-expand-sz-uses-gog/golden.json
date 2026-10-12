@@ -1,0 +1,15 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\GOG Game",
+    "language": "en",
+    "prefs": {},
+    "settings": {}
+  }
+}

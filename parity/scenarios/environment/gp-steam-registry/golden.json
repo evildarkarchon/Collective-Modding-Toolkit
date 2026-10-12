@@ -1,0 +1,15 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": "<ROOT>\\Game\\Data",
+    "f4sePath": "<ROOT>\\Game\\Data\\F4SE\\Plugins",
+    "gamePath": "<ROOT>\\Game",
+    "language": "en",
+    "prefs": {},
+    "settings": {}
+  }
+}

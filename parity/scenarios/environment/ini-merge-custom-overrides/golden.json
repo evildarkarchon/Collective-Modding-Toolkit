@@ -1,0 +1,37 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en",
+      "voices_fr"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\Game",
+    "language": "fr",
+    "prefs": {
+      "display": {
+        "isize h": "1080",
+        "isize w": "1920"
+      },
+      "general": {
+        "slanguage": "ja"
+      }
+    },
+    "settings": {
+      "archive": {
+        "binvalidateolderfiles": "1",
+        "sresourcearchivelist": "Fallout4 - Voices.ba2, Fallout4 - Meshes.ba2",
+        "sresourcedatadirsfinal": ""
+      },
+      "general": {
+        "slanguage": "fr",
+        "sstartingconsolecommand": ""
+      },
+      "nvflex": {
+        "bnvflexenable": "1"
+      }
+    }
+  }
+}

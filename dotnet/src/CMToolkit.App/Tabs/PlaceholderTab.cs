@@ -1,11 +1,10 @@
 using Avalonia.Controls;
-using CMToolkit.App.Runtime;
 
 namespace CMToolkit.App.Tabs;
 
 /// <summary>
 /// A tab whose slice hasn't landed yet: it has the reference's header, class name and loading text, loads at once and
-/// builds nothing. Each tab's slice replaces its placeholder with the real page.
+/// builds nothing. Each tab's slice replaces its placeholder's line in <see cref="MainTabs.Compose"/> with the real page.
 /// </summary>
 public sealed class PlaceholderTab : TabPage
 {
@@ -20,33 +19,29 @@ public sealed class PlaceholderTab : TabPage
     /// <inheritdoc/>
     public override string? LoadingText => _loadingText;
 
-    /// <summary>The six tabs in the reference's order (SHELL-7), with their loading texts (SHELL-8).</summary>
-    public static IReadOnlyList<TabPage> Shell() =>
-    [
-        new PlaceholderTab("Overview", "OverviewTab"),
-        new PlaceholderTab("F4SE", "F4SETab", "Scanning DLLs..."),
-        new PlaceholderTab("Scanner", "ScannerTab"),
-        new PlaceholderTab("Tools", "ToolsTab"),
-        new PlaceholderTab("Settings", "SettingsTab"),
-        new PlaceholderTab("About", "AboutTab"),
-    ];
-
     /// <summary>
-    /// The six tabs as the app runs them: <see cref="Shell()"/> with every tab whose slice has landed swapped in, in
-    /// the same place. Each tab slice adds its arm here.
+    /// All six placeholders in the reference's order (SHELL-7), with their loading texts (SHELL-8): the shell on its
+    /// own, for tests and the XAML previewer. The app composes its tabs in <see cref="MainTabs.Compose"/>.
     /// </summary>
-    /// <param name="runtime">The app runtime the real tabs share.</param>
-    /// <param name="settings">The settings in effect, which the Settings tab shows and saves.</param>
-    public static IReadOnlyList<TabPage> Shell(AppRuntime runtime, SettingsStore settings) =>
-    [
-        .. Shell().Select(page => page.LogName switch
-        {
-            "ToolsTab" => new ToolsTab(runtime),
-            "SettingsTab" => new SettingsTab(settings),
-            "AboutTab" => new AboutTab(runtime),
-            _ => page,
-        }),
-    ];
+    public static IReadOnlyList<TabPage> Shell() => [Overview(), F4se(), Scanner(), Tools(), Settings(), About()];
+
+    /// <summary>The Overview tab's placeholder.</summary>
+    public static PlaceholderTab Overview() => new("Overview", "OverviewTab");
+
+    /// <summary>The F4SE tab's placeholder, with its loading text.</summary>
+    public static PlaceholderTab F4se() => new("F4SE", "F4SETab", "Scanning DLLs...");
+
+    /// <summary>The Scanner tab's placeholder.</summary>
+    public static PlaceholderTab Scanner() => new("Scanner", "ScannerTab");
+
+    /// <summary>The Tools tab's placeholder.</summary>
+    public static PlaceholderTab Tools() => new("Tools", "ToolsTab");
+
+    /// <summary>The Settings tab's placeholder.</summary>
+    public static PlaceholderTab Settings() => new("Settings", "SettingsTab");
+
+    /// <summary>The About tab's placeholder.</summary>
+    public static PlaceholderTab About() => new("About", "AboutTab");
 
     /// <inheritdoc/>
     protected internal override Control BuildContent() => new Panel();

@@ -1,0 +1,26 @@
+{
+  "description": "Fallout4.ini is a folder, so it is skipped like a missing file; the other two are read (INI-2).",
+  "operation": "game-info",
+  "parity": [
+    "INI-2",
+    "INI-4"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents/My Games/Fallout4/Fallout4.ini"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

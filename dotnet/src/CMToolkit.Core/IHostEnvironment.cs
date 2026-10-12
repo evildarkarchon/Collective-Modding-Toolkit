@@ -62,6 +62,19 @@ public interface IHostEnvironment
 
     /// <summary>An environment variable (<c>os.getenv</c>), or null if it isn't set.</summary>
     string? GetEnvironmentVariable(string name);
+
+    /// <summary>
+    /// The process's working directory (<c>Path.cwd()</c>): where the game path search looks second (GP-1), and what
+    /// relative paths, such as an MO2 <c>gamePath</c> of <c>.</c>, resolve against.
+    /// </summary>
+    string CurrentDirectory { get; }
+
+    /// <summary>
+    /// A shell folder's path as <c>SHGetFolderPathW(None, csidl, None, 0, buf)</c> leaves it in the buffer: the current
+    /// path, or an empty string when the lookup fails (the buffer stays zeroed). Callers check that it exists, as
+    /// <c>utils.get_environment_path</c> does.
+    /// </summary>
+    string GetKnownFolderPath(KnownFolder folder);
 }
 
 /// <summary>The real machine.</summary>
@@ -102,4 +115,21 @@ public sealed class SystemHostEnvironment : IHostEnvironment
 
     /// <inheritdoc/>
     public string? GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name);
+
+    /// <inheritdoc/>
+    public string CurrentDirectory => Environment.CurrentDirectory;
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Issue #4 mapped <c>SHGetFolderPathW</c> to <see cref="Environment.GetFolderPath(Environment.SpecialFolder)"/>.
+    /// Neither creates the folder. Both verify that it exists by default (no <c>CSIDL_FLAG_DONT_VERIFY</c> /
+    /// <c>KF_FLAG_DONT_VERIFY</c>) and fail when it doesn't, which .NET reports as an empty string and the reference
+    /// reads from its zeroed buffer, so the two agree there too.
+    /// </remarks>
+    public string GetKnownFolderPath(KnownFolder folder) => Environment.GetFolderPath(folder switch
+    {
+        KnownFolder.Documents => Environment.SpecialFolder.Personal,
+        KnownFolder.LocalAppData => Environment.SpecialFolder.LocalApplicationData,
+        _ => throw new ArgumentOutOfRangeException(nameof(folder), folder, null),
+    });
 }

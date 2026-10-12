@@ -1,0 +1,24 @@
+{
+  "description": "sLanguage names no known language (and the English voices aren't doubled): the language is English (INI-4).",
+  "operation": "game-info",
+  "parity": [
+    "INI-4"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

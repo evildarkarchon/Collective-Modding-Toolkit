@@ -1,0 +1,15 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": "Data",
+    "f4sePath": null,
+    "gamePath": ".",
+    "language": "en",
+    "prefs": {},
+    "settings": {}
+  }
+}

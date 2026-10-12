@@ -519,3 +519,37 @@ def about_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noq
 			"links": links,
 		},
 	}
+
+
+@operation("game-info")
+def game_info_operation(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""GP-1..GP-4 and INI-1..INI-4: the real ``GameInfo`` constructor, which finds the mod manager, then the game path
+	(MO2 ``gamePath``, the CWD, the Steam and GOG registry keys, then the scripted dialogs), then reads the game INIs.
+
+	A deliberate ``sys.exit()`` (the "Fallout 4 Not Found" and "Game not found" flows) is recorded as ``exitCode``, and
+	a failure as ``error`` (see ``_error``). Otherwise ``game`` holds the paths as ``str(path)`` (T-7), the two INI
+	dicts exactly as parsed (B-14), the language and the BA2 suffixes. The dialogs shown are added by ``record.py``.
+	"""
+	from tkinter import StringVar  # noqa: PLC0415
+
+	import game_info  # noqa: PLC0415
+
+	try:
+		game = game_info.GameInfo(StringVar(session.root), StringVar(session.root))
+	except SystemExit as e:
+		# sys.exit() carries None, which the process reports as exit status 0.
+		return {"exitCode": 0 if e.code is None else e.code}
+	except Exception as e:  # noqa: BLE001 - recorded, or re-raised by _error
+		return {"error": _error(golden, e)}
+
+	return {
+		"game": {
+			"gamePath": _path_text(golden, game.game_path),
+			"dataPath": _path_text(golden, game.data_path),
+			"f4sePath": _path_text(golden, game.f4se_path),
+			"settings": game.game_settings,
+			"prefs": game.game_prefs,
+			"language": str(game.language),
+			"ba2Suffixes": list(game.ba2_suffixes),
+		},
+	}

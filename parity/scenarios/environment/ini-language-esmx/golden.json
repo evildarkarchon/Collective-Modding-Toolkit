@@ -1,0 +1,20 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en",
+      "voices_esmx"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\Game",
+    "language": "esmx",
+    "prefs": {},
+    "settings": {
+      "general": {
+        "slanguage": "esmx"
+      }
+    }
+  }
+}

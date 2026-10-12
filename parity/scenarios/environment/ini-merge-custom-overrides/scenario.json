@@ -1,0 +1,26 @@
+{
+  "description": "All three INIs: Fallout4.ini and Fallout4Custom.ini merge into the settings with Custom overriding (a differently-cased header is the same section), Prefs stays separate and its sLanguage is ignored (INI-2, INI-3, INI-4).",
+  "operation": "game-info",
+  "parity": [
+    "INI-2",
+    "INI-3",
+    "INI-4"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

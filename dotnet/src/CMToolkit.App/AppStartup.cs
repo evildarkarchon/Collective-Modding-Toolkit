@@ -1,16 +1,22 @@
 using Avalonia.Controls;
 using CMToolkit.App.Runtime;
-using CMToolkit.Core;
 using CMToolkit.App.Views;
+using CMToolkit.Core;
 
 namespace CMToolkit.App;
 
 /// <summary>What startup produced: the window to show, and the exit code once it closes.</summary>
-/// <param name="Window">The main window, unshown; or, if building failed, the startup failure dialog.</param>
+/// <param name="Window">
+/// The main window, unshown; or, if building failed, the startup failure dialog; or null when startup ended on purpose
+/// (the reference's <c>sys.exit()</c> in the game path dialogs, GP-2/GP-3), and the process exits at once.
+/// </param>
 /// <param name="Failed">Whether building the app failed.</param>
-public sealed record StartupResult(Window Window, bool Failed)
+public sealed record StartupResult(Window? Window, bool Failed)
 {
-    /// <summary>The process exit code once <see cref="Window"/> closes: 1 after a startup failure, as PyInstaller's.</summary>
+    /// <summary>
+    /// The process exit code once <see cref="Window"/> closes, or at once without one: 1 after a startup failure, as
+    /// PyInstaller's; 0 otherwise, including a deliberate exit (<c>sys.exit()</c> with no code).
+    /// </summary>
     public int ExitCode => Failed ? 1 : 0;
 }
 
@@ -45,10 +51,10 @@ public static class AppStartup
     /// window without showing it. The caller shows <see cref="StartupResult.Window"/>.
     /// </summary>
     /// <param name="runtime">The app runtime, whose log records a failure.</param>
-    /// <param name="buildMainWindow">Builds the unshown main window. Core calls inside it run with
-    /// <see cref="Task.Run(Action)"/> rather than through the runner: there is no window yet to block, and a failure
-    /// belongs in the startup dialog, not the Error Window.</param>
-    public static async Task<StartupResult> BuildAsync(AppRuntime runtime, Func<Task<Window>> buildMainWindow)
+    /// <param name="buildMainWindow">Builds the unshown main window, or returns null to end startup on purpose. Core
+    /// calls inside it run with <see cref="Task.Run(Action)"/> rather than through the runner: there is no window yet to
+    /// block, and a failure belongs in the startup dialog, not the Error Window.</param>
+    public static async Task<StartupResult> BuildAsync(AppRuntime runtime, Func<Task<Window?>> buildMainWindow)
     {
         try
         {

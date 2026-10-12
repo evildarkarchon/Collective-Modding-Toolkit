@@ -1,0 +1,28 @@
+{
+  "description": "The user picks a file in a folder without Fallout4.exe: the plain 'Game not found' error, since no registry path existed, then exit (GP-3).",
+  "operation": "game-info",
+  "parity": [
+    "GP-2",
+    "GP-3"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "dialogs": [
+      {
+        "function": "askyesno",
+        "answer": true
+      },
+      {
+        "function": "askopenfilename",
+        "answer": "<ROOT>/Other/Fallout4.esm"
+      }
+    ],
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

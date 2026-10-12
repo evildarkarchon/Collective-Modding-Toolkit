@@ -13,9 +13,9 @@ crops stacked, at 2x). A crop is ``x,y,width,height`` in window pixels; a width 
 A human approves the pair in the slice PR; nothing compares pixels automatically, and CI never runs this.
 
 The reference runs as ``src/main.py`` itself, unmodified, in a child process with the scenario's host fakes installed
-(``Session`` in show mode). The C# exe starts in the scenario's ``cwd``. Each app gets its own copy of the tree.
-The exe sees no other host fact, which holds only while nothing it renders reads one; see "Screenshots" in
-``parity/README.md`` before capturing a screen that does.
+(``Session`` in show mode). The C# exe starts in the scenario's ``cwd`` with ``CMT_PARITY_SCENARIO`` and
+``CMT_PARITY_ROOT`` set, so it runs on the same host block (its ``ScenarioHostEnvironment``). Each app gets its own copy
+of the tree. Scripted ``dialogs`` answer only the reference's; the exe shows real ones, so pick scenarios that ask none.
 """
 
 import argparse
@@ -402,10 +402,16 @@ def main() -> int:
 	av_machine = materialize(scenario)
 	try:
 		cwd = Path(av_machine.expand(scenario.host["cwd"])) if "cwd" in scenario.host else av_machine.root
+		# The exe's ScenarioHostEnvironment reads the same host block, so both apps run on the same fake machine.
+		av_env = {
+			**os.environ,
+			"CMT_PARITY_SCENARIO": str(scenario.directory / "scenario.json"),
+			"CMT_PARITY_ROOT": str(av_machine.root),
+		}
 		avalonia = run_and_capture(
 			[str(exe)],
 			cwd,
-			None,
+			av_env,
 			"cm-toolkit.exe",
 			args.timeout,
 			allow_dpi=args.allow_dpi,

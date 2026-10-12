@@ -1,0 +1,24 @@
+{
+  "description": "sLanguage=esmx, the longest code: voices_esmx is added (INI-4).",
+  "operation": "game-info",
+  "parity": [
+    "INI-4"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}
