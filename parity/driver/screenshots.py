@@ -6,6 +6,7 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
     uv run python parity/driver/screenshots.py shell/main-window --slice shell
     uv run python parity/driver/screenshots.py shell/main-window --slice shell --crop tab-strip=0,0,-1,80
     uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
+    uv run python parity/driver/screenshots.py downgrader/og-steam --slice downgrader/og-steam --modal Downgrader
 
 It writes ``parity/screenshots/<slice>/tk.png`` and ``avalonia.png`` (each window's outer rectangle, title bar included),
 ``compare.png`` (the two side by side plus a 50/50 blend), and one ``compare-<name>.png`` per ``--crop`` (the three
@@ -54,6 +55,13 @@ TAB_CENTRES = {
 	"Settings": (397, 25),
 	"About": (487, 25),
 }
+# The modals ``--modal`` can open: where the C# app's opening button sits on the Overview tab, in client pixels (posted
+# clicks again), and the reference's opener, called in-process on the CMChecker once the Overview has loaded.
+MODAL_BUTTONS = {
+	"Downgrader": (142, 420),  # Overview, Binaries frame: "Downgrade Manager..."
+}
+# Tells the reference child which modal to open, so its positional arguments stay as they were.
+MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
 PW_RENDERFULLCONTENT = 2
 DPI_100 = 96
 
@@ -190,11 +198,14 @@ def run_and_capture(
 	allow_dpi: bool,
 	tab: str | None = None,
 	click_tab: bool = False,
+	modal: str | None = None,
 ) -> Image.Image:
 	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
 
 	With ``tab``, the capture waits longer for that tab to be selected and built; ``click_tab`` makes this function
 	select it by clicking its header (the C# app), rather than the app selecting it itself (the reference child).
+	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
+	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself.
 	"""
 	process = subprocess.Popen(command, cwd=cwd, env=env)
 	try:
@@ -218,6 +229,15 @@ def run_and_capture(
 				click(hwnd, TAB_CENTRES[tab])
 			# Long enough for the reference's delayed select and for either app to build the tab.
 			time.sleep(3)
+		if modal is not None:
+			if click_tab:
+				click(hwnd, MODAL_BUTTONS[modal])
+			# Long enough for the reference's delayed open and for either app to detect and build the modal.
+			time.sleep(3)
+			hwnd = find_window(process.pid, modal)
+			if hwnd is None:
+				msg = f"{label} showed no window titled {modal!r}"
+				raise RuntimeError(msg)
 		dpi = user32.GetDpiForWindow(hwnd)
 		if dpi != DPI_100 and not allow_dpi:
 			msg = f"{label}'s window is at {dpi * 100 // DPI_100} % scaling; screenshot pairs are taken at 100 % (or pass --allow-dpi)"
@@ -345,7 +365,26 @@ def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> 
 			self.root.after(2000, lambda: page.master.select(page))
 
 		cm_checker.CMChecker.__init__ = init_then_select  # type: ignore[method-assign]
+	modal = os.environ.get(MODAL_VARIABLE)
+	if modal is not None:
+		import cm_checker  # noqa: PLC0415
+
+		openers = {"Downgrader": _open_downgrader}
+		original = cm_checker.CMChecker.__init__
+
+		def init_then_open(self: Any, *args: Any, **kwargs: Any) -> None:
+			original(self, *args, **kwargs)
+			self.root.after(2000, lambda: openers[modal](self))
+
+		cm_checker.CMChecker.__init__ = init_then_open  # type: ignore[method-assign]
 	runpy.run_path(str(SRC / "main.py"), run_name="__main__")
+
+
+def _open_downgrader(checker: Any) -> None:
+	"""What the Overview's ``Downgrade Manager...`` button runs."""
+	from downgrader import Downgrader  # noqa: PLC0415
+
+	Downgrader(checker.root, checker)
 
 
 def main() -> int:
@@ -361,6 +400,7 @@ def main() -> int:
 	parser.add_argument("--exe", type=Path, default=DEFAULT_EXE, help=f"the published C# exe (default: {DEFAULT_EXE})")
 	parser.add_argument("--crop", type=parse_crop, action="append", default=[], help="name=x,y,width,height (repeatable)")
 	parser.add_argument("--tab", choices=list(TAB_CENTRES), help="the tab to select before capturing (default: Overview)")
+	parser.add_argument("--modal", choices=list(MODAL_BUTTONS), help="capture this modal, opened from the Overview, instead")
 	parser.add_argument("--timeout", type=float, default=60, help="seconds to wait for each window")
 	parser.add_argument("--allow-dpi", action="store_true", help="capture even when the window isn't at 100 %% scaling")
 	args = parser.parse_args()
@@ -377,6 +417,8 @@ def main() -> int:
 	out_dir = PARITY / "screenshots" / args.slice
 	out_dir.mkdir(parents=True, exist_ok=True)
 	env = {**os.environ, "PYTHONHASHSEED": "0"}
+	if args.modal is not None:
+		env[MODAL_VARIABLE] = args.modal
 
 	tk_machine = materialize(scenario)
 	try:
@@ -395,6 +437,7 @@ def main() -> int:
 			args.timeout,
 			allow_dpi=args.allow_dpi,
 			tab=args.tab,
+			modal=args.modal,
 		)
 	finally:
 		tk_machine.cleanup()
@@ -417,6 +460,7 @@ def main() -> int:
 			allow_dpi=args.allow_dpi,
 			tab=args.tab,
 			click_tab=True,
+			modal=args.modal,
 		)
 	finally:
 		av_machine.cleanup()

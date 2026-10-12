@@ -27,4 +27,10 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     /// which the Overview tab sets and the F4SE, Scanner and Downgrader read.
     /// </summary>
     public OverviewState Overview { get; } = new();
+
+    /// <summary>
+    /// The main window built over this session (the reference's <c>cmc.root</c>), which owns the windows the tabs open,
+    /// such as the Downgrader. Set once it is built, after the tabs are composed; null before.
+    /// </summary>
+    public Views.MainWindow? MainWindow { get; set; }
 }

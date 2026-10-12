@@ -107,3 +107,9 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   buttons' paddings were measured off the pair rather than derived from sv_ttk.
 - If an Overview refresh fails, its error is reported and the previous report and frames stay. The reference cleared
   the problem list first and was left with a partial one.
+- Downgrader (see [`parity/screenshots/downgrader/`](../parity/screenshots/downgrader/)): the frames, radios, checkboxes,
+  buttons and the log pane's box line up with Tk's. The log pane's emoji is Segoe UI Symbol's filled glyph in the
+  tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
+  scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
+  progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
+  pane's key handling (Ctrl+A/C only, T-13) is the Archive Patcher slice's.

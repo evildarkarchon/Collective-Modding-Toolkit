@@ -117,3 +117,10 @@ MM-2
 T-9
 B-8
 B-13
+
+# Downgrader: window and version detection (#60). TOOL-1 is proven in part (the Downgrade Manager button);
+# #59 (Archive Patcher), its last claimant, adds it.
+DG-1
+DG-2
+DG-3
+OVW-B9

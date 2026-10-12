@@ -1,3 +1,5 @@
+using CMToolkit.App.Views;
+
 namespace CMToolkit.App.Tabs;
 
 /// <summary>
@@ -10,10 +12,10 @@ public static class MainTabs
     /// <param name="session">What startup produced: runtime, settings, PC info and the game installation.</param>
     public static IReadOnlyList<TabPage> Compose(AppSession session) =>
     [
-        new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview),
+        new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview, () => DowngraderWindow.Open(session)),
         PlaceholderTab.F4se(),
         PlaceholderTab.Scanner(),
-        new ToolsTab(session.Runtime),
+        new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session)),
         new SettingsTab(session.Settings),
         new AboutTab(session.Runtime),
     ];

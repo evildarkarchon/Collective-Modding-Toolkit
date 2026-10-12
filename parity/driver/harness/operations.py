@@ -847,3 +847,134 @@ def log_lines_of(golden: GoldenContext, records: list[logging.LogRecord], logger
 				line["message"] = golden.text(line["message"])
 				lines.append(line)
 	return lines
+
+
+def _text_runs(text: Any) -> list[dict[str, Any]]:
+	"""A Tk ``Text`` widget's content as runs in reading order: each tagged range with its tag's foreground, and the
+	untagged text between them with ``None``. The trailing newline Tk always keeps is left out.
+	"""
+	content = text.get("1.0", "end-1c")
+	starts: list[tuple[int, int, str | None]] = []
+	for tag in text.tag_names():
+		if tag == "sel":
+			continue
+		ranges = text.tag_ranges(tag)
+		for start, end in zip(ranges[::2], ranges[1::2], strict=True):
+			first = int(text.count("1.0", start, "chars")[0] or 0) if text.compare(start, ">", "1.0") else 0
+			length = int(text.count(start, end, "chars")[0] or 0)
+			starts.append((first, first + length, str(text.tag_cget(tag, "foreground")) or None))
+	runs: list[dict[str, Any]] = []
+	at = 0
+	for first, last, colour in sorted(starts):
+		if first > at:
+			runs.append({"text": content[at:first], "color": None})
+		runs.append({"text": content[first:last], "color": colour})
+		at = last
+	if at < len(content):
+		runs.append({"text": content[at:], "color": None})
+	return runs
+
+
+@operation("downgrader-window")
+def downgrader_window(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""DG-1, DG-2, DG-3: the real ``Downgrader`` opened over the real ``CMChecker`` once its Overview tab has loaded (as
+	at startup, so ``cmc.game``'s Install Type, which the labels read, comes from the Overview's binaries), read back off
+	its widgets. Nothing is patched: the Patch All run is the next slice's.
+
+	``downgrader`` holds the detected version of each of the six files in table order (``current_versions``), the game's
+	Install Type, the window title and size, and the derived ``CRCs_by_type``. Its ``display`` is the window as shown:
+	both Current frames (names label and each coloured value), the Desired Version radios and which is selected, the
+	Options checkboxes with their values and tooltips, the Patch All and About buttons (and what About opens), the log
+	pane's text as coloured runs, the progress bar, and the log lines written while opening. The Overview's Modules and
+	Archives gathering is skipped as in ``overview-tab``: the Downgrader doesn't read them.
+	"""
+	import downgrader  # noqa: PLC0415
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	tooltips = _Tooltips()
+	opened: list[dict[str, Any]] = []
+	downgrader.ToolTip = tooltips
+	downgrader.AboutWindow = lambda _parent, _cmc, width, height, title, text: opened.append({
+		"window": "AboutWindow",
+		"width": width,
+		"height": height,
+		"title": title,
+		"text": golden.text(text),
+	})
+	_overview.ToolTip = _Tooltips()
+	_overview.OverviewTab.get_info_modules = lambda _self, *, refresh=False: None  # type: ignore[method-assign]  # noqa: ARG005
+	_overview.OverviewTab.get_info_archives = lambda _self: None  # type: ignore[method-assign]
+
+	root = session.root
+	assert root is not None
+	checker = CMChecker(root, AppSettings())
+	# Processing events delivers <<NotebookTabChanged>> for the first tab, which loads it as at startup.
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	capture = capture_logs()
+	window = downgrader.Downgrader(root, checker)
+	root.update_idletasks()
+
+	def current(frame: Any) -> dict[str, Any]:
+		names = _grid_at(frame, 0, 0)
+		values = sorted(
+			(c for c in _grid_children(frame) if int(c.grid_info()["column"]) == 1),
+			key=lambda c: int(c.grid_info()["row"]),
+		)
+		return {
+			"title": str(frame.cget("text")),
+			"names": str(names.cget("text")),
+			"values": [{"text": str(v.cget("text")), "color": str(v.cget("foreground"))} for v in values],
+		}
+
+	frame_desired = _grid_at(window, 0, 1)
+	radios = [
+		{
+			"text": str(radio.cget("text")),
+			"selected": str(window.getvar(str(radio.cget("variable")))) == str(radio.cget("value")),
+		}
+		for radio in _grid_children(frame_desired)
+	]
+	frame_options = _grid_at(window, 2, 1)
+	options = [
+		{
+			"text": str(check.cget("text")),
+			"checked": bool(window.getvar(str(check.cget("variable")))),
+			"tooltip": tooltips.of(check),
+		}
+		for check in _grid_children(frame_options)
+	]
+	about = _grid_at(window, 2, 2)
+	before = len(opened)
+	about.invoke()
+	# The size the modal asks for in its wm_geometry: in record mode it is never mapped, so Tk would report 1x1.
+	width, height = window.width, window.height
+
+	return {
+		"downgrader": {
+			"gameInstallType": str(checker.game.install_type),
+			"versions": [{"file": name, "installType": str(t)} for name, t in window.current_versions.items()],
+			"crcsByType": {str(t): list(crcs) for t, crcs in downgrader.Downgrader.CRCs_by_type.items()},
+			"display": {
+				"title": window.wm_title(),
+				"width": width,
+				"height": height,
+				"game": current(window.frame_game),
+				"creationKit": current(window.frame_ck),
+				"desiredVersion": {"title": str(frame_desired.cget("text")), "radios": radios},
+				"options": {"title": str(frame_options.cget("text")), "checks": options},
+				"patch": {"text": str(window.button_patch.cget("text")), "enabled": not window.button_patch.instate(["disabled"])},
+				"about": {"text": str(about.cget("text")), "opens": opened[before] if len(opened) > before else None},
+				"log": _text_runs(window.logger._text),  # noqa: SLF001 - the pane's only widget
+				"progress": {"value": float(window.progress_var.get()), "maximum": float(window.progress_bar.cget("maximum"))},
+				"processingData": window.processing_data,
+				"logLines": log_lines_of(golden, capture.records, {"downgrader", "logger"}),
+			},
+		},
+	}

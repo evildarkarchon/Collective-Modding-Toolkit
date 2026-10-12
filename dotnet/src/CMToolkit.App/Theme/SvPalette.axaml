@@ -40,6 +40,10 @@
   <SolidColorBrush x:Key="CmtUpdateBanner" Color="#98FB98" />
   <SolidColorBrush x:Key="CmtUpdateText" Color="#006400" />
   <SolidColorBrush x:Key="CmtUpdateLink" Color="#36648B" />
+  <!-- downgrader.py COLOR_OG / COLOR_NG / COLOR_AE ("dodger blue", "SlateBlue1", "salmon"), the Downgrader's labels (DG-3). -->
+  <SolidColorBrush x:Key="CmtDowngraderOldGen" Color="#1E90FF" />
+  <SolidColorBrush x:Key="CmtDowngraderNextGen" Color="#836FFF" />
+  <SolidColorBrush x:Key="CmtDowngraderAnniversary" Color="#FA8072" />
 
   <!-- sv_ttk greys, measured from its sprites. -->
   <SolidColorBrush x:Key="SvBg" Color="#1C1C1C" />
@@ -50,6 +54,11 @@
   <SolidColorBrush x:Key="SvRadioBorder" Color="#929292" />
   <SolidColorBrush x:Key="SvRadioFill" Color="#191919" />
   <SolidColorBrush x:Key="SvAccent" Color="#3CD648" />
+  <!-- sv_ttk's -fg, which tk_setPalette gives classic Tk widgets such as the log pane's Text, and the Text's 1 px
+       sunken relief (dark top-left, light bottom-right), sampled from the Downgrader. -->
+  <SolidColorBrush x:Key="SvFg" Color="#FAFAFA" />
+  <SolidColorBrush x:Key="SvSunkenDark" Color="#555555" />
+  <SolidColorBrush x:Key="SvSunkenLight" Color="#8E8E8E" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
   <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by
