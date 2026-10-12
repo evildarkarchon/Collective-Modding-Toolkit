@@ -35,19 +35,13 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     public Views.MainWindow? MainWindow { get; set; }
 
     /// <summary>
-    /// The Overview tab's refresh (<see cref="Tabs.OverviewTab.RefreshAsync"/>), which <see cref="Tabs.MainTabs"/> sets
-    /// when it composes the tabs; null without an Overview tab. Callers use <see cref="RefreshOverviewAsync"/>.
-    /// </summary>
-    public Func<Task<bool>>? OverviewRefresh { get; set; }
-
-    /// <summary>
     /// <c>cmc.refresh_tab(Tab.Overview)</c>, which the Archive Patcher and the Downgrader call: logs
     /// <c>Refresh Tab : Overview</c> at DEBUG, then refreshes the Overview tab as its button does (OVW-8).
     /// </summary>
     /// <remarks>
-    /// The Scanner (#56) reaches the same refresh through <see cref="ViewModels.OverviewState.RefreshAsync"/>, which
-    /// the Overview tab registers itself, and logs the DEBUG line there; both paths end in
-    /// <see cref="Tabs.OverviewTab.RefreshAsync"/>.
+    /// There is one refresh registration: the Overview tab sets <see cref="ViewModels.OverviewState.Refresher"/> on
+    /// <see cref="Overview"/> when it is built. The Scanner (#56) calls <see cref="ViewModels.OverviewState.RefreshAsync"/>
+    /// itself and logs the DEBUG line there; both paths end in <see cref="Tabs.OverviewTab.RefreshAsync"/>.
     /// </remarks>
     /// <returns>
     /// False when the refresh failed (already reported), which in the reference raised out of the caller and skipped the
@@ -56,6 +50,13 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     public async Task<bool> RefreshOverviewAsync()
     {
         Runtime.Logger.Write(Microsoft.Extensions.Logging.LogLevel.Debug, "Refresh Tab : Overview");
-        return OverviewRefresh is null || await OverviewRefresh();
+        return Overview.Refresher is null || await Overview.RefreshAsync();
     }
+
+    /// <summary>
+    /// What the Downgrader downloads Delta Patches through (NET-3): <see cref="Core.Downgrader.DeltaPatches.CreateHandler"/>
+    /// at startup, a scenario's canned responses when the exe runs on one, a fake in tests. Null, as in tests that set
+    /// none, makes every download fail rather than reach the network.
+    /// </summary>
+    public HttpMessageHandler? DeltaPatchHttp { get; set; }
 }

@@ -41,6 +41,11 @@ has read the archives) applies the tree's `Changes/` overlay at that point: each
 file at the same root-relative path, and an empty `<name>.delete` deletes `<name>`. Until then `Changes/` is just
 another folder in the tree (`apply_changes` in `operations.py`, `ArchivePatcherGolden.ApplyChanges` in C#).
 
+An operation that clicks through a window before its run reads the clicks from the tree's `Script/<operation>.json`.
+The `downgrader-run` operation reads `Script/downgrader-run.json`: `desiredVersion` (the radio to click,
+`"Old-Gen"`/`"Next-Gen"`), `keepBackups` and `deletePatches` (the value to click each box to), each optional; unknown
+keys are errors. Nothing in the app reads `Script/`, and the golden echoes the script it ran.
+
 ### `scenario.json`
 
 ```jsonc

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
@@ -15,12 +16,20 @@ namespace CMToolkit.App.Views;
 /// <summary>
 /// <c>downgrader.Downgrader</c> (§9.3, 600x334): the detected version of the game's and the Creation Kit's files
 /// (DG-1, DG-3), the Desired Version and the two options, the Patch All and About buttons, a log pane and a progress
-/// bar (DG-2). The Patch All run itself (DG-4..DG-6) is the next Downgrader slice's.
+/// bar (DG-2), and the Patch All run (DG-4..DG-6), which Core's <see cref="DowngraderRun"/> owns.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Like the reference's <c>ModalWindow.__init__</c>, the window is on screen before the detection runs, and the
 /// detection runs as a blocking operation (ADR-0003; the reference read the files on the UI thread). If it fails, the
 /// error is reported and the window stays up, empty, as the half-built Toplevel did.
+/// </para>
+/// <para>
+/// A Patch All click is one blocking operation (the reference's <c>patch_files</c> ran on the UI thread). The download
+/// poll it may start is an operation of its own, interactive while a patch downloads and blocking while one is applied,
+/// as the run's phase markers say (THR-2). The run's events drive the log pane, the progress bar, the button, the close
+/// guard and the version labels, on the UI thread, in the run's order.
+/// </para>
 /// </remarks>
 public sealed class DowngraderWindow : ModalWindow
 {
@@ -63,19 +72,56 @@ public sealed class DowngraderWindow : ModalWindow
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
     private readonly SettingsStore _settings;
+    private readonly Func<Task<bool>> _refreshOverview;
+    private readonly HttpMessageHandler? _deltaPatchHttp;
+    private readonly IProgress<OperationEvent> _events;
+
+    /// <summary>The six version labels in table order (the game's three, then the Creation Kit's), and their colour bindings.</summary>
+    private readonly List<(TextBlock Label, IDisposable Colour)> _versionLabels = [];
+
+    private DowngraderRun? _run;
+    private Button? _patch;
+    private RadioButton? _oldGen;
+    private CheckBox? _keepBackups;
+    private CheckBox? _deletePatches;
+    private ProgressBar? _progress;
+
+    /// <summary>Keep Backups as last ticked, for the run's live reads from its worker thread.</summary>
+    private volatile bool _keepBackupsNow;
+
+    /// <summary>Delete Patches as last ticked, for the run's live reads from its worker thread.</summary>
+    private volatile bool _deletePatchesNow;
+
+    /// <summary>How many of the run's operations (clicks and polls) are scheduled or running.</summary>
+    private int _operations;
 
     /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
     /// <param name="game">The installation whose game folder holds the six files.</param>
     /// <param name="host">The machine the files are read on.</param>
     /// <param name="overview">The Overview's state, whose Install Type decides how a shared Next-Gen &amp; Anniversary file reads (DG-3).</param>
-    /// <param name="settings">Where Keep Backups and Delete Patches start from.</param>
-    public DowngraderWindow(AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview, SettingsStore settings)
+    /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them (SET-7).</param>
+    /// <param name="refreshOverview">
+    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run when the patch queue empties; false when it failed (already reported).
+    /// By default there is no Overview to refresh, and it succeeds.
+    /// </param>
+    /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
+    public DowngraderWindow(
+        AppRuntime runtime,
+        GameInstall game,
+        IHostEnvironment host,
+        OverviewState overview,
+        SettingsStore settings,
+        Func<Task<bool>>? refreshOverview = null,
+        HttpMessageHandler? deltaPatchHttp = null)
         : base(runtime, "Downgrader", 600, 334)
     {
         _game = game;
         _host = host;
         _overview = overview;
         _settings = settings;
+        _refreshOverview = refreshOverview ?? (() => Task.FromResult(true));
+        _deltaPatchHttp = deltaPatchHttp;
+        _events = new UiThreadProgress<OperationEvent>(Apply);
     }
 
     /// <summary>
@@ -88,9 +134,14 @@ public sealed class DowngraderWindow : ModalWindow
         {
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
             // click handler that called it has nothing left to do.
-            _ = new DowngraderWindow(session.Runtime, session.Game, session.Host, session.Overview, session.Settings).OpenAsync(owner);
+            _ = new DowngraderWindow(
+                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp)
+                .OpenAsync(owner);
         }
     }
+
+    /// <summary>Whether a Patch All click or the download poll it started is scheduled or still running.</summary>
+    public bool IsRunning => Volatile.Read(ref _operations) > 0;
 
     /// <summary>
     /// The detected versions (<c>current_versions</c>), in table order; null until the detection has run, and for good
@@ -124,7 +175,139 @@ public sealed class DowngraderWindow : ModalWindow
             return;
         }
 
+        _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions);
         Content = Build(Versions);
+    }
+
+    /// <summary>
+    /// Patch All (<c>patch_files</c>, DG-4): disables the button, clears the log pane and saves Keep Backups and Delete
+    /// Patches if either differs from the settings (SET-7), then runs the click as a blocking operation for the Desired
+    /// Version the radios show now.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when the click is done; a download it started goes on in the poll. If the click fails, the
+    /// error is reported and the rest is skipped, the button staying disabled, as the exception left it in Tk.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
+    public async Task PatchAllAsync()
+    {
+        var run = _run ?? throw new InvalidOperationException("The Downgrader isn't built.");
+        _patch!.IsEnabled = false;
+        Log!.Clear();
+
+        var current = _settings.Current;
+        var keepBackups = _keepBackups!.IsChecked == true;
+        var deletePatches = _deletePatches!.IsChecked == true;
+        if (current.DowngraderKeepBackups != keepBackups || current.DowngraderDeleteDeltas != deletePatches)
+        {
+            _settings.Save(current with { DowngraderKeepBackups = keepBackups, DowngraderDeleteDeltas = deletePatches });
+        }
+
+        var desired = _oldGen!.IsChecked == true ? InstallType.OldGen : InstallType.NextGen;
+        Interlocked.Increment(ref _operations);
+        try
+        {
+            await Runtime.Operations.RunPhasedAsync(
+                "Downgrader Patch All", OperationPhase.Blocking, async _ =>
+                {
+                    await run.PatchAllAsync(desired, new WindowHost(this), _events).ConfigureAwait(false);
+                    return true;
+                });
+        }
+        catch (OperationFailedException)
+        {
+            // Already reported by the runner; the rest of patch_files was skipped, as the exception skipped it in Tk.
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _operations);
+        }
+    }
+
+    /// <summary>Shows one of the run's events, on the UI thread, in the run's order.</summary>
+    private void Apply(OperationEvent e)
+    {
+        switch (e)
+        {
+            case LogLine line:
+                Log!.Log(line);
+                break;
+            case Percent percent:
+                _progress!.Value = percent.Value;
+                break;
+            case PatchAllEnabled button:
+                _patch!.IsEnabled = button.Enabled;
+                break;
+            case QueueRunning queue:
+                ProcessingData = queue.Running;
+                break;
+            case VersionsDetected detected:
+                Versions = detected.Versions;
+                DrawVersions(detected.Versions);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// <c>draw_versions</c>: each version label's text and colour from the versions just detected and the game's
+    /// Install Type as the Overview last gathered it (DG-3).
+    /// </summary>
+    private void DrawVersions(IReadOnlyList<DowngraderFileVersion> versions)
+    {
+        for (var i = 0; i < _versionLabels.Count; i++)
+        {
+            var (label, colour) = _versionLabels[i];
+            colour.Dispose();
+            _versionLabels[i] = (label, Colour(label, versions[i].InstallType));
+        }
+    }
+
+    /// <summary>Sets a version label's text, and binds its colour, for a file of <paramref name="type"/>.</summary>
+    private IDisposable Colour(TextBlock label, InstallType type)
+    {
+        var (text, colourKey) = Label(type, _overview.InstallType);
+        label.Text = text;
+        return label.Bind(TextBlock.ForegroundProperty, label.GetResourceObservable(colourKey));
+    }
+
+    /// <summary>Runs the download poll as its own operation once the UI thread is free (the reference's <c>after()</c>).</summary>
+    private void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll)
+    {
+        // Counted now, on the run's thread, so the window never looks idle between the click and its poll.
+        Interlocked.Increment(ref _operations);
+        Dispatcher.UIThread.Post(async () =>
+        {
+            try
+            {
+                await Runtime.Operations.RunPhasedAsync(
+                    "Downgrader download", OperationPhase.Interactive, async phases =>
+                    {
+                        await poll(phases).ConfigureAwait(false);
+                        return true;
+                    });
+            }
+            catch (OperationFailedException)
+            {
+                // Already reported by the runner. A failed download (B-10) leaves the queue stuck for good, as the
+                // reference's dead thread left its poll waiting forever.
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _operations);
+            }
+        });
+    }
+
+    /// <summary>The window as the run sees it: live reads of the boxes, the Overview refresh and the poll.</summary>
+    private sealed class WindowHost(DowngraderWindow window) : IDowngraderHost
+    {
+        public bool KeepBackups => window._keepBackupsNow;
+
+        public bool DeletePatches => window._deletePatchesNow;
+
+        public Task<bool> RefreshOverviewAsync() => Dispatcher.UIThread.InvokeAsync(window._refreshOverview);
+
+        public void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll) => window.SchedulePoll(poll);
     }
 
     /// <summary>
@@ -160,19 +343,24 @@ public sealed class DowngraderWindow : ModalWindow
 
         // BooleanVar(value=current_versions["Fallout4.exe"] == OG): Old-Gen is preselected only for an Old-Gen game exe.
         var wantsDowngrade = versions[0].InstallType == InstallType.OldGen;
-        var oldGen = new RadioButton { Name = "OldGen", Content = "Old-Gen", IsChecked = wantsDowngrade, GroupName = "DesiredVersion" };
+        var oldGen = _oldGen = new RadioButton { Name = "OldGen", Content = "Old-Gen", IsChecked = wantsDowngrade, GroupName = "DesiredVersion" };
         var nextGen = new RadioButton { Name = "NextGen", Content = "Next-Gen", IsChecked = !wantsDowngrade, GroupName = "DesiredVersion" };
         var desired = new TkGrid { Children = { Place(oldGen, 0, 0), Place(nextGen, 1, 0) } };
         grid.Children.Add(Place(Frame("DesiredVersion", "Desired Version", desired), 0, 1, rowSpan: 2, margin: new Thickness(5, 0)));
 
         var current = _settings.Current;
-        var keepBackups = Check("KeepBackups", "Keep Backups", current.DowngraderKeepBackups, KeepBackupsTooltip);
-        var deletePatches = Check("DeletePatches", "Delete Patches", current.DowngraderDeleteDeltas, DeletePatchesTooltip);
+        var keepBackups = _keepBackups = Check("KeepBackups", "Keep Backups", current.DowngraderKeepBackups, KeepBackupsTooltip);
+        var deletePatches = _deletePatches = Check("DeletePatches", "Delete Patches", current.DowngraderDeleteDeltas, DeletePatchesTooltip);
+        // The run reads the boxes from its worker thread, whenever the reference read the Tk variables (a download
+        // can be under way), so it reads copies kept current here.
+        _keepBackupsNow = current.DowngraderKeepBackups;
+        _deletePatchesNow = current.DowngraderDeleteDeltas;
+        keepBackups.IsCheckedChanged += (_, _) => _keepBackupsNow = keepBackups.IsChecked == true;
+        deletePatches.IsCheckedChanged += (_, _) => _deletePatchesNow = deletePatches.IsChecked == true;
         var options = new TkGrid { Children = { Place(keepBackups, 0, 0), Place(deletePatches, 1, 0) } };
         grid.Children.Add(Place(Frame("Options", "Options", options), 2, 1, rowSpan: 2, margin: new Thickness(5, 0)));
 
-        // The run is the next slice's (DG-4); until then the button is live and does nothing.
-        var patch = new Button
+        var patch = _patch = new Button
         {
             Name = "PatchAll",
             Content = "Patch\n All",
@@ -181,6 +369,7 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
         };
+        patch.Click += (_, _) => _ = PatchAllAsync();
         grid.Children.Add(Place(patch, 0, 2, rowSpan: 2, margin: new Thickness(5, 10, 10, 0)));
 
         var about = new Button
@@ -202,7 +391,7 @@ public sealed class DowngraderWindow : ModalWindow
         grid.Children.Add(bottom);
 
         // ttk.Progressbar(maximum=100), sticky=EW, ipady=1.
-        var progress = new ProgressBar
+        var progress = _progress = new ProgressBar
         {
             Name = "Progress",
             Minimum = 0,
@@ -239,16 +428,14 @@ public sealed class DowngraderWindow : ModalWindow
 
         for (var i = 0; i < files.Count; i++)
         {
-            var (text, colourKey) = Label(files[i].InstallType, _overview.InstallType);
             var value = new TextBlock
             {
                 Name = $"{prefix}{i}",
-                Text = text,
                 TextAlignment = TextAlignment.Right,
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Center,
             };
-            value.Bind(TextBlock.ForegroundProperty, value.GetResourceObservable(colourKey));
+            _versionLabels.Add((value, Colour(value, files[i].InstallType)));
             grid.Children.Add(Place(value, i, 1, margin: new Thickness(5, 0)));
         }
 

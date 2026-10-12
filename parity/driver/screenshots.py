@@ -8,6 +8,7 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
     uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
     uv run python parity/driver/screenshots.py downgrader/og-steam --slice downgrader/og-steam --modal Downgrader
     uv run python parity/driver/screenshots.py scanner/overview-issues --slice scanner/results --tab Scanner --scan --panes
+    uv run python parity/driver/screenshots.py downgrader/run-og-to-ng --slice downgrader-run/og-to-ng --modal Downgrader --patch Next-Gen
     uv run python parity/driver/screenshots.py scanner/details --slice scanner/details --tab Scanner --scan --panes \
         --select version-1-10-163-0.bin --select-at 100,154
 
@@ -74,6 +75,12 @@ SELECT_VARIABLE = "CMT_SCREENSHOT_SELECT"
 # (Errors .. Race Subgraphs) to untick them, then Scan Game. Measured from parity/screenshots/scanner/side-pane.
 SIDE_PANE_TITLE = "Collective Modding Toolkit pane (Side)"
 SCAN_CLICKS = [(26, 70), (26, 98), (26, 126), (26, 154), (26, 182), (26, 210), (100, 375)]
+# Tells the reference child to run the Downgrader's Patch All once it is open (``--patch``), with this Desired Version.
+PATCH_VARIABLE = "CMT_SCREENSHOT_PATCH"
+# Where ``--patch`` clicks in the C# Downgrader's client pixels: each Desired Version radio, and Patch All. Measured from
+# parity/screenshots/downgrader/og-steam, whose six Old-Gen labels lay the window out as the run-og-to-ng scenario does.
+DOWNGRADER_RADIOS = {"Old-Gen": (326, 36), "Next-Gen": (326, 64)}
+DOWNGRADER_PATCH_ALL = (527, 49)
 PW_RENDERFULLCONTENT = 2
 DPI_100 = 96
 
@@ -247,6 +254,7 @@ def run_and_capture(
 	modal: str | None = None,
 	scan: bool = False,
 	panes: bool = False,
+	patch: str | None = None,
 	select: bool = False,
 	select_at: tuple[int, int] | None = None,
 	scan_all: bool = False,
@@ -310,6 +318,14 @@ def run_and_capture(
 			if hwnd is None:
 				msg = f"{label} showed no window titled {modal!r}"
 				raise RuntimeError(msg)
+		if patch is not None:
+			if click_tab:
+				if patch in DOWNGRADER_RADIOS:
+					click(hwnd, DOWNGRADER_RADIOS[patch])
+					time.sleep(0.3)
+				click(hwnd, DOWNGRADER_PATCH_ALL)
+			# Long enough for either app's run: its downloads, decodes and Overview refresh.
+			time.sleep(5)
 		dpi = user32.GetDpiForWindow(hwnd)
 		if dpi != DPI_100 and not allow_dpi:
 			msg = f"{label}'s window is at {dpi * 100 // DPI_100} % scaling; screenshot pairs are taken at 100 % (or pass --allow-dpi)"
@@ -511,10 +527,21 @@ def _scan_every_box(checker: Any) -> None:
 
 
 def _open_downgrader(checker: Any) -> None:
-	"""What the Overview's ``Downgrade Manager...`` button runs."""
+	"""What the Overview's ``Downgrade Manager...`` button runs; with ``--patch``, a second later, the radio and Patch All."""
 	from downgrader import Downgrader  # noqa: PLC0415
 
-	Downgrader(checker.root, checker)
+	window = Downgrader(checker.root, checker)
+	desired = os.environ.get(PATCH_VARIABLE)
+	if desired is not None:
+
+		def patch() -> None:
+			radios = [w for frame in window.grid_slaves(column=1) for w in frame.winfo_children() if w.winfo_class() == "TRadiobutton"]
+			for radio in radios:
+				if str(radio.cget("text")) == desired:
+					radio.invoke()
+			window.button_patch.invoke()
+
+		checker.root.after(1000, patch)
 
 
 def _open_archive_patcher(checker: Any) -> None:
@@ -541,6 +568,11 @@ def main() -> int:
 	parser.add_argument("--scan", action="store_true", help="with --tab Scanner: run an Overview Issues scan first")
 	parser.add_argument("--scan-all", action="store_true", help="with --tab Scanner: run a scan with every box ticked first")
 	parser.add_argument("--panes", action="store_true", help="paste the app's other windows (the Scanner panes) in place")
+	parser.add_argument(
+		"--patch",
+		choices=["default", *DOWNGRADER_RADIOS],
+		help="with --modal Downgrader: click this Desired Version (or keep the default), then Patch All, before capturing",
+	)
 	parser.add_argument("--select", metavar="TEXT", help="with --scan: select the result with this item text (the reference)")
 	parser.add_argument(
 		"--select-at",
@@ -566,6 +598,8 @@ def main() -> int:
 	env = {**os.environ, "PYTHONHASHSEED": "0"}
 	if args.modal is not None:
 		env[MODAL_VARIABLE] = args.modal
+	if args.patch is not None:
+		env[PATCH_VARIABLE] = args.patch
 	if args.scan or args.scan_all:
 		env[SCAN_VARIABLE] = "all" if args.scan_all else "1"
 	if args.select:
@@ -592,6 +626,7 @@ def main() -> int:
 			scan=args.scan or args.scan_all,
 			scan_all=args.scan_all,
 			panes=args.panes,
+			patch=args.patch,
 			select=bool(args.select),
 		)
 	finally:
@@ -619,6 +654,7 @@ def main() -> int:
 			scan=args.scan or args.scan_all,
 			scan_all=args.scan_all,
 			panes=args.panes,
+			patch=args.patch,
 			select=bool(args.select),
 			select_at=args.select_at,
 		)

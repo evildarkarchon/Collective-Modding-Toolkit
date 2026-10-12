@@ -15,6 +15,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <!-- CRC32 of game files (utils.get_crc32): Microsoft's vectorised implementation, trim- and AOT-safe. -->
     <PackageReference Include="System.IO.Hashing" Version="10.0.9" />
+    <!-- Decodes the Downgrader's xdelta3 Delta Patches (pyxdelta's replacement; issue #3): pure managed VCDIFF. -->
+    <PackageReference Include="VCDiff" Version="5.0.0" />
+    <!-- Pinned past VCDiff's transitive 0.46.3, which triggers NU1902 (GHSA-6c8g-7p36-r338; unreachable from VCDiff). -->
+    <PackageReference Include="SharpCompress" Version="0.50.4" />
   </ItemGroup>
 
   <ItemGroup>

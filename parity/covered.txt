@@ -211,6 +211,20 @@ TOOL-1
 LOG-1
 T-13
 
+# Downgrader: patching run (#61)
+DG-4
+DG-5
+DG-6
+NET-3
+THR-2
+B-9
+B-10
+B-11
+# SET-7: the last claimant (#55 the Settings tab, #56 the Scanner; here Patch All saves only a changed box).
+SET-7
+# T-14: the last claimant (#53 the update check's per-read handler and User-Agent; here the Downgrader's 10 s
+# per-read download handler, no total timeout, redirects followed).
+T-14
 # Scanner: details pane (#57)
 SCN-R4
 SCN-R5

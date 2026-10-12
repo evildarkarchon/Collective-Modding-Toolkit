@@ -8,6 +8,7 @@ using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Core.Downgrader;
 using CMToolkit.Core.Updates;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -75,10 +76,13 @@ public partial class App : Application
             // A Parity Scenario's machine when the screenshot driver asks for one, else the real one.
             var host = ScenarioHostEnvironment.FromEnvironmentVariables() ?? (IHostEnvironment)SystemHostEnvironment.Instance;
             // Likewise its canned HTTP, so a scenario run never reaches the network. Lives as long as the process.
-            var http = ScenarioHttpHandler.FromEnvironmentVariables() ?? (HttpMessageHandler)UpdateCheck.CreateHandler();
+            var scenarioHttp = ScenarioHttpHandler.FromEnvironmentVariables();
+            var http = scenarioHttp ?? (HttpMessageHandler)UpdateCheck.CreateHandler();
             return await new StartupSequence(runtime, host, log!, new WindowStartupDialogs())
             {
                 CheckForUpdatesAsync = UpdateBanner.StartupHook(http),
+                // The Downgrader's downloads have their own 10 s per-read timeout (T-14), or the scenario's canned patches.
+                DeltaPatchHttp = scenarioHttp ?? (HttpMessageHandler)DeltaPatches.CreateHandler(),
             }.BuildMainWindowAsync();
         });
 

@@ -21,20 +21,16 @@ public static class MainTabs
     ];
 
     /// <summary>
-    /// The Overview tab, with both its utility buttons wired (OVW-B9, OVW-A6), registered as the session's Overview
-    /// refresh (<c>cmc.refresh_tab(Tab.Overview)</c>), which the Archive Patcher, the Downgrader and the Scanner call.
+    /// The Overview tab, with both its utility buttons wired (OVW-B9, OVW-A6). Building it over the session's
+    /// <see cref="AppSession.Overview"/> registers it as the Overview refresh (<c>cmc.refresh_tab(Tab.Overview)</c>),
+    /// which the Archive Patcher, the Downgrader and the Scanner call.
     /// </summary>
-    private static OverviewTab Overview(AppSession session)
-    {
-        var tab = new OverviewTab(
-            session.Runtime,
-            session.Host,
-            session.Pc,
-            session.Game,
-            session.Overview,
-            () => DowngraderWindow.Open(session),
-            () => ArchivePatcherWindow.Open(session));
-        session.OverviewRefresh = tab.RefreshAsync;
-        return tab;
-    }
+    private static OverviewTab Overview(AppSession session) => new(
+        session.Runtime,
+        session.Host,
+        session.Pc,
+        session.Game,
+        session.Overview,
+        () => DowngraderWindow.Open(session),
+        () => ArchivePatcherWindow.Open(session));
 }
