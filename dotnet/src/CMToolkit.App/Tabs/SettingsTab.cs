@@ -21,6 +21,7 @@ public sealed class SettingsTab : TabPage
     public const string LogLevelTooltip =
         "Sets the minimum importance level for messages sent to the log file.\nDEBUG: Extra verbose.\nINFO: Default.\nERROR: Only log errors.";
 
+    private readonly AppRuntime _runtime;
     private readonly SettingsStore _settings;
     private readonly UpdateSource _updateSource;
     private readonly SettingsLogLevel _logLevel;
@@ -29,10 +30,12 @@ public sealed class SettingsTab : TabPage
     /// Takes the radios' values from the settings in effect now, as the reference's <c>StringVar</c>s were set in the
     /// tab's constructor at startup rather than when the tab is first shown.
     /// </summary>
+    /// <param name="runtime">The app runtime, whose background operations write the file.</param>
     /// <param name="settings">The settings the radios show and save.</param>
-    public SettingsTab(SettingsStore settings)
+    public SettingsTab(AppRuntime runtime, SettingsStore settings)
         : base("Settings", "SettingsTab")
     {
+        _runtime = runtime;
         _settings = settings;
         _updateSource = settings.Current.UpdateSource;
         _logLevel = settings.Current.LogLevel;
@@ -92,6 +95,8 @@ public sealed class SettingsTab : TabPage
 
     /// <summary>
     /// A radio whose click saves <paramref name="change"/> applied to the settings in effect (<c>on_radio_change</c>).
+    /// The file is written off the UI thread as a blocking operation (<see cref="SettingsStore.SaveAsync"/>), since
+    /// <c>on_radio_change</c> wrote it on the Tk thread.
     /// </summary>
     /// <remarks>
     /// Click, not IsChecked: a Tk radiobutton runs its command on every click, so clicking the selected radio saves the
@@ -100,10 +105,18 @@ public sealed class SettingsTab : TabPage
     private RadioButton Radio(string text, bool selected, Func<AppSettings, AppSettings> change)
     {
         var radio = new RadioButton { Content = text, IsChecked = selected };
-        radio.Click += (_, e) =>
+        radio.Click += async (_, e) =>
         {
-            _settings.Save(change(_settings.Current));
+            // Set before the await: routing has moved on by the time the save completes.
             e.Handled = true;
+            try
+            {
+                await _settings.SaveAsync(_runtime.Operations, change(_settings.Current));
+            }
+            catch (OperationFailedException)
+            {
+                // Already reported by the runner, as the exception ended on_radio_change in Tk; nothing else to undo.
+            }
         };
         return radio;
     }

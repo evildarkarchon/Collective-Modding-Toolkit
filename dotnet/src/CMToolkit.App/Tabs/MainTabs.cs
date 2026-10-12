@@ -16,7 +16,7 @@ public static class MainTabs
         new F4seTab(session.Runtime, session.Host, session.Game, session.Overview),
         new ScannerTab(session.Runtime, session.Game, session.Overview, session.Settings) { Host = session.Host },
         new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session), openArchivePatcher: () => ArchivePatcherWindow.Open(session)),
-        new SettingsTab(session.Settings),
+        new SettingsTab(session.Runtime, session.Settings),
         new AboutTab(session.Runtime),
     ];
 

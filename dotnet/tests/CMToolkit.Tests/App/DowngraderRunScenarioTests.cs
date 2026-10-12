@@ -177,16 +177,17 @@ public sealed class DowngraderRunScenarioTests
     /// <summary>
     /// The app as startup composes it on the scenario's machine, with its settings loaded from the scenario's working
     /// directory (so Patch All saves there) and its patches downloaded through <paramref name="http"/>; shown, the
-    /// Overview loaded.
+    /// Overview loaded. The settings store logs to <paramref name="settingsLogger"/> if given, else to <paramref name="logger"/>.
     /// </summary>
-    internal static (MainWindow Main, AppSession Session) Compose(MaterializedScenario machine, CapturingLogger logger, HttpMessageHandler http)
+    internal static (MainWindow Main, AppSession Session) Compose(
+        MaterializedScenario machine, CapturingLogger logger, HttpMessageHandler http, Microsoft.Extensions.Logging.ILogger? settingsLogger = null)
     {
         // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
         var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var runtime = new AppRuntime(logger);
-        var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, logger);
+        var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, settingsLogger ?? logger);
         var model = new MainWindowViewModel(new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null), settings);
         // The app folder is the scenario's working directory: its tree models a toolkit started from its own folder,
         // where the reference kept settings.json and the patches. The port's folder-not-CWD fix (bug #36) is proved by
