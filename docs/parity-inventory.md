@@ -8,7 +8,7 @@ Answers [Inventory the Python app's features and behaviours](https://github.com/
 
 - Every checkable behaviour has an ID (`SHELL-3`, `OVW-12`, …), so build slices can name the items they cover in their acceptance criteria.
 - **⚠ Trap**: a spot where a natural .NET translation would behave differently from the Python. The detail lives in [§ Parity traps](#parity-traps). Item IDs prefixed `T-`.
-- **🐞 Bug**: behaviour that looks wrong. **Behaviour Parity** means the port reproduces it, and the bug is tracked as a separate follow-up issue. See [§ Suspected bugs](#suspected-bugs). Item IDs prefixed `B-`.
+- **🐞 Bug**: behaviour that looks wrong, tracked as a separate `bug` issue. The slices reproduce it first; then the fix phase fixes it as a **Deviation** ([ADR-0006](adr/0006-port-fixes-reference-bugs-as-deviations.md)). See [§ Suspected bugs](#suspected-bugs). Item IDs prefixed `B-`.
 - `file:line` references are at `f95a07c`.
 - Data tables (CRC/version maps, whitelists, tooltip texts) are ported **verbatim** from the named source. This document points at them rather than copying them, so there is only one source of truth.
 
@@ -372,7 +372,7 @@ From [Map the remaining Python dependencies to .NET equivalents](https://github.
 
 ## Suspected bugs
 
-Each is reproduced as-is in the port and tracked as a follow-up `bug` issue (linked in the ID column). B-9, B-10 and B-14 were already filed during earlier research tickets, and the inventory's extra findings were added to them as comments.
+Each is tracked as a `bug` issue (linked in the ID column). The slices reproduce it as-is, and the fix phase then fixes it as a Deviation ([ADR-0006](adr/0006-port-fixes-reference-bugs-as-deviations.md)), after which its `B-` ID proves the fixed behaviour. B-9, B-10 and B-14 were already filed during earlier research tickets, and the inventory's extra findings were added to them as comments.
 
 | ID | Bug | Where |
 |---|---|---|
