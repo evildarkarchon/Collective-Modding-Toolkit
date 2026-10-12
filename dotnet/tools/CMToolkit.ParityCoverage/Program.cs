@@ -36,6 +36,17 @@ if (report.Unproven.Count > 0)
     Console.WriteLine($"Unproven ({report.Unproven.Count}): {string.Join(", ", report.Unproven)}");
 }
 
+// Deviations are where the port deliberately fixes a reference bug (ADR-0006). They pass the check, but are listed on
+// every run so that each override of the reference stays visible to reviewers.
+if (report.Deviations.Count > 0)
+{
+    Console.WriteLine($"Deviations ({report.Deviations.Count}):");
+    foreach (var deviation in report.Deviations.OrderBy(d => d.Bug).ThenBy(d => d.Source, StringComparer.Ordinal))
+    {
+        Console.WriteLine($"  #{deviation.Bug} {deviation.Source}: {deviation.Reason}");
+    }
+}
+
 if (report.Passed)
 {
     Console.WriteLine("OK");

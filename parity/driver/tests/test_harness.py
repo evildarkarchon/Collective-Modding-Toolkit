@@ -82,6 +82,38 @@ class ScenarioTests(unittest.TestCase):
 		with self.assertRaises(ScenarioError):
 			load("m/b", self.root)
 
+	def test_deviations_are_loaded_and_leave_the_reference_golden_in_place(self) -> None:
+		"""A synthetic Deviation (ADR-0006): bug 1 exists only to exercise the mechanism."""
+		self.author("m/s", {"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 1, "reason": "Synthetic."}]})
+		self.author("m/plain", {"operation": "op", "parity": [], "host": {}})
+
+		scenario = load("m/s", self.root)
+
+		self.assertEqual(scenario.deviations, [{"bug": 1, "reason": "Synthetic."}])
+		# record.py writes and --check compares golden.json only; the port golden beside it is never the driver's.
+		self.assertEqual(scenario.golden_path.name, "golden.json")
+		self.assertEqual(scenario.port_golden_path.name, "golden.port.json")
+		self.assertEqual(load("m/plain", self.root).deviations, [])
+
+	def test_malformed_deviations_are_rejected_like_the_csharp_side(self) -> None:
+		cases = {
+			"m/zero": [{"bug": 0, "reason": "x"}],
+			"m/string": [{"bug": "#77", "reason": "x"}],
+			"m/bool": [{"bug": True, "reason": "x"}],
+			"m/blank": [{"bug": 77, "reason": " "}],
+			"m/missing": [{"bug": 77}],
+			"m/extra": [{"bug": 77, "reason": "x", "fixed": True}],
+			"m/twice": [{"bug": 77, "reason": "x"}, {"bug": 77, "reason": "y"}],
+			"m/empty": [],
+			"m/object": {"bug": 77, "reason": "x"},
+		}
+		for scenario_id, deviations in cases.items():
+			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}, "deviations": deviations})
+
+		for scenario_id in cases:
+			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "deviation"):
+				load(scenario_id, self.root)
+
 	def test_discover_filters_by_glob_and_sorts_by_id(self) -> None:
 		for scenario_id in ("s/b", "s/a", "o/a"):
 			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}})

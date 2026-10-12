@@ -268,6 +268,90 @@ public sealed class ParityScenarioTests : IDisposable
         Assert.Throws<InvalidOperationException>(() => ParityScenarios.Of("settings", "z", _scenarios.Path));
     }
 
+    /// <summary>
+    /// A synthetic Deviation (ADR-0006): the reference recorded <c>"buggy"</c>, the port is expected to produce
+    /// <c>"fixed"</c>. No real bug is involved; bug 1 and the values only exist to exercise the mechanism.
+    /// </summary>
+    private ParityScenario AuthorDeviation(string deviations = """[{"bug": 1, "reason": "Synthetic: the port fixes it."}]""")
+    {
+        var scenario = Author("m/s", $$"""{"operation": "op", "parity": ["SET-2"], "host": {}, "deviations": {{deviations}}}""");
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "buggy"}"""));
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.port.json"), Encoding.UTF8.GetBytes("""{"value": "fixed"}"""));
+        return scenario;
+    }
+
+    [Fact]
+    public void A_scenario_without_deviations_replays_against_the_reference_golden()
+    {
+        var scenario = Author("m/s", MinimalManifest);
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "buggy"}"""));
+
+        Assert.Empty(scenario.Manifest.Deviations ?? []);
+        Assert.False(scenario.Deviates);
+        Assert.Equal("buggy", scenario.LoadGolden()!["value"]!.GetValue<string>());
+        Assert.Equal("buggy", scenario.LoadReferenceGolden()!["value"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void A_deviating_scenario_replays_against_its_port_golden_and_keeps_the_reference_one()
+    {
+        var scenario = AuthorDeviation();
+
+        Assert.True(scenario.Deviates);
+        Assert.Equal(new ScenarioDeviation(1, "Synthetic: the port fixes it."), Assert.Single(scenario.Manifest.Deviations!));
+        Assert.Equal("fixed", scenario.LoadGolden()!["value"]!.GetValue<string>());
+        Assert.Equal("buggy", scenario.LoadReferenceGolden()!["value"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void A_deviation_without_a_port_golden_fails_instead_of_silently_proving_the_bug()
+    {
+        var scenario = AuthorDeviation();
+        File.Delete(Path.Combine(scenario.Directory, "golden.port.json"));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
+
+        Assert.Contains("golden.port.json", ex.Message);
+    }
+
+    [Fact]
+    public void A_port_golden_without_a_declared_deviation_fails()
+    {
+        var scenario = Author("m/s", MinimalManifest);
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("{}"));
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.port.json"), Encoding.UTF8.GetBytes("{}"));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
+
+        Assert.Contains("deviations", ex.Message);
+    }
+
+    [Fact]
+    public void A_deviating_scenario_still_needs_its_reference_recording()
+    {
+        var scenario = AuthorDeviation();
+        File.Delete(Path.Combine(scenario.Directory, "golden.json"));
+
+        Assert.False(scenario.IsRecorded);
+        Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
+    }
+
+    [Theory]
+    [InlineData("""[{"bug": 0, "reason": "x"}]""")]
+    [InlineData("""[{"bug": -3, "reason": "x"}]""")]
+    [InlineData("""[{"bug": "#77", "reason": "x"}]""")]
+    [InlineData("""[{"bug": 77, "reason": "  "}]""")]
+    [InlineData("""[{"bug": 77}]""")]
+    [InlineData("""[{"bug": 77, "reason": "x", "fixed": true}]""")]
+    [InlineData("""[{"bug": 77, "reason": "x"}, {"bug": 77, "reason": "y"}]""")]
+    [InlineData("[]")]
+    public void Malformed_deviations_are_rejected(string deviations)
+    {
+        var scenario = AuthorDeviation(deviations);
+
+        Assert.Throws<JsonException>(() => scenario.Manifest);
+    }
+
     [Fact]
     public void A_scenario_round_trips_through_xunit_serialization()
     {

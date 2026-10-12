@@ -27,9 +27,10 @@ ATTRIBUTES = {"readonly": 0x1, "hidden": 0x2, "system": 0x4}
 FILE_ATTRIBUTE_NORMAL = 0x80
 INVALID_FILE_ATTRIBUTES = 0xFFFFFFFF
 
-MANIFEST_KEYS = {"operation", "parity", "host", "description", "emptyDirs", "attributes"}
+MANIFEST_KEYS = {"operation", "parity", "host", "description", "emptyDirs", "attributes", "deviations"}
 REQUIRED_KEYS = {"operation", "parity", "host"}
 HOST_KEYS = {"appDir", "cwd", "argv0", "env", "knownFolders", "registry", "processes", "os", "pc", "dialogs"}
+DEVIATION_KEYS = {"bug", "reason"}
 
 _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 _kernel32.GetFileAttributesW.argtypes = [wintypes.LPCWSTR]
@@ -79,7 +80,18 @@ class Scenario:
 
 	@property
 	def golden_path(self) -> Path:
+		"""The reference-recorded golden: the only file ``record.py`` writes, and the only one ``--check`` compares."""
 		return self.directory / "golden.json"
+
+	@property
+	def deviations(self) -> list[dict[str, Any]]:
+		"""The reference bugs the port fixes on this scenario (ADR-0006), as ``{"bug", "reason"}`` dicts; empty if none."""
+		return self.manifest.get("deviations", [])
+
+	@property
+	def port_golden_path(self) -> Path:
+		"""What the C# port must produce when the scenario deviates. Written by the fixer, never by the driver."""
+		return self.directory / "golden.port.json"
 
 
 def load(scenario_id: str, scenarios_root: Path = SCENARIOS) -> Scenario:
@@ -95,7 +107,38 @@ def load(scenario_id: str, scenarios_root: Path = SCENARIOS) -> Scenario:
 	if unknown or missing or unknown_host:
 		msg = f"{scenario_id}: unknown keys {sorted(unknown | unknown_host)}, missing keys {sorted(missing)}"
 		raise ScenarioError(msg)
+	if "deviations" in manifest:
+		_validate_deviations(scenario_id, manifest["deviations"])
 	return Scenario(scenario_id, directory, manifest)
+
+
+def _validate_deviations(scenario_id: str, deviations: Any) -> None:
+	"""Applies the C# ``ScenarioManifest.Parse`` rules: a non-empty list of ``{bug, reason}`` with a positive integer bug,
+	a non-blank reason and no bug twice. The driver ignores deviations otherwise; checking here keeps both sides' schema
+	in step, so a scenario the driver accepts is one the C# side accepts too.
+
+	Raises ``ScenarioError`` naming the first problem.
+	"""
+	if not isinstance(deviations, list) or not deviations:
+		msg = f"{scenario_id}: deviations must be a non-empty list of {{bug, reason}} objects"
+		raise ScenarioError(msg)
+	seen: set[int] = set()
+	for entry in deviations:
+		if not isinstance(entry, dict) or set(entry) != DEVIATION_KEYS:
+			msg = f"{scenario_id}: each deviation needs exactly the keys bug and reason: {entry!r}"
+			raise ScenarioError(msg)
+		bug, reason = entry["bug"], entry["reason"]
+		# bool is an int subclass, so True would otherwise pass as bug 1.
+		if type(bug) is not int or bug <= 0:
+			msg = f"{scenario_id}: deviation bug number {bug!r} isn't a positive issue number"
+			raise ScenarioError(msg)
+		if not isinstance(reason, str) or not reason.strip():
+			msg = f"{scenario_id}: the deviation for bug #{bug} needs a reason"
+			raise ScenarioError(msg)
+		if bug in seen:
+			msg = f"{scenario_id}: the deviation for bug #{bug} is listed twice"
+			raise ScenarioError(msg)
+		seen.add(bug)
 
 
 def discover(patterns: list[str] | None = None, scenarios_root: Path = SCENARIOS) -> list[Scenario]:
