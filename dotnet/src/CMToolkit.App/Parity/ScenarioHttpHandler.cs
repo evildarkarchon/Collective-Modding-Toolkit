@@ -11,9 +11,10 @@ namespace CMToolkit.App.Parity;
 /// optional <c>.body</c>), and a test checks the two agree on every committed scenario.
 /// </summary>
 /// <remarks>
-/// A request the scenario has no response for throws <see cref="InvalidOperationException"/>, which no update check
-/// catches, so startup fails visibly instead of quietly going online. JSON is read with <see cref="JsonDocument"/>,
-/// which is trim- and AOT-safe.
+/// A request the scenario has no response for throws <see cref="InvalidOperationException"/> instead of quietly going
+/// online. The update check logs it as a failed check (<c>Update Check : ... : Failed</c> with the exception in
+/// <c>cm-toolkit.log</c>), since it treats any failure as no update (bug #81). JSON is read with
+/// <see cref="JsonDocument"/>, which is trim- and AOT-safe.
 /// </remarks>
 public sealed class ScenarioHttpHandler : HttpMessageHandler
 {

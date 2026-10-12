@@ -84,8 +84,9 @@ internal static class RequestsText
     /// <summary>
     /// <c>response.iter_lines(decode_unicode=True)</c> for a response with an <paramref name="encoding"/>: 512-byte
     /// chunks decoded with <c>errors="replace"</c>, each split with <c>str.splitlines()</c>, a chunk's unfinished last
-    /// line carried into the next. Like requests, a <c>\r\n</c> split across two chunks yields an extra empty line, which
-    /// can make the Nexus check read an empty "version line" (bug #82, reproduced).
+    /// line carried into the next. Unlike requests, a <c>\r\n</c> split across two chunks ends one line: requests yielded
+    /// an extra empty line there, which could make the Nexus check read an empty "version line" (bug #82, fixed per
+    /// ADR-0006).
     /// </summary>
     /// <param name="read">Reads one chunk: up to <see cref="ChunkSize"/> bytes, fewer only at the end.</param>
     /// <param name="decoder">The response encoding's decoder.</param>
@@ -96,12 +97,28 @@ internal static class RequestsText
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         string? pending = null;
+        // Whether the last non-empty chunk ended in \r. splitlines() ended its line there, so a \n starting the next
+        // chunk is the rest of that \r\n, not an empty line of its own (bug #82).
+        var endedInCr = false;
         while (true)
         {
             var bytes = await read(cancellationToken).ConfigureAwait(false);
             var final = bytes.Length == 0;
             var chunk = decoder.Decode(bytes, final);
             // stream_decode_response_unicode only yields non-empty decoded chunks.
+            if (chunk.Length > 0)
+            {
+                var startsWithLf = chunk[0] == '\n';
+                var previousEndedInCr = endedInCr;
+                endedInCr = chunk[^1] == '\r';
+                if (previousEndedInCr && startsWithLf)
+                {
+                    // A chunk ending in \r never leaves a pending line (its last line already ended), so dropping the
+                    // \n can't join two lines.
+                    chunk = chunk[1..];
+                }
+            }
+
             if (chunk.Length > 0)
             {
                 if (pending is not null)

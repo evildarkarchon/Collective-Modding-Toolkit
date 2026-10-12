@@ -6,7 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core.Updates;
 
-/// <summary>What the update check found (UPD-1): each source's newer version, as the source wrote it, or null.</summary>
+/// <summary>
+/// What the update check found (UPD-1): each source's newer version, as the source wrote it less the surrounding
+/// whitespace and leading <c>v</c> PEP 440 allows (bug #83), or null.
+/// </summary>
 /// <param name="NexusVersion">The Nexus Mods version when it is newer than the running one.</param>
 /// <param name="GitHubVersion">The GitHub release tag when it is newer than the running one.</param>
 public sealed record UpdateCheckResult(string? NexusVersion, string? GitHubVersion)
@@ -19,18 +22,20 @@ public sealed record UpdateCheckResult(string? NexusVersion, string? GitHubVersi
 }
 
 /// <summary>
-/// An exception the reference's update check doesn't catch, so it escaped <c>CMChecker.__init__</c> and startup failed
+/// A response the reference's update check didn't catch, so it escaped <c>CMChecker.__init__</c> and startup failed
 /// (SHELL-13): an unexpected response, such as a page with no <c>Content-Type</c> or a release without a
-/// <c>tag_name</c> (bug #81, reproduced).
+/// <c>tag_name</c>. The port's check catches it like any other failure, logs it and reports no update (bug #81, fixed
+/// per ADR-0006); it is thrown only to carry the Python error into the log.
 /// </summary>
-/// <param name="pythonError">The Python exception the reference raised, for the log and the startup failure dialog.</param>
+/// <param name="pythonError">The Python exception the reference raised, for the log.</param>
 public sealed class UpdateCheckCrashException(string pythonError)
     : Exception($"The update check failed with an unhandled error: {pythonError}");
 
 /// <summary>
 /// The update check (<c>utils.check_for_update_nexus</c> / <c>check_for_update_github</c>, UPD-1..UPD-4): the Nexus
 /// Mods page scrape (NET-1) and the GitHub latest-release API (NET-2), each compared to the running version with
-/// PEP 440 (<see cref="Pep440Version"/>), with request failures logged and treated as no update.
+/// PEP 440 (<see cref="Pep440Version"/>), with any failure of either check logged and treated as no update (UPD-4;
+/// the reference let some escape, bug #81).
 /// </summary>
 /// <remarks>
 /// Async, unlike most of Core, because it is HTTP (the Core seams decision, issue #7); the App awaits it before the
@@ -42,10 +47,11 @@ public sealed class UpdateCheck
     public const string NexusPageUrl = "https://www.nexusmods.com/fallout4/mods/87907";
 
     /// <summary>
-    /// The release the GitHub check asks for. It is still the original author's repository (B-16, bug #32), while the
-    /// banner's link and the running version are RowanSkie's fork.
+    /// The release the GitHub check asks for: the latest of the fork that publishes the C# releases (ADR-0005), the
+    /// repository the banner's link opens. The reference asked the original author's (wxMichael's) releases while its
+    /// link and version were RowanSkie's fork, so it never saw a C# release (B-16, bug #32, fixed per ADR-0006).
     /// </summary>
-    public const string GitHubLatestReleaseUrl = "https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest";
+    public const string GitHubLatestReleaseUrl = "https://api.github.com/repos/evildarkarchon/Collective-Modding-Toolkit/releases/latest";
 
     /// <summary>The line before the version on the Nexus page, matched after stripping leading whitespace.</summary>
     private const string VersionLabelLine = "<meta property=\"twitter:label1\" content=\"Version\"";
@@ -115,12 +121,10 @@ public sealed class UpdateCheck
 
     /// <summary>
     /// <c>CMChecker.check_for_updates</c>' part before the banner (UPD-1): <c>none</c> checks nothing; <c>nexus</c>
-    /// and <c>github</c> check one source; <c>both</c> checks Nexus Mods, then GitHub.
+    /// and <c>github</c> check one source; <c>both</c> checks Nexus Mods, then GitHub. A failed Nexus check doesn't
+    /// stop the GitHub one.
     /// </summary>
-    /// <exception cref="UpdateCheckCrashException">A response the reference didn't survive; startup fails.</exception>
-    /// <exception cref="FormatException">
-    /// A version with a number past Python's 4300-digit <c>int()</c> limit, which the reference doesn't catch either.
-    /// </exception>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<UpdateCheckResult> RunAsync(UpdateSource source, CancellationToken cancellationToken = default)
     {
         if (source == UpdateSource.None)
@@ -140,14 +144,15 @@ public sealed class UpdateCheck
     /// <summary>
     /// <c>check_for_update_nexus</c> (NET-1): streams the mod page and reads the version from the line after the
     /// <c>twitter:label1</c> Version tag, as <c>line.rsplit('"', 2)[1]</c>. A non-200 status is no update; a page
-    /// without the tag is logged as a failure; a request error, an invalid version or a line without a quote is
-    /// logged with its exception. Reading stops at the version line.
+    /// without the tag is logged as a failure; any other failure (a request error, an invalid version, a line without a
+    /// quote, or a page with no usable encoding, which the reference didn't survive, bug #81) is logged with its
+    /// exception. Reading stops at the version line.
     /// </summary>
-    /// <returns>The version as the page wrote it when it is newer than the running one; otherwise null.</returns>
-    /// <exception cref="UpdateCheckCrashException">
-    /// No usable encoding: no <c>Content-Type</c> (requests yields bytes, so the <c>str</c> prefix test raises
-    /// <c>TypeError</c>) or a charset Python doesn't know (<c>LookupError</c>).
-    /// </exception>
+    /// <returns>
+    /// The version as the page wrote it (less the padding and leading <c>v</c>, <see cref="WithoutPrefix"/>) when it is
+    /// newer than the running one; otherwise null.
+    /// </returns>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<string?> CheckNexusAsync(CancellationToken cancellationToken = default)
     {
         _logger.Write(LogLevel.Debug, "Update Check : Nexus Mods");
@@ -176,13 +181,16 @@ public sealed class UpdateCheck
                 var latest = versionLine[1];
                 if (Pep440Version.IsNewerThanRunning(latest))
                 {
-                    _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{latest}");
-                    return latest;
+                    var shown = WithoutPrefix(latest);
+                    _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{shown}");
+                    return shown;
                 }
             }
         }
-        catch (Exception ex) when (IsRequestFailure(ex, cancellationToken) || ex is InvalidVersionException or PythonIndexError)
+        catch (Exception ex) when (IsCheckFailure(ex, cancellationToken))
         {
+            // The reference caught only RequestException, InvalidVersion and IndexError; anything else escaped
+            // CMChecker.__init__ and failed startup. Any failure is no update here (bug #81).
             _logger.Write(LogLevel.Error, "Update Check : Nexus Mods : Failed", ex);
             return null;
         }
@@ -193,13 +201,15 @@ public sealed class UpdateCheck
 
     /// <summary>
     /// <c>check_for_update_github</c> (NET-2, B-16): the latest release's <c>tag_name</c>, through <c>str()</c>. A
-    /// non-200 status is no update; a request error, a body that isn't JSON or a tag that isn't PEP 440 is logged with
+    /// non-200 status is no update; any failure (a request error, a body that isn't JSON, a tag that isn't PEP 440, or
+    /// JSON that isn't an object with a <c>tag_name</c>, which the reference didn't survive, bug #81) is logged with
     /// its exception.
     /// </summary>
-    /// <returns>The tag as GitHub wrote it when it is newer than the running version; otherwise null.</returns>
-    /// <exception cref="UpdateCheckCrashException">
-    /// JSON that isn't an object (<c>TypeError</c>) or an object without <c>tag_name</c> (<c>KeyError</c>).
-    /// </exception>
+    /// <returns>
+    /// The tag as GitHub wrote it (less the padding and leading <c>v</c>, <see cref="WithoutPrefix"/>) when it is newer
+    /// than the running version; otherwise null.
+    /// </returns>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<string?> CheckGitHubAsync(CancellationToken cancellationToken = default)
     {
         _logger.Write(LogLevel.Debug, "Update Check : GitHub");
@@ -224,7 +234,7 @@ public sealed class UpdateCheck
                 throw;
             }
         }
-        catch (Exception ex) when (IsRequestFailure(ex, cancellationToken))
+        catch (Exception ex) when (IsCheckFailure(ex, cancellationToken))
         {
             _logger.Write(LogLevel.Error, "Update Check : GitHub : Failed", ex);
             return null;
@@ -240,12 +250,15 @@ public sealed class UpdateCheck
                     var latest = TagName(release).Str();
                     if (Pep440Version.IsNewerThanRunning(latest))
                     {
-                        _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{latest}");
-                        return latest;
+                        var shown = WithoutPrefix(latest);
+                        _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{shown}");
+                        return shown;
                     }
                 }
-                catch (Exception ex) when (ex is PythonJsonException { IsDecodeError: true } or InvalidVersionException)
+                catch (Exception ex) when (IsCheckFailure(ex, cancellationToken))
                 {
+                    // The reference caught only JSONDecodeError and InvalidVersion here, so a body that wasn't an
+                    // object with a tag_name escaped and failed startup. Any failure is no update here (bug #81).
                     _logger.Write(LogLevel.Error, "Update Check : GitHub : Failed", ex);
                     return null;
                 }
@@ -349,6 +362,36 @@ public sealed class UpdateCheck
             : [line[..previous], line[(previous + 1)..last], line[(last + 1)..]];
     }
 
+    /// <summary>
+    /// A newer version as the banner and the log show it after their own <c>v</c>: without the surrounding whitespace
+    /// and the one leading <c>v</c> or <c>V</c> that PEP 440 lets the source write. The reference showed the text as
+    /// written, so a <c>v0.7.0</c> tag read <c>vv0.7.0</c> (bug #83, fixed per ADR-0006). The rest of the spelling
+    /// is kept.
+    /// </summary>
+    /// <param name="latest">A version <see cref="Pep440Version"/> accepted.</param>
+    internal static string WithoutPrefix(string latest)
+    {
+        var start = 0;
+        var end = latest.Length;
+        // Version._regex's \s, which in Python is str.isspace() (U+001C..U+001F included).
+        while (start < end && PythonSemantics.PythonText.IsSpace(latest[start]))
+        {
+            start++;
+        }
+
+        while (end > start && PythonSemantics.PythonText.IsSpace(latest[end - 1]))
+        {
+            end--;
+        }
+
+        if (start < end && latest[start] is 'v' or 'V')
+        {
+            start++;
+        }
+
+        return latest[start..end];
+    }
+
     /// <summary>The no-argument <c>str.lstrip()</c>.</summary>
     private static string LStrip(string value)
     {
@@ -362,15 +405,11 @@ public sealed class UpdateCheck
     }
 
     /// <summary>
-    /// Whether <paramref name="ex"/> is what requests raises as a <c>RequestException</c>: a connection, protocol or
-    /// read failure, or a timeout. A cancellation the caller asked for is not one.
+    /// Whether <paramref name="ex"/> fails a check, to be logged as no update: anything, from a request error or a
+    /// timeout to a response the reference didn't survive (bug #81), except a cancellation the caller asked for.
     /// </summary>
-    private static bool IsRequestFailure(Exception ex, CancellationToken cancellationToken) => ex switch
-    {
-        OperationCanceledException => !cancellationToken.IsCancellationRequested,
-        HttpRequestException or IOException or TimeoutException => true,
-        _ => false,
-    };
+    private static bool IsCheckFailure(Exception ex, CancellationToken cancellationToken) =>
+        ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested;
 
     /// <summary>Python's <c>IndexError</c> from <c>version_line[1]</c>, which the Nexus check catches.</summary>
     private sealed class PythonIndexError() : Exception("list index out of range");
