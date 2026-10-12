@@ -55,7 +55,7 @@ internal sealed class ArchivesGathering(
     /// The INIs have no <c>[Archive]</c> section: <c>Archive section missing from INIs</c>, which fails the Overview
     /// (OVW-A2, B-15).
     /// </exception>
-    /// <exception cref="System.Text.DecoderFallbackException">An archive's format bytes aren't UTF-8 (OVW-A4, T-1).</exception>
+    /// <exception cref="System.Text.DecoderFallbackException">An archive's format bytes aren't UTF-8 (OVW-A4, T-1, bug #86).</exception>
     public void Run()
     {
         logger.Write(LogLevel.Debug, "Gathering Info: Archives");

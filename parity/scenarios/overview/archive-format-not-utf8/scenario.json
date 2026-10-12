@@ -1,5 +1,5 @@
 {
-  "description": "The only enabled archive has format bytes that aren't UTF-8, so decoding them for the problem text raises and the Overview stays on its loading text (T-1).",
+  "description": "The only enabled archive has format bytes that aren't UTF-8, so decoding them for the problem text raises and the Overview stays on its loading text (T-1, bug #86).",
   "operation": "overview-full",
   "parity": [
     "OVW-A4"
