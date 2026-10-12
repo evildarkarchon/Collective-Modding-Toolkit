@@ -44,6 +44,9 @@
   <SolidColorBrush x:Key="CmtDowngraderOldGen" Color="#1E90FF" />
   <SolidColorBrush x:Key="CmtDowngraderNextGen" Color="#836FFF" />
   <SolidColorBrush x:Key="CmtDowngraderAnniversary" Color="#FA8072" />
+  <!-- COLOR_NOTE and COLOR_INDIE: the F4SE tab's tags. -->
+  <SolidColorBrush x:Key="CmtNote" Color="#C5C464" />
+  <SolidColorBrush x:Key="CmtIndie" Color="#4B92DA" />
 
   <!-- sv_ttk greys, measured from its sprites. -->
   <SolidColorBrush x:Key="SvBg" Color="#1C1C1C" />
@@ -59,6 +62,9 @@
   <SolidColorBrush x:Key="SvFg" Color="#FAFAFA" />
   <SolidColorBrush x:Key="SvSunkenDark" Color="#555555" />
   <SolidColorBrush x:Key="SvSunkenLight" Color="#8E8E8E" />
+  <!-- sv_ttk's heading-rest sprite (the Treeview heading cells): its lighter top edge and its fill, sampled from the F4SE tab. -->
+  <SolidColorBrush x:Key="SvHeadingEdge" Color="#313131" />
+  <SolidColorBrush x:Key="SvHeadingFill" Color="#2A2A2A" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
   <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by

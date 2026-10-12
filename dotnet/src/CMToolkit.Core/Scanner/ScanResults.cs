@@ -59,7 +59,7 @@ public static class ScanResults
     /// compares strings.
     /// </summary>
     /// <remarks>
-    /// The reference iterates a Python set for the groups, so their order is random per run (B-4); first-seen order is
+    /// The reference iterates a Python set for the groups, so their order is random per run (B-4, bug #23); first-seen order is
     /// one of the orders it can produce. Items with equal keys keep their results order, which for the Overview's
     /// archive problems is the enabled-archive set order (T-15).
     /// </remarks>
