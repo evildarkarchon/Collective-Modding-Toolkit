@@ -100,10 +100,16 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
   its link tooltips are Avalonia's, not tktooltip's.
-- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/)): until the Archives and Modules
-  frames get their content (the next Overview slice), the three frames split the width differently from Tk's, so the
-  Binaries frame is wider and its content sits ~6 px further right. Tk lays out a Binaries frame narrower than its
-  content and overflows it; recheck the pair once the other frames are built. The Downgrade Manager and refresh
-  buttons' paddings were measured off the pair rather than derived from sv_ttk.
-- If an Overview refresh fails, its error is reported and the previous report and frames stay. The reference cleared
-  the problem list first and was left with a partial one.
+- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
+  built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
+  unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side
+  gutters. The Binaries names column still sits ~2 px right of Tk's (a ttk label's internal padding around its text).
+  The Downgrade Manager, Archive Patcher and refresh buttons' paddings were measured off the pairs rather than derived
+  from sv_ttk.
+- If an Overview load or refresh fails part-way (a missing `[Archive]` section, B-15; text that isn't UTF-8, T-1), the
+  error is reported and the report becomes what had been gathered, as the reference's shared state was left; a step
+  that never started keeps the previous report's part. The frames stay as they were. A failed load's warning boxes
+  appear after the Error Window rather than before the failure (error surfacing is outside parity, #18).
+- The Overview's enabled archives, like every Python set it keeps, are checked in insertion order, where Python's
+  order is the string hash's; only the order of the Invalid Archive problems and `Archives: Checking` log lines
+  depends on it (T-15), and the goldens compare those as unordered.

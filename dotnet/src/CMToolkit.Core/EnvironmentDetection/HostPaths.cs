@@ -22,4 +22,7 @@ internal static class HostPaths
 
     /// <summary><c>path.is_dir()</c>.</summary>
     public static bool IsDirectory(IHostEnvironment host, PythonPath path) => Directory.Exists(Resolve(host, path));
+
+    /// <summary><c>path.exists()</c>: a file or a folder.</summary>
+    public static bool Exists(IHostEnvironment host, PythonPath path) => Path.Exists(Resolve(host, path));
 }

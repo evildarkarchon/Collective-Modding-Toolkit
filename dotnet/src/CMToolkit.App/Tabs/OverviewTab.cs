@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -12,18 +14,20 @@ using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
 using CMToolkit.Core.PythonSemantics;
+using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.App.Tabs;
 
 /// <summary>
 /// <c>tabs._overview.OverviewTab</c>: the top block (mod manager, game path, Install Type, PC specs and the refresh
-/// button, OVW-1..OVW-8) over three label frames side by side. The Binaries frame is built here (OVW-B1..OVW-B9); the
-/// Archives and Modules frames stay empty until the next Overview slice.
+/// button, OVW-1..OVW-8) over three label frames side by side: Binaries (OVW-B1..OVW-B9), Archives (OVW-A5, OVW-A6) and
+/// Modules (OVW-M9, OVW-M10), with their counts coloured against the limits (OVW-C1).
 /// </summary>
 /// <remarks>
-/// The data comes from <see cref="OverviewReport.Gather"/>, run as a blocking operation on load and on refresh, as the
-/// reference ran both on the UI thread (ADR-0003). Each report replaces <see cref="OverviewState.Report"/>, which the
-/// other tabs read. Neither shows a message box (OVW-8; the module warnings are the next slice's, and only on load).
+/// The data comes from <see cref="OverviewReport.Gather(GameInstall, IHostEnvironment, ILogger, OverviewReport?)"/>, run
+/// as a blocking operation on load and on refresh, as the reference ran both on the UI thread (ADR-0003). Each report
+/// replaces <see cref="OverviewState.Report"/>, which the other tabs read. Only the load shows the gathering's warning
+/// boxes (OVW-M3, OVW-M5); the refresh shows none (OVW-8).
 /// </remarks>
 public sealed class OverviewTab : TabPage
 {
@@ -39,12 +43,39 @@ public sealed class OverviewTab : TabPage
     private const string Win11Note =
         "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder.";
 
+    /// <summary><c>TOOLTIP_BA2_FORMATS</c>.</summary>
+    private const string Ba2FormatsTooltip =
+        "General/GNRL/Main: Used for all non-texture files.\nHard limit of 256, after which the game will crash at the main menu.\n\nTexture/DX10: Used only for textures.\nNo hard limit, but functional limit is 255, after which the game fails\nto use correct textures.\n1.11.240 has increased this limit to 1024.";
+
+    /// <summary><c>TOOLTIP_UNREADABLE</c>.</summary>
+    private const string UnreadableTooltip = "Files that could not be read due to permissions, unexpected format, or corruption.";
+
+    /// <summary><c>TOOLTIP_BA2_VERSIONS</c>.</summary>
+    private const string Ba2VersionsTooltip = "v1 works with all FO4 versions.\nv7/v8 require either BASS or NG.\nSome apps only support v1.";
+
+    /// <summary><c>TOOLTIP_MODULE_TYPES</c>.</summary>
+    private const string ModuleTypesTooltip =
+        "Full modules include all non-Light modules.\nLight modules are ESL-flagged and/or have the .esl extension.\n\nLight modules give up the capacity to contain more than 4096\nnew records in exchange for having a higher plugin limit.";
+
+    /// <summary><c>TOOLTIP_HEDR_100</c>.</summary>
+    private const string Hedr100Tooltip =
+        "Plugin header v1.00 has a larger Form ID range.\nAny plugins with IDs below 800 MUST be v1.00.\nFO4VR only supports v0.95.";
+
+    /// <summary><c>TOOLTIP_HEDR_95</c>.</summary>
+    private const string Hedr95Tooltip =
+        "Plugin header v0.95 has a smaller Form ID range.\nAny plugins with IDs below 800 MUST be v1.00.\nFO4VR only supports v0.95.\n\nIn the base game, these 4 modules are v0.95:\n• DLCCoast.esm\n• DLCworkshop02.esm\n• DLCworkshop03.esm\n• DLCNukaWorld.esm";
+
+    /// <summary><c>TOOLTIP_HEDR_UNKNOWN</c>, typo ("likey") included.</summary>
+    private const string HedrUnknownTooltip =
+        "These modules have an unsupported header version.\nFallout 4 supports only v0.95 and v1.00.\n\nFiles with v0.94 were likey made with FalloutSnip and\nshould be replaced, recreated, or removed.\nUse such mods AT YOUR OWN RISK as they may result\nin unknown behavior or issues due to having an invalid\nstructure or corruption.";
+
     private readonly AppRuntime _runtime;
     private readonly IHostEnvironment _host;
     private readonly PcInfo _pc;
     private readonly GameInstall _game;
     private readonly OverviewState _state;
     private readonly Action _openDowngradeManager;
+    private readonly Action _openArchivePatcher;
     private readonly PackRow _frames = new();
 
     /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
@@ -53,8 +84,15 @@ public sealed class OverviewTab : TabPage
     /// <param name="game">The installation found at startup.</param>
     /// <param name="state">Where each report goes, for the other tabs.</param>
     /// <param name="openDowngradeManager">Opens the Downgrader window. Until that slice lands, a no-op.</param>
+    /// <param name="openArchivePatcher">Opens the Archive Patcher window (OVW-A6). Until that slice lands, a no-op.</param>
     public OverviewTab(
-        AppRuntime runtime, IHostEnvironment host, PcInfo pc, GameInstall game, OverviewState state, Action? openDowngradeManager = null)
+        AppRuntime runtime,
+        IHostEnvironment host,
+        PcInfo pc,
+        GameInstall game,
+        OverviewState state,
+        Action? openDowngradeManager = null,
+        Action? openArchivePatcher = null)
         : base("Overview", "OverviewTab")
     {
         _runtime = runtime;
@@ -63,7 +101,21 @@ public sealed class OverviewTab : TabPage
         _game = game;
         _state = state;
         _openDowngradeManager = openDowngradeManager ?? NoWindow;
+        _openArchivePatcher = openArchivePatcher ?? NoWindow;
     }
+
+    /// <summary>
+    /// Shows one of the first load's warning boxes (OVW-M3, OVW-M5) and completes when it is dismissed: the app's
+    /// sv-styled warning box over the main window by default; tests record instead.
+    /// </summary>
+    public Func<string, string, Task> ShowWarning { get; init; } = ShowWarningBox;
+
+    /// <summary>
+    /// The Core gathering, <see cref="OverviewReport.Gather(GameInstall, IHostEnvironment, ILogger, OverviewReport?)"/>
+    /// by default. A test seam: the <c>overview-tab</c> scenarios were recorded with the module and archive steps
+    /// stubbed out, so their replays swap in the gathering without them.
+    /// </summary>
+    public Func<GameInstall, IHostEnvironment, ILogger, OverviewReport?, OverviewReport> Gatherer { get; init; } = OverviewReport.Gather;
 
     /// <summary>
     /// Opens a folder in Explorer (<c>os.startfile</c>; OVW-6). The shell by default; tests record instead. A failure
@@ -92,10 +144,28 @@ public sealed class OverviewTab : TabPage
         return text.ToString();
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// <c>OverviewTab._load</c>: gathers the first report, then shows its warnings in order (OVW-M3, OVW-M5), which the
+    /// reference showed mid-gathering, before the frames were built. If the gathering dies (OVW-A2, B-15), what it had
+    /// gathered becomes the current report, as the reference's shared state kept it, the warnings raised before it died
+    /// are still shown, and the failure propagates so the tab stays on its loading text.
+    /// </summary>
     protected internal override async Task<bool> LoadAsync()
     {
-        _state.Report = await _runtime.Operations.RunAsync("Overview load", OperationPhase.Blocking, Gather);
+        OverviewReport report;
+        try
+        {
+            report = await _runtime.Operations.RunAsync("Overview load", OperationPhase.Blocking, () => Gather(previous: null));
+        }
+        catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
+        {
+            _state.Report = incomplete.Partial;
+            await ShowWarningsAsync(incomplete.Partial.Warnings);
+            throw;
+        }
+
+        _state.Report = report;
+        await ShowWarningsAsync(report.Warnings);
         return true;
     }
 
@@ -110,19 +180,26 @@ public sealed class OverviewTab : TabPage
 
     /// <summary>
     /// The refresh button (OVW-8): gathers a new report as a blocking operation, then rebuilds the frames. The top block
-    /// isn't rebuilt; its Version label follows the Install Type. If the gathering fails, the error is reported and the
-    /// frames are left as they were.
+    /// isn't rebuilt; its Version label follows the Install Type. No warning is shown. If the gathering fails, the error
+    /// is reported, what it had gathered becomes the current report (the reference's shared state), and the frames are
+    /// left as they were.
     /// </summary>
     public async Task RefreshAsync()
     {
         OverviewReport report;
         try
         {
-            report = await _runtime.Operations.RunAsync("Overview refresh", OperationPhase.Blocking, Gather);
+            var previous = _state.Report;
+            report = await _runtime.Operations.RunAsync("Overview refresh", OperationPhase.Blocking, () => Gather(previous));
         }
-        catch (OperationFailedException)
+        catch (OperationFailedException ex)
         {
             // Already reported by the runner; the rest of the refresh is skipped, as the exception skipped it in Tk.
+            if (ex.InnerException is OverviewIncompleteException incomplete)
+            {
+                _state.Report = incomplete.Partial;
+            }
+
             return;
         }
 
@@ -130,7 +207,24 @@ public sealed class OverviewTab : TabPage
         BuildFrames();
     }
 
-    private OverviewReport Gather() => OverviewReport.Gather(_game, _host, _runtime.Logger);
+    private OverviewReport Gather(OverviewReport? previous) => Gatherer(_game, _host, _runtime.Logger, previous);
+
+    /// <summary>Shows each warning in turn, waiting for one to be dismissed before the next, as the Tk boxes blocked.</summary>
+    private async Task ShowWarningsAsync(IReadOnlyList<OverviewWarning> warnings)
+    {
+        foreach (var warning in warnings)
+        {
+            await ShowWarning(warning.Title, warning.Message);
+        }
+    }
+
+    /// <summary>
+    /// <c>messagebox.showwarning</c> with no parent, which Tk puts over its root: here, the desktop's main window, or
+    /// none when there isn't one yet.
+    /// </summary>
+    private static Task ShowWarningBox(string title, string message)
+        => MessageBox.ShowWarningAsync(
+            (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow, title, message);
 
     /// <summary>
     /// <c>frame_top</c>: right-aligned row labels, an icon column, the values (the weighted column) and the refresh
@@ -263,9 +357,200 @@ public sealed class OverviewTab : TabPage
     {
         _frames.Children.Clear();
         _frames.Children.Add(BuildBinaries(_state.Report!));
-        // The next Overview slice fills these two.
-        _frames.Children.Add(new GroupBox { Name = "Archives", Header = Labelframe.Title("Archives (BA2)") });
-        _frames.Children.Add(new GroupBox { Name = "Modules", Header = Labelframe.Title("Modules (ESM/ESL/ESP)") });
+        _frames.Children.Add(BuildArchives(_state.Report!));
+        _frames.Children.Add(BuildModules(_state.Report!));
+    }
+
+    /// <summary>
+    /// <c>build_gui_archives</c> (OVW-A5, OVW-A6, OVW-C1): the format rows and their counts against the limits (raised for
+    /// Anniversary, T-2), the unreadable count, a separator, the version counts, and the Archive Patcher button at the
+    /// bottom. Column 2 takes the spare width and the button's row the spare height.
+    /// </summary>
+    private Control BuildArchives(OverviewReport report)
+    {
+        var archives = report.Archives;
+        var grid = new TkGrid { ColumnWeights = [0, 0, 1], RowWeights = [0, 0, 0, 0, 0, 0, 0, 2] };
+
+        var formats = RowLabel("General:\nTexture:\nTotal:", "CmtDefault", "ArchiveFormats", 0, Ba2FormatsTooltip);
+        Grid.SetRowSpan(formats, 3);
+        grid.Children.Add(formats);
+        var unreadable = archives.Unreadable.Count > 0 ? "CmtBad" : "CmtNeutral1";
+        grid.Children.Add(RowLabel("Unreadable:", unreadable, "ArchiveUnreadableLabel", 3, UnreadableTooltip));
+        grid.Children.Add(Separator());
+        var versions = RowLabel("v1 (OG):\nv7/8 (NG):", "CmtDefault", "ArchiveVersions", 5, Ba2VersionsTooltip);
+        Grid.SetRowSpan(versions, 2);
+        grid.Children.Add(versions);
+
+        grid.Children.Add(CountLabel(report.GeneralArchives, "ArchiveCount0", 0));
+        grid.Children.Add(CountLabel(report.TextureArchives, "ArchiveCount1", 1));
+        grid.Children.Add(CountLabel(report.TotalArchives, "ArchiveCount2", 2));
+        grid.Children.Add(PlainCount(archives.Unreadable.Count, unreadable, "ArchiveCount3", 3));
+        grid.Children.Add(PlainCount(archives.OldGen.Count, "CmtDefault", "ArchiveCount5", 5));
+        grid.Children.Add(PlainCount(archives.NextGen.Count, "CmtDefault", "ArchiveCount6", 6));
+
+        // Column 2: sticky=EW, left-justified, so the slashes line up under each other whatever the digits.
+        var limits = Label(
+            $" / {report.GeneralArchives.Limit}\n / {report.TextureArchives.Limit}\n / {report.TotalArchives.Limit}",
+            "CmtDefault",
+            "ArchiveLimits");
+        limits.HorizontalAlignment = HorizontalAlignment.Stretch;
+        ToolTip.SetTip(limits, Ba2FormatsTooltip);
+        Place(limits, 0, 2);
+        Grid.SetRowSpan(limits, 3);
+        grid.Children.Add(limits);
+
+        // grid_size() is (3, 7) here, so the button goes in row 7, spanning the three columns, like the Binaries one.
+        var button = FrameButton("Archive Patcher...", "ArchivePatcher", 7);
+        Grid.SetColumnSpan(button, 3);
+        button.Click += (_, _) => _openArchivePatcher();
+        grid.Children.Add(button);
+
+        return Frame("Archives", "Archives (BA2)", grid);
+    }
+
+    /// <summary>
+    /// <c>build_gui_modules</c> (OVW-M9, OVW-M10, OVW-C1): the type rows and their counts against the limits, the
+    /// unreadable count, a separator, the HEDR version counts, and, when there are unknown versions, an info icon that
+    /// opens their list. No row or column takes spare space, so the content sits at the top left.
+    /// </summary>
+    private Control BuildModules(OverviewReport report)
+    {
+        var modules = report.Modules;
+        var grid = new TkGrid { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+
+        var types = RowLabel("Full:\nLight:\nTotal:", "CmtDefault", "ModuleTypes", 0, ModuleTypesTooltip);
+        Grid.SetRowSpan(types, 3);
+        grid.Children.Add(types);
+        var unreadable = modules.Unreadable.Count > 0 ? "CmtBad" : "CmtNeutral1";
+        grid.Children.Add(RowLabel("Unreadable:", unreadable, "ModuleUnreadableLabel", 3, UnreadableTooltip));
+        grid.Children.Add(Separator());
+        grid.Children.Add(RowLabel("HEDR v1.00:", "CmtDefault", "Hedr100Label", 5, Hedr100Tooltip));
+        grid.Children.Add(RowLabel("HEDR v0.95:", "CmtDefault", "Hedr95Label", 6, Hedr95Tooltip));
+        var unknown = modules.HedrUnknown.Count > 0 ? "CmtBad" : "CmtNeutral1";
+        grid.Children.Add(RowLabel("HEDR v????:", unknown, "HedrUnknownLabel", 7, HedrUnknownTooltip));
+
+        grid.Children.Add(CountLabel(report.FullModules, "ModuleCount0", 0));
+        grid.Children.Add(CountLabel(report.LightModules, "ModuleCount1", 1));
+        grid.Children.Add(CountLabel(report.TotalModules, "ModuleCount2", 2));
+        grid.Children.Add(PlainCount(modules.Unreadable.Count, unreadable, "ModuleCount3", 3));
+        grid.Children.Add(PlainCount(modules.Hedr100, "CmtDefault", "ModuleCount5", 5));
+        grid.Children.Add(PlainCount(modules.Hedr95.Count, "CmtDefault", "ModuleCount6", 6));
+        grid.Children.Add(PlainCount(modules.HedrUnknown.Count, unknown, "ModuleCount7", 7));
+
+        // Column 2: sticky=EW and right-justified; " /  254" has two spaces so the three lines are the same length.
+        var limits = Label(
+            $" /  {report.FullModules.Limit}\n / {report.LightModules.Limit}\n / {report.TotalModules.Limit}",
+            "CmtDefault",
+            "ModuleLimits");
+        limits.HorizontalAlignment = HorizontalAlignment.Stretch;
+        limits.TextAlignment = TextAlignment.Right;
+        ToolTip.SetTip(limits, ModuleTypesTooltip);
+        Place(limits, 0, 2);
+        Grid.SetRowSpan(limits, 3);
+        grid.Children.Add(limits);
+
+        if (modules.HedrUnknown.Count > 0)
+        {
+            // grid(column=2, row=7, sticky=W, padx=(5, 0), ipady=3).
+            var icon = Icon("images/info-16.png", "HedrUnknownIcon", 7, "Detection details");
+            icon.Margin = new Thickness(5, 0, 0, 0);
+            Grid.SetColumn(icon, 2);
+            icon.Cursor = new Cursor(StandardCursorType.Hand);
+            var items = modules.HedrUnknown.Select(m => (m.Version, m.Module.ToString())).ToList();
+            icon.PointerPressed += (_, e) =>
+            {
+                if (e.GetCurrentPoint(icon).Properties.IsLeftButtonPressed && TopLevel.GetTopLevel(icon) is Window owner)
+                {
+                    // Not awaited: like the reference's modal, it runs on while the click handler returns.
+                    _ = TreeWindow.Create(
+                            _runtime, 400, 500, "Detected Invalid Module Versions", "", ["HEDR", " Module"], items, PythonFloat.Repr)
+                        .ShowModalAsync(owner);
+                }
+            };
+            grid.Children.Add(icon);
+        }
+
+        return Frame("Modules", "Modules (ESM/ESL/ESP)", grid);
+    }
+
+    /// <summary>
+    /// One of the three label frames. Tk grids an unpadded labelframe's content from its border line (the grid's bounding
+    /// box starts 2 px into a frame whose outline is inset by as much), where the GroupBox theme keeps a 4 px gutter for
+    /// the padded labelframes of the other tabs; measured off the screenshot pairs, the content sat 4 px right of Tk's,
+    /// so the gutter is taken back out at the sides. The frames' widths don't change: all three lose the same width,
+    /// and the pack row shares the space out equally.
+    /// </summary>
+    private static GroupBox Frame(string name, string title, Control content)
+        => new() { Name = name, Header = Labelframe.Title(title), Content = content, Padding = new Thickness(-4, 0, -4, 0) };
+
+    /// <summary>
+    /// A right-aligned row label in column 0 (<c>sticky=E</c>, <c>padx=(5, 0)</c>, <c>justify=RIGHT</c>) with its tooltip.
+    /// </summary>
+    private static TextBlock RowLabel(string text, string colourKey, string name, int row, string tooltip)
+    {
+        var label = Label(text, colourKey, name, new Thickness(5, 0, 0, 0));
+        label.TextAlignment = TextAlignment.Right;
+        label.HorizontalAlignment = HorizontalAlignment.Right;
+        ToolTip.SetTip(label, tooltip);
+        Place(label, row, 0);
+        return label;
+    }
+
+    /// <summary>
+    /// <c>add_count_label</c>: the count right-justified to four characters, green, orange or red by how close it is to
+    /// its limit (OVW-C1), in column 1.
+    /// </summary>
+    private static TextBlock CountLabel(LimitedCount count, string name, int row)
+    {
+        var colour = count.Level switch
+        {
+            CountLevel.Good => "CmtGood",
+            CountLevel.Warning => "CmtWarning",
+            _ => "CmtBad",
+        };
+        return PlainCount(count.Count, colour, name, row, PythonStr.RightJustify(count.Count.ToString(CultureInfo.InvariantCulture), 4));
+    }
+
+    /// <summary>A count in column 1 (<c>text=len(...)</c>, <c>sticky=E</c>, <c>padx=(5, 0)</c>).</summary>
+    private static TextBlock PlainCount(int count, string colourKey, string name, int row, string? text = null)
+    {
+        var label = Label(text ?? count.ToString(CultureInfo.InvariantCulture), colourKey, name, new Thickness(5, 0, 0, 0));
+        label.HorizontalAlignment = HorizontalAlignment.Right;
+        Place(label, row, 1);
+        return label;
+    }
+
+    /// <summary>
+    /// <c>add_separator(frame, HORIZONTAL, 0, 4, 3)</c>: row 4 across the three columns, <c>padx=10</c>, <c>pady=10</c>,
+    /// <c>ipady=1</c>, so a 3 px bar.
+    /// </summary>
+    private static Border Separator()
+    {
+        var separator = new Border { Height = 3, Margin = new Thickness(10), HorizontalAlignment = HorizontalAlignment.Stretch };
+        separator.Bind(Border.BackgroundProperty, separator.GetResourceObservable("SvSep"));
+        Place(separator, 4, 0);
+        Grid.SetColumnSpan(separator, 3);
+        return separator;
+    }
+
+    /// <summary>
+    /// A frame's bottom button (<c>padding=5</c>, <c>sticky=S</c>, <c>pady=10</c>). Measured against the Tk pair: the sv_ttk
+    /// button is 34 px tall with its text 2 px below centre, and its bottom sits 10 px above the frame border, of which
+    /// the frame's gutter already gives 4.
+    /// </summary>
+    private static Button FrameButton(string text, string name, int row)
+    {
+        var button = new Button
+        {
+            Name = name,
+            Content = text,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(0, 10, 0, 6),
+            Padding = new Thickness(8, 10, 8, 6),
+        };
+        Place(button, row, 0);
+        return button;
     }
 
     /// <summary>
@@ -316,24 +601,13 @@ public sealed class OverviewTab : TabPage
             grid.Children.Add(BinaryValue(report.Binaries[i], i));
         }
 
-        // padding=5; sticky=S, pady=10, spanning both columns. Measured against the Tk pair: the sv_ttk button is 34 px
-        // tall with its text 2 px below centre, and its bottom sits 10 px above the frame border, of which the frame's
-        // gutter already gives 4.
-        var button = new Button
-        {
-            Name = "DowngradeManager",
-            Content = "Downgrade Manager...",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0, 10, 0, 6),
-            Padding = new Thickness(8, 10, 8, 6),
-        };
+        // padding=5; sticky=S, pady=10, spanning both columns. FrameButton has the measurements against the Tk pair.
+        var button = FrameButton("Downgrade Manager...", "DowngradeManager", rows + 1);
         button.Click += (_, _) => _openDowngradeManager();
-        Place(button, rows + 1, 0);
         Grid.SetColumnSpan(button, 2);
         grid.Children.Add(button);
 
-        return new GroupBox { Name = "Binaries", Header = Labelframe.Title("Binaries (EXE/DLL/BIN)"), Content = grid };
+        return Frame("Binaries", "Binaries (EXE/DLL/BIN)", grid);
     }
 
     /// <summary>
@@ -449,6 +723,7 @@ public sealed class OverviewTab : TabPage
 
     private static void NoWindow()
     {
-        // The Downgrader's slice wires it; until then the button is live but does nothing (OVW-B9).
+        // The Downgrader's and the Archive Patcher's slices wire them; until then the buttons are live but do nothing
+        // (OVW-B9, OVW-A6).
     }
 }

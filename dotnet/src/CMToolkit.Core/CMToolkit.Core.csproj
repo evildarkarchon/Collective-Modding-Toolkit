@@ -16,4 +16,9 @@
     <!-- CRC32 of game files (utils.get_crc32): Microsoft's vectorised implementation, trim- and AOT-safe. -->
     <PackageReference Include="System.IO.Hashing" Version="10.0.9" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test-only seams, such as the Overview gathering without its module and archive steps (overview-tab scenarios). -->
+    <InternalsVisibleTo Include="CMToolkit.Tests" />
+  </ItemGroup>
 </Project>

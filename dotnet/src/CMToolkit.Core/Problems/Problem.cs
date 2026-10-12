@@ -32,6 +32,13 @@ public sealed record Problem(
     public IReadOnlyList<string>? ExtraData { get; init; }
 
     /// <summary>
+    /// Where the mod column comes from. <see cref="ModSource.Overview"/> stands in for the reference's <c>"OVERVIEW"</c>
+    /// mod string on the Overview's module and archive header problems: the Scanner looks their mod up by
+    /// <see cref="RelativePath"/> (SCN-R2), and until then <see cref="Mod"/> is empty.
+    /// </summary>
+    public ModSource ModSource { get; init; }
+
+    /// <summary>
     /// <c>ProblemInfo(problem, path, relative_path, mod, summary, solution)</c>: a problem about a file.
     /// </summary>
     /// <param name="kind">The <c>ProblemType</c> value, such as <see cref="ProblemTypes.FileNotFound"/>.</param>
@@ -66,6 +73,32 @@ public sealed record Problem(
     /// <param name="extraData">The lines after the solution, or null.</param>
     public static Problem Simple(string path, string problem, string summary, string solution, IReadOnlyList<string>? extraData = null)
         => new(problem, path, null, path, string.Empty, summary, solution) { ExtraData = extraData };
+
+    /// <summary>
+    /// <c>ProblemInfo(problem, path, Path(path.name), "OVERVIEW", summary, solution)</c>: an Overview problem about a
+    /// module's or an archive's header, whose mod the Scanner fills in later (<see cref="ModSource.Overview"/>).
+    /// </summary>
+    /// <param name="kind">The <c>ProblemType</c> value: <see cref="ProblemTypes.InvalidModule"/> or <see cref="ProblemTypes.InvalidArchive"/>.</param>
+    /// <param name="path">The module or archive; its name is also the relative path.</param>
+    /// <param name="summary">The problem text.</param>
+    /// <param name="solution">The solution text, or null.</param>
+    public static Problem ForOverviewFile(string kind, PythonPath path, string summary, string? solution)
+        => new(kind, path.Name, path, new PythonPath(path.Name).ToString(), string.Empty, summary, solution)
+        {
+            ModSource = ModSource.Overview,
+        };
+}
+
+/// <summary>Where a <see cref="Problem"/>'s mod column comes from.</summary>
+public enum ModSource
+{
+    /// <summary><see cref="Problem.Mod"/> is final.</summary>
+    Given,
+
+    /// <summary>
+    /// The reference's <c>"OVERVIEW"</c> marker: the Scanner looks the mod up from its index, or leaves it empty (SCN-R2).
+    /// </summary>
+    Overview,
 }
 
 /// <summary>The <c>enums.ProblemType</c> values: the result tree groups of file problems.</summary>
@@ -76,6 +109,12 @@ public static class ProblemTypes
 
     /// <summary><c>ProblemType.WrongVersion</c>.</summary>
     public const string WrongVersion = "Wrong Version";
+
+    /// <summary><c>ProblemType.InvalidModule</c>.</summary>
+    public const string InvalidModule = "Invalid Module";
+
+    /// <summary><c>ProblemType.InvalidArchive</c>.</summary>
+    public const string InvalidArchive = "Invalid Archive";
 }
 
 /// <summary>The <c>enums.SolutionType</c> texts the problems use.</summary>

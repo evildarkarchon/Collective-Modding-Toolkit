@@ -39,14 +39,15 @@ public sealed record BinaryFile(
 
 /// <summary>
 /// What the Overview tab shows and reports (the Core seams resolution on issue #7): one immutable result per load or
-/// refresh, which the App holds as the current one. This slice covers the binaries; the modules and archives come next.
+/// refresh, which the App holds as the current one.
 /// </summary>
 /// <param name="InstallType">The game's Install Type (<c>game.install_type</c>), which the top block and other tabs read.</param>
 /// <param name="Binaries">The <c>BASE_FILES</c> binaries in check order (OVW-B1).</param>
 /// <param name="AddressLibrary">The Address Library's file when it is installed, else null (OVW-B5).</param>
 /// <param name="Problems">
 /// The Overview problems in the order the reference's shared list holds them (§5.6): the ones gathered with the
-/// binaries, then the ones the Binaries frame appends while it is built (OVW-P5, OVW-P6).
+/// binaries, the modules and the archives, then the ones the frames append while they are built: per binary
+/// (OVW-P5, OVW-P6), then the archive limits and the module limits (OVW-C2).
 /// </param>
 public sealed record OverviewReport(
     InstallType InstallType,
@@ -54,6 +55,33 @@ public sealed record OverviewReport(
     PythonPath? AddressLibrary,
     IReadOnlyList<Problem> Problems)
 {
+    /// <summary>The modules (OVW-M1..OVW-M9); none until gathered.</summary>
+    public OverviewModules Modules { get; init; } = OverviewModules.None;
+
+    /// <summary>The archives (OVW-A1..OVW-A5); none until gathered.</summary>
+    public OverviewArchives Archives { get; init; } = OverviewArchives.None;
+
+    /// <summary>The warning boxes the gathering raised, in order (OVW-M3, OVW-M5). The App shows them on the first load only.</summary>
+    public IReadOnlyList<OverviewWarning> Warnings { get; init; } = [];
+
+    /// <summary>The General archives against their limit, raised for Anniversary (OVW-A5, T-2).</summary>
+    public LimitedCount GeneralArchives => new(Archives.General, OverviewLimits.GeneralArchiveLimit(InstallType));
+
+    /// <summary>The Texture archives against their limit, raised for Anniversary (OVW-A5, T-2).</summary>
+    public LimitedCount TextureArchives => new(Archives.Texture, OverviewLimits.TextureArchiveLimit(InstallType));
+
+    /// <summary>Both kinds of archive against both limits.</summary>
+    public LimitedCount TotalArchives => new(GeneralArchives.Count + TextureArchives.Count, GeneralArchives.Limit + TextureArchives.Limit);
+
+    /// <summary>The Full modules against 254.</summary>
+    public LimitedCount FullModules => new(Modules.Full, OverviewLimits.FullModules);
+
+    /// <summary>The Light modules against 4096.</summary>
+    public LimitedCount LightModules => new(Modules.Light, OverviewLimits.LightModules);
+
+    /// <summary>All modules against 4350.</summary>
+    public LimitedCount TotalModules => new(FullModules.Count + LightModules.Count, FullModules.Limit + LightModules.Limit);
+
     /// <summary><c>TOOLTIP_NO_MOD_MANAGER</c>: the Mod Manager value's tooltip, and OVW-P1's solution.</summary>
     public const string NoModManagerText = "Your mod manager must launch the app to be detected.";
 
@@ -63,22 +91,62 @@ public sealed record OverviewReport(
     private const string AddressLibraryLink = "https://www.nexusmods.com/fallout4/mods/47327";
 
     /// <summary>
-    /// Gathers a new report: <c>OverviewTab._load</c> / <c>refresh</c>'s <c>get_info_binaries</c>, then the problems
-    /// <c>build_gui_binaries</c> adds. Synchronous and blocking (the reference ran it on the UI thread): the App runs it
-    /// as a <see cref="OperationPhase.Blocking"/> operation and never shows message boxes from it (OVW-8).
+    /// Gathers a new report: <c>OverviewTab._load</c> / <c>refresh</c>, which gather the binaries, the modules and the
+    /// archives, then the problems the three frames append while they are built. Synchronous and blocking (the reference
+    /// ran it on the UI thread): the App runs it as a <see cref="OperationPhase.Blocking"/> operation. It shows nothing;
+    /// its warnings are in <see cref="Warnings"/> for the App to show on the first load (OVW-8).
     /// </summary>
     /// <param name="game">The installation found at startup.</param>
     /// <param name="host">The machine: file versions, the exe name and the working directory relative paths resolve against.</param>
     /// <param name="logger">The app log, which gets the reference's DEBUG lines.</param>
-    /// <exception cref="IOException">A binary or <c>Startup.ba2</c> exists but can't be read.</exception>
-    /// <exception cref="UnauthorizedAccessException">A binary or <c>Startup.ba2</c> can't be opened.</exception>
-    public static OverviewReport Gather(GameInstall game, IHostEnvironment host, ILogger logger)
-    {
-        var gathered = new BinariesGathering(game, host, logger);
-        gathered.Run();
+    /// <param name="previous">
+    /// The report this one replaces, if any. A gathering that dies before a step starts leaves that step's part as it was,
+    /// as the reference's shared state did.
+    /// </param>
+    /// <exception cref="OverviewIncompleteException">
+    /// A step raised: a binary, module or archive that exists but can't be read, no local app data folder, a
+    /// Fallout4.ccc, plugins.txt or archive format that isn't UTF-8 (T-1), or no <c>[Archive]</c> section (OVW-A2, B-15).
+    /// It carries what had been gathered.
+    /// </exception>
+    public static OverviewReport Gather(GameInstall game, IHostEnvironment host, ILogger logger, OverviewReport? previous = null)
+        => Gather(game, host, logger, previous, modulesAndArchives: true);
 
-        // The modules and the archives are gathered here, after the binaries (§5.6; the next Overview slice).
-        var problems = new List<Problem>(gathered.Problems);
+    /// <summary>
+    /// <see cref="Gather(GameInstall, IHostEnvironment, ILogger, OverviewReport?)"/>, optionally without the modules and
+    /// archives. The <c>overview-tab</c> parity scenarios were recorded with those two steps stubbed out (their frames
+    /// built from empty state), so their replays skip them the same way.
+    /// </summary>
+    internal static OverviewReport Gather(
+        GameInstall game, IHostEnvironment host, ILogger logger, OverviewReport? previous, bool modulesAndArchives)
+    {
+        var problems = new List<Problem>();
+        var warnings = new List<OverviewWarning>();
+        var gathered = new BinariesGathering(game, host, logger, problems);
+        ModulesGathering? modules = null;
+        ArchivesGathering? archives = null;
+        try
+        {
+            gathered.Run();
+            if (modulesAndArchives)
+            {
+                modules = new ModulesGathering(game, host, logger, problems, warnings);
+                modules.Run();
+                archives = new ArchivesGathering(game, host, logger, problems, modules.Enabled, gathered.InstallType);
+                archives.Run();
+            }
+        }
+        catch (Exception ex)
+        {
+            // The frames are never built, so none of their problems are appended, and the rows stay unjudged.
+            throw new OverviewIncompleteException(
+                new OverviewReport(gathered.InstallType, [.. gathered.Files], gathered.AddressLibrary, [.. problems])
+                {
+                    Modules = modules?.Snapshot() ?? (modulesAndArchives ? previous?.Modules : null) ?? OverviewModules.None,
+                    Archives = archives?.Snapshot() ?? (modulesAndArchives ? previous?.Archives : null) ?? OverviewArchives.None,
+                    Warnings = [.. warnings],
+                },
+                ex);
+        }
 
         // build_gui_binaries: the row colours, and their problems, come after everything gathered.
         var binaries = new List<BinaryFile>();
@@ -92,7 +160,58 @@ public sealed record OverviewReport(
             }
         }
 
-        return new OverviewReport(gathered.InstallType, binaries, gathered.AddressLibrary, problems);
+        var counted = new OverviewReport(gathered.InstallType, binaries, gathered.AddressLibrary, [])
+        {
+            Modules = modules?.Snapshot() ?? OverviewModules.None,
+            Archives = archives?.Snapshot() ?? OverviewArchives.None,
+            Warnings = warnings,
+        };
+
+        // build_gui_archives, then build_gui_modules: add_count_label's Limit Exceeded problems, Totals excepted (OVW-C2).
+        AddLimitProblem(logger, problems, counted.GeneralArchives, "General", "Archive");
+        AddLimitProblem(logger, problems, counted.TextureArchives, "Texture", "Archive");
+        AddLimitProblem(logger, problems, counted.FullModules, "Full", "Module");
+        AddLimitProblem(logger, problems, counted.LightModules, "Light", "Module");
+        return counted with { Problems = problems };
+    }
+
+    /// <summary>Adds a simple problem, logging it as <c>SimpleProblemInfo.__init__</c> does.</summary>
+    internal static void AddSimple(ILogger logger, List<Problem> problems, Problem problem)
+    {
+        logger.Write(LogLevel.Debug, $"Added SimpleProblemInfo: Path: {problem.ItemText} | Problem: {problem.Kind}");
+        problems.Add(problem);
+    }
+
+    /// <summary>
+    /// <c>add_count_label</c>'s problem for a count over its limit: <c>"{n} {format} {type}s"</c> / <c>Limit Exceeded</c>,
+    /// with the reference's solution and link for each type (OVW-C2).
+    /// </summary>
+    private static void AddLimitProblem(ILogger logger, List<Problem> problems, LimitedCount count, string format, string type)
+    {
+        if (count.Level != CountLevel.Exceeded)
+        {
+            return;
+        }
+
+        var (solution, extraData) = (type, format) switch
+        {
+            ("Archive", _) => (
+                "Archives can be unpacked or merged to reduce your total.\nNote: Do not mix texture and non-texture archives when merging.\nUnpacking is only suggested for small non-texture archives for performance reasons.\nYou can use Unpackrr to quickly unpack small archives:",
+                (IReadOnlyList<string>?)["https://www.nexusmods.com/fallout4/mods/82082"]),
+            (_, "Full") => (
+                "Many Full modules are eligible to be flagged as Light (ESL).\n\nThis guide walks you through the process in xEdit:",
+                ["https://themidnightride.moddinglinked.com/esl.html"]),
+            _ => (
+                "Some plugins will need to be removed or manually merged.\nWarning: Do not use old/outdated tools like zMerge with Fallout 4 unless\nyou understand their issues and how to fix the merged plugins afterward.",
+                null),
+        };
+
+        AddSimple(logger, problems, Problem.Simple(
+            $"{count.Count} {format} {type}s",
+            "Limit Exceeded",
+            $"You have {count.Count} {format} {type}s enabled. The limit is {count.Limit}.",
+            solution,
+            extraData));
     }
 
     /// <summary>
@@ -130,10 +249,8 @@ public sealed record OverviewReport(
     }
 
     /// <summary><c>get_info_binaries</c>: the per-file lookups, the Install Type, the Address Library and Down-Grade checks.</summary>
-    private sealed class BinariesGathering(GameInstall game, IHostEnvironment host, ILogger logger)
+    private sealed class BinariesGathering(GameInstall game, IHostEnvironment host, ILogger logger, List<Problem> problems)
     {
-        public List<Problem> Problems { get; } = [];
-
         public List<BinaryFile> Files { get; } = [];
 
         // reset_binaries sets Unknown before the loop; get_file_info's OVW-B3 substitution reads it mid-loop.
@@ -221,7 +338,7 @@ public sealed record OverviewReport(
                 }
                 else
                 {
-                    Problems.Add(Problem.ForFile(
+                    problems.Add(Problem.ForFile(
                         ProblemTypes.FileNotFound,
                         path,
                         relative,
@@ -245,7 +362,7 @@ public sealed record OverviewReport(
                 }
                 else
                 {
-                    Problems.Add(Problem.ForFile(
+                    problems.Add(Problem.ForFile(
                         ProblemTypes.FileNotFound,
                         startup,
                         name,
@@ -257,11 +374,7 @@ public sealed record OverviewReport(
         }
 
         /// <summary>Adds a simple problem, logging it as <c>SimpleProblemInfo.__init__</c> does.</summary>
-        private void AddSimple(Problem problem)
-        {
-            logger.Write(LogLevel.Debug, $"Added SimpleProblemInfo: Path: {problem.ItemText} | Problem: {problem.Kind}");
-            Problems.Add(problem);
-        }
+        private void AddSimple(Problem problem) => OverviewReport.AddSimple(logger, problems, problem);
 
         /// <summary><c>BASE_FILES[name].get(key)</c>, which is falsy (so the next lookup runs) when absent.</summary>
         private static InstallType? Lookup(IReadOnlyDictionary<string, InstallType> table, string key)

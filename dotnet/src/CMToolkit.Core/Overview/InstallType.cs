@@ -56,4 +56,11 @@ public static class InstallTypes
 
     /// <summary><c>GameInfo.is_fongae</c>: Next-Gen or Anniversary.</summary>
     public static bool IsNextGenOrAnniversary(this InstallType type) => type is InstallType.NextGen or InstallType.Anniversary;
+
+    /// <summary>
+    /// Whether the game takes the raised archive limits, 1024 General and 1023 Texture (OVW-A5). The reference tests
+    /// <c>install_type in {InstallType.Obsolete2, InstallType.AE2}</c>, and since <c>Obsolete2</c> is never produced and
+    /// <c>AE2</c> is <c>AE</c>, that is exactly Anniversary (T-2; the Core seams resolution on issue #7).
+    /// </summary>
+    public static bool UsesRaisedArchiveLimits(this InstallType type) => type == InstallType.Anniversary;
 }

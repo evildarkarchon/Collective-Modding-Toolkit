@@ -26,8 +26,8 @@ public sealed class OverviewScenarioTests
                    ?? throw new InvalidOperationException("The scenario's game wasn't found.");
 
         // The refresh gathers a new report from the same machine; nothing changed in between.
-        var loaded = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
-        var refreshed = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+        var loaded = OverviewReport.Gather(game, machine.Host, new CapturingLogger(), null, modulesAndArchives: false);
+        var refreshed = OverviewReport.Gather(game, machine.Host, new CapturingLogger(), loaded, modulesAndArchives: false);
 
         var actual = new JsonObject
         {
@@ -61,7 +61,7 @@ public sealed class OverviewScenarioTests
         ["itemText"] = problem.ItemText,
         ["path"] = PathText(machine, problem.OpenablePath),
         ["relativePath"] = Tokenise(machine, problem.RelativePath),
-        ["mod"] = problem.Mod,
+        ["mod"] = problem.ModSource == ModSource.Overview ? "OVERVIEW" : problem.Mod,
         ["summary"] = Tokenise(machine, problem.Summary),
         ["solution"] = problem.Solution,
         ["extraData"] = problem.ExtraData is null ? null : new JsonArray([.. problem.ExtraData.Select(e => JsonValue.Create(e))]),
