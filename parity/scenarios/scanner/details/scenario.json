@@ -66,5 +66,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 90,
+      "reason": "Race Subgraphs counts each enabled module once, so ccDup.esm (in both Fallout4.ccc and plugins.txt) makes 105 SADD Records from 2 modules, listed once."
+    }
+  ]
 }

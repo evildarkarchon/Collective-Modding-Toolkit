@@ -1,0 +1,1620 @@
+{
+  "scanner": {
+    "afterRescan": {
+      "detailsPane": false
+    },
+    "details": [
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Fallout4 - Nvflex.ba2\nSummary: Nvidia Flex is enabled in your game INIs (bNVFlexEnable=1) but the Nvflex BA2 is missing.\nThe exe is hardcoded to load this BA2.\nSolution: Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": true,
+              "text": "Copy Details"
+            }
+          ],
+          "path": {
+            "cursor": "X_cursor",
+            "tooltip": null
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Fallout4 - Nvflex.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Nvidia Flex is enabled in your game INIs (bNVFlexEnable=1) but the Nvflex BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Fallout4 - Nvflex.ba2",
+        "pathOpens": null,
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "File Not Found"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: F4SE\\Plugins\\version-1-10-163-0.bin\nSummary: Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.\nSolution: Download the mod here:\nhttps://www.nexusmods.com/fallout4/mods/47327\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "X_cursor",
+            "tooltip": null
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "F4SE\\Plugins\\version-1-10-163-0.bin",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Download the mod here:\nhttps://www.nexusmods.com/fallout4/mods/47327",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": "Left-Click: Open URL\nRight-Click: Copy URL"
+          }
+        },
+        "itemText": "version-1-10-163-0.bin",
+        "pathOpens": null,
+        "solutionCopies": "https://www.nexusmods.com/fallout4/mods/47327",
+        "solutionOpens": "https://www.nexusmods.com/fallout4/mods/47327",
+        "type": "File Not Found"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: BadMagic - main.ba2\nSummary: Archive is either corrupt or not in Bethesda Archive 2 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "BadMagic - main.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "BadMagic - main.ba2",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Archive"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Fo76 - main.ba2\nSummary: Archive format (ABCD) is not valid for Fallout 4.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Fo76 - main.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Archive format (ABCD) is not valid for Fallout 4.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Fo76 - main.ba2",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Archive"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Short - main.ba2\nSummary: Archive is either corrupt or not in Bethesda Archive 2 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Short - main.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Short - main.ba2",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Archive"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Skyrim - voices_en.ba2\nSummary: Archive version (2) is not valid for Fallout 4.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Skyrim - voices_en.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Archive version (2) is not valid for Fallout 4.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Skyrim - voices_en.ba2",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Archive"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: BadMagic.esp\nSummary: Module is either corrupt or not in TES4 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "BadMagic.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module is either corrupt or not in TES4 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "BadMagic.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Fo76.esm\nSummary: Module version (68.0) is not valid for Fallout 4.\nGames supporting v68.0: Fallout 76\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Fo76.esm",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (68.0) is not valid for Fallout 4.\nGames supporting v68.0: Fallout 76",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Fo76.esm",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Huge.esp\nSummary: Module version (1.0000000200408773e+20) is not valid for Fallout 4.\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Huge.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (1.0000000200408773e+20) is not valid for Fallout 4.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Huge.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Legacy170.esp\nSummary: Module version (1.7) is not valid for Fallout 4.\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Legacy170.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (1.7) is not valid for Fallout 4.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Legacy170.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Short.esp\nSummary: Module is either corrupt or not in TES4 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Short.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module is either corrupt or not in TES4 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Short.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Skyrim.esp\nSummary: Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Skyrim.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Skyrim.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: SkyrimSE.esp\nSummary: Module version (1.71) is not valid for Fallout 4.\nGames supporting v1.71: Skyrim SE\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "SkyrimSE.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (1.71) is not valid for Fallout 4.\nGames supporting v1.71: Skyrim SE",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "SkyrimSE.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Unknown.esl\nSummary: Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Unknown.esl",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Unknown.esl",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: Zero.esp\nSummary: Module version (0.0) is not valid for Fallout 4.\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Zero.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module version (0.0) is not valid for Fallout 4.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Zero.esp",
+        "pathOpens": "<ROOT>\\Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: dlcrobot.esm\nSummary: Failed to read module due to permissions or the file is missing.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "dlcrobot.esm",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Failed to read module due to permissions or the file is missing.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "dlcrobot.esm",
+        "pathOpens": "<ROOT>\\Game\\Data\\dlcrobot.esm",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: cm-toolkit.exe\nSummary: No Mod Manager Detected\nSolution: Your mod manager must launch the app to be detected.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "X_cursor",
+            "tooltip": null
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "cm-toolkit.exe",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No Mod Manager Detected",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Your mod manager must launch the app to be detected.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "cm-toolkit.exe",
+        "pathOpens": null,
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "No Mod Manager"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Problem: 105 SADD Records from 2 modules\nSummary: Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\nSolution: IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            },
+            {
+              "enabled": true,
+              "text": "File List"
+            }
+          ],
+          "path": {
+            "cursor": "X_cursor",
+            "tooltip": null
+          },
+          "rows": [
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "105 SADD Records from 2 modules",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "fileList": {
+          "headers": [
+            "Records",
+            " Module"
+          ],
+          "height": 500,
+          "rows": [
+            [
+              "60",
+              "Unofficial.esp"
+            ],
+            [
+              "45",
+              "ccDup.esm"
+            ]
+          ],
+          "text": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells. This issue needs more investigation as this may be mere correlation and not causation.",
+          "title": "Race Animation Subgraph Records",
+          "width": 400,
+          "window": "TreeWindow"
+        },
+        "itemText": "105 SADD Records from 2 modules",
+        "pathOpens": null,
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Race Subgraph Record Count"
+      }
+    ],
+    "errors": 0,
+    "usingStage": false
+  }
+}
