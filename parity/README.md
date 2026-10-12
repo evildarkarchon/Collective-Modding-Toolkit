@@ -191,6 +191,10 @@ approves the pair in the slice PR. There is no automated pixel diff, and no capt
 click on the tab's header, whose position is fixed in the script's `TAB_CENTRES`. The Tools, Settings and About pairs
 reuse `shell/main-window`, whose `settings.json` the Settings tab shows (`update_source` none, `log_level` INFO).
 
+`--modal <Name>` captures a modal opened from the Overview instead of the main window (today only `Downgrader`). The
+reference opens it in-process two seconds after `CMChecker` is built (told which by `CMT_SCREENSHOT_MODAL`); the exe
+gets a posted click on the opening button, fixed in `MODAL_BUTTONS`. The capture is the window with that title.
+
 Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
 `CMT_PARITY_ROOT` (its copy of the tree) set, and then runs on `ScenarioHostEnvironment`
 (`dotnet/src/CMToolkit.App/Parity/`) instead of the real machine: the same rules as the tests' `FakeHostEnvironment`,

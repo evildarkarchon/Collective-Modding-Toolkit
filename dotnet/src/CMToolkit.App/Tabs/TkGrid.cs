@@ -91,8 +91,8 @@ public sealed class TkGrid : Panel
 
     /// <summary>
     /// The slot sizes the children ask for along one axis: each slot fits its single-slot children (plus the column's
-    /// pad), then a spanning child short of room gets the shortfall shared over its slots by weight, or all of it on
-    /// its last slot when they have none.
+    /// pad), then a spanning child short of room gets the shortfall shared over its slots by weight, or evenly when
+    /// they have none.
     /// </summary>
     private double[] Resolve(bool columns)
     {
@@ -120,14 +120,9 @@ public sealed class TkGrid : Panel
             {
                 var spanned = sizes[start..(start + span)];
                 var spannedWeights = weights.Skip(start).Take(span).ToArray();
-                if (spannedWeights.Sum() == 0)
-                {
-                    spanned[^1] += shortfall;
-                }
-                else
-                {
-                    Distribute(spanned, spannedWeights, shortfall);
-                }
+                // grid.c: "If all the weights in the span are zero, then distribute the extra space evenly", which
+                // is the weighted share with every slot weighing the same (measured on the Downgrader's About row).
+                Distribute(spanned, spannedWeights.Sum() == 0 ? [.. spannedWeights.Select(_ => 1)] : spannedWeights, shortfall);
 
                 spanned.CopyTo(sizes, start);
             }
