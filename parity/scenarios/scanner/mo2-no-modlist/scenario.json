@@ -9,6 +9,10 @@
     {
       "bug": 23,
       "reason": "The results tree lists its groups in the order their problem types first appear in the results, the same every run, instead of in Python's per-process set order."
+    },
+    {
+      "bug": 22,
+      "reason": "A worker that raises is reported and the scan ends: the seeded Overview problems are listed, the progress reaches 100 and Scan Game is enabled again."
     }
   ],
   "host": {

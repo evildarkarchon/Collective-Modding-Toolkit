@@ -73,21 +73,26 @@ public sealed class ScannerTabProgressTests
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
     [Trait("Parity", "B-3")]
-    public void A_worker_that_dies_leaves_its_last_update_shown()
+    [Deviation(22, "A worker that dies has its queued updates applied, and then the scan ends with the results it has instead of staying stuck.")]
+    public void A_worker_that_dies_has_its_updates_applied_and_then_the_scan_ends()
     {
+        var applied = new List<string>();
         using var app = ProgressApp.Start(progress => s =>
         {
             progress().Report(new ScanUpdate.TopLevelFolders(["F4SE", "Meshes"]));
             progress().Report(new ScanUpdate.Folder("Meshes"));
             throw new IOException("worker died");
         });
+        app.Scanner.ProgressApplied += (_, _) => applied.Add(app.ScanningText.Text!);
 
         var scan = app.Scanner.ScanAsync();
         DispatcherWait.Until(() => scan.IsCompleted);
 
-        Assert.Equal("Scanning... 1/2: Meshes", app.ScanningText.Text);
-        Assert.Equal(50.0, app.Progress.Value);
-        Assert.Equal("Scanning...", (string?)app.Scanner.SidePane!.ScanButton.Content);
+        // Bug #22, fixed (ADR-0006): the reference left the last update shown with Scan Game stuck on Scanning...
+        Assert.Equal("Scanning... 1/2: Meshes", applied[^1]);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(100.0, app.Progress.Value);
+        Assert.Equal("Scan Game", (string?)app.Scanner.SidePane!.ScanButton.Content);
     }
 
     [AvaloniaFact]

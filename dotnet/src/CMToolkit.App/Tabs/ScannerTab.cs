@@ -320,11 +320,11 @@ public sealed class ScannerTab : TabPage
         }
         catch (OperationFailedException)
         {
-            // B-3 (bug #22): the reference's thread died without clearing thread_scan, so polling never ended and the
-            // scan stayed on Scanning... with the button disabled. The runner has already reported the error. The
-            // endless polling still drained what the worker had queued before it died.
-            DrainProgress(pending);
-            return;
+            // B-3, bug #22 fixed (ADR-0006): the reference's thread died without clearing thread_scan, so polling never
+            // ended and the scan stayed on Scanning... with the button disabled. The runner has already reported the
+            // error; the scan now ends as a finished one does, listing the results it has (the seeded Overview
+            // problems; the worker's died with it) and enabling Scan Game again.
+            outcome = ScanOutcome.Empty;
         }
 
         // check_scan_progress drains the queue before it finds the thread done; nothing is applied after this.

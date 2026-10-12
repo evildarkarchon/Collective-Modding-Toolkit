@@ -67,24 +67,26 @@ public sealed class ScannerTabTests
     [AvaloniaFact]
     [Trait("Parity", "B-3")]
     [Trait("Parity", "THR-1")]
-    public void A_worker_that_raises_is_reported_and_leaves_the_scan_stuck_on_scanning()
+    [Deviation(22, "A worker that raises is reported and the scan ends: the results it has are listed and Scan Game is enabled again.")]
+    public void A_worker_that_raises_is_reported_and_the_scan_ends_with_the_results_it_has()
     {
-        // B-3 (bug #22): reproduced, not fixed. The fix lists the results it has, or at least re-enables Scan Game.
+        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled.
         using var app = ScannerApp.Start(worker: _ => throw new FileNotFoundException("File doesn't exist: modlist.txt"));
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
-        Dispatcher.UIThread.RunJobs();
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
 
         var scan = app.Scanner.SidePane!.ScanButton;
-        Assert.Equal("Scanning...", (string?)scan.Content);
-        Assert.False(scan.IsEnabled);
-        Assert.True(app.ScanningText.IsVisible);
-        // Every box starts ticked, so a data walk was due.
-        Assert.Equal("Building mod file index...", app.ScanningText.Text);
-        Assert.Equal(1, app.Progress.Value);
-        Assert.Empty(app.Scanner.Tree!.Items);
-        Assert.False(app.Scanner.IsSelectable);
+        Assert.True(scan.IsEnabled);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(100, app.Progress.Value);
+        // Every box starts ticked, so the Overview's 16 problems (scanner/overview-issues) seeded the results; the
+        // worker's own were lost with it.
+        Assert.Equal("16 Results ~ Select an item for details", app.ResultsInfo.Text);
+        Assert.Equal(["No Mod Manager", "Invalid Module", "File Not Found", "Invalid Archive"],
+            app.Scanner.Tree!.Items.OfType<TreeViewItem>().Select(g => (string?)((TextBlock)g.Header!).Text));
+        Assert.True(app.Scanner.IsSelectable);
         Assert.Contains(app.Logger.Entries, e => e.Level == LogLevel.Error && e.Message.Contains("Scanner scan", StringComparison.Ordinal));
     }
 
