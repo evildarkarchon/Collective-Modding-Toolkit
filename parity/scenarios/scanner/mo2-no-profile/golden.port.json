@@ -1,0 +1,41 @@
+{
+  "scanner": {
+    "errors": 0,
+    "runs": [
+      {
+        "boxes": [
+          "Overview Issues",
+          "Errors",
+          "Wrong File Formats",
+          "Loose Previs",
+          "Junk Files",
+          "Problem Overrides",
+          "Race Subgraphs"
+        ],
+        "index": null,
+        "results": {
+          "groups": [],
+          "progress": 1.0,
+          "resultsInfo": "",
+          "scan": {
+            "enabled": false,
+            "text": "Scanning..."
+          },
+          "scanningLabel": "Building mod file index..."
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Race Subgraph Records"
+            }
+          }
+        ],
+        "workerError": "Missing MO2 settings\nManager: <mod_manager_info.ModManagerInfo object at 0x<ADDRESS>>\nmods: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\nprofiles: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\nprofile: \noverwrite: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite",
+        "workerLog": []
+      }
+    ],
+    "usingStage": true
+  }
+}

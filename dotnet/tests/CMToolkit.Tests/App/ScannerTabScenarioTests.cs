@@ -286,7 +286,9 @@ public sealed class ScannerTabScenarioTests
             ["scanningLabel"] = scanning.IsVisible ? scanning.Text : null,
             ["progress"] = Named<ProgressBar>(content, "Progress").Value,
             ["selectable"] = scanner.IsSelectable,
-            ["groups"] = new JsonObject { [GoldenComparer.UnorderedKey] = groups },
+            // In order: the reference's group order was random per run (B-4), which the port fixes (bug #23), so the
+            // scenarios' port goldens list the groups in the port's order.
+            ["groups"] = groups,
             ["scan"] = scanner.SidePane is null ? null : new JsonObject
             {
                 ["text"] = (string)scanner.SidePane.ScanButton.Content!,

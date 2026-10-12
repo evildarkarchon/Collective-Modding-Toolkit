@@ -59,9 +59,10 @@ public static class ScanResults
     /// compares strings.
     /// </summary>
     /// <remarks>
-    /// The reference iterates a Python set for the groups, so their order is random per run (B-4, bug #23); first-seen order is
-    /// one of the orders it can produce. Items with equal keys keep their results order, which for the Overview's
-    /// archive problems is the enabled-archive set order (T-15).
+    /// The reference iterates a Python set for the groups, so their order is random per run (B-4). The port fixes that
+    /// (bug #23, ADR-0006): first-seen order, one of the orders the reference could produce, is the same every run for
+    /// the same results. Items with equal keys keep their results order, which for the Overview's archive problems is
+    /// the enabled-archive set order (T-15).
     /// </remarks>
     /// <param name="results">The scan's results: the seeded Overview problems, then the worker's.</param>
     /// <param name="index">The mod file index, which only an MO2 stage-mode data walk builds; null otherwise.</param>

@@ -14,6 +14,12 @@
     "SCN-C8",
     "SCN-C9"
   ],
+  "deviations": [
+    {
+      "bug": 23,
+      "reason": "The results tree lists its groups in the order their problem types first appear in the results, the same every run, instead of in Python's per-process set order."
+    }
+  ],
   "emptyDirs": [
     "Game/Data/DLCCoast.esm"
   ],

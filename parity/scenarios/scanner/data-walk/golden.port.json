@@ -1,0 +1,1713 @@
+{
+  "scanner": {
+    "errors": 0,
+    "runs": [
+      {
+        "boxes": [
+          "Overview Issues",
+          "Errors",
+          "Wrong File Formats",
+          "Loose Previs",
+          "Junk Files",
+          "Problem Overrides",
+          "Race Subgraphs"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "cm-toolkit.exe",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "cm-toolkit.exe",
+                    "solution": "Your mod manager must launch the app to be detected.",
+                    "summary": "No Mod Manager Detected",
+                    "type": "No Mod Manager"
+                  },
+                  "text": "cm-toolkit.exe",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "No Mod Manager"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "dlccoast.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\dlccoast.esm",
+                    "relativePath": "dlccoast.esm",
+                    "solution": null,
+                    "summary": "Failed to read module due to permissions or the file is missing.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "dlccoast.esm",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": [
+                      [
+                        60,
+                        "<ROOT>\\Game\\Data\\Races.esp"
+                      ],
+                      [
+                        41,
+                        "<ROOT>\\Game\\Data\\MoreRaces.esp"
+                      ]
+                    ],
+                    "itemText": "101 SADD Records from 2 modules",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "101 SADD Records from 2 modules",
+                    "solution": "IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.",
+                    "summary": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.",
+                    "type": "Race Subgraph Record Count"
+                  },
+                  "text": "101 SADD Records from 2 modules",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Race Subgraph Record Count"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: ccorphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "ccOrphan - Voices_de.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\ccOrphan - Voices_de.ba2",
+                    "relativePath": "ccOrphan - Voices_de.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "ccOrphan - Voices_de.ba2",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: orphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "Orphan - Weird.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Orphan - Weird.ba2",
+                    "relativePath": "Orphan - Weird.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "Orphan - Weird.ba2",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: orphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "Orphan.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Orphan.ba2",
+                    "relativePath": "Orphan.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "Orphan.ba2",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive Name"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "notes.bak",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\notes.bak",
+                    "relativePath": "notes.bak",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "notes.bak",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Thumbs.db",
+                    "relativePath": "Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "fomod",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\fomod",
+                    "relativePath": "fomod",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk folder not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "fomod",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\Thumbs.db",
+                    "relativePath": "Meshes\\Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "desktop.ini",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Scripts\\desktop.ini",
+                    "relativePath": "Scripts\\desktop.ini",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "desktop.ini",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "scratch.tmp",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\scratch.tmp",
+                    "relativePath": "Textures\\scratch.tmp",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "scratch.tmp",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Junk File"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "stray.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\stray.dll",
+                    "relativePath": "stray.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for Data.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "stray.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "loose.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\F4SE\\loose.dll",
+                    "relativePath": "F4SE\\loose.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for f4se.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "loose.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "y.json",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Materials\\y.json",
+                    "relativePath": "Materials\\y.json",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for materials.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "y.json",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "wrong.dds",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\wrong.dds",
+                    "relativePath": "Meshes\\wrong.dds",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for meshes.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "wrong.dds",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "m.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Music\\m.mp3",
+                    "relativePath": "Music\\m.mp3",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for music.\nA file with the expected format was NOT found (wav, xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "m.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "extra.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Scripts\\extra.dll",
+                    "relativePath": "Scripts\\extra.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for scripts.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "extra.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "x.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\x.mp3",
+                    "relativePath": "Sound\\x.mp3",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was found (x.xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "x.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "y.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\y.mp3",
+                    "relativePath": "Sound\\y.mp3",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was found (y.wav).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "y.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "z.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\z.mp3",
+                    "relativePath": "Sound\\z.mp3",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was NOT found (wav, xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "z.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "b.png",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\b.png",
+                    "relativePath": "Textures\\b.png",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was found (b.dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "b.png",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "c.tga",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\c.tga",
+                    "relativePath": "Textures\\c.tga",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "c.tga",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "D.PNG",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\D.PNG",
+                    "relativePath": "Textures\\D.PNG",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "D.PNG",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "e.jpg",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\e.jpg",
+                    "relativePath": "Textures\\e.jpg",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was found (e.dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "e.jpg",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Unexpected Format"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "precombined",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\precombined",
+                    "relativePath": "Meshes\\precombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "precombined",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "PreCombined",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\Sub\\PreCombined",
+                    "relativePath": "Meshes\\Sub\\PreCombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "PreCombined",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Vis",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Vis",
+                    "relativePath": "Vis",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "Vis",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Loose Previs"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "AnimTextData",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\AnimTextData",
+                    "relativePath": "Meshes\\AnimTextData",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "The existence of unpacked AnimTextData may cause the game to crash.",
+                    "type": "Loose AnimTextData"
+                  },
+                  "text": "AnimTextData",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Loose AnimTextData"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "29 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Race Subgraph Records"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": [
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: 101 SADD Records from 2 modules | Problem: Race Subgraph Record Count"
+          }
+        ]
+      },
+      {
+        "boxes": [
+          "Overview Issues"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "cm-toolkit.exe",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "cm-toolkit.exe",
+                    "solution": "Your mod manager must launch the app to be detected.",
+                    "summary": "No Mod Manager Detected",
+                    "type": "No Mod Manager"
+                  },
+                  "text": "cm-toolkit.exe",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "No Mod Manager"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "dlccoast.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\dlccoast.esm",
+                    "relativePath": "dlccoast.esm",
+                    "solution": null,
+                    "summary": "Failed to read module due to permissions or the file is missing.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "dlccoast.esm",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "2 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Errors"
+        ],
+        "index": null,
+        "results": {
+          "groups": [],
+          "progress": 100.0,
+          "resultsInfo": "0 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Wrong File Formats"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: ccorphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "ccOrphan - Voices_de.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\ccOrphan - Voices_de.ba2",
+                    "relativePath": "ccOrphan - Voices_de.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "ccOrphan - Voices_de.ba2",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: orphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "Orphan - Weird.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Orphan - Weird.ba2",
+                    "relativePath": "Orphan - Weird.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "Orphan - Weird.ba2",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": [
+                      "\nValid Suffixes: main, textures, voices_en",
+                      "Example: orphan - Main.ba2"
+                    ],
+                    "fileList": null,
+                    "itemText": "Orphan.ba2",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Orphan.ba2",
+                    "relativePath": "Orphan.ba2",
+                    "solution": "Archives must be named the same as a plugin with an added suffix or added to an INI.",
+                    "summary": "This is not a valid archive name and won't be loaded by the game.",
+                    "type": "Invalid Archive Name"
+                  },
+                  "text": "Orphan.ba2",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive Name"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "stray.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\stray.dll",
+                    "relativePath": "stray.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for Data.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "stray.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "loose.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\F4SE\\loose.dll",
+                    "relativePath": "F4SE\\loose.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for f4se.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "loose.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "y.json",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Materials\\y.json",
+                    "relativePath": "Materials\\y.json",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for materials.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "y.json",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\Thumbs.db",
+                    "relativePath": "Meshes\\Thumbs.db",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for meshes.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "Thumbs.db",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "wrong.dds",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\wrong.dds",
+                    "relativePath": "Meshes\\wrong.dds",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for meshes.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "wrong.dds",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "m.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Music\\m.mp3",
+                    "relativePath": "Music\\m.mp3",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for music.\nA file with the expected format was NOT found (wav, xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "m.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "desktop.ini",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Scripts\\desktop.ini",
+                    "relativePath": "Scripts\\desktop.ini",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for scripts.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "desktop.ini",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "extra.dll",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Scripts\\extra.dll",
+                    "relativePath": "Scripts\\extra.dll",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for scripts.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "extra.dll",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "x.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\x.mp3",
+                    "relativePath": "Sound\\x.mp3",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was found (x.xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "x.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "y.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\y.mp3",
+                    "relativePath": "Sound\\y.mp3",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was found (y.wav).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "y.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "z.mp3",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Sound\\z.mp3",
+                    "relativePath": "Sound\\z.mp3",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for sound.\nA file with the expected format was NOT found (wav, xwm).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "z.mp3",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "b.png",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\b.png",
+                    "relativePath": "Textures\\b.png",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was found (b.dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "b.png",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "c.tga",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\c.tga",
+                    "relativePath": "Textures\\c.tga",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "c.tga",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "D.PNG",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\D.PNG",
+                    "relativePath": "Textures\\D.PNG",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "D.PNG",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "e.jpg",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\e.jpg",
+                    "relativePath": "Textures\\e.jpg",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was found (e.dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "e.jpg",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "scratch.tmp",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\scratch.tmp",
+                    "relativePath": "Textures\\scratch.tmp",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for textures.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "scratch.tmp",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Unexpected Format"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "19 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Loose Previs"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "precombined",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\precombined",
+                    "relativePath": "Meshes\\precombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "precombined",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "PreCombined",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\Sub\\PreCombined",
+                    "relativePath": "Meshes\\Sub\\PreCombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "PreCombined",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Vis",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Vis",
+                    "relativePath": "Vis",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "Vis",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Loose Previs"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "3 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Junk Files"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "notes.bak",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\notes.bak",
+                    "relativePath": "notes.bak",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "notes.bak",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Thumbs.db",
+                    "relativePath": "Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "fomod",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\fomod",
+                    "relativePath": "fomod",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk folder not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "fomod",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\Thumbs.db",
+                    "relativePath": "Meshes\\Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "desktop.ini",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Scripts\\desktop.ini",
+                    "relativePath": "Scripts\\desktop.ini",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "desktop.ini",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "scratch.tmp",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Textures\\scratch.tmp",
+                    "relativePath": "Textures\\scratch.tmp",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "scratch.tmp",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Junk File"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "6 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Problem Overrides"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "AnimTextData",
+                    "mod": "<Unmanaged>",
+                    "path": "<ROOT>\\Game\\Data\\Meshes\\AnimTextData",
+                    "relativePath": "Meshes\\AnimTextData",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "The existence of unpacked AnimTextData may cause the game to crash.",
+                    "type": "Loose AnimTextData"
+                  },
+                  "text": "AnimTextData",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Loose AnimTextData"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "1 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "DLCCoast.esm"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "fomod"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Interface"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Materials"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Music"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Sound"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Textures"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Vis"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Race Subgraphs"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": [
+                      [
+                        60,
+                        "<ROOT>\\Game\\Data\\Races.esp"
+                      ],
+                      [
+                        41,
+                        "<ROOT>\\Game\\Data\\MoreRaces.esp"
+                      ]
+                    ],
+                    "itemText": "101 SADD Records from 2 modules",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "101 SADD Records from 2 modules",
+                    "solution": "IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.",
+                    "summary": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.",
+                    "type": "Race Subgraph Record Count"
+                  },
+                  "text": "101 SADD Records from 2 modules",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Race Subgraph Record Count"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "1 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Refreshing Overview...",
+            "update": {
+              "folder": "Race Subgraph Records"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": [
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: 101 SADD Records from 2 modules | Problem: Race Subgraph Record Count"
+          }
+        ]
+      }
+    ],
+    "usingStage": false
+  }
+}

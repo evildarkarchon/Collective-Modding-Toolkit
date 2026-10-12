@@ -225,7 +225,9 @@ public sealed partial class ScannerScanScenarioTests
             ["resultsInfo"] = Named<TextBlock>(scanner, "ResultsInfo").Text ?? "",
             ["scanningLabel"] = scanning.IsVisible ? scanning.Text : null,
             ["progress"] = Named<ProgressBar>(scanner, "Progress").Value,
-            ["groups"] = new JsonObject { [GoldenComparer.UnorderedKey] = groups },
+            // In order: the reference's group order was random per run (B-4), which the port fixes (bug #23), so the
+            // scenarios' port goldens list the groups in the port's order.
+            ["groups"] = groups,
             ["scan"] = new JsonObject { ["text"] = (string)side.ScanButton.Content!, ["enabled"] = side.ScanButton.IsEnabled },
         };
     }
