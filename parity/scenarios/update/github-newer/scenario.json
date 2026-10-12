@@ -1,0 +1,14 @@
+{
+  "description": "The GitHub latest release is newer: the banner shows one GitHub link.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2",
+    "NET-2",
+    "B-16",
+    "SHELL-7"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

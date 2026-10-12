@@ -1,0 +1,10 @@
+{
+  "description": "No Content-Type: the JSON encoding is guessed from the bytes (UTF-8).",
+  "operation": "update-check",
+  "parity": [
+    "NET-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

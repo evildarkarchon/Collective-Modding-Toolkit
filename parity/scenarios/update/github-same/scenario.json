@@ -1,0 +1,10 @@
+{
+  "description": "The latest release is the running version: no update.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

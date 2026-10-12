@@ -1,0 +1,10 @@
+{
+  "description": "No Content-Type: requests yields bytes, the str prefix test raises TypeError, which escapes the check and fails startup.",
+  "operation": "update-check",
+  "parity": [
+    "NET-1"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

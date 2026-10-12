@@ -1,0 +1,10 @@
+{
+  "description": "No tag_name: KeyError escapes the check and fails startup.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

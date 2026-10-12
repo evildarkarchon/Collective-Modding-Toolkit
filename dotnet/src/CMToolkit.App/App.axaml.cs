@@ -8,6 +8,7 @@ using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Core.Updates;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -73,7 +74,12 @@ public partial class App : Application
 
             // A Parity Scenario's machine when the screenshot driver asks for one, else the real one.
             var host = ScenarioHostEnvironment.FromEnvironmentVariables() ?? (IHostEnvironment)SystemHostEnvironment.Instance;
-            return await new StartupSequence(runtime, host, log!, new WindowStartupDialogs()).BuildMainWindowAsync();
+            // Likewise its canned HTTP, so a scenario run never reaches the network. Lives as long as the process.
+            var http = ScenarioHttpHandler.FromEnvironmentVariables() ?? (HttpMessageHandler)UpdateCheck.CreateHandler();
+            return await new StartupSequence(runtime, host, log!, new WindowStartupDialogs())
+            {
+                CheckForUpdatesAsync = UpdateBanner.StartupHook(http),
+            }.BuildMainWindowAsync();
         });
 
         if (result.Window is null)

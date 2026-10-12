@@ -1,0 +1,11 @@
+{
+  "description": "Nexus Mods lists 0.6.2.dev0, the running 0.6.2-dev in normal form: no update.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3",
+    "T-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

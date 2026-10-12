@@ -1,0 +1,11 @@
+{
+  "description": "UTF-8 JSON with a BOM under charset=utf-8: json.loads refuses the BOM, logged as a failure.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

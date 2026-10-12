@@ -1,0 +1,14 @@
+{
+  "description": "Nexus Mods lists a newer version: the banner shows one Nexus link.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2",
+    "UPD-3",
+    "NET-1",
+    "SHELL-7"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}
