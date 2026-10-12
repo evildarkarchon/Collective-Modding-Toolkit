@@ -216,6 +216,24 @@ public sealed class OverviewTab : TabPage
         return true;
     }
 
+    /// <summary>
+    /// Runs <see cref="RefreshAsync"/> from the refresh button, reporting what it raises (rebuilding the frames, say) as a
+    /// Tk callback's exception was, as <c>ScannerTab.RunScanAsync</c> does for the Scan Game button.
+    /// </summary>
+    private async Task RefreshFromButtonAsync()
+    {
+        try
+        {
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            // Reported here, not left in the task: the click handler discards it, so a fault would only surface if the
+            // garbage collector raised it as unobserved, maybe never (ADR-0003).
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+        }
+    }
+
     private OverviewReport Gather(OverviewReport? previous) => Gatherer(_game, _host, _runtime.Logger, previous);
 
     /// <summary>Shows each warning in turn, waiting for one to be dismissed before the next, as the Tk boxes blocked.</summary>
@@ -352,7 +370,7 @@ public sealed class OverviewTab : TabPage
             Margin = new Thickness(10, 0),
         };
         ToolTip.SetTip(refresh, RefreshTooltip);
-        refresh.Click += (_, _) => _ = RefreshAsync();
+        refresh.Click += (_, _) => _ = RefreshFromButtonAsync();
         Place(refresh, 0, 3);
         Grid.SetRowSpan(refresh, 2);
         grid.Children.Add(refresh);

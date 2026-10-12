@@ -62,7 +62,32 @@ public sealed class OverviewTabFailureTests
         Assert.Equal(2, state.Report!.Warnings.Count);
     }
 
-    private static (MainWindow Window, OverviewState State, AppRuntime Runtime, List<string> Warnings) Show(MaterializedScenario machine)
+    [AvaloniaFact]
+    [Trait("Parity", "OVW-8")]
+    public void A_refresh_click_that_fails_after_its_gathering_is_reported_in_the_error_window()
+    {
+        // A report the frames can't be built from: the gathering succeeded, so the runner had nothing to report, and the
+        // failure comes from rebuilding the frames on the UI thread. The click discards RefreshAsync's task, so the
+        // tab must report the error itself, as a Tk callback's exception reached report_callback_exception.
+        using var machine = ParityScenarios.All().Single(s => s.Id == "overview/modules-archives-mixed").Materialize();
+        var gathered = 0;
+        var (window, state, runtime, _) = Show(machine, (game, host, logger, previous) =>
+        {
+            var report = OverviewReport.Gather(game, host, logger, previous);
+            return ++gathered == 1 ? report : report with { Modules = null! };
+        });
+
+        MouseClick.On(Named<Button>(window, "Refresh"));
+        DispatcherWait.Until(() => runtime.Errors.Window is not null && !runtime.Input.IsBlocking);
+
+        Assert.Equal(2, gathered);
+        Assert.Contains(ErrorReporter.UiThreadHeader, runtime.Errors.Window!.Text, StringComparison.Ordinal);
+        Assert.Contains(nameof(NullReferenceException), runtime.Errors.Window.Text, StringComparison.Ordinal);
+    }
+
+    private static (MainWindow Window, OverviewState State, AppRuntime Runtime, List<string> Warnings) Show(
+        MaterializedScenario machine,
+        Func<GameInstall, CMToolkit.Core.IHostEnvironment, Microsoft.Extensions.Logging.ILogger, OverviewReport?, OverviewReport>? gatherer = null)
     {
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult()!;
@@ -77,6 +102,7 @@ public sealed class OverviewTabFailureTests
                 warnings.Add(message);
                 return Task.CompletedTask;
             },
+            Gatherer = gatherer ?? OverviewReport.Gather,
         };
         return (TabHost.Show(runtime, tab), state, runtime, warnings);
     }
