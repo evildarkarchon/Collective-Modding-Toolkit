@@ -1798,3 +1798,232 @@ def archive_patcher(session: Session, golden: GoldenContext) -> dict[str, Any]:
 	steps.append(step("unfiltered"))
 
 	return {"archivePatcher": {"changes": changes, "steps": steps}}
+
+
+class _LiveTooltips:
+	"""Stands in for ``tktooltip.ToolTip`` where a widget's tooltip is kept, retexted and destroyed (the Scanner's
+	details pane): each call returns a tooltip object whose ``msg`` the caller may change and which it may ``destroy``,
+	so ``of`` reads the tooltip a widget has now, not the first one it was given.
+	"""
+
+	class _Tip:
+		def __init__(self, live: dict[str, Any], widget: str, msg: str) -> None:
+			self._live = live
+			self._widget = widget
+			self.msg = msg
+
+		def destroy(self) -> None:
+			if self._live.get(self._widget) is self:
+				del self._live[self._widget]
+
+	def __init__(self) -> None:
+		self.live: dict[str, Any] = {}
+
+	def __call__(self, widget: Any, msg: str, *_args: Any, **_kwargs: Any) -> Any:
+		tip = self._Tip(self.live, str(widget), msg)
+		self.live[str(widget)] = tip
+		return tip
+
+	def of(self, widget: Any) -> str | None:
+		"""The live tooltip's text on ``widget``, or ``None``."""
+		tip = self.live.get(str(widget))
+		return None if tip is None else str(tip.msg)
+
+
+@operation("scanner-details")
+def scanner_details(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""SCN-R4..SCN-R7, THR-3: the Scanner's details pane, on the real ``CMChecker`` with its Overview loaded.
+
+	The script: select the Scanner, untick every box but Overview Issues and Race Subgraphs, scan, then select every
+	result in turn, sorted by (type, item text, relative path, mod) so the order doesn't depend on the set-ordered groups
+	(B-4). For each: read the pane's rows (texts, fonts, value colour, wraplength), click the path (``os.startfile`` is
+	recorded), left- and right-click the solution (``webbrowser.open`` and the clipboard are recorded), read the buttons,
+	then let the previous Copy Details' ``after`` run and click Copy Details (its clipboard text, ``Copied!`` state and
+	``after`` delay), and click File List when there is one (the real ``TreeWindow``, read back and destroyed). The copy
+	button outlives a selection, so each item's ``buttons`` show the previous click's ``Copied!``, until it reverts.
+	Finally a rescan: the details pane is destroyed when it starts (``afterRescan``).
+
+	The panes are withdrawn as they are created; the clipboard and the copy button's ``after`` are patched on the
+	instances that use them, so the system clipboard is never touched and the 3 s revert runs on demand.
+	"""
+	import os  # noqa: PLC0415
+	import time  # noqa: PLC0415
+
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview, _scanner  # noqa: PLC0415, PLC2701 - the modules the patched names are used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	tooltips = _LiveTooltips()
+	_scanner.ToolTip = tooltips
+	_overview.ToolTip = _Tooltips()
+	started: list[str | None] = []
+	opened: list[str] = []
+	clipboard: list[str] = []
+	scheduled: list[tuple[int, Any]] = []
+	windows: list[dict[str, Any]] = []
+	os.startfile = lambda path, *_a, **_k: started.append(_path_text(golden, path))  # type: ignore[attr-defined]
+	_scanner.webbrowser = ModuleProxy(_scanner.webbrowser, open=lambda url, *_a, **_k: opened.append(url))
+
+	real_side, real_details, real_tree_window = _scanner.SidePane, _scanner.ResultDetailsPane, _scanner.TreeWindow
+
+	def patch_clipboard(widget: Any) -> None:
+		widget.clipboard_clear = lambda **_k: clipboard.clear()
+		widget.clipboard_append = lambda text, **_k: clipboard.append(text)
+
+	class HiddenSidePane(real_side):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+
+	class HiddenDetailsPane(real_details):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+			# copy_text_button works on the button's master: its clipboard and its after().
+			patch_clipboard(self.frame_buttons)
+			self.frame_buttons.after = lambda ms, func=None, *args: scheduled.append((ms, lambda: func(*args)))
+
+	def tree_window(*args: Any, **kwargs: Any) -> None:
+		window = real_tree_window(*args, **kwargs)
+		tree = window.tree_items
+		windows.append({
+			"window": "TreeWindow",
+			"width": window.width,
+			"height": window.height,
+			"title": str(window.wm_title()),
+			"text": window.win_text,
+			"headers": [str(tree.heading(f"#{c}", "text")) for c in range(len(window.headers))],
+			"rows": [[str(tree.item(i, "text")), *(str(v) for v in tree.item(i, "values"))] for i in tree.get_children()],
+		})
+		window.destroy()
+
+	_scanner.SidePane = HiddenSidePane
+	_scanner.ResultDetailsPane = HiddenDetailsPane
+	_scanner.TreeWindow = tree_window
+
+	root = session.root
+	assert root is not None
+	errors: list[BaseException] = []
+	root.report_callback_exception = lambda _type, value, _tb: errors.append(value)  # type: ignore[method-assign]
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	scanner = checker.tabs[Tab.Scanner]
+	scanner.master.select(scanner)
+	root.update()
+	if not scanner.is_loaded:
+		msg = "the Scanner tab didn't load"
+		raise RuntimeError(msg)
+	# copy_text (the solution's right-click) works on the tab's clipboard.
+	patch_clipboard(scanner)
+
+	side = scanner.side_pane
+	frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+	for check in frame.pack_slaves():
+		if str(check.cget("text")) not in {"Overview Issues", "Race Subgraphs"}:
+			check.invoke()
+
+	def scan() -> None:
+		scanner.side_pane.button_scan.invoke()
+		deadline = time.monotonic() + 30
+		while str(scanner.side_pane.button_scan.cget("text")) != "Scan Game":
+			if time.monotonic() > deadline:
+				msg = "the scan didn't finish"
+				raise RuntimeError(msg)
+			root.update()
+			time.sleep(0.01)
+
+	scan()
+
+	def click(widget: Any, sequence: str, record: list[Any]) -> Any:
+		"""Fires ``sequence`` on ``widget`` and returns what it recorded, or ``None`` if nothing is bound."""
+		before = len(record)
+		widget.event_generate(sequence)
+		root.update()
+		return record[before] if len(record) > before else None
+
+	def right_click(widget: Any) -> str | None:
+		clipboard.clear()
+		clipboard.append("<untouched>")
+		widget.event_generate("<Button-3>")
+		root.update()
+		text = "".join(clipboard)
+		return None if text == "<untouched>" else text
+
+	def state(button: Any) -> dict[str, Any]:
+		return {"text": str(button.cget("text")), "enabled": not button.instate(["disabled"])}
+
+	def read_rows(pane: Any) -> list[dict[str, Any]]:
+		rows = []
+		children = _grid_children(pane)
+		for label in (c for c in children if int(c.grid_info()["column"]) == 0):
+			row = int(label.grid_info()["row"])
+			value = _grid_at(pane, row, 1)
+			wraplength = str(value.cget("wraplength"))
+			rows.append({
+				"label": str(label.cget("text")),
+				"labelFont": _tk_font(label),
+				"value": _label_text(value),
+				"valueFont": _tk_font(value),
+				"valueColor": _tk_colour(value, str(value.cget("foreground"))),
+				"wraplength": int(wraplength) if wraplength not in {"", "0"} else None,
+			})
+		return rows
+
+	tree = scanner.tree_results
+	items = [i for g in tree.get_children() for i in tree.get_children(g)]
+
+	def key(item: Any) -> tuple[str, ...]:
+		p = _overview_problem(golden, scanner.tree_results_data[item])
+		return (p["type"], p["itemText"], p["relativePath"], p["mod"])
+
+	details = []
+	for item in sorted(items, key=key):
+		tree.selection_set(item)
+		root.update()
+		pane = scanner.details_pane
+		path_label, solution_label = pane.label_file_path, pane.label_solution
+		buttons = pane.frame_buttons.pack_slaves()
+		entry: dict[str, Any] = {
+			"type": key(item)[0],
+			"itemText": key(item)[1],
+			"display": {
+				"rows": read_rows(pane),
+				"path": {"cursor": str(path_label.cget("cursor")), "tooltip": tooltips.of(path_label)},
+				"solution": {"tooltip": tooltips.of(solution_label)},
+				"buttons": [state(b) for b in buttons],
+			},
+			"pathOpens": click(path_label, "<Button-1>", started),
+			"solutionOpens": click(solution_label, "<Button-1>", opened),
+			"solutionCopies": right_click(solution_label),
+		}
+		while scheduled:
+			_delay, revert = scheduled.pop(0)
+			revert()
+		copy_button = next(b for b in buttons if str(b.cget("text")) == "Copy Details")
+		clipboard.clear()
+		copy_button.invoke()
+		entry["copy"] = {
+			"copies": "".join(clipboard),
+			"clicked": state(copy_button),
+			"revertAfterMs": [ms for ms, _ in scheduled],
+		}
+		files = next((b for b in buttons if str(b.cget("text")) == "File List"), None)
+		if files is not None:
+			files.invoke()
+			root.update()
+			entry["fileList"] = windows.pop() if windows else None
+		details.append(entry)
+
+	scan()
+
+	return {
+		"scanner": {
+			"usingStage": scanner.using_stage,
+			"details": details,
+			"afterRescan": {"detailsPane": scanner.details_pane is not None},
+			"errors": len(errors),
+		},
+	}

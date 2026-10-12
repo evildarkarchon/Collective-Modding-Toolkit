@@ -1,0 +1,541 @@
+{
+  "scanner": {
+    "afterRescan": {
+      "detailsPane": false
+    },
+    "details": [
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Mod: N/A\nProblem: Fallout4 - TexturesPatch.ba2\nSummary: Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.\nSolution: Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": true,
+              "text": "Copy Details"
+            }
+          ],
+          "path": {
+            "cursor": "X_cursor",
+            "tooltip": null
+          },
+          "rows": [
+            {
+              "label": "Mod:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "value": "N/A",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "wraplength": null
+            },
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Fallout4 - TexturesPatch.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "Fallout4 - TexturesPatch.ba2",
+        "pathOpens": null,
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "File Not Found"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Mod: N/A\nProblem: F4SE\\Plugins\\version-1-11-240-0.bin\nSummary: Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.\nSolution: Download the mod here:\nhttps://www.nexusmods.com/fallout4/mods/47327\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Mod:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "value": "N/A",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "wraplength": null
+            },
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "F4SE\\Plugins\\version-1-11-240-0.bin",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Download the mod here:\nhttps://www.nexusmods.com/fallout4/mods/47327",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": "Left-Click: Open URL\nRight-Click: Copy URL"
+          }
+        },
+        "itemText": "version-1-11-240-0.bin",
+        "pathOpens": "Game\\Data\\F4SE\\Plugins",
+        "solutionCopies": "https://www.nexusmods.com/fallout4/mods/47327",
+        "solutionOpens": "https://www.nexusmods.com/fallout4/mods/47327",
+        "type": "File Not Found"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Mod: N/A\nProblem: BadMagic - main.ba2\nSummary: Archive is either corrupt or not in Bethesda Archive 2 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Mod:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "value": "N/A",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "wraplength": null
+            },
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "BadMagic - main.ba2",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "BadMagic - main.ba2",
+        "pathOpens": "Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Archive"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Mod: N/A\nProblem: BadMagic.esp\nSummary: Module is either corrupt or not in TES4 format.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Mod:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "value": "N/A",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "wraplength": null
+            },
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "BadMagic.esp",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "Module is either corrupt or not in TES4 format.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "BadMagic.esp",
+        "pathOpens": "Game\\Data",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Invalid Module"
+      },
+      {
+        "copy": {
+          "clicked": {
+            "enabled": false,
+            "text": "Copied!"
+          },
+          "copies": "Mod: <Unmanaged>\nProblem: f4se_loader.exe\nSummary: The version of this binary does not match your installed game version.\nSolution: No solution suggestion.\n",
+          "revertAfterMs": [
+            3000
+          ]
+        },
+        "display": {
+          "buttons": [
+            {
+              "enabled": false,
+              "text": "Copied!"
+            }
+          ],
+          "path": {
+            "cursor": "hand2",
+            "tooltip": "Click to open location"
+          },
+          "rows": [
+            {
+              "label": "Mod:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "value": "<Unmanaged>",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 12,
+                "underline": false
+              },
+              "wraplength": null
+            },
+            {
+              "label": "Problem:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "f4se_loader.exe",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Summary:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "The version of this binary does not match your installed game version.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            },
+            {
+              "label": "Solution:",
+              "labelFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "value": "No solution suggestion.",
+              "valueColor": "#FFE4C4",
+              "valueFont": {
+                "bold": false,
+                "family": "Cascadia Mono",
+                "size": 10,
+                "underline": false
+              },
+              "wraplength": 560
+            }
+          ],
+          "solution": {
+            "tooltip": null
+          }
+        },
+        "itemText": "f4se_loader.exe",
+        "pathOpens": "Game",
+        "solutionCopies": null,
+        "solutionOpens": null,
+        "type": "Wrong Version"
+      }
+    ],
+    "errors": 0,
+    "usingStage": true
+  }
+}
