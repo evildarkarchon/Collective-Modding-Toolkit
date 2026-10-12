@@ -26,12 +26,6 @@ public sealed record GameInis(
     public IReadOnlyList<string> Ba2Suffixes => Language == GameIniReader.English
         ? ["main", "textures", "voices_en"]
         : ["main", "textures", "voices_en", "voices_" + Language];
-
-    /// <summary>
-    /// <c>game_settings.get(section, {}).get(key)</c>: a setting by its lowercased section and key, or null.
-    /// </summary>
-    public string? Setting(string section, string key)
-        => Settings.TryGetValue(section, out var entries) && entries.TryGetValue(key, out var value) ? value : null;
 }
 
 /// <summary>Reads the game INIs from <c>Documents\My Games\Fallout4</c> (<c>GameInfo.load_game_inis</c>).</summary>
@@ -155,6 +149,10 @@ public static class GameIniReader
     /// <summary>Python's <c>str.lower()</c>; .NET's invariant lowering differs only for a few special-cased letters (see README residuals).</summary>
     private static string Lower(string value) => value.ToLowerInvariant();
 
+    /// <summary>
+    /// <c>game_settings.get(section, {}).get(key)</c> on the maps being built: a setting by its lowercased section and
+    /// key, or null.
+    /// </summary>
     private static string? Get(OrderedDictionary<string, OrderedDictionary<string, string>> sections, string section, string key)
         => sections.TryGetValue(section, out var entries) && entries.TryGetValue(key, out var value) ? value : null;
 

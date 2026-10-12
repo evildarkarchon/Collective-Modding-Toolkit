@@ -95,7 +95,9 @@ public static class ArchivePatching
             return new ArchivePatchResult(0, 0);
         }
 
-        byte[] sources = target == ArchiveVersion.OldGen ? [7, 8] : [1];
+        byte[] sources = target == ArchiveVersion.OldGen
+            ? [(byte)ArchiveVersion.NextGen7, (byte)ArchiveVersion.NextGen]
+            : [(byte)ArchiveVersion.OldGen];
         var patched = 0;
         var failed = 0;
         foreach (var file in files)
