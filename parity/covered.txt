@@ -200,6 +200,16 @@ SHELL-11
 T-15
 # SCN-R2 is proven in part (the empty-mod fallback without an index) and deferred: #58 also claims it.
 # SET-7 is proven in part (the Scanner saves only a changed box) and deferred: #61 also claims it.
+
+# Archive Patcher and the log pane (#59)
+# TOOL-1: the last claimant (#55 rendered the buttons, #60 wired Downgrade Manager, this wires Archive Patcher).
+AP-1
+AP-2
+AP-3
+OVW-A6
+TOOL-1
+LOG-1
+T-13
 # Scanner: data walk, mod file index and race subgraphs (#58)
 SCN-S4
 SCN-S5

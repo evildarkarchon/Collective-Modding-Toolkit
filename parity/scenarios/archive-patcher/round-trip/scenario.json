@@ -1,0 +1,75 @@
+{
+  "description": "An Old-Gen Steam game whose Data folder has two v1 archives and ten Next-Gen ones, opened from the Overview and driven through Patch All to v1, then v8 with the Name Filter: v8 and v7 archives patch to v1 (two named with ß and SS, which the case-folded filter later picks for the v8 run), a read-only one fails (Permissions/In-Use), one enabled under two spellings is patched once and then skipped as already patched, and five changed after the Overview read them fail as File Not Found, Unrecognized version [02], Unrecognized format, Unrecognized version [] and Skipping already-patched. Each run refreshes the Overview and repopulates.",
+  "operation": "archive-patcher",
+  "parity": [
+    "AP-1",
+    "AP-2",
+    "AP-3",
+    "LOG-1",
+    "T-8",
+    "T-15"
+  ],
+  "attributes": [
+    {
+      "path": "Game/Data/ReadOnly - Main.ba2",
+      "set": [
+        "readonly"
+      ]
+    }
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

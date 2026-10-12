@@ -255,4 +255,60 @@ public sealed class PythonPath
 
         private static string Normcase(PythonPath path) => path.ToString().ToLowerInvariant();
     }
+
+    /// <summary>
+    /// <c>PurePath.__lt__</c> (Python 3.14): the lowercased rendered paths split on the separator, compared part by part
+    /// by code point, a path that is a prefix of another first. <see cref="string.ToLowerInvariant"/> stands in for
+    /// <c>str.lower()</c>, as in <see cref="Equality"/>. <c>sorted(paths)</c> uses it.
+    /// </summary>
+    public static IComparer<PythonPath> Ordering { get; } = new PartsOrdering();
+
+    /// <summary>See <see cref="Ordering"/>.</summary>
+    private sealed class PartsOrdering : IComparer<PythonPath>
+    {
+        public int Compare(PythonPath? x, PythonPath? y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return 0;
+            }
+
+            if (x is null || y is null)
+            {
+                return x is null ? -1 : 1;
+            }
+
+            var left = x.ToString().ToLowerInvariant().Split(Sep);
+            var right = y.ToString().ToLowerInvariant().Split(Sep);
+            for (var i = 0; i < left.Length && i < right.Length; i++)
+            {
+                var order = CompareCodePoints(left[i], right[i]);
+                if (order != 0)
+                {
+                    return order;
+                }
+            }
+
+            return left.Length.CompareTo(right.Length);
+        }
+
+        /// <summary>
+        /// Python's <c>str</c> order: by code point. UTF-16 ordinal order differs only where a surrogate pair (a code
+        /// point above U+FFFF) meets a unit from U+E000 to U+FFFF, so those are shifted into code point order.
+        /// </summary>
+        private static int CompareCodePoints(string left, string right)
+        {
+            for (var i = 0; i < left.Length && i < right.Length; i++)
+            {
+                if (left[i] != right[i])
+                {
+                    return Fixup(left[i]).CompareTo(Fixup(right[i]));
+                }
+            }
+
+            return left.Length.CompareTo(right.Length);
+
+            static int Fixup(char c) => c >= 0xE000 ? c - 0x800 : c >= 0xD800 ? c + 0x2000 : c;
+        }
+    }
 }

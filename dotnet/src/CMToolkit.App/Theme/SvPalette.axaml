@@ -65,6 +65,9 @@
   <!-- sv_ttk's heading-rest sprite (the Treeview heading cells): its lighter top edge and its fill, sampled from the F4SE tab. -->
   <SolidColorBrush x:Key="SvHeadingEdge" Color="#313131" />
   <SolidColorBrush x:Key="SvHeadingFill" Color="#2A2A2A" />
+  <!-- ttk.Entry at rest (sv_ttk entry-rest sprite), sampled from the Archive Patcher's Name Filter: its field and
+       its 1 px bottom line. -->
+  <SolidColorBrush x:Key="SvEntryUnderline" Color="#989898" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
   <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by

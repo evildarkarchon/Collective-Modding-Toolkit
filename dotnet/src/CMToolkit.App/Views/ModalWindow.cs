@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using CMToolkit.App.Runtime;
 
 namespace CMToolkit.App.Views;
@@ -36,7 +37,7 @@ public abstract class ModalWindow : Window
         // Centred on the screen, not on the owner: (screen - size) // 2, like the main window.
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-        runtime.Input.Attach(this, onEscape: RequestClose, onCloseRequest: RequestClose);
+        runtime.Input.Attach(this, onEscape: Escape, onCloseRequest: RequestClose);
     }
 
     /// <summary>The app runtime this modal belongs to.</summary>
@@ -61,6 +62,21 @@ public abstract class ModalWindow : Window
         {
             Close();
         }
+    }
+
+    /// <summary>
+    /// The toplevel's <c>&lt;Escape&gt;</c> binding: <see cref="RequestClose"/>, unless a log pane in the modal has
+    /// keyboard focus. The pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for every key, Escape included, which
+    /// stopped Tk from running the toplevel's binding at all (bug #88, reproduced, not fixed).
+    /// </summary>
+    private void Escape()
+    {
+        if (this.GetLogicalDescendants().OfType<LogPane>().Any(pane => pane.HasKeyboardFocus))
+        {
+            return;
+        }
+
+        RequestClose();
     }
 
     /// <summary>

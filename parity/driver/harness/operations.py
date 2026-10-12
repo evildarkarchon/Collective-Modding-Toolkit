@@ -1580,6 +1580,226 @@ def scanner_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
 	}
 
 
+# The name filter the archive-patcher operation types: a capital sharp s, which str.casefold() turns into "ss" (and
+# str.lower() into "ß"), so it matches names spelled with "ß" or "ss" in any case (AP-2).
+ARCHIVE_PATCHER_FILTER = "ẞ"
+
+# The per-archive outcomes Patch All logs, in set order (T-15).
+_PATCH_OUTCOMES = ("Patched to v", "Unrecognized format: ", "Skipping already-patched archive: ", "Unrecognized version [", "Failed patching (")
+
+
+def apply_changes(golden: GoldenContext, root: Path) -> list[str]:
+	"""Applies the tree's ``Changes/`` overlay to the machine: each file there is copied over the same root-relative path,
+	and each ``<name>.delete`` deletes ``<name>``. Used by operations whose scenarios change files after the app has read
+	them (an archive edited behind the Overview's back). Returns the paths changed, in a fixed order.
+	"""
+	changes = root / "Changes"
+	if not changes.is_dir():
+		return []
+	applied = []
+	for source in sorted(p for p in changes.rglob("*") if p.is_file()):
+		relative = source.relative_to(changes)
+		if relative.suffix == ".delete":
+			target = root / relative.with_suffix("")
+			target.unlink()
+		else:
+			target = root / relative
+			target.write_bytes(source.read_bytes())
+		applied.append(golden.path(target))
+	return applied
+
+
+def data_snapshot(golden: GoldenContext, data: Path) -> list[dict[str, Any]]:
+	"""Every file under ``data`` after a mutating run: its path, size and SHA-256, sorted by path."""
+	import hashlib  # noqa: PLC0415
+
+	return [
+		{"path": golden.path(p), "size": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+		for p in sorted(data.rglob("*"), key=lambda p: str(p).casefold())
+		if p.is_file()
+	]
+
+
+def _log_pane_lines(text: Any) -> list[dict[str, Any]]:
+	"""A ``Logger`` pane's messages, one per line (§9.5): the emoji and the space after it, the colour of the tag at the
+	start of the line, and the text after the emoji, which must be untagged.
+
+	Read per line rather than through ``_text_runs``: Tk 8.6 counts a non-BMP emoji (``💭``) as two characters, so
+	tag offsets counted in Tk characters drift against Python string indices after the first such line. For the same
+	reason Tk's tag on ``💭 `` ends before the space (``log_message`` tags ``len("💭 ")`` = 2 Tk characters, the
+	emoji's surrogate pair); a space's colour can't be seen, so the emoji and its space are recorded as one.
+	"""
+	lines: list[dict[str, Any]] = []
+	content = text.get("1.0", "end-1c")
+	for number, line in enumerate(content.split("\n")[:-1] if content.endswith("\n") else content.split("\n"), start=1):
+		tags = [t for t in text.tag_names(f"{number}.0") if t != "sel"]
+		if text.compare(f"{number}.end", ">", f"{number}.0") and [t for t in text.tag_names(f"{number}.end - 1 chars") if t != "sel"]:
+			msg = f"the pane's line {number} has tagged text after its emoji: {line!r}"
+			raise RuntimeError(msg)
+		lines.append({
+			"emoji": line[:2],
+			"color": str(text.tag_cget(tags[0], "foreground")) if tags else None,
+			"text": line[2:],
+		})
+	return lines
+
+
+def _is_patch_outcome(item: Any) -> bool:
+	"""A pane line or log line Patch All writes once per archive, in set order."""
+	if not isinstance(item, dict):
+		return False
+	text = item.get("text", item.get("message", ""))
+	return text.startswith(_PATCH_OUTCOMES) or text.startswith("Archives: Checking ")
+
+
+@operation("archive-patcher")
+def archive_patcher(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""AP-1, AP-2, AP-3, LOG-1: the real ``ArchivePatcher`` opened over the real ``CMChecker`` once its Overview has
+	loaded (nothing stubbed: the patcher's candidates are the Overview's archive sets), then driven through a fixed
+	script, with its state read back after each step:
+
+	1. ``opened``: as opened (target v1, no filter), including what About opens.
+	2. ``patched``: Patch All.
+	3. ``v8``: the ``v8 (NG)`` radio selected.
+	4. ``filtered``: ``ARCHIVE_PATCHER_FILTER`` typed into the Name Filter (set, then its ``<KeyRelease>`` handler).
+	5. ``patchedFiltered``: Patch All with the filter applied.
+	6. ``unfiltered``: the filter emptied (another ``<KeyRelease>``).
+
+	Between the Overview's load and the patcher opening, the tree's ``Changes/`` overlay is applied
+	(``apply_changes``), so archives can differ from what the Overview read, as when a file changes while the app is
+	open. ``changes`` lists what it touched.
+
+	Each step records ``desiredVersion``, ``nameFilter`` and ``files`` (the set Patch All would patch, unordered); its
+	``display`` has the filter caption, the Name Filter entry, the tree's rows in order, the log pane as lines (emoji,
+	colour, text; the per-archive lines of a run as unordered, T-15) and the log lines written during the step (the
+	root logger, the pane's ``logger`` and the Overview's refresh). After a Patch All, ``data`` is the Data folder's
+	snapshot. The window's fixed parts (title, size, the frames and buttons) are in ``display`` of ``opened``.
+	"""
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from patcher import _archives, _base  # noqa: PLC0415, PLC2701 - the modules the patched names are used in
+	from tabs import _overview  # noqa: PLC0415, PLC2701
+
+	opened: list[dict[str, Any]] = []
+	_base.AboutWindow = lambda _parent, _cmc, width, height, title, text: opened.append({
+		"window": "AboutWindow",
+		"width": width,
+		"height": height,
+		"title": title,
+		"text": golden.text(text),
+	})
+	_overview.ToolTip = _Tooltips()
+
+	from tkinter import ttk  # noqa: PLC0415
+	from types import SimpleNamespace  # noqa: PLC0415
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	key_handlers: dict[str, Callable[[Any], Any]] = {}
+
+	class RecordingEntry(ttk.Entry):
+		"""The Name Filter entry, which also keeps the handlers bound to it, so the script can call them."""
+
+		def bind(self, sequence: Any = None, func: Any = None, add: Any = None) -> Any:
+			if sequence is not None and func is not None:
+				key_handlers[sequence] = func
+			return super().bind(sequence, func, add)
+
+	_archives.ttk = ModuleProxy(ttk, Entry=RecordingEntry)
+
+	root = session.root
+	assert root is not None
+	machine_root = session.machine.root
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	changes = apply_changes(golden, machine_root)
+	capture = capture_logs()
+	window = _archives.ArchivePatcher(root, checker)
+	root.update_idletasks()
+
+	button_about, button_patch, frame_radio, label_filter = window.frame_top.pack_slaves()
+	radio_og, radio_ng = sorted(_grid_children(frame_radio), key=lambda r: int(r.grid_info()["column"]))
+	label_name = _grid_at(window.frame_middle, 0, 0)
+	loggers = {"root", "logger", *_OVERVIEW_LOGGERS, "cm_checker"}
+	data = Path(str(checker.game.data_path))
+	read_from = 0
+
+	def label(widget: Any) -> dict[str, Any]:
+		return {"text": str(widget.cget("text")), "color": str(widget.cget("foreground"))}
+
+	def step(name: str, *, patched: bool = False) -> dict[str, Any]:
+		nonlocal read_from
+		records = capture.records[read_from:]
+		read_from = len(capture.records)
+		tree = window._tree_files  # noqa: SLF001 - the patcher's file list
+		result: dict[str, Any] = {
+			"step": name,
+			"desiredVersion": int(window.desired_version.get()),
+			"nameFilter": window.name_filter,
+			"files": golden.unordered(sorted(golden.path(p) for p in window.files_to_patch)),
+			"display": {
+				"caption": label(label_filter),
+				"filterEntry": str(window.text_filter.get()),
+				"tree": [str(tree.item(i, "text")) for i in tree.get_children()],
+				"log": unordered_runs(golden, _log_pane_lines(window.logger._text), _is_patch_outcome),  # noqa: SLF001
+				"logLines": unordered_runs(golden, log_lines_of(golden, records, loggers), _is_patch_outcome),
+				"processingData": window.processing_data,
+			},
+		}
+		if patched:
+			result["data"] = data_snapshot(golden, data)
+		return result
+
+	def type_filter(text: str) -> None:
+		window.text_filter.delete(0, "end")
+		window.text_filter.insert(0, text)
+		# The bound handler is called directly, with the one event field it reads: the window is never mapped in
+		# record mode and never has focus, so Tk drops a generated key event before it reaches the binding.
+		key_handlers["<KeyRelease>"](SimpleNamespace(widget=window.text_filter))
+
+	first = step("opened")
+	before = len(opened)
+	button_about.invoke()
+	# The size the modal asks for in its wm_geometry: in record mode it is never mapped, so Tk would report 1x1.
+	first["display"].update({
+		"title": window.wm_title(),
+		"width": window.width,
+		"height": window.height,
+		"desiredVersion": {
+			"title": str(frame_radio.cget("text")),
+			"radios": [
+				{
+					"text": str(radio.cget("text")),
+					"selected": str(window.getvar(str(radio.cget("variable")))) == str(radio.cget("value")),
+				}
+				for radio in (radio_og, radio_ng)
+			],
+		},
+		"patch": {"text": str(button_patch.cget("text"))},
+		"about": {"text": str(button_about.cget("text")), "opens": opened[before] if len(opened) > before else None},
+		"nameLabel": label(label_name),
+	})
+	steps = [first]
+
+	button_patch.invoke()
+	steps.append(step("patched", patched=True))
+	radio_ng.invoke()
+	steps.append(step("v8"))
+	type_filter(ARCHIVE_PATCHER_FILTER)
+	steps.append(step("filtered"))
+	button_patch.invoke()
+	steps.append(step("patchedFiltered", patched=True))
+	type_filter("")
+	steps.append(step("unfiltered"))
+
+	return {"archivePatcher": {"changes": changes, "steps": steps}}
+
+
 # The boxes each scanner-scan run ticks, by ScanSetting member name: every box first, then each box alone in pane order.
 _SCAN_RUNS: list[set[str]] = [
 	{"OverviewIssues", "Errors", "WrongFormat", "LoosePrevis", "JunkFiles", "ProblemOverrides", "RaceSubgraphs"},

@@ -187,8 +187,9 @@ public sealed class OverviewTab : TabPage
     /// left as they were.
     /// </summary>
     /// <returns>
-    /// Whether the refresh completed. False when it died, which the Scanner's scan, refreshing through
-    /// <c>cmc.refresh_tab</c>, stops on (the exception ended its Tk callback too).
+    /// Whether the refresh completed; false when its gathering failed and was reported. The callers refreshing through
+    /// <c>cmc.refresh_tab</c> (the Scanner's scan, the Archive Patcher's Patch All) stop on false, as the exception
+    /// ended their Tk callback too.
     /// </returns>
     public async Task<bool> RefreshAsync()
     {
