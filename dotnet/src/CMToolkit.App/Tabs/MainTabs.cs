@@ -12,11 +12,29 @@ public static class MainTabs
     /// <param name="session">What startup produced: runtime, settings, PC info and the game installation.</param>
     public static IReadOnlyList<TabPage> Compose(AppSession session) =>
     [
-        new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview, () => DowngraderWindow.Open(session)),
+        Overview(session),
         new F4seTab(session.Runtime, session.Host, session.Game, session.Overview),
         new ScannerTab(session.Runtime, session.Game, session.Overview, session.Settings),
-        new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session)),
+        new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session), openArchivePatcher: () => ArchivePatcherWindow.Open(session)),
         new SettingsTab(session.Settings),
         new AboutTab(session.Runtime),
     ];
+
+    /// <summary>
+    /// The Overview tab, with both its utility buttons wired (OVW-B9, OVW-A6), registered as the session's Overview
+    /// refresh (<c>cmc.refresh_tab(Tab.Overview)</c>), which the Archive Patcher, the Downgrader and the Scanner call.
+    /// </summary>
+    private static OverviewTab Overview(AppSession session)
+    {
+        var tab = new OverviewTab(
+            session.Runtime,
+            session.Host,
+            session.Pc,
+            session.Game,
+            session.Overview,
+            () => DowngraderWindow.Open(session),
+            () => ArchivePatcherWindow.Open(session));
+        session.OverviewRefresh = tab.RefreshAsync;
+        return tab;
+    }
 }

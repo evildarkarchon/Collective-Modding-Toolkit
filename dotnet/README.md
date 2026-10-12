@@ -118,7 +118,14 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
   scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
   progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
-  pane's key handling (Ctrl+A/C only, T-13) is the Archive Patcher slice's.
+  pane's key handling follows the reference's filter exactly (T-13), which blocks Ctrl+A/C too (bug #88).
+- Archive Patcher (see [`parity/screenshots/archive-patcher/`](../parity/screenshots/archive-patcher/)): the top row,
+  the Name Filter and the list line up with Tk's to within 1-2 px (Patch All and About sit 2 px higher). The list is
+  plain rows, not a Treeview: no row selection or hover, and its scrollbar and the log pane's are Fluent's, as in the
+  Downgrader. The Name Filter is a Fluent TextBox restyled to the ttk.Entry's rest look; its hover and focus looks
+  are Fluent's. Neither the list nor the log pane shows Tk's blinking insertion cursor. The name filter case-folds with
+  a table generated from the reference's Python (`dotnet/eng/generate-casefold.py`, Unicode 16.0.0), but the list's
+  path order lowercases with `ToLowerInvariant`, as the Overview's sets do.
 - F4SE tab (see [`parity/screenshots/f4se/`](../parity/screenshots/f4se/)): the tree, its headings and rows, the
   scrollbar column and the legend line up with Tk's to within a pixel. The glyphs fall back to Segoe UI Symbol, so
   they take the row's colour as Tk's do, but in Symbol's shapes rather than the Segoe UI Emoji ones GDI draws. The
