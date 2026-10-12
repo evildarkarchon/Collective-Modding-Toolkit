@@ -37,9 +37,6 @@ public static class SettingsFile
         new("downgrader_delete_deltas", null),
     ];
 
-    /// <summary>UTF-8 that throws on bad bytes and keeps a BOM, like Python's <c>read_text("utf-8")</c> (T-1).</summary>
-    private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
     /// <summary>
     /// The settings as <c>(key, value)</c> pairs in file order, each value a <see cref="string"/> (the two
     /// <c>Literal</c> keys) or a <see cref="bool"/>: the Python dict the reference holds and writes.
@@ -79,7 +76,8 @@ public static class SettingsFile
         {
             // Python reads in text mode, which turns CR and CRLF into LF first. That can't change the outcome: outside
             // strings both are whitespace, and inside strings both are refused as control characters.
-            var text = StrictUtf8.GetString(File.ReadAllBytes(path));
+            // Strict UTF-8 that keeps a BOM, like Python's read_text("utf-8") (T-1).
+            var text = PythonSemantics.PythonText.ReadUtf8Strict(path);
             json = PythonJson.Loads(text) as PythonDict
                    ?? throw new InvalidDataException($"{name} doesn't contain a JSON object.");
         }

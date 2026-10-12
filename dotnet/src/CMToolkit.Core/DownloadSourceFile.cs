@@ -66,7 +66,7 @@ public static class DownloadSourceFile
         {
             // ReadAllBytes + GetString, not ReadAllText: ReadAllText silently drops a UTF-8 BOM, but the reference
             // decodes with "utf-8" (not "utf-8-sig"), so a BOM survives into the value and makes it invalid.
-            raw = PythonStrip(Utf8IgnoringErrors.GetString(File.ReadAllBytes(PathIn(appDirectory))));
+            raw = PythonSemantics.PythonText.Strip(Utf8IgnoringErrors.GetString(File.ReadAllBytes(PathIn(appDirectory))));
         }
         catch (Exception ex)
         {
@@ -109,28 +109,5 @@ public static class DownloadSourceFile
             default:
                 throw new ArgumentOutOfRangeException(nameof(lookup), lookup.Outcome, null);
         }
-    }
-
-    /// <summary>
-    /// Python's no-argument <c>str.strip()</c>. Its whitespace set is .NET's <see cref="char.IsWhiteSpace(char)"/> plus
-    /// U+001C..U+001F (the file, group, record and unit separators), which Python treats as whitespace and .NET doesn't.
-    /// </summary>
-    private static string PythonStrip(string value)
-    {
-        static bool IsPythonWhiteSpace(char c) => char.IsWhiteSpace(c) || c is >= '\u001c' and <= '\u001f';
-
-        var start = 0;
-        var end = value.Length;
-        while (start < end && IsPythonWhiteSpace(value[start]))
-        {
-            start++;
-        }
-
-        while (end > start && IsPythonWhiteSpace(value[end - 1]))
-        {
-            end--;
-        }
-
-        return value[start..end];
     }
 }

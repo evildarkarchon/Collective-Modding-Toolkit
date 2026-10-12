@@ -1,4 +1,5 @@
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.PythonSemantics;
 using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core.F4se;
@@ -64,7 +65,8 @@ public static class F4seScan
         foreach (var entry in new DirectoryInfo(HostPaths.Resolve(host, plugins)).EnumerateFileSystemInfos())
         {
             var name = entry.Name;
-            if (!Suffix(name).Equals(".dll", StringComparison.OrdinalIgnoreCase) || name.StartsWith("msdia", StringComparison.Ordinal))
+            // dll_file.suffix.lower() == ".dll", with the reference's Python 3.14 suffix rules (so "..dll" has none).
+            if (!new PythonPath(name).Suffix.Equals(".dll", StringComparison.OrdinalIgnoreCase) || name.StartsWith("msdia", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -96,15 +98,5 @@ public static class F4seScan
             logger.Write(LogLevel.Warning, $"Scanning {name} : Failed : [WinError {e.NativeErrorCode}]");
             return null;
         }
-    }
-
-    /// <summary>
-    /// pathlib's <c>suffix</c>: from the last dot, unless the name starts with its only dot or ends with it, which
-    /// gives none (<c>.dll</c> alone has no suffix).
-    /// </summary>
-    private static string Suffix(string name)
-    {
-        var dot = name.LastIndexOf('.');
-        return dot > 0 && dot < name.Length - 1 ? name[dot..] : "";
     }
 }
