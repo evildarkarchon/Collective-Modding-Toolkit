@@ -364,5 +364,67 @@ class ScreenshotShutdownTests(unittest.TestCase):
 			parent.wait()
 
 
+class TextRunsTests(unittest.TestCase):
+	"""``_text_runs`` and ``_log_pane_runs`` against a real Tk ``Text``, tagged as ``logger.Logger.log_message`` tags it."""
+
+	def setUp(self) -> None:
+		import tkinter as tk  # noqa: PLC0415
+
+		self.root = tk.Tk()
+		self.root.withdraw()
+		self.text = tk.Text(self.root)
+		self.text.tag_configure("info", foreground="dodger blue")
+		self.text.tag_configure("good", foreground="#619267")
+
+	def tearDown(self) -> None:
+		self.root.destroy()
+
+	def log(self, tag: str, emoji: str, message: str) -> None:
+		"""``log_message``: insert the line, then tag ``len(emoji)`` Tk characters from where it started."""
+		start = self.text.index("insert")
+		self.text.insert("end", f"{emoji}{message}\n")
+		line, column = start.split(".")
+		self.text.tag_add(tag, start, f"{line}.{int(column) + len(emoji)}")
+
+	def test_offsets_after_a_non_bmp_emoji_stay_on_their_characters(self) -> None:
+		from harness.operations import _text_runs  # noqa: PLC0415, PLC2701 - the helper under test
+
+		self.log("info", "\U0001f4ad ", "one")
+		self.log("good", "✅ ", "two")
+		self.log("info", "\U0001f4ad ", "three")
+
+		# Tk tags only the surrogate pair of each 💭, and the whole "✅ " (two BMP characters).
+		self.assertEqual(
+			_text_runs(self.text),
+			[
+				{"text": "\U0001f4ad", "color": "dodger blue"},
+				{"text": " one\n", "color": None},
+				{"text": "✅ ", "color": "#619267"},
+				{"text": "two\n", "color": None},
+				{"text": "\U0001f4ad", "color": "dodger blue"},
+				{"text": " three\n", "color": None},
+			],
+		)
+
+	def test_the_log_pane_records_each_emoji_with_its_space(self) -> None:
+		from harness.operations import _log_pane_runs  # noqa: PLC0415, PLC2701 - the helper under test
+
+		self.log("info", "\U0001f4ad ", "one")
+		self.log("good", "✅ ", "two")
+		self.log("info", "\U0001f4ad ", "three")
+
+		self.assertEqual(
+			_log_pane_runs(self.text),
+			[
+				{"text": "\U0001f4ad ", "color": "dodger blue"},
+				{"text": "one\n", "color": None},
+				{"text": "✅ ", "color": "#619267"},
+				{"text": "two\n", "color": None},
+				{"text": "\U0001f4ad ", "color": "dodger blue"},
+				{"text": "three\n", "color": None},
+			],
+		)
+
+
 if __name__ == "__main__":
 	unittest.main()
