@@ -1,0 +1,12 @@
+{
+  "description": "Unknown keys, including escaped and non-ASCII ones, are dropped and the file resaved.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5",
+    "LOG-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

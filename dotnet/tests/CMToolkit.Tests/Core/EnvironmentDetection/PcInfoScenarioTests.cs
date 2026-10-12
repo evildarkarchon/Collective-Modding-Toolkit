@@ -80,7 +80,40 @@ public sealed class PcInfoScenarioTests
             ["cpu"] = pc.Cpu,
             ["gpu"] = pc.Gpu,
             ["vram"] = pc.Vram,
-            ["display"] = new JsonObject { ["log"] = logger.ToGolden() },
+            ["display"] = new JsonObject { ["log"] = ProjectLog(logger) },
         },
     };
+
+    /// <summary>
+    /// The log calls as the driver's <c>log_lines</c> writes them: Python level names, and a traceback reduced to
+    /// <c>"exception": true</c>.
+    /// </summary>
+    private static JsonArray ProjectLog(RecordingLogger logger)
+    {
+        var lines = new JsonArray();
+        foreach (var record in logger.Records)
+        {
+            var line = new JsonObject
+            {
+                ["level"] = record.Level switch
+                {
+                    LogLevel.Debug => "DEBUG",
+                    LogLevel.Information => "INFO",
+                    LogLevel.Warning => "WARNING",
+                    LogLevel.Error => "ERROR",
+                    LogLevel.Critical => "CRITICAL",
+                    _ => throw new ArgumentOutOfRangeException(nameof(logger), record.Level, null),
+                },
+                ["message"] = record.Message,
+            };
+            if (record.Exception is not null)
+            {
+                line["exception"] = true;
+            }
+
+            lines.Add(line);
+        }
+
+        return lines;
+    }
 }

@@ -1,0 +1,11 @@
+{
+  "description": "An integer of exactly 4300 digits still loads, and is logged in full.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

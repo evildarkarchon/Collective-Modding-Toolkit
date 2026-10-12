@@ -1,0 +1,15 @@
+{
+  "description": "No settings.json and an invalid Download Source, which falls back to nexus.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-1",
+    "SET-3"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

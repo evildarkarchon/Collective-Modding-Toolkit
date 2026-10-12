@@ -22,6 +22,18 @@ MOD-1
 MOD-2
 B-12
 
+# Settings file and log file (#48)
+SET-1
+SET-3
+SET-4
+SET-5
+SET-6
+T-10
+LOG-2
+LOG-3
+SHELL-1
+SHELL-2
+
 # Environment: PC info, mod manager and MO2 config (#49)
 PC-1
 PC-2

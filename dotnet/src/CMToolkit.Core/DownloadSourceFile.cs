@@ -11,7 +11,8 @@ public enum DownloadSource
 
 /// <summary>
 /// How a <see cref="DownloadSourceFile.Read"/> went. Each outcome matches one log line in the Reference
-/// Implementation, which the logging slice writes from it.
+/// Implementation, but the reference logged them before logging was configured, so none of them ever reached
+/// <c>cm-toolkit.log</c>; the port doesn't write them either (issue #77).
 /// </summary>
 public enum DownloadSourceOutcome
 {

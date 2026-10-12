@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using CMToolkit.App.Runtime;
+using CMToolkit.Core;
 using CMToolkit.App.Views;
 
 namespace CMToolkit.App;
@@ -20,6 +21,25 @@ public sealed record StartupResult(Window Window, bool Failed)
 /// </summary>
 public static class AppStartup
 {
+    /// <summary>
+    /// Opens the log and writes its three start lines, the first thing <c>main.py</c> did (SHELL-1).
+    /// </summary>
+    /// <param name="path">The log file; the App passes the CWD-relative <see cref="WorkingDirectoryFiles.Log"/>.</param>
+    /// <param name="now">The local time for the start lines.</param>
+    /// <returns>The open log, filtering at INFO until settings load (SHELL-2).</returns>
+    /// <exception cref="IOException">The log can't be opened.</exception>
+    /// <exception cref="UnauthorizedAccessException">The log can't be opened.</exception>
+    /// <remarks>
+    /// A throw here is a startup failure: the reference dies in <c>logging.basicConfig</c> with PyInstaller's dialog
+    /// before any window exists, so the caller shows the startup failure dialog (SHELL-13).
+    /// </remarks>
+    public static LogFile OpenLog(string path, DateTime now)
+    {
+        var log = LogFile.Open(path);
+        log.WriteStartLines(now);
+        return log;
+    }
+
     /// <summary>
     /// Runs <paramref name="buildMainWindow"/>, which does the startup Core work (off the UI thread) and builds the main
     /// window without showing it. The caller shows <see cref="StartupResult.Window"/>.

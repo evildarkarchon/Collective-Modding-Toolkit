@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "display": {
+      "log": [
+        {
+          "level": "INFO",
+          "message": "Settings : settings.json not found; using defaults."
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ]
+    },
+    "values": {
+      "downgrader_delete_deltas": true,
+      "downgrader_keep_backups": true,
+      "log_level": "INFO",
+      "scanner_Errors": true,
+      "scanner_JunkFiles": true,
+      "scanner_LoosePrevis": true,
+      "scanner_OverviewIssues": true,
+      "scanner_ProblemOverrides": true,
+      "scanner_RaceSubgraphs": true,
+      "scanner_WrongFormat": true,
+      "update_source": "nexus"
+    }
+  },
+  "settingsFile": {
+    "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"nexus\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": true,\r\n\t\"scanner_WrongFormat\": true,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": true,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": true,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
+  }
+}

@@ -10,8 +10,8 @@ namespace CMToolkit.App.Runtime;
 public sealed class AppRuntime
 {
     /// <param name="logger">
-    /// The app log. The Settings-and-log-file slice supplies the <c>cm-toolkit.log</c> provider; until then the app
-    /// passes a null logger.
+    /// The app log: the <c>cm-toolkit.log</c> <see cref="LogFile"/> at startup (a null logger only if it couldn't be
+    /// opened, and then startup fails), or a capturing logger in tests.
     /// </param>
     public AppRuntime(ILogger logger)
     {

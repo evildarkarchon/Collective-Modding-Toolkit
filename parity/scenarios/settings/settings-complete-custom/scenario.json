@@ -1,0 +1,11 @@
+{
+  "description": "Every key valid with non-default values, in another order, LF and spaces: kept as is, no resave.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}
