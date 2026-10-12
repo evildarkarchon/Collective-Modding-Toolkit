@@ -1,0 +1,5 @@
+{"downgrader_delete_deltas": false, "update_source": "none",
+  "log_level": "WARNING", "scanner_Errors": false,
+  "scanner_OverviewIssues": true, "scanner_WrongFormat": false, "scanner_LoosePrevis": true,
+  "scanner_JunkFiles": false, "scanner_ProblemOverrides": true, "scanner_RaceSubgraphs": false,
+  "downgrader_keep_backups": false}

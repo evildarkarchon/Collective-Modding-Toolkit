@@ -1,0 +1,15 @@
+{
+  "description": "No settings.json and a 'nexus' Download Source: update_source defaults to nexus.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-1",
+    "SET-3"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

@@ -7,4 +7,9 @@
     <RootNamespace>CMToolkit.Core</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core logs through ILogger only; the App supplies the cm-toolkit.log provider (the Core seams resolution, #7). -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+  </ItemGroup>
 </Project>

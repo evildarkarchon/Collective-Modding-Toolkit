@@ -6,9 +6,11 @@ and register it with ``@operation("<name>")``. Read results that only exist afte
 not by re-deriving them (ADR-0004).
 """
 
+import base64
 import logging
 import sys
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from harness.golden import GoldenContext
@@ -125,4 +127,39 @@ def main_window(session: Session, golden: GoldenContext) -> dict[str, Any]:  # n
 			"resizable": bool(resizable_width or resizable_height),
 			"tabs": [notebook.tab(tab_id, "text") for tab_id in notebook.tabs()],  # type: ignore[union-attr]
 		},
+	}
+
+
+def file_snapshot(path: Path) -> dict[str, str] | None:
+	"""A file's bytes after an operation (T-10): ``None`` if it isn't a file, ``{"text": ...}`` if it decodes as strict
+	UTF-8, else ``{"base64": ...}``. Line endings and every other byte are kept, so a C# writer is compared byte-exact.
+	"""
+	if not path.is_file():
+		return None
+	data = path.read_bytes()
+	try:
+		return {"text": data.decode("utf-8")}
+	except UnicodeDecodeError:
+		return {"base64": base64.b64encode(data).decode("ascii")}
+
+
+@operation("settings-load")
+def settings_load(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noqa: ARG001
+	"""SET-1, SET-3..SET-6: ``AppSettings()`` against ``settings.json`` in the scenario's working directory.
+
+	The Download Source (SET-2) is read when ``app_settings`` is imported, before the capture starts, so only the
+	settings load's own log lines are recorded. They are captured at every level: which of them reach
+	``cm-toolkit.log`` is the log file's business (SHELL-2). ``values`` is the loaded dict and ``settingsFile`` the
+	file left behind, after any resave.
+	"""
+	import app_settings  # noqa: PLC0415
+
+	capture = capture_logs()
+	settings = app_settings.AppSettings()
+	return {
+		"settings": {
+			"values": dict(settings.dict),
+			"display": {"log": log_lines(capture.records, "app_settings")},
+		},
+		"settingsFile": file_snapshot(Path(app_settings.SETTINGS_PATH)),
 	}

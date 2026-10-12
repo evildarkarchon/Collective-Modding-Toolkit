@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -7,6 +8,7 @@ using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CMToolkit.App;
@@ -31,21 +33,40 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// The startup sequence (SHELL-4). Error reporting goes up first, as <c>sys.stderr</c> was replaced before the
-    /// checker was built. The Core startup work (the Download Source lookup, resolved against the exe folder) runs off
-    /// the UI thread, as it ran at import time in the Reference Implementation, before the main window exists. Only
-    /// then is a window shown: the main window, or the startup failure dialog (SHELL-13).
+    /// The startup sequence (SHELL-4). The log file opens first and gets its start lines (SHELL-1). Error reporting
+    /// goes up next, as <c>sys.stderr</c> was replaced before the checker was built. The Core startup work (the
+    /// Download Source lookup, resolved against the exe folder, then the settings load, after which <c>log_level</c>
+    /// applies; SHELL-2) runs off the UI thread, before the main window exists. Only then is a window shown: the main
+    /// window, or the startup failure dialog (SHELL-13).
     /// </summary>
     private static async void RunStartup(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        // The Settings-and-log-file slice replaces the null logger with the cm-toolkit.log provider.
-        var runtime = new AppRuntime(NullLogger.Instance);
+        LogFile? log = null;
+        Exception? logFailure = null;
+        try
+        {
+            // Kept open for the life of the process, as Python's FileHandler was, so never disposed.
+            log = AppStartup.OpenLog(WorkingDirectoryFiles.Log, DateTime.Now);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logFailure = ex;
+        }
+
+        // With no log there is nothing to write to; the failure is rethrown below and shown in the startup dialog.
+        var runtime = new AppRuntime(log ?? (ILogger)NullLogger.Instance);
         // Installed for the life of the process, so never disposed.
         runtime.Errors.InstallGlobalHandlers();
 
         var result = await AppStartup.BuildAsync(runtime, async () =>
         {
-            var viewModel = await Task.Run(() => MainWindowViewModel.Load(SystemHostEnvironment.Instance));
+            // main.py died in logging.basicConfig before anything else ran, so nothing else runs here either.
+            if (logFailure is not null)
+            {
+                ExceptionDispatchInfo.Throw(logFailure);
+            }
+
+            var viewModel = await Task.Run(() => MainWindowViewModel.Load(SystemHostEnvironment.Instance, log!));
             return new MainWindow(runtime, PlaceholderTab.Shell()) { DataContext = viewModel };
         });
 

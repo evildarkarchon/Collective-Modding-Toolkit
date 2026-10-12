@@ -1,0 +1,1 @@
+{"log_level": "ERROR", "update_source": "both", "scanner_OverviewIssues": 1, "scanner_Errors": 0, "scanner_WrongFormat": "true", "scanner_LoosePrevis": null, "scanner_JunkFiles": 1.5e20, "scanner_ProblemOverrides": {}, "scanner_RaceSubgraphs": [], "downgrader_keep_backups": 123456789012345678901234567890, "downgrader_delete_deltas": -0}

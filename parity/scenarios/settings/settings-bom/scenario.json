@@ -1,0 +1,11 @@
+{
+  "description": "A UTF-8 BOM survives decoding with 'utf-8', and json.loads rejects it: everything is reset.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-4"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

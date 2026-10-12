@@ -1,0 +1,11 @@
+{
+  "description": "A repeated key keeps its first position and its last value.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

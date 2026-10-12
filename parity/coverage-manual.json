@@ -3,5 +3,10 @@
     "id": "SHELL-15",
     "proof": "exempt",
     "reason": "The walking skeleton (#45) drops the DWM dark-title-bar call; RequestedThemeVariant=\"Dark\" gives Avalonia windows a dark title bar instead. Recorded as exempt in that slice."
+  },
+  {
+    "id": "LOG-3",
+    "proof": "exempt",
+    "reason": "Not ported, by design (#48): the Downgrader's progress chatter goes to print(), whose stdout is None in the windowed exe, so it was never visible or logged. The port writes no such lines."
   }
 ]

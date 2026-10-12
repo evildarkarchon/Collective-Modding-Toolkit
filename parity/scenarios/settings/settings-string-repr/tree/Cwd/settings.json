@@ -1,0 +1,1 @@
+{"log_level": {"a'": ["x", 1.0, false]}, "update_source": ["tab\t", "nl\n", "cr\r", "q\"", "both'\"", "\u0001", "\u007f", "\u00e9", "\u00a0", "\u200b", "\ud83d\ude00", "\\", "\u0085", "\u2028"], "scanner_OverviewIssues": "a\tb", "scanner_Errors": "", "scanner_WrongFormat": "\u00e9\u00ff\u0100"}

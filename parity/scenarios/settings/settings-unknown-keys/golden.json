@@ -1,0 +1,88 @@
+{
+  "settings": {
+    "display": {
+      "log": [
+        {
+          "level": "ERROR",
+          "message": "Settings : Unknown setting 'theme' will be removed."
+        },
+        {
+          "level": "ERROR",
+          "message": "Settings : Unknown setting 'caf\u00e9\u4e2d' will be removed."
+        },
+        {
+          "level": "ERROR",
+          "message": "Settings : Unknown setting '\u00e9\ud83d\ude00/' will be removed."
+        },
+        {
+          "level": "ERROR",
+          "message": "Settings : Unknown setting 'a\"b\\' will be removed."
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'log_level' is correct type (str)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'update_source' is correct type (str)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_OverviewIssues' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_Errors' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_WrongFormat' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_LoosePrevis' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_JunkFiles' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_ProblemOverrides' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_RaceSubgraphs' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'downgrader_keep_backups' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'downgrader_delete_deltas' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ]
+    },
+    "values": {
+      "downgrader_delete_deltas": true,
+      "downgrader_keep_backups": true,
+      "log_level": "INFO",
+      "scanner_Errors": true,
+      "scanner_JunkFiles": true,
+      "scanner_LoosePrevis": true,
+      "scanner_OverviewIssues": true,
+      "scanner_ProblemOverrides": true,
+      "scanner_RaceSubgraphs": true,
+      "scanner_WrongFormat": true,
+      "update_source": "github"
+    }
+  },
+  "settingsFile": {
+    "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"github\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": true,\r\n\t\"scanner_WrongFormat\": true,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": true,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": true,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
+  }
+}
