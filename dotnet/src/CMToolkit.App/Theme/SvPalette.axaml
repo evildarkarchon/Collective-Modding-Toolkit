@@ -59,6 +59,9 @@
   <SolidColorBrush x:Key="SvFg" Color="#FAFAFA" />
   <SolidColorBrush x:Key="SvSunkenDark" Color="#555555" />
   <SolidColorBrush x:Key="SvSunkenLight" Color="#8E8E8E" />
+  <!-- ttk.Entry at rest (sv_ttk entry-rest sprite), sampled from the Archive Patcher's Name Filter: its field and
+       its 1 px bottom line. -->
+  <SolidColorBrush x:Key="SvEntryUnderline" Color="#989898" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
   <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by

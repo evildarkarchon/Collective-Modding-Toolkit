@@ -36,6 +36,11 @@ Both sides copy the tree to a fresh temp root named `cmt-parity-<guid>`, then ap
 must be on **NTFS**, because goldens compare directory enumeration order exactly. Set `CMT_PARITY_TEMP` to an NTFS
 folder if the system temp folder isn't on NTFS (a ReFS Dev Drive, for example).
 
+An operation whose scenarios change files behind the app's back (the `archive-patcher` operation, after the Overview
+has read the archives) applies the tree's `Changes/` overlay at that point: each file under `Changes/` replaces the
+file at the same root-relative path, and an empty `<name>.delete` deletes `<name>`. Until then `Changes/` is just
+another folder in the tree (`apply_changes` in `operations.py`, `ArchivePatcherGolden.ApplyChanges` in C#).
+
 ### `scenario.json`
 
 ```jsonc

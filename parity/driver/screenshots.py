@@ -59,6 +59,7 @@ TAB_CENTRES = {
 # clicks again), and the reference's opener, called in-process on the CMChecker once the Overview has loaded.
 MODAL_BUTTONS = {
 	"Downgrader": (142, 420),  # Overview, Binaries frame: "Downgrade Manager..."
+	"Archive Patcher": (411, 420),  # Overview, Archives frame: "Archive Patcher..."
 }
 # Tells the reference child which modal to open, so its positional arguments stay as they were.
 MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
@@ -369,7 +370,7 @@ def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> 
 	if modal is not None:
 		import cm_checker  # noqa: PLC0415
 
-		openers = {"Downgrader": _open_downgrader}
+		openers = {"Downgrader": _open_downgrader, "Archive Patcher": _open_archive_patcher}
 		original = cm_checker.CMChecker.__init__
 
 		def init_then_open(self: Any, *args: Any, **kwargs: Any) -> None:
@@ -385,6 +386,13 @@ def _open_downgrader(checker: Any) -> None:
 	from downgrader import Downgrader  # noqa: PLC0415
 
 	Downgrader(checker.root, checker)
+
+
+def _open_archive_patcher(checker: Any) -> None:
+	"""What the Overview's ``Archive Patcher...`` button runs."""
+	from patcher import ArchivePatcher  # noqa: PLC0415
+
+	ArchivePatcher(checker.root, checker)
 
 
 def main() -> int:

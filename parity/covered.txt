@@ -162,3 +162,13 @@ T-8
 B-7
 B-15
 B-17
+
+# Archive Patcher and the log pane (#59)
+# TOOL-1: the last claimant (#55 rendered the buttons, #60 wired Downgrade Manager, this wires Archive Patcher).
+AP-1
+AP-2
+AP-3
+OVW-A6
+TOOL-1
+LOG-1
+T-13
