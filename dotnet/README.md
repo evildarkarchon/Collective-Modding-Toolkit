@@ -156,7 +156,7 @@ can't be opened (SHELL-13).
 - The results tree's open groups keep Fluent's down chevron, where sv_ttk draws the right-pointing indicator for
   open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
   the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
-  problem types first appear.
+  problem types first appear, the same on every run (bug #23, a Deviation).
 - Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
   Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
   cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves

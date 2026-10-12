@@ -4,6 +4,12 @@
   "parity": [
     "SCN-1"
   ],
+  "deviations": [
+    {
+      "bug": 87,
+      "reason": "Leaving a Scanner tab that never built does nothing, so the tab change completes: the Overview becomes current, the Tools tab loads, and no error is reported."
+    }
+  ],
   "host": {
     "cwd": "<ROOT>/Cwd",
     "argv0": "cm-toolkit.exe",

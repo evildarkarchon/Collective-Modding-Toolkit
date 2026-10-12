@@ -3,8 +3,9 @@ using CMToolkit.Core.Scanner;
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// <c>check_scan_progress</c>'s queue protocol (SCN-S4). The worker never sends the folder tuple today (bug #89), so the
-/// scenarios only see names ignored; these pin the protocol the fix relies on, worked out by hand from the reference.
+/// <c>check_scan_progress</c>'s queue protocol (SCN-S4). The reference's worker never sent the folder tuple (bug #89),
+/// so its recordings only see names ignored; these pin the protocol the port's fix relies on, worked out by hand from
+/// the reference (the <c>scanner/data-walk*</c> port goldens show it end to end).
 /// </summary>
 public sealed class ScanProgressTrackerTests
 {

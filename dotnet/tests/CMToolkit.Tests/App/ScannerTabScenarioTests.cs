@@ -23,7 +23,8 @@ namespace CMToolkit.Tests.App;
 /// driven by the driver's script (select the Scanner, untick boxes, scan, select rows, leave and come back, rescan) and
 /// read back at each step: the side pane, the results tree, the info and scanning labels, the progress bar, which panes
 /// exist, <c>settings.json</c> and the log lines. A tab that fails to load is left to the Overview and then the Tools
-/// tab, as the driver does (bug #87). Compared in full.
+/// tab, as the driver does (bug #87: fixed, so <c>scanner/no-data</c>'s port golden has both switches complete).
+/// Compared in full.
 /// </summary>
 public sealed class ScannerTabScenarioTests
 {
@@ -212,6 +213,13 @@ public sealed class ScannerTabScenarioTests
         var toggles = new List<JsonNode>();
         foreach (var setting in ScanSettings.All.Skip(1))
         {
+            // Only a ticked box is clicked. In the reference every box was ticked again on return (B-1), so this is
+            // the driver's script; the port's returned pane already has the saved, unticked boxes (bug #20 fixed).
+            if (scanner.SidePane!.Checks[setting].IsChecked != true)
+            {
+                continue;
+            }
+
             MouseClick.On(scanner.SidePane!.Checks[setting]);
             toggles.Add(Toggle(scanner, setting));
         }
@@ -285,7 +293,9 @@ public sealed class ScannerTabScenarioTests
             ["scanningLabel"] = scanning.IsVisible ? scanning.Text : null,
             ["progress"] = Named<ProgressBar>(content, "Progress").Value,
             ["selectable"] = scanner.IsSelectable,
-            ["groups"] = new JsonObject { [GoldenComparer.UnorderedKey] = groups },
+            // In order: the reference's group order was random per run (B-4), which the port fixes (bug #23), so the
+            // scenarios' port goldens list the groups in the port's order.
+            ["groups"] = groups,
             ["scan"] = scanner.SidePane is null ? null : new JsonObject
             {
                 ["text"] = (string)scanner.SidePane.ScanButton.Content!,

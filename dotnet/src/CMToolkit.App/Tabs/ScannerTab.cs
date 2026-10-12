@@ -218,7 +218,8 @@ public sealed class ScannerTab : TabPage
             return;
         }
 
-        SidePane = new ScanSidePane();
+        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
         SidePane.ScanRequested += (_, _) => _ = RunScanAsync();
         if (TopLevel.GetTopLevel(_tree) is not null)
         {
@@ -242,18 +243,17 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// <c>ScannerTab.switch_from</c>: clears the selection and closes both panes (SCN-5).
+    /// <c>ScannerTab.switch_from</c>: clears the selection and closes both panes (SCN-5). Does nothing when the tab
+    /// never built because its load failed (SCN-1), so the tab change completes.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The tab never built, because its load failed (SCN-1): the reference's <c>switch_from</c> raised
-    /// <c>AttributeError</c> on the missing tree, which left the main window on this tab (bug #87).
-    /// </exception>
     protected internal override void SwitchFrom()
     {
         if (_tree is null)
         {
-            // Bug #87: reproduced, not fixed. The fix returns here instead.
-            throw new InvalidOperationException("The Scanner tab was never built, so it has no results tree (bug #87).");
+            // Bug #87, fixed (ADR-0006): the reference's switch_from raised AttributeError on the missing tree, which
+            // left the main window on this tab and broke every later tab change. A tab that never built has no tree
+            // and never opened its panes (SwitchTo runs only after a successful load), so there is nothing to undo.
+            return;
         }
 
         _tree.SelectedItem = null;
@@ -321,11 +321,11 @@ public sealed class ScannerTab : TabPage
         }
         catch (OperationFailedException)
         {
-            // B-3 (bug #22): the reference's thread died without clearing thread_scan, so polling never ended and the
-            // scan stayed on Scanning... with the button disabled. The runner has already reported the error. The
-            // endless polling still drained what the worker had queued before it died.
-            DrainProgress(pending);
-            return;
+            // B-3, bug #22 fixed (ADR-0006): the reference's thread died without clearing thread_scan, so polling never
+            // ended and the scan stayed on Scanning... with the button disabled. The runner has already reported the
+            // error; the scan now ends as a finished one does, listing the results it has (the seeded Overview
+            // problems; the worker's died with it) and enabling Scan Game again.
+            outcome = ScanOutcome.Empty;
         }
 
         // check_scan_progress drains the queue before it finds the thread done; nothing is applied after this.

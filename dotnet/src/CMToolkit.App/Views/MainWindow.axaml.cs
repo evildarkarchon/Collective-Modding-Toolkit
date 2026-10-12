@@ -97,7 +97,8 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             // The reference's switch_from raised inside on_tab_changed, before current_tab moved on and before the new
-            // tab loaded: the Error Window shows it and this tab stays current (bug #87's Failure Outcome).
+            // tab loaded: the Error Window shows it and this tab stays current. (Bug #87, the Scanner's switch_from on
+            // a tab that never built, was how the reference got here; the port fixes it, so no tab throws here today.)
             _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
             return;
         }

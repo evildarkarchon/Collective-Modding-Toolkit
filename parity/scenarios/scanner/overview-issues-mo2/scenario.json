@@ -7,6 +7,16 @@
     "SCN-R3",
     "SET-7"
   ],
+  "deviations": [
+    {
+      "bug": 23,
+      "reason": "The results tree lists its groups in the order their problem types first appear in the results, the same every run, instead of in Python's per-process set order."
+    },
+    {
+      "bug": 20,
+      "reason": "The side pane's boxes start as settings.json saves them (only Overview Issues ticked), on the first visit and on return, instead of all ticked; so the script's untick has no data box to click."
+    }
+  ],
   "host": {
     "cwd": "<ROOT>",
     "argv0": "cm-toolkit.exe",

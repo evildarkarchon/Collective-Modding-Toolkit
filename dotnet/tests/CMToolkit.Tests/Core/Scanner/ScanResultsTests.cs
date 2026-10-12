@@ -1,6 +1,7 @@
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Scanner;
+using CMToolkit.Tests.Parity;
 
 namespace CMToolkit.Tests.Core.Scanner;
 
@@ -22,7 +23,7 @@ public sealed class ScanResultsTests
     }
 
     [Fact]
-    [Trait("Parity", "SCN-R3")]
+    [Trait("Parity", "SCN-R3"), Deviation(23, "Groups follow the order their problem types first appear in the results, not Python's random set order.")]
     public void Each_problem_type_is_one_group_in_first_seen_order_with_items_sorted_by_type_and_mod()
     {
         var z = File("Wrong Version", "z.exe", "Zeta");

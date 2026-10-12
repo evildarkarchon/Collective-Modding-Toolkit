@@ -14,6 +14,16 @@
     "SCN-C8",
     "SCN-C9"
   ],
+  "deviations": [
+    {
+      "bug": 23,
+      "reason": "The results tree lists its groups in the order their problem types first appear in the results, the same every run, instead of in Python's per-process set order."
+    },
+    {
+      "bug": 89,
+      "reason": "The walk's root is recognised by position, not identity: the Data folder tuple is queued so the scan shows 'Scanning... i/n: folder' progress, and each mod root goes into modules and archives instead of the folder '.'."
+    }
+  ],
   "emptyDirs": [
     "Game/Data/DLCCoast.esm"
   ],
