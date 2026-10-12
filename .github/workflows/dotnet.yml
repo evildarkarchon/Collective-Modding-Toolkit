@@ -70,8 +70,14 @@ jobs:
         run: ./eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
 
       # Catches AOT failures that only show at runtime, such as XAML loaded by URI ("No precompiled XAML found").
+      # Startup reads the machine before the window appears (SHELL-5), so this run uses a Parity Scenario's machine.
       - name: Smoke-test the published exe
-        run: ./eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Screenshot artifacts/shots/shell.png
+        run: ./eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Scenario ../parity/scenarios/shell/main-window -Screenshot artifacts/shots/shell.png
+
+      # The runner has no Fallout 4, so this run ends at the 'Fallout 4 Not Found' question: startup's real-machine
+      # reads (registry, process tree, OS, known folders) ran under AOT on the way there.
+      - name: Smoke-test the published exe on the runner's own machine
+        run: ./eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe
 
       - name: List the publish folder
         run: Get-ChildItem artifacts/publish -Recurse -File | Format-Table Name, Length, DirectoryName -AutoSize

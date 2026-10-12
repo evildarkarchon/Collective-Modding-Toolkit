@@ -1,0 +1,42 @@
+{
+  "description": "A portable MO2 names a game folder that doesn't exist; it wins over a CWD that is a valid game folder, and isn't validated (GP-1), so no Data path is derived.",
+  "operation": "game-info",
+  "parity": [
+    "GP-1",
+    "GP-4"
+  ],
+  "emptyDirs": [
+    "Documents",
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Game",
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

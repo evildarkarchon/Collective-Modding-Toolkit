@@ -1,0 +1,23 @@
+{
+  "description": "Nothing finds the game; the user answers No to 'Fallout 4 Not Found' and the app exits (GP-2).",
+  "operation": "game-info",
+  "parity": [
+    "GP-2"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "dialogs": [
+      {
+        "function": "askyesno",
+        "answer": false
+      }
+    ],
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

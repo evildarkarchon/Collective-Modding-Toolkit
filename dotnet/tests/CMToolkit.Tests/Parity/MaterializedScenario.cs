@@ -382,4 +382,19 @@ public sealed class FakeHostEnvironment : IHostEnvironment
 
         return null;
     }
+
+    /// <inheritdoc/>
+    /// <remarks>The host block's <c>cwd</c>, else the root, as the driver's <c>os.chdir</c> picks.</remarks>
+    public string CurrentDirectory => Block.Cwd is { } cwd ? Expand(cwd) : Root;
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The host block's <c>knownFolders</c> entry, as the driver's <c>FakeShell32</c> answers. A folder the block doesn't
+    /// list fails the test, as it fails the recording.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">The host block doesn't list <paramref name="folder"/>.</exception>
+    public string GetKnownFolderPath(KnownFolder folder)
+        => Block.KnownFolders is { } folders && folders.TryGetValue(folder.ToString(), out var path)
+            ? Expand(path)
+            : throw new InvalidOperationException($"The scenario's host block has no knownFolders.{folder}.");
 }

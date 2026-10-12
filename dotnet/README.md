@@ -11,7 +11,7 @@ ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-ups
 | `CMToolkit.slnx` | The solution. |
 | `Directory.Build.props` | Shared settings: .NET 10, the single `<Version>`, warnings-as-errors (trim/AOT included), `<CETCompat>false</CETCompat>`. |
 | `src/CMToolkit.Core` | The app's logic. No Avalonia reference; trim/AOT analyzers on (`IsAotCompatible`). |
-| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. |
+| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test). |
 | `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
 | `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
 | `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. |
@@ -24,9 +24,14 @@ dotnet build CMToolkit.slnx
 dotnet test CMToolkit.slnx
 dotnet publish src/CMToolkit.App -c Release -r win-x64 -o artifacts/publish
 pwsh eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
+pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Scenario ../parity/scenarios/shell/main-window
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe
 dotnet run --project tools/CMToolkit.ParityCoverage
 ```
+
+Startup reads the machine before the main window appears (PC info, mod manager, game path, game INIs; SHELL-5). The
+first smoke run uses a Parity Scenario's fake machine, so the window appears anywhere. The second uses the real one: it
+passes with the main window where Fallout 4 is installed, or with the `Fallout 4 Not Found` question where it isn't.
 
 The NativeAOT publish needs the Visual Studio C++ build tools. Its link step finds `link.exe` through `vswhere.exe`,
 which must be on `PATH`. It lives in `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer`, and that folder isn't on
@@ -69,3 +74,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   two characters) and a word-final capital sigma (`ς`); no scenario covers them.
 - `platform.release()` and the build come from `RtlGetVersion` (version and product type), where Python asks WMI. They
   report the same numbers; a machine whose WMI is broken makes Python fall back to `ver`, which isn't reproduced.
+- The startup file picker (GP-2) is the native one Avalonia opens, owned by a window that is created but never shown,
+  where Tk's was owned by its withdrawn root. The yes/no and error boxes are the app's sv-styled message boxes (issue
+  #9), centred on the screen, since no main window exists yet.
+- Game INI section names and keys are lowercased with `ToLowerInvariant`, with the same `str.lower()` differences as
+  MO2's `skip_*` values above.

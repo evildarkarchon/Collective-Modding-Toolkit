@@ -1,0 +1,30 @@
+{
+  "description": "The user answers Yes and picks Fallout4.exe (Tk returns forward slashes); its folder is the game path (GP-2, GP-3).",
+  "operation": "game-info",
+  "parity": [
+    "GP-2",
+    "GP-3",
+    "GP-4"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents",
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "dialogs": [
+      {
+        "function": "askyesno",
+        "answer": true
+      },
+      {
+        "function": "askopenfilename",
+        "answer": "<ROOT>/Game/Fallout4.exe"
+      }
+    ],
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

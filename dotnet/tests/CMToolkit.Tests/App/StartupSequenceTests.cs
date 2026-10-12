@@ -26,10 +26,10 @@ public sealed class StartupSequenceTests
         var runtime = new AppRuntime(new CapturingLogger());
         var built = new Window();
 
-        var result = await AppStartup.BuildAsync(runtime, () => Task.FromResult(built));
+        var result = await AppStartup.BuildAsync(runtime, () => Task.FromResult<Window?>(built));
 
         Assert.Same(built, result.Window);
-        Assert.False(result.Window.IsVisible);
+        Assert.False(built.IsVisible);
         Assert.False(result.Failed);
         Assert.Equal(0, result.ExitCode);
     }

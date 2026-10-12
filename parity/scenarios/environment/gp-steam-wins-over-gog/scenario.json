@@ -1,0 +1,31 @@
+{
+  "description": "Both registry keys name valid game folders; Steam's is used (GP-1).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Steam Game"
+        }
+      },
+      "HKLM\\SOFTWARE\\WOW6432Node\\GOG.com\\Games\\1998527297": {
+        "path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\GOG Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

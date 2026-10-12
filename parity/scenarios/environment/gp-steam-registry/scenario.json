@@ -1,0 +1,27 @@
+{
+  "description": "The Steam registry key names the game folder, which has Data\\F4SE\\Plugins; no mod manager, a CWD that isn't the game, no My Games folder.",
+  "operation": "game-info",
+  "parity": [
+    "GP-1",
+    "GP-4"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents",
+    "Game/Data/F4SE/Plugins"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

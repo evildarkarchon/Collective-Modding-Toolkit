@@ -1,0 +1,25 @@
+{
+  "description": "The Documents known folder doesn't exist: 'Folder does not exist', fatal at startup (INI-1).",
+  "operation": "game-info",
+  "parity": [
+    "INI-1"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Missing Documents"
+    }
+  }
+}

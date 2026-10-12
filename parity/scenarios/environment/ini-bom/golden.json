@@ -1,0 +1,22 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\Game",
+    "language": "en",
+    "prefs": {},
+    "settings": {
+      "NO-SECTION": {
+        "slanguage": "de"
+      },
+      "archive": {
+        "binvalidateolderfiles": "1"
+      }
+    }
+  }
+}

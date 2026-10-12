@@ -1,0 +1,25 @@
+{
+  "description": "The CWD's Fallout4.exe is a folder, so the CWD isn't an FO4 dir and the registry is used (GP-1).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1"
+  ],
+  "emptyDirs": [
+    "Documents",
+    "Cwd/Fallout4.exe"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

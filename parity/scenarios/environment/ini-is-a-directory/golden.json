@@ -1,0 +1,24 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en",
+      "voices_ptbr"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\Game",
+    "language": "ptbr",
+    "prefs": {
+      "display": {
+        "isize w": "1280"
+      }
+    },
+    "settings": {
+      "general": {
+        "slanguage": "ptbr"
+      }
+    }
+  }
+}

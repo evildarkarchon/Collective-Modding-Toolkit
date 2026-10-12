@@ -3,9 +3,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using CMToolkit.App.Parity;
 using CMToolkit.App.Runtime;
-using CMToolkit.App.Tabs;
-using CMToolkit.App.ViewModels;
+using CMToolkit.App.Startup;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using Microsoft.Extensions.Logging;
@@ -34,13 +34,18 @@ public partial class App : Application
 
     /// <summary>
     /// The startup sequence (SHELL-4). The log file opens first and gets its start lines (SHELL-1). Error reporting
-    /// goes up next, as <c>sys.stderr</c> was replaced before the checker was built. The Core startup work (the
-    /// Download Source lookup, resolved against the exe folder, then the settings load, after which <c>log_level</c>
-    /// applies; SHELL-2) runs off the UI thread, before the main window exists. Only then is a window shown: the main
-    /// window, or the startup failure dialog (SHELL-13).
+    /// goes up next, as <c>sys.stderr</c> was replaced before the checker was built. Then <see cref="StartupSequence"/>
+    /// builds the app in the reference's order (SHELL-5): the Download Source lookup, resolved against the exe folder,
+    /// and the settings load, after which <c>log_level</c> applies (SHELL-2); PC info; the mod manager; the game path,
+    /// with its dialogs; the game INIs; the main window; the update check. Only then is a window shown: the main
+    /// window, or the startup failure dialog (SHELL-13). A deliberate exit in the game path dialogs shows nothing.
     /// </summary>
     private static async void RunStartup(IClassicDesktopStyleApplicationLifetime desktop)
     {
+        // The game path dialogs are the only windows until startup ends, and closing one must not end the app, as
+        // OnLastWindowClose would.
+        desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         LogFile? log = null;
         Exception? logFailure = null;
         try
@@ -66,9 +71,17 @@ public partial class App : Application
                 ExceptionDispatchInfo.Throw(logFailure);
             }
 
-            var viewModel = await Task.Run(() => MainWindowViewModel.Load(SystemHostEnvironment.Instance, log!));
-            return new MainWindow(runtime, PlaceholderTab.Shell()) { DataContext = viewModel };
+            // A Parity Scenario's machine when the screenshot driver asks for one, else the real one.
+            var host = ScenarioHostEnvironment.FromEnvironmentVariables() ?? (IHostEnvironment)SystemHostEnvironment.Instance;
+            return await new StartupSequence(runtime, host, log!, new WindowStartupDialogs()).BuildMainWindowAsync();
         });
+
+        if (result.Window is null)
+        {
+            // sys.exit() in the game path dialogs: no window, nothing logged, exit code 0.
+            desktop.Shutdown(result.ExitCode);
+            return;
+        }
 
         if (result.Failed)
         {

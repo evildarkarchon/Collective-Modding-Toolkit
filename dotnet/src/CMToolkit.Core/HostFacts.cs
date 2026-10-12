@@ -55,3 +55,16 @@ public sealed record OperatingSystemInfo(string System, string Release, int Buil
 /// <param name="Name">The image name with its extension, such as <c>ModOrganizer.exe</c> (Toolhelp32 <c>szExeFile</c>).</param>
 /// <param name="ExePath">The full exe path, or null if it can't be read (psutil's <c>AccessDenied</c>).</param>
 public sealed record AncestorProcess(string Name, string? ExePath);
+
+/// <summary>
+/// The shell folders the Reference Implementation looks up with <c>SHGetFolderPathW</c> (<c>enums.CSIDL</c>,
+/// <c>utils.get_environment_path</c>).
+/// </summary>
+public enum KnownFolder
+{
+    /// <summary><c>CSIDL_PERSONAL</c> (5): the user's Documents folder, which holds <c>My Games\Fallout4</c> (INI-1).</summary>
+    Documents,
+
+    /// <summary><c>CSIDL_LOCAL_APPDATA</c> (28): <c>%LOCALAPPDATA%</c>, which holds <c>Fallout4\plugins.txt</c>.</summary>
+    LocalAppData,
+}

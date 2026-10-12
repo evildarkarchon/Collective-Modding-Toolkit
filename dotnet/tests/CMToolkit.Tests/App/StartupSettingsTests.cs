@@ -33,6 +33,10 @@ public sealed class StartupSettingsTests
         public IReadOnlyList<int>? GetFileVersion(string path) => throw new NotSupportedException();
 
         public string? GetEnvironmentVariable(string name) => throw new NotSupportedException();
+
+        public string CurrentDirectory => throw new NotSupportedException();
+
+        public string GetKnownFolderPath(KnownFolder folder) => throw new NotSupportedException();
     }
 
     [Fact]

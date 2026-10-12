@@ -1,0 +1,31 @@
+{
+  "description": "The Steam value is a REG_EXPAND_SZ, which only REG_SZ reads reject, so the GOG key is used (GP-1).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_EXPAND_SZ",
+          "value": "<ROOT>\\Steam Game"
+        }
+      },
+      "HKLM\\SOFTWARE\\WOW6432Node\\GOG.com\\Games\\1998527297": {
+        "path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\GOG Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

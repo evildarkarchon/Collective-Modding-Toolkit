@@ -1,0 +1,27 @@
+{
+  "description": "Documents exists but has no My Games\\Fallout4: no INI is read, and the language defaults to English (INI-1, INI-2, INI-4).",
+  "operation": "game-info",
+  "parity": [
+    "INI-1",
+    "INI-2",
+    "INI-4"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

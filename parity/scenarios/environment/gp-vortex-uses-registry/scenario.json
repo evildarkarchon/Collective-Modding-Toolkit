@@ -1,0 +1,37 @@
+{
+  "description": "Vortex launched the toolkit; it has no game path, so the registry is used (GP-1).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "processes": [
+      {
+        "name": "Vortex.exe",
+        "exe": "<ROOT>/Vortex/Vortex.exe",
+        "fileVersion": [
+          1,
+          13,
+          7,
+          0
+        ]
+      }
+    ],
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

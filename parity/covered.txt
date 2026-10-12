@@ -58,3 +58,15 @@ T-7
 T-11
 B-5
 B-6
+
+# Environment: game path, game INIs and the startup sequence (#50)
+GP-1
+GP-2
+GP-3
+GP-4
+INI-1
+INI-2
+INI-3
+INI-4
+SHELL-5
+B-14

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "kind": "fileNotFound",
+    "message": "Folder does not exist:\n<ROOT>\\Missing Documents"
+  }
+}
