@@ -222,9 +222,12 @@ public static class Mo2ConfigurationReader
             {
                 settings[name] = current switch
                 {
-                    // base / "/mods" lands on the drive root (B-6, T-7); a value without the placeholder is Path(value).
+                    // MO2's PathSettings::resolve: the placeholder is replaced by the base directory's text, so
+                    // "%BASE_DIR%/mods" is <base>\mods. The reference removed it and joined the now-rooted "/mods" onto
+                    // the base, landing on the drive root (B-6, bug #25, fixed). The base's raw text is used, as MO2
+                    // uses the stored string; a value without the placeholder is Path(value).
                     Mo2SettingValue.TextValue { Text: var raw } when raw.Contains(BaseDirPlaceholder, StringComparison.Ordinal)
-                        => new Mo2SettingValue.PathValue(baseDirectory.Join(raw.Replace(BaseDirPlaceholder, string.Empty, StringComparison.Ordinal))),
+                        => new Mo2SettingValue.PathValue(new PythonPath(raw.Replace(BaseDirPlaceholder, baseDirectory.Raw, StringComparison.Ordinal))),
                     Mo2SettingValue.TextValue { Text: var raw } => new Mo2SettingValue.PathValue(new PythonPath(raw)),
                     DefaultDirectory { Name: var sub } => new Mo2SettingValue.PathValue(baseDirectory.Join(sub)),
                     _ => current,

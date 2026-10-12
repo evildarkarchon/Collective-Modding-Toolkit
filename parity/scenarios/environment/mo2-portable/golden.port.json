@@ -1,0 +1,105 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  },
+  "mo2": {
+    "gamePath": "X:\\Games\\Steam\\steamapps\\common\\Fallout 4",
+    "iniPath": "<ROOT>\\MO2\\ModOrganizer.ini",
+    "overwritePath": "<ROOT>\\MO2\\overwrite",
+    "portable": true,
+    "portableTxtPath": "<ROOT>\\MO2\\portable.txt",
+    "profilesPath": "<ROOT>\\MO2\\profiles",
+    "selectedProfile": "Default",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "<ROOT>\\MO2"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\webcache"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "X:\\Downloads\\MO2"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\mods"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\overwrite"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": {
+          "text": "true"
+        }
+      },
+      {
+        "key": "profile_local_saves",
+        "value": false
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": [
+          ".mohidden",
+          ".BAK"
+        ]
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "set()"
+        ]
+      },
+      {
+        "key": "gameName",
+        "value": {
+          "text": "Fallout 4"
+        }
+      },
+      {
+        "key": "gamePath",
+        "value": {
+          "path": "X:\\Games\\Steam\\steamapps\\common\\Fallout 4"
+        }
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": "Default"
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        "set()"
+      ]
+    },
+    "skipFileSuffixes": [
+      ".mohidden",
+      ".bak"
+    ],
+    "stagePath": "<ROOT>\\MO2\\mods"
+  }
+}

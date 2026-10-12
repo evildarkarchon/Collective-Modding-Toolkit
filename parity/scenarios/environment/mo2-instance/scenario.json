@@ -33,5 +33,11 @@
     "env": {
       "LOCALAPPDATA": "<ROOT>\\LocalAppData"
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 25,
+      "reason": "The port replaces %BASE_DIR% in a directory value with the base directory as MO2 does, so %BASE_DIR%/mods is <base>\\mods, not the drive root."
+    }
+  ]
 }

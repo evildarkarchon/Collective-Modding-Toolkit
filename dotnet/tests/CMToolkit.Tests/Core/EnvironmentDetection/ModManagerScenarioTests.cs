@@ -96,7 +96,8 @@ public sealed class ModManagerScenarioTests
 
     /// <summary>
     /// The driver's <c>_path_text</c>: <c>str(path)</c> with the temp root as <c>&lt;ROOT&gt;</c>, and the root's drive
-    /// as <c>&lt;DRIVE&gt;</c> on a path outside the root (B-6 lands on the drive root).
+    /// as <c>&lt;DRIVE&gt;</c> on a path outside the root (the reference's B-6 lands on the drive root; the port, fixing
+    /// bug #25, no longer does, but the reference goldens still hold it).
     /// </summary>
     private static string? PathText(MaterializedScenario machine, object? path)
     {
