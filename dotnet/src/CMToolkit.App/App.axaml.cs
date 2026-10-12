@@ -48,12 +48,14 @@ public partial class App : Application
         // OnLastWindowClose would.
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+        // The exe's folder, not the working directory (bug #36, fixed): the log, settings.json and patches live there.
+        var appFolder = AppFolder.ForThisRun();
         LogFile? log = null;
         Exception? logFailure = null;
         try
         {
             // Kept open for the life of the process, as Python's FileHandler was, so never disposed.
-            log = AppStartup.OpenLog(WorkingDirectoryFiles.Log, DateTime.Now);
+            log = AppStartup.OpenLog(AppFolderFiles.Log(appFolder), DateTime.Now);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -80,6 +82,7 @@ public partial class App : Application
             var http = scenarioHttp ?? (HttpMessageHandler)UpdateCheck.CreateHandler();
             return await new StartupSequence(runtime, host, log!, new WindowStartupDialogs())
             {
+                AppFolder = appFolder,
                 CheckForUpdatesAsync = UpdateBanner.StartupHook(http),
                 // The Downgrader's downloads have their own 10 s per-read timeout (T-14), or the scenario's canned patches.
                 DeltaPatchHttp = scenarioHttp ?? (HttpMessageHandler)DeltaPatches.CreateHandler(),

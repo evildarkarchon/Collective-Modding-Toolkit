@@ -26,7 +26,7 @@ public sealed class SettingsScenarioTests
     public void Core_matches_the_reference(ParityScenario scenario)
     {
         using var machine = scenario.Materialize();
-        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), WorkingDirectoryFiles.Settings);
+        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var downloadSource = DownloadSourceFile.Read(machine.Host.AppDirectory).Source;
         var logger = new RecordingLogger();
 

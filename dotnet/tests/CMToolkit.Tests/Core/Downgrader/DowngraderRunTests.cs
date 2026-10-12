@@ -238,6 +238,31 @@ public sealed class DowngraderRunTests
     }
 
     [Fact]
+    [Trait("Parity", "DG-6")]
+    [Deviation(36, "settings.json, cm-toolkit.log and downloaded Delta Patches are resolved against the exe's folder, not the working directory.")]
+    public async Task A_patch_is_saved_in_the_patch_folder_and_not_the_working_directory()
+    {
+        using var machine = new Machine();
+        using var appFolder = new TempDirectory();
+        machine.Place("Fallout4.exe", "C6053902");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = new DowngraderRun(machine.Install, machine.Host, server, DowngraderDetection.Detect(machine.Install, machine.Host))
+        {
+            PatchFolder = appFolder.Path,
+        };
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        // Bug #36, fixed (ADR-0006): the App passes its own folder, so the working directory gets nothing.
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.True(File.Exists(Path.Combine(appFolder.Path, "OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+    }
+
+    [Fact]
     [Trait("Parity", "NET-3")]
     public async Task The_bar_follows_each_kibibyte_of_the_download_by_its_content_length()
     {

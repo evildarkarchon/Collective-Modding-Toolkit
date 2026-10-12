@@ -24,7 +24,7 @@ public sealed class SettingsTabScenarioTests
     public void The_settings_tab_matches_the_reference(ParityScenario scenario)
     {
         using var machine = scenario.Materialize();
-        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), WorkingDirectoryFiles.Settings);
+        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var logger = new RecordingLogger();
         var store = SettingsStore.Load(settingsPath, DownloadSourceFile.Read(machine.Host.AppDirectory).Source, logger);
         // As in the driver, the load's own lines are the settings-load scenarios' business.

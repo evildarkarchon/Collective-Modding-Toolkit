@@ -50,8 +50,10 @@ public sealed class MainWindowViewModel : ObservableObject
     /// </summary>
     /// <param name="host">The machine; its exe folder holds the Download Source file.</param>
     /// <param name="log">The open log file, whose level is set from the loaded settings.</param>
-    /// <param name="settingsPath">The settings file; the CWD-relative <see cref="WorkingDirectoryFiles.Settings"/> by default.</param>
-    public static MainWindowViewModel Load(IHostEnvironment host, LogFile log, string settingsPath = WorkingDirectoryFiles.Settings)
+    /// <param name="settingsPath">
+    /// The settings file; startup passes <see cref="AppFolderFiles.Settings"/> of the app folder (bug #36, fixed).
+    /// </param>
+    public static MainWindowViewModel Load(IHostEnvironment host, LogFile log, string settingsPath)
     {
         var downloadSource = DownloadSourceFile.Read(host.AppDirectory);
         // Bug #77, fixed (ADR-0006): the reference logged this before its log existed. Logged here, after the start

@@ -32,6 +32,7 @@ dotnet run --project tools/CMToolkit.ParityCoverage
 Startup reads the machine before the main window appears (PC info, mod manager, game path, game INIs; SHELL-5). The
 first smoke run uses a Parity Scenario's fake machine, so the window appears anywhere. The second uses the real one: it
 passes with the main window where Fallout 4 is installed, or with the `Fallout 4 Not Found` question where it isn't.
+It runs a copy of the publish folder, because the app writes `settings.json` and `cm-toolkit.log` beside its exe.
 
 The NativeAOT publish needs the Visual Studio C++ build tools. Its link step finds `link.exe` through `vswhere.exe`,
 which must be on `PATH`. It lives in `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer`, and that folder isn't on
@@ -57,6 +58,13 @@ A NativeAOT publish (Avalonia 12.1.3, SkiaSharp and HarfBuzzSharp from its depen
 These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.dll`, `libHarfBuzzSharp.dll` and
 `libSkiaSharp.dll`. The release slice packages them with `LICENSE.md` and `THIRD-PARTY-NOTICES.txt` under
 `Tools\CM-Toolkit\`.
+
+At run time the app keeps `settings.json`, `cm-toolkit.log` and the Downgrader's downloaded `*.xdelta` patches in this
+same folder, beside the exe, whatever the working directory. The Reference Implementation resolved all three against
+the working directory, so a launch from a shortcut, a terminal or an MO2 entry with another "Start in" scattered them
+([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed as a Deviation, ADR-0006). The
+folder must be writable: an install under a protected folder such as `Program Files` fails at startup when the log
+can't be opened (SHELL-13).
 
 ## Known residuals
 

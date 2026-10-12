@@ -59,7 +59,7 @@ public sealed partial class ScannerScanScenarioTests
         // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd ?? MaterializedScenario.RootToken), WorkingDirectoryFiles.Settings);
+        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd ?? MaterializedScenario.RootToken), AppFolderFiles.SettingsFileName);
         var logger = new CapturingLogger();
         var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, logger);
         var runtime = new AppRuntime(logger);

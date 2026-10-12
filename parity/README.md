@@ -268,6 +268,10 @@ Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_
 which `ScenarioHostEnvironmentTests` checks on every committed scenario. Two differences: with no `appDir` the exe uses
 its own folder, and `dialogs` aren't scripted on the exe side (it shows real ones), so screenshot scenarios should find
 the game without asking. The smoke test (`dotnet/eng/Test-ShellStarts.ps1 -Scenario <folder>`) uses the same variables.
+The app keeps `settings.json`, `cm-toolkit.log` and Delta Patches in its own folder, not the working directory (bug
+[#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed). On a scenario's machine that
+folder is `cwd` (`AppFolder.ForThisRun`), where scenario trees keep the reference's files, so the exe runs on the
+scenario's settings and never writes beside the published exe.
 
 The scenario's `http/` folder reaches both sides too: the driver's `FakeRequests` serves the reference, and the exe's
 update check goes through `ScenarioHttpHandler` (same folder, same rules as the tests' `ParityHttpHandler`, checked by

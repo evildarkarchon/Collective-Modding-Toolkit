@@ -47,7 +47,7 @@ public sealed class DowngraderWindowScenarioTests
         // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), WorkingDirectoryFiles.Settings);
+        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, new CapturingLogger());
         var overview = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
         var logger = new CapturingLogger();

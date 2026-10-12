@@ -18,7 +18,8 @@ crops stacked, at 2x). A crop is ``x,y,width,height`` in window pixels; a width 
 A human approves the pair in the slice PR; nothing compares pixels automatically, and CI never runs this.
 
 The reference runs as ``src/main.py`` itself, unmodified, in a child process with the scenario's host fakes installed
-(``Session`` in show mode). The C# exe starts in the scenario's ``cwd`` with ``CMT_PARITY_SCENARIO`` and
+(``Session`` in show mode). The C# exe starts in the scenario's ``cwd`` (which it then also uses as its own folder for
+``settings.json`` and ``cm-toolkit.log``) with ``CMT_PARITY_SCENARIO`` and
 ``CMT_PARITY_ROOT`` set, so it runs on the same host block (its ``ScenarioHostEnvironment``). Each app gets its own copy
 of the tree. Scripted ``dialogs`` answer only the reference's; the exe shows real ones, so pick scenarios that ask none.
 """
