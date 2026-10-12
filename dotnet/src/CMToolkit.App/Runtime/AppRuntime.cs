@@ -32,4 +32,13 @@ public sealed class AppRuntime
 
     /// <summary>The runner every Core call goes through.</summary>
     public BackgroundOperations Operations { get; }
+
+    /// <summary>Where links open (NET-4): the user's browser, or a recorder in tests.</summary>
+    public IBrowser Browser { get; init; } = ShellBrowser.Instance;
+
+    /// <summary>
+    /// The clock behind the UI's timed reverts, such as the <c>Copied!</c> buttons' <c>after(3000)</c> (THR-3). Tests
+    /// swap in a fake they can advance.
+    /// </summary>
+    public TimeProvider Time { get; init; } = TimeProvider.System;
 }

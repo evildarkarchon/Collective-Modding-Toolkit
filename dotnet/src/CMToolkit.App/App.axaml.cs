@@ -67,7 +67,7 @@ public partial class App : Application
             }
 
             var viewModel = await Task.Run(() => MainWindowViewModel.Load(SystemHostEnvironment.Instance, log!));
-            return new MainWindow(runtime, PlaceholderTab.Shell()) { DataContext = viewModel };
+            return new MainWindow(runtime, PlaceholderTab.Shell(runtime, viewModel.Settings)) { DataContext = viewModel };
         });
 
         if (result.Failed)

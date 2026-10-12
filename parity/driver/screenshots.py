@@ -5,6 +5,7 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
 
     uv run python parity/driver/screenshots.py shell/main-window --slice shell
     uv run python parity/driver/screenshots.py shell/main-window --slice shell --crop tab-strip=0,0,-1,80
+    uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
 
 It writes ``parity/screenshots/<slice>/tk.png`` and ``avalonia.png`` (each window's outer rectangle, title bar included),
 ``compare.png`` (the two side by side plus a 50/50 blend), and one ``compare-<name>.png`` per ``--crop`` (the three
@@ -27,6 +28,7 @@ import sys
 import time
 from ctypes import wintypes
 from pathlib import Path
+from typing import Any
 
 import psutil
 from PIL import Image, ImageDraw
@@ -37,6 +39,21 @@ from harness.scenario import Machine, load, materialize
 TITLE = "Collective Modding Toolkit v0.6.2-dev"
 DEFAULT_EXE = REPO_ROOT / "dotnet" / "artifacts" / "publish" / "cm-toolkit.exe"
 WM_CLOSE = 0x0010
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP = 0x0202
+MK_LBUTTON = 0x0001
+CWP_SKIPINVISIBLE = 0x0001
+CWP_SKIPTRANSPARENT = 0x0004
+# Where the C# app's tab headers sit, in client pixels (the strip is fixed: the window can't be resized). Tk can't be
+# driven by posted clicks (it reads the real button state), so the reference selects its tab in-process instead.
+TAB_CENTRES = {
+	"Overview": (53, 25),
+	"F4SE": (139, 25),
+	"Scanner": (220, 25),
+	"Tools": (306, 25),
+	"Settings": (397, 25),
+	"About": (487, 25),
+}
 PW_RENDERFULLCONTENT = 2
 DPI_100 = 96
 
@@ -55,6 +72,10 @@ user32.GetDC.restype = wintypes.HDC
 user32.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]
 user32.PrintWindow.argtypes = [wintypes.HWND, wintypes.HDC, wintypes.UINT]
 user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+user32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+user32.ScreenToClient.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+user32.ChildWindowFromPointEx.argtypes = [wintypes.HWND, wintypes.POINT, wintypes.UINT]
+user32.ChildWindowFromPointEx.restype = wintypes.HWND
 gdi32.CreateCompatibleDC.argtypes = [wintypes.HDC]
 gdi32.CreateCompatibleDC.restype = wintypes.HDC
 gdi32.CreateCompatibleBitmap.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int]
@@ -138,8 +159,43 @@ def capture(hwnd: int) -> Image.Image:
 		user32.ReleaseDC(None, screen_dc)
 
 
-def run_and_capture(command: list[str], cwd: Path, env: dict[str, str] | None, label: str, timeout: float, *, allow_dpi: bool) -> Image.Image:
-	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill)."""
+def click(hwnd: int, point: tuple[int, int]) -> None:
+	"""Clicks at ``point`` in the window's client pixels without moving the real pointer: a posted left button down
+	and up, sent to the deepest visible child window under the point.
+	"""
+	screen = wintypes.POINT(*point)
+	user32.ClientToScreen(hwnd, ctypes.byref(screen))
+	target = hwnd
+	while True:
+		local = wintypes.POINT(screen.x, screen.y)
+		user32.ScreenToClient(target, ctypes.byref(local))
+		child = user32.ChildWindowFromPointEx(target, local, CWP_SKIPINVISIBLE | CWP_SKIPTRANSPARENT)
+		if not child or child == target:
+			break
+		target = child
+	local = wintypes.POINT(screen.x, screen.y)
+	user32.ScreenToClient(target, ctypes.byref(local))
+	position = (local.y << 16) | (local.x & 0xFFFF)
+	user32.PostMessageW(target, WM_LBUTTONDOWN, MK_LBUTTON, position)
+	user32.PostMessageW(target, WM_LBUTTONUP, 0, position)
+
+
+def run_and_capture(
+	command: list[str],
+	cwd: Path,
+	env: dict[str, str] | None,
+	label: str,
+	timeout: float,
+	*,
+	allow_dpi: bool,
+	tab: str | None = None,
+	click_tab: bool = False,
+) -> Image.Image:
+	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
+
+	With ``tab``, the capture waits longer for that tab to be selected and built; ``click_tab`` makes this function
+	select it by clicking its header (the C# app), rather than the app selecting it itself (the reference child).
+	"""
 	process = subprocess.Popen(command, cwd=cwd, env=env)
 	try:
 		deadline = time.monotonic() + timeout
@@ -157,6 +213,11 @@ def run_and_capture(command: list[str], cwd: Path, env: dict[str, str] | None, l
 
 		# Let the first frames render (the reference loads the Overview tab after the window appears).
 		time.sleep(2)
+		if tab is not None:
+			if click_tab:
+				click(hwnd, TAB_CENTRES[tab])
+			# Long enough for the reference's delayed select and for either app to build the tab.
+			time.sleep(3)
 		dpi = user32.GetDpiForWindow(hwnd)
 		if dpi != DPI_100 and not allow_dpi:
 			msg = f"{label}'s window is at {dpi * 100 // DPI_100} % scaling; screenshot pairs are taken at 100 % (or pass --allow-dpi)"
@@ -262,20 +323,36 @@ def parse_crop(text: str) -> tuple[str, tuple[int, int, int, int]]:
 	return name, (parts[0], parts[1], parts[2], parts[3])
 
 
-def run_reference_child(scenario_id: str, root: str) -> None:
-	"""Child mode: runs the unmodified ``src/main.py`` inside an already materialized root, with the fakes installed."""
+def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> None:
+	"""Child mode: runs the unmodified ``src/main.py`` inside an already materialized root, with the fakes installed.
+
+	With ``tab``, ``CMChecker`` is wrapped so that, two seconds after it is built (once the window is up and the
+	Overview tab has loaded), the notebook selects that tab, just as a click on its header would.
+	"""
 	from harness.reference import Session  # noqa: PLC0415
 
 	machine = Machine(load(scenario_id), Path(root))
 	Session(machine, "show").start()
+	if tab is not None:
+		import cm_checker  # noqa: PLC0415
+		from enums import Tab  # noqa: PLC0415
+
+		original_init = cm_checker.CMChecker.__init__
+
+		def init_then_select(self: Any, *args: Any, **kwargs: Any) -> None:
+			original_init(self, *args, **kwargs)
+			page = self.tabs[Tab[tab]]
+			self.root.after(2000, lambda: page.master.select(page))
+
+		cm_checker.CMChecker.__init__ = init_then_select  # type: ignore[method-assign]
 	runpy.run_path(str(SRC / "main.py"), run_name="__main__")
 
 
 def main() -> int:
 	"""Captures the pair and writes the images, or (``--reference-child``) runs the Tk reference. Returns the exit code."""
 	# The child mode has its own arguments, so it is handled before the user-facing parser requires --slice.
-	if len(sys.argv) == 4 and sys.argv[1] == "--reference-child":
-		run_reference_child(sys.argv[2], sys.argv[3])
+	if len(sys.argv) in {4, 5} and sys.argv[1] == "--reference-child":
+		run_reference_child(*sys.argv[2:])
 		return 0
 
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -283,6 +360,7 @@ def main() -> int:
 	parser.add_argument("--slice", required=True, help="the folder under parity/screenshots/ to write to")
 	parser.add_argument("--exe", type=Path, default=DEFAULT_EXE, help=f"the published C# exe (default: {DEFAULT_EXE})")
 	parser.add_argument("--crop", type=parse_crop, action="append", default=[], help="name=x,y,width,height (repeatable)")
+	parser.add_argument("--tab", choices=list(TAB_CENTRES), help="the tab to select before capturing (default: Overview)")
 	parser.add_argument("--timeout", type=float, default=60, help="seconds to wait for each window")
 	parser.add_argument("--allow-dpi", action="store_true", help="capture even when the window isn't at 100 %% scaling")
 	args = parser.parse_args()
@@ -303,12 +381,20 @@ def main() -> int:
 	tk_machine = materialize(scenario)
 	try:
 		tk = run_and_capture(
-			[sys.executable, str(Path(__file__).resolve()), "--reference-child", scenario.id, str(tk_machine.root)],
+			[
+				sys.executable,
+				str(Path(__file__).resolve()),
+				"--reference-child",
+				scenario.id,
+				str(tk_machine.root),
+				*([args.tab] if args.tab else []),
+			],
 			REPO_ROOT,
 			env,
 			"The Tk reference",
 			args.timeout,
 			allow_dpi=args.allow_dpi,
+			tab=args.tab,
 		)
 	finally:
 		tk_machine.cleanup()
@@ -316,7 +402,16 @@ def main() -> int:
 	av_machine = materialize(scenario)
 	try:
 		cwd = Path(av_machine.expand(scenario.host["cwd"])) if "cwd" in scenario.host else av_machine.root
-		avalonia = run_and_capture([str(exe)], cwd, None, "cm-toolkit.exe", args.timeout, allow_dpi=args.allow_dpi)
+		avalonia = run_and_capture(
+			[str(exe)],
+			cwd,
+			None,
+			"cm-toolkit.exe",
+			args.timeout,
+			allow_dpi=args.allow_dpi,
+			tab=args.tab,
+			click_tab=True,
+		)
 	finally:
 		av_machine.cleanup()
 

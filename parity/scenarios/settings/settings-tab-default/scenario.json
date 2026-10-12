@@ -1,0 +1,12 @@
+{
+  "description": "The default settings file (INFO, github): the Settings tab's radios, then every radio clicked in turn, each saving the file at once.",
+  "operation": "settings-tab",
+  "parity": [
+    "SETT-1",
+    "SET-7"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

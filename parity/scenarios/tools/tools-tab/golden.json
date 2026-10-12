@@ -1,0 +1,171 @@
+{
+  "toolsTab": {
+    "columns": [
+      {
+        "buttons": [
+          {
+            "enabled": true,
+            "info": null,
+            "opens": {
+              "window": "Downgrader"
+            },
+            "text": "Downgrade Manager",
+            "tooltip": null
+          },
+          {
+            "enabled": true,
+            "info": null,
+            "opens": {
+              "window": "ArchivePatcher"
+            },
+            "text": "Archive Patcher",
+            "tooltip": null
+          }
+        ],
+        "title": "Toolkit Utilities"
+      },
+      {
+        "buttons": [
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Bethini Pie (Performance INI Editor) makes editing INI config files simple.\nDiscord channel: #bethini-doubleyou-etc"
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/site/mods/631"
+            },
+            "text": "Bethini Pie",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Scans Buffout crash logs for key indicators of crashes.\nYou can also post crash logs to the CM Discord for assistance.\nDiscord channel: #fo4-crash-logs"
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/56255"
+            },
+            "text": "CLASSIC Crash Log Scanner",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Automates the process of generating FaceGen models and textures with xEdit/CK.\nDiscord channel: #bethini-doubleyou-etc"
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/86374"
+            },
+            "text": "  Vault-Tec Enhanced\nFaceGen System (VEFS)",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Scripts to find precombine/previs (flickering/occlusion) errors in your mod list, and optionally generate a patch to fix those problems."
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/69978"
+            },
+            "text": "PJM's Precombine/Previs\n    Patching Scripts",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Sniff out textures that might CTD your game. With BA2 support.\nDiscord channel: #nistonmakemod"
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/71588"
+            },
+            "text": "DDS Texture Scanner",
+            "tooltip": "View on Nexus Mods"
+          }
+        ],
+        "title": "Other CM Authors' Tools"
+      },
+      {
+        "buttons": [
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Module editor and conflict detector for Bethesda games.\nFO4Edit/SSEEdit are xEdit, renamed to auto-set a game mode."
+            },
+            "opens": {
+              "url": "https://github.com/TES5Edit/TES5Edit#xedit"
+            },
+            "text": "xEdit / FO4Edit",
+            "tooltip": "View on GitHub"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Various patches and bug fixes for the Creation Kit to make life easier."
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/51165"
+            },
+            "text": "Creation Kit Platform\n   Extended (CKPE)",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "An automation tool used to optimize BSAs, meshes, textures and animations."
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/skyrimspecialedition/mods/23316"
+            },
+            "text": "Cathedral Assets\nOptimizer (CAO)",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Automated BA2 files repackaging and merging."
+            },
+            "opens": {
+              "url": "https://www.nexusmods.com/fallout4/mods/89306"
+            },
+            "text": "BA2 Merging Automation\n     Tool (BMAT)",
+            "tooltip": "View on Nexus Mods"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Converts textures from various formats into a Fallout 4 compatible format."
+            },
+            "opens": {
+              "url": "https://storage.icestormng-mods.de/s/QG43aExydefeGXy"
+            },
+            "text": "IceStorm's Texture Tools",
+            "tooltip": "Open website"
+          },
+          {
+            "enabled": true,
+            "info": {
+              "image": "images/info-16.png",
+              "tooltip": "Benchmarking tool - Record FPS, frametime, and sensors; analyse and plot the results."
+            },
+            "opens": {
+              "url": "https://www.capframex.com/"
+            },
+            "text": "CapFrameX",
+            "tooltip": "Open website"
+          }
+        ],
+        "title": "Other Useful Tools"
+      }
+    ]
+  }
+}

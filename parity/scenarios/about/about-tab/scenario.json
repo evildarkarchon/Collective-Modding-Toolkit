@@ -1,0 +1,10 @@
+{
+  "description": "The About tab as built: title, icon, text and the three link rows, each open and copy button clicked, and the copy button's 3 s revert run. Reads nothing from the machine.",
+  "operation": "about-tab",
+  "parity": [
+    "ABOUT-1",
+    "NET-4",
+    "THR-3"
+  ],
+  "host": {}
+}

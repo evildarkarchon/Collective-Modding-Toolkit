@@ -36,7 +36,7 @@ public sealed class TextMetricTests
 
         Assert.Equal(13, text.FontSize);
         Assert.Equal(17, text.LineHeight);
-        Assert.Equal(0.383, text.LetterSpacing);
+        Assert.Equal(0.3828125, text.LetterSpacing);
     }
 
     [AvaloniaFact]
@@ -48,7 +48,7 @@ public sealed class TextMetricTests
 
         Assert.Equal(13, text.FontSize);
         Assert.Equal(17, text.LineHeight);
-        Assert.Equal(0.383, text.LetterSpacing);
+        Assert.Equal(0.3828125, text.LetterSpacing);
     }
 
     [AvaloniaFact]

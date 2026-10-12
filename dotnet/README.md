@@ -65,3 +65,13 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   escapes them. A traceback is .NET's `Exception.ToString()`, not Python's (not part of Behaviour Parity).
 - `settings.json` nested more than 1000 arrays/objects deep is treated as unparseable (reset); Python's limit is its
   C-stack guard, which depends on the machine.
+- A tab page is 754x404 at (3, 43), where Tk's is 758x407 at (1, 42) (the notebook theme's frame), so tab content
+  sits 2 px right and 1 px lower, and anything anchored to the page's right or bottom edge 2 px further left or up.
+  On the Tools tab the 4 px narrower page also leaves the columns 1-2 px narrower. See
+  [`parity/screenshots/tools/`](../parity/screenshots/tools/), `settings/` and `about/`.
+- The About tab's 20 pt title measures 289 px where Tk's is 288, so it sits half a pixel off centre. The Settings
+  tab's Log Level frame is 86 px wide where Tk's is 88: Tk keeps 8 px either side of a labelframe's title where the
+  GroupBox theme keeps 7.
+- A link that the shell can't open (no handler for its scheme) does nothing. Python's `webbrowser.open` would then
+  try the browsers it found on PATH and Edge's install folder; the reference's links are all `https://`, which
+  Windows always has a handler for.
