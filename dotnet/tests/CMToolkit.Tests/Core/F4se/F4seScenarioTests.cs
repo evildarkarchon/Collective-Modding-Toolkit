@@ -35,7 +35,8 @@ public sealed class F4seScenarioTests
         }
         catch (F4sePluginLoadException)
         {
-            // B-18: the reference's OSError out of the load, recorded by kind only.
+            // B-18: the reference's OSError out of the load, recorded by kind only. Since bug #34 was fixed the port
+            // lists the DLL instead, so its port goldens expect no failure and this would show as a mismatch.
             failure = new JsonObject { ["kind"] = "os" };
         }
 
@@ -57,17 +58,20 @@ public sealed class F4seScenarioTests
         GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
     }
 
-    /// <summary>One DLL's inspection as the driver records <c>dll_info</c>.</summary>
+    /// <summary>
+    /// One DLL's inspection as the driver records <c>dll_info</c>. A DLL the loader refused (bug #34's fix) has every
+    /// fact null, as its port goldens write it: the reference never got that far.
+    /// </summary>
     internal static JsonObject ProjectInfo(F4seDll dll) => new()
     {
         ["name"] = dll.Name,
-        ["isF4se"] = dll.Info.IsF4se,
-        ["supportsOg"] = dll.Info.SupportsOg,
-        ["supportsNgAe"] = dll.Info.SupportsNgAe,
-        ["supportsNg"] = dll.Info.SupportsNg,
-        ["supportsAe"] = dll.Info.SupportsAe,
-        ["addressIndependent"] = dll.Info.AddressIndependent,
-        ["structureIndependent"] = dll.Info.StructureIndependent,
+        ["isF4se"] = dll.Info?.IsF4se,
+        ["supportsOg"] = dll.Info?.SupportsOg,
+        ["supportsNgAe"] = dll.Info?.SupportsNgAe,
+        ["supportsNg"] = dll.Info?.SupportsNg,
+        ["supportsAe"] = dll.Info?.SupportsAe,
+        ["addressIndependent"] = dll.Info?.AddressIndependent,
+        ["structureIndependent"] = dll.Info?.StructureIndependent,
     };
 
     /// <summary>One row's verdicts as the driver reads them off the Treeview's glyphs.</summary>

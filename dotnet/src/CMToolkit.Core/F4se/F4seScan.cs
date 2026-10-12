@@ -5,8 +5,11 @@ namespace CMToolkit.Core.F4se;
 
 /// <summary>One inspected DLL: its file name (the tree's first column) and what it is.</summary>
 /// <param name="Name">The file name, as listed.</param>
-/// <param name="Info">Its inspection.</param>
-public sealed record F4seDll(string Name, F4sePluginInfo Info);
+/// <param name="Info">
+/// Its inspection, or null when the loader refused to map it (<c>dll_info</c>'s <c>DLLInfo | None</c>), which the tree
+/// shows as a non-plugin row (bug #34, fixed per ADR-0006).
+/// </param>
+public sealed record F4seDll(string Name, F4sePluginInfo? Info);
 
 /// <summary>What the F4SE tab's load found (<c>F4SETab._load</c>).</summary>
 /// <param name="LoadingError">
@@ -38,11 +41,11 @@ public static class F4seScan
     /// <param name="game">The installation found at startup; its <c>Data</c> and plugins folders were checked then (GP-4).</param>
     /// <param name="host">The machine, whose working directory a relative game path is relative to.</param>
     /// <param name="logger">The app log.</param>
-    /// <returns>The DLLs, or the load error.</returns>
-    /// <exception cref="F4sePluginLoadException">
-    /// A DLL couldn't be mapped. The DLLs before it were inspected and those after it never are: the whole load fails
-    /// (B-18).
-    /// </exception>
+    /// <returns>
+    /// The DLLs, or the load error. A DLL the loader refuses is logged at warning and listed with no inspection, and the
+    /// scan goes on to the next (B-18). The reference let that one DLL fail the whole load; the port fixes it (bug #34,
+    /// ADR-0006).
+    /// </returns>
     /// <exception cref="IOException">The plugins folder can't be listed any more.</exception>
     public static F4seScanResult Run(GameInstall game, IHostEnvironment host, ILogger logger)
     {
@@ -67,10 +70,32 @@ public static class F4seScan
             }
 
             logger.Write(LogLevel.Debug, $"Scanning {name}");
-            dlls.Add(new F4seDll(name, F4sePluginInspector.Inspect(entry.FullName)));
+            dlls.Add(new F4seDll(name, Inspect(entry.FullName, name, logger)));
         }
 
         return new F4seScanResult(null, dlls);
+    }
+
+    /// <summary>
+    /// Inspects one DLL, or logs why the loader refused it and returns null (bug #34: the reference's uncaught
+    /// <c>OSError</c> failed the whole tab).
+    /// </summary>
+    /// <param name="path">The DLL's full path.</param>
+    /// <param name="name">Its file name, for the log line.</param>
+    /// <param name="logger">The app log.</param>
+    /// <returns>Its inspection, or null when it couldn't be mapped.</returns>
+    private static F4sePluginInfo? Inspect(string path, string name, ILogger logger)
+    {
+        try
+        {
+            return F4sePluginInspector.Inspect(path);
+        }
+        catch (F4sePluginLoadException e)
+        {
+            // Only the code, not the system's message: FormatMessage words it in the machine's UI language.
+            logger.Write(LogLevel.Warning, $"Scanning {name} : Failed : [WinError {e.NativeErrorCode}]");
+            return null;
+        }
     }
 
     /// <summary>

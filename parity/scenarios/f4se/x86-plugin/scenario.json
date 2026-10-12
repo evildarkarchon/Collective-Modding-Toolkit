@@ -5,6 +5,12 @@
     "B-18",
     "T-5"
   ],
+  "deviations": [
+    {
+      "bug": 34,
+      "reason": "An unloadable DLL is logged as a warning and listed as a non-plugin row (three question marks), and the tab loads with every other DLL inspected."
+    }
+  ],
   "host": {
     "cwd": "<ROOT>/Cwd",
     "argv0": "cm-toolkit.exe",
