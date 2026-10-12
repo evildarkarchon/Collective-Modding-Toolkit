@@ -1,0 +1,171 @@
+{
+  "downgrader": {
+    "crcsByType": {
+      "Anniversary": [
+        "CF47788D",
+        "720BB9C3",
+        "E36E7B4D",
+        "49E45284",
+        "C867674F",
+        "7B893B0D"
+      ],
+      "Next-Gen": [
+        "C5965A2E",
+        "F6A06FF5",
+        "E36E7B4D",
+        "481CCE95",
+        "71A5240B",
+        "EFBE3622"
+      ],
+      "Obsolete (OGNG)": [
+        "97DA3E03",
+        "2ED2A242",
+        "A0100017",
+        "9ABC94F0",
+        "B61675B1",
+        "0AEB19A7",
+        "1E90BE57",
+        "0481725D",
+        "0E176ABC",
+        "0E696744",
+        "D15C6A49",
+        "8C52BE93",
+        "591009C9"
+      ],
+      "Old-Gen": [
+        "C6053902",
+        "02445570",
+        "BBD912FC",
+        "0F5C065B",
+        "4CDFC7B5",
+        "850D36A9"
+      ]
+    },
+    "display": {
+      "about": {
+        "opens": {
+          "height": 300,
+          "text": "This downgrader makes use of delta patches which are downloaded as-needed from the CMT GitHub page.\nPatches range in size from 23KB to 63MB.\n\nBackups are created prior to patching, and will be used instead of patches if present.\nSimple Downgrader's backups will also be used.\nBackup naming:\nFallout4_downgradeBackup.exe\nFallout4_upgradeBackup.exe\n\nBoth Creation Kit and the game require steam_api64.dll to match their version, so they must be patched together (for now).",
+          "title": "About Downgrading Fallout 4 & Creation Kit",
+          "width": 500,
+          "window": "AboutWindow"
+        },
+        "text": "About"
+      },
+      "creationKit": {
+        "names": "CreationKit.exe:\nArchive2.exe:\nArchive2Interop.dll:",
+        "title": "Current Creation Kit",
+        "values": [
+          {
+            "color": "dodger blue",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "dodger blue",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "dodger blue",
+            "text": "Old-Gen"
+          }
+        ]
+      },
+      "desiredVersion": {
+        "radios": [
+          {
+            "selected": true,
+            "text": "Old-Gen"
+          },
+          {
+            "selected": false,
+            "text": "Next-Gen"
+          }
+        ],
+        "title": "Desired Version"
+      },
+      "game": {
+        "names": "Fallout4.exe:\nFallout4Launcher.exe:\nsteam_api64.dll:",
+        "title": "Current Game",
+        "values": [
+          {
+            "color": "dodger blue",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "dodger blue",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#AF5A66",
+            "text": "Next-Gen & Anniversary"
+          }
+        ]
+      },
+      "height": 334,
+      "log": [
+        {
+          "color": "dodger blue",
+          "text": "\ud83d\udcad "
+        },
+        {
+          "color": null,
+          "text": "Patches will be downloaded and applied as-needed.\n"
+        }
+      ],
+      "logLines": [],
+      "options": {
+        "checks": [
+          {
+            "checked": true,
+            "text": "Keep Backups",
+            "tooltip": "Backups are created prior to patching, and will be used instead of patches if present.\nSimple Downgrader's backups will also be used.\n\nBackups allow quicker switching between versions.\nUncheck this to delete backups after patching."
+          },
+          {
+            "checked": true,
+            "text": "Delete Patches",
+            "tooltip": "Delta patches are downloaded as-needed and used to patch from one version to another.\nIf backups are present, they will be used instead.\n\nThese xdelta files are only needed during the patching process.\nCheck this to delete xdeltas after patching."
+          }
+        ],
+        "title": "Options"
+      },
+      "patch": {
+        "enabled": true,
+        "text": "Patch\n All"
+      },
+      "processingData": false,
+      "progress": {
+        "maximum": 100.0,
+        "value": 0.0
+      },
+      "title": "Downgrader",
+      "width": 675
+    },
+    "gameInstallType": "Down-Grade",
+    "versions": [
+      {
+        "file": "Fallout4.exe",
+        "installType": "Old-Gen"
+      },
+      {
+        "file": "Fallout4Launcher.exe",
+        "installType": "Old-Gen"
+      },
+      {
+        "file": "steam_api64.dll",
+        "installType": "Next-Gen & Anniversary"
+      },
+      {
+        "file": "CreationKit.exe",
+        "installType": "Old-Gen"
+      },
+      {
+        "file": "Tools\\Archive2\\Archive2.exe",
+        "installType": "Old-Gen"
+      },
+      {
+        "file": "Tools\\Archive2\\Archive2Interop.dll",
+        "installType": "Old-Gen"
+      }
+    ]
+  }
+}

@@ -68,6 +68,9 @@ public sealed class DowngraderWindow : ModalWindow
     /// <summary>The log pane's first line, shown but not logged (<c>skip_logging=True</c>).</summary>
     public const string SeedMessage = "Patches will be downloaded and applied as-needed.";
 
+    /// <summary>The window's width as the reference fixed it; the port widens it only for a label too long for it (bug #85).</summary>
+    private const double DefaultWidth = 600;
+
     private readonly GameInstall _game;
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
@@ -113,7 +116,7 @@ public sealed class DowngraderWindow : ModalWindow
         SettingsStore settings,
         Func<Task<bool>>? refreshOverview = null,
         HttpMessageHandler? deltaPatchHttp = null)
-        : base(runtime, "Downgrader", 600, 334)
+        : base(runtime, "Downgrader", DefaultWidth, 334)
     {
         _game = game;
         _host = host;
@@ -177,6 +180,34 @@ public sealed class DowngraderWindow : ModalWindow
 
         _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions);
         Content = Build(Versions);
+        FitWidth();
+    }
+
+    /// <summary>
+    /// Widens the window past its 600 px to the width its grid asks for, or narrows it back to 600 px when that is
+    /// enough, keeping it centred where it was. The reference kept the window at 600 px, so a long version label
+    /// (<c>Next-Gen &amp; Anniversary</c>) left the weighted Patch All / About column no width at all (bug #85, fixed
+    /// as a Deviation, ADR-0006).
+    /// </summary>
+    private void FitWidth()
+    {
+        if (Content is not Control grid)
+        {
+            return;
+        }
+
+        // TkGrid asks for the sum of its columns' requested widths whatever it is offered.
+        grid.Measure(Size.Infinity);
+        var width = Math.Max(DefaultWidth, Math.Ceiling(grid.DesiredSize.Width));
+        if (width == Width)
+        {
+            return;
+        }
+
+        var grown = width - Width;
+        Width = width;
+        // Keep the centre where CenterScreen put it: move left by half the growth (Position is in device pixels).
+        Position = new PixelPoint(Position.X - (int)Math.Round(grown * DesktopScaling / 2), Position.Y);
     }
 
     /// <summary>
@@ -244,6 +275,8 @@ public sealed class DowngraderWindow : ModalWindow
             case VersionsDetected detected:
                 Versions = detected.Versions;
                 DrawVersions(detected.Versions);
+                // The redrawn labels may be longer or shorter than before (bug #85).
+                FitWidth();
                 break;
         }
     }
@@ -334,8 +367,9 @@ public sealed class DowngraderWindow : ModalWindow
     /// <summary><c>build_gui</c>: the window's grid, its third column the only weighted one.</summary>
     private TkGrid Build(IReadOnlyList<DowngraderFileVersion> versions)
     {
-        // Column 2 (Patch All, About) takes the spare width of the fixed window, and gives it up first: a long version
-        // label (Next-Gen & Anniversary) widens column 0 past 600 px and leaves the buttons no width at all (bug #85).
+        // Column 2 (Patch All, About) takes the spare width of the window, and gives it up first: in the reference's
+        // fixed 600 px window a long version label (Next-Gen & Anniversary) widened column 0 past it and left the
+        // buttons no width at all (bug #85). FitWidth widens the window instead, so the buttons keep their own width.
         var grid = new TkGrid { ColumnWeights = [0, 0, 1] };
 
         grid.Children.Add(Place(Current("Game", "Current Game", [.. versions.Where(v => !v.IsCreationKit)]), 0, 0, rowSpan: 2, margin: new Thickness(10, 0)));

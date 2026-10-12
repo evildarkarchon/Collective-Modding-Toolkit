@@ -137,9 +137,9 @@ public sealed class DowngraderWindowScenarioTests
     /// <summary>Clicks About and records the AboutWindow it opens over the Downgrader, then closes it.</summary>
     private static JsonObject? ClickAbout(DowngraderWindow window, Button about)
     {
-        // Raised, not clicked with the mouse: the driver invoke()s the button, and where a long version label widens the
-        // first columns past the window's 600 px, the weighted third column (Patch All, About) shrinks to nothing, in
-        // the reference as here, so there is nothing to click.
+        // Raised, not clicked with the mouse: the driver invoke()s the button, because where a long version label widens
+        // the first columns past the reference's fixed 600 px, the weighted third column (Patch All, About) shrinks to
+        // nothing there and there is nothing to click. The port widens its window instead (bug #85, fixed).
         about.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         var opened = window.OwnedWindows.OfType<AboutWindow>().SingleOrDefault();
