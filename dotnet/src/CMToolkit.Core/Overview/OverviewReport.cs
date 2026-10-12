@@ -215,16 +215,21 @@ public sealed record OverviewReport(
     }
 
     /// <summary>
-    /// A row's colour and problem, decided in OVW-B7's order: equal to the game's type (even <c>Unknown</c> or
-    /// <c>Not Found</c>, B-13) is good; Old-Gen is good only on a Down-Grade game; a missing binary is expected for the
-    /// Creation Kit, Archive2 and, on Next-Gen/Anniversary, f4se_steam_loader.dll; anything else is the wrong version.
+    /// A row's colour and problem, decided in OVW-B7's order: equal to the game's type is good; Old-Gen is good only on
+    /// a Down-Grade game; a missing binary is expected for the Creation Kit, Archive2 and, on Next-Gen/Anniversary,
+    /// f4se_steam_loader.dll; anything else is the wrong version.
     /// </summary>
+    /// <remarks>
+    /// Deviation (bug #84, B-13): the reference matched <c>case self.cmc.game.install_type</c> first, so with no
+    /// Fallout4.exe (the game <c>Not Found</c>) every missing binary equalled the game and was green with no problem. A
+    /// <c>Not Found</c> binary never matches the game here, so each missing one is judged as missing.
+    /// </remarks>
     private static (BinaryStatus Status, Problem? Problem) Judge(BinaryFile file, InstallType game)
     {
         // file_info[name]["File"] or Path(name): a missing file's problem names it without a folder.
         var path = file.File ?? new PythonPath(file.Name);
         var relative = new PythonPath(path.Name);
-        if (file.InstallType == game)
+        if (file.InstallType == game && game != InstallType.NotFound)
         {
             return (BinaryStatus.Good, null);
         }
