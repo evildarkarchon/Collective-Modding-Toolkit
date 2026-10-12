@@ -1,0 +1,15 @@
+{
+  "description": "settings.json is a folder: it counts as missing, and the save fails, logged and swallowed.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-3",
+    "SET-6"
+  ],
+  "emptyDirs": [
+    "Cwd/settings.json"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

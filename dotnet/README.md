@@ -60,3 +60,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   100 %, 1440p). Accepted rather than reproduced.
 - The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see [`parity/screenshots/shell/`](../parity/screenshots/shell/)). The
   main-window-shell prototype has the same offset, so it predates this tree. Horizontal positions match exactly.
+- `cm-toolkit.log` is written in the ANSI code page with `backslashreplace`, as Python wrote it, but through Windows'
+  code-page tables: under cp1252, U+0081, U+008D, U+008F, U+0090 and U+009D are written as bytes where Python's codec
+  escapes them. A traceback is .NET's `Exception.ToString()`, not Python's (not part of Behaviour Parity).
+- `settings.json` nested more than 1000 arrays/objects deep is treated as unparseable (reset); Python's limit is its
+  C-stack guard, which depends on the machine.

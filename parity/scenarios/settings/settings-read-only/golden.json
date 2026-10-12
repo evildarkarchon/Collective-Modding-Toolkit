@@ -1,0 +1,41 @@
+{
+  "settings": {
+    "display": {
+      "log": [
+        {
+          "level": "INFO",
+          "message": "Settings : Adding new settings to JSON: update_source, scanner_OverviewIssues, scanner_Errors, scanner_WrongFormat, scanner_LoosePrevis, scanner_JunkFiles, scanner_ProblemOverrides, scanner_RaceSubgraphs, downgrader_keep_backups, downgrader_delete_deltas"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'log_level' is correct type (str)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        },
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "Settings : Failed to save settings.json"
+        }
+      ]
+    },
+    "values": {
+      "downgrader_delete_deltas": true,
+      "downgrader_keep_backups": true,
+      "log_level": "DEBUG",
+      "scanner_Errors": true,
+      "scanner_JunkFiles": true,
+      "scanner_LoosePrevis": true,
+      "scanner_OverviewIssues": true,
+      "scanner_ProblemOverrides": true,
+      "scanner_RaceSubgraphs": true,
+      "scanner_WrongFormat": true,
+      "update_source": "github"
+    }
+  },
+  "settingsFile": {
+    "text": "{\"log_level\": \"DEBUG\"}"
+  }
+}

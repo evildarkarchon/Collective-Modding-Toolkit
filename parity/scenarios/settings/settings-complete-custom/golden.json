@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "display": {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'downgrader_delete_deltas' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'update_source' is correct type (str)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'log_level' is correct type (str)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_Errors' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_OverviewIssues' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_WrongFormat' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_LoosePrevis' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_JunkFiles' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_ProblemOverrides' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'scanner_RaceSubgraphs' is correct type (bool)"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : 'downgrader_keep_backups' is correct type (bool)"
+        }
+      ]
+    },
+    "values": {
+      "downgrader_delete_deltas": false,
+      "downgrader_keep_backups": false,
+      "log_level": "WARNING",
+      "scanner_Errors": false,
+      "scanner_JunkFiles": false,
+      "scanner_LoosePrevis": true,
+      "scanner_OverviewIssues": true,
+      "scanner_ProblemOverrides": true,
+      "scanner_RaceSubgraphs": false,
+      "scanner_WrongFormat": false,
+      "update_source": "none"
+    }
+  },
+  "settingsFile": {
+    "text": "{\"downgrader_delete_deltas\": false, \"update_source\": \"none\",\n  \"log_level\": \"WARNING\", \"scanner_Errors\": false,\n  \"scanner_OverviewIssues\": true, \"scanner_WrongFormat\": false, \"scanner_LoosePrevis\": true,\n  \"scanner_JunkFiles\": false, \"scanner_ProblemOverrides\": true, \"scanner_RaceSubgraphs\": false,\n  \"downgrader_keep_backups\": false}"
+  }
+}

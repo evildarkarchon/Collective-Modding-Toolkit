@@ -1,0 +1,19 @@
+{
+  "description": "A hidden file that needs a resave: opening it for writing is refused, logged and swallowed.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-6"
+  ],
+  "attributes": [
+    {
+      "path": "Cwd/settings.json",
+      "set": [
+        "hidden"
+      ]
+    }
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

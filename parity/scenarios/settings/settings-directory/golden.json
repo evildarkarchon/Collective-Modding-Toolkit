@@ -1,0 +1,35 @@
+{
+  "settings": {
+    "display": {
+      "log": [
+        {
+          "level": "INFO",
+          "message": "Settings : settings.json not found; using defaults."
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        },
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "Settings : Failed to save settings.json"
+        }
+      ]
+    },
+    "values": {
+      "downgrader_delete_deltas": true,
+      "downgrader_keep_backups": true,
+      "log_level": "INFO",
+      "scanner_Errors": true,
+      "scanner_JunkFiles": true,
+      "scanner_LoosePrevis": true,
+      "scanner_OverviewIssues": true,
+      "scanner_ProblemOverrides": true,
+      "scanner_RaceSubgraphs": true,
+      "scanner_WrongFormat": true,
+      "update_source": "github"
+    }
+  },
+  "settingsFile": null
+}

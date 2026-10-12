@@ -1,0 +1,12 @@
+{
+  "description": "Text that isn't JSON resets everything to the defaults and resaves.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-4",
+    "LOG-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "description": "A read-only file that needs a resave: the save fails, logged and swallowed; the file is unchanged.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-6"
+  ],
+  "attributes": [
+    {
+      "path": "Cwd/settings.json",
+      "set": [
+        "readonly"
+      ]
+    }
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}
