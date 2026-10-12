@@ -10,7 +10,7 @@ public static class MainTabs
     /// <param name="session">What startup produced: runtime, settings, PC info and the game installation.</param>
     public static IReadOnlyList<TabPage> Compose(AppSession session) =>
     [
-        PlaceholderTab.Overview(),
+        new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview),
         PlaceholderTab.F4se(),
         PlaceholderTab.Scanner(),
         new ToolsTab(session.Runtime),

@@ -55,8 +55,8 @@ public interface IHostEnvironment
 
     /// <summary>
     /// The four parts of a file's version resource (<c>VS_FIXEDFILEINFO</c> file version; <c>utils.get_file_version</c>),
-    /// or null when it can't be read. A file without a version resource may report all zeros instead (T-4), so callers
-    /// treat <c>0.0.0.0</c> as missing too.
+    /// or null when the file has no version resource or can't be read, where Python gets <see langword="None"/> (T-4).
+    /// A resource that says <c>0.0.0.0</c> is a version, as it is to Python.
     /// </summary>
     IReadOnlyList<int>? GetFileVersion(string path);
 
@@ -75,6 +75,12 @@ public interface IHostEnvironment
     /// <c>utils.get_environment_path</c> does.
     /// </summary>
     string GetKnownFolderPath(KnownFolder folder);
+
+    /// <summary>
+    /// The program as the command line names it (<c>sys.argv[0]</c>): the No Mod Manager problem shows its file name
+    /// (OVW-P1).
+    /// </summary>
+    string Argv0 { get; }
 }
 
 /// <summary>The real machine.</summary>
@@ -132,4 +138,11 @@ public sealed class SystemHostEnvironment : IHostEnvironment
         KnownFolder.LocalAppData => Environment.SpecialFolder.LocalApplicationData,
         _ => throw new ArgumentOutOfRangeException(nameof(folder), folder, null),
     });
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The first command-line token as typed, like the frozen reference's <c>sys.argv[0]</c>, rather than
+    /// <see cref="Environment.ProcessPath"/>, which would always add the folder and <c>.exe</c>.
+    /// </remarks>
+    public string Argv0 => Environment.GetCommandLineArgs()[0];
 }

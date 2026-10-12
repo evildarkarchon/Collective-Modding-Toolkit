@@ -88,3 +88,32 @@ NET-2
 B-16
 # SHELL-7: #45 proved the tab strip, this slice the banner row; #53 is its last claimant.
 SHELL-7
+
+# Overview: top block and binaries (#51). T-4 is proven in part; #54, its last claimant, adds it.
+OVW-1
+OVW-2
+OVW-3
+OVW-4
+OVW-5
+OVW-6
+OVW-7
+OVW-8
+OVW-B1
+OVW-B2
+OVW-B3
+OVW-B4
+OVW-B5
+OVW-B6
+OVW-B7
+OVW-B8
+OVW-P1
+OVW-P2
+OVW-P3
+OVW-P4
+OVW-P5
+OVW-P6
+PC-6
+MM-2
+T-9
+B-8
+B-13

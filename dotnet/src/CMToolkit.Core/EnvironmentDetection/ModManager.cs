@@ -67,8 +67,8 @@ public static class ModManagerDetection
                       ?? throw new UnauthorizedAccessException($"Access denied reading the exe path of {process.Name}.");
             var exePath = new PythonPath(exe);
             var parts = host.GetFileVersion(exePath.ToString());
-            // get_file_version gives None for no resource, and the reference uses 0.0.0; .NET gives 0.0.0.0 instead,
-            // whose first three parts are the same 0.0.0 (T-4), so only a failed read needs the explicit default.
+            // get_file_version gives None for no resource, and the reference uses 0.0.0 then (T-4). An all-zero
+            // resource's first three parts are the same 0.0.0, so only a missing one needs the explicit default.
             IReadOnlyList<int> version = parts is null ? [0, 0, 0] : [.. parts.Take(3)];
             return new ModManager(kind.Value, exePath, version);
         }

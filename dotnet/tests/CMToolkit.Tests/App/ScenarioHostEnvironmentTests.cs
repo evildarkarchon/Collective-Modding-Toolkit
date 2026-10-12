@@ -28,6 +28,11 @@ public sealed class ScenarioHostEnvironmentTests
             Assert.Equal(fake.AppDirectory, exe.AppDirectory);
         }
 
+        if (scenario.Manifest.Host.Argv0 is not null)
+        {
+            Assert.Equal(fake.Argv0, exe.Argv0);
+        }
+
         foreach (var folder in Enum.GetValues<KnownFolder>())
         {
             Assert.Equal(Answer(() => fake.GetKnownFolderPath(folder)), Answer(() => exe.GetKnownFolderPath(folder)));

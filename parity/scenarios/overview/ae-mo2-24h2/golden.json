@@ -1,0 +1,506 @@
+{
+  "overview": {
+    "addressLibrary": "Game\\Data\\F4SE\\Plugins\\version-1-11-240-0.bin",
+    "binaries": [
+      {
+        "file": "Game\\Fallout4.exe",
+        "hash": "9FF5DD32",
+        "installType": "Anniversary",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          11,
+          240,
+          0
+        ],
+        "versionString": "1.11.240.0"
+      },
+      {
+        "file": "Game\\Fallout4Launcher.exe",
+        "hash": "57D1C794",
+        "installType": "Anniversary",
+        "name": "Fallout4Launcher.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      },
+      {
+        "file": "Game\\steam_api64.dll",
+        "hash": "EBFD32D2",
+        "installType": "Anniversary",
+        "name": "steam_api64.dll",
+        "version": [
+          7,
+          40,
+          51,
+          27
+        ],
+        "versionString": "7.40.51.27"
+      },
+      {
+        "file": "Game\\f4se_loader.exe",
+        "hash": "9917E92F",
+        "installType": "Old-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "9A059211",
+        "installType": "Anniversary",
+        "name": "Archive2.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#619267",
+          "label": "Address Library:",
+          "text": "Installed",
+          "tooltip": null
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.11.240.0",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#619267",
+            "hover": "7.40.51.27",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.2 [Profile: Default]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Anniversary"
+        }
+      }
+    },
+    "installType": "Anniversary",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      }
+    ]
+  },
+  "refresh": {
+    "addressLibrary": "Game\\Data\\F4SE\\Plugins\\version-1-11-240-0.bin",
+    "binaries": [
+      {
+        "file": "Game\\Fallout4.exe",
+        "hash": "9FF5DD32",
+        "installType": "Anniversary",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          11,
+          240,
+          0
+        ],
+        "versionString": "1.11.240.0"
+      },
+      {
+        "file": "Game\\Fallout4Launcher.exe",
+        "hash": "57D1C794",
+        "installType": "Anniversary",
+        "name": "Fallout4Launcher.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      },
+      {
+        "file": "Game\\steam_api64.dll",
+        "hash": "EBFD32D2",
+        "installType": "Anniversary",
+        "name": "steam_api64.dll",
+        "version": [
+          7,
+          40,
+          51,
+          27
+        ],
+        "versionString": "7.40.51.27"
+      },
+      {
+        "file": "Game\\f4se_loader.exe",
+        "hash": "9917E92F",
+        "installType": "Old-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "9A059211",
+        "installType": "Anniversary",
+        "name": "Archive2.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#619267",
+          "label": "Address Library:",
+          "text": "Installed",
+          "tooltip": null
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.11.240.0",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#619267",
+            "hover": "7.40.51.27",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Anniversary",
+            "text": "Anniversary"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.2 [Profile: Default]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Anniversary"
+        }
+      }
+    },
+    "installType": "Anniversary",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      }
+    ]
+  }
+}

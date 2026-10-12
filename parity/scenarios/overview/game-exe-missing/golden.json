@@ -1,0 +1,428 @@
+{
+  "overview": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "steam_api64.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_loader.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": null
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.3 [Profile: Survival]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Not Found"
+        }
+      }
+    },
+    "installType": "Not Found",
+    "problems": []
+  },
+  "refresh": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "steam_api64.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_loader.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "CreationKit.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": null
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.3 [Profile: Survival]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Not Found"
+        }
+      }
+    },
+    "installType": "Not Found",
+    "problems": []
+  }
+}

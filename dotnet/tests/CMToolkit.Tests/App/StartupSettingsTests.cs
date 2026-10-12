@@ -37,6 +37,8 @@ public sealed class StartupSettingsTests
         public string CurrentDirectory => throw new NotSupportedException();
 
         public string GetKnownFolderPath(KnownFolder folder) => throw new NotSupportedException();
+
+        public string Argv0 => throw new NotSupportedException();
     }
 
     [Fact]

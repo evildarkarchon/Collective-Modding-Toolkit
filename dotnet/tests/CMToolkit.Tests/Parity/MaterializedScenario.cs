@@ -397,4 +397,8 @@ public sealed class FakeHostEnvironment : IHostEnvironment
         => Block.KnownFolders is { } folders && folders.TryGetValue(folder.ToString(), out var path)
             ? Expand(path)
             : throw new InvalidOperationException($"The scenario's host block has no knownFolders.{folder}.");
+
+    /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The host block has no <c>argv0</c>.</exception>
+    public string Argv0 => Block.Argv0 ?? throw new InvalidOperationException("The scenario's host block has no argv0.");
 }

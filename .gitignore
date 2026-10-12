@@ -37,3 +37,5 @@ cm-toolkit.log
 # *.xdelta there is a fixture, not a build or runtime artifact.
 !parity/scenarios/**/tree/**
 !parity/scenarios/**/http/**
+# The parity asset toolchains' built outputs (stub exes and the like) are committed, so scenarios can copy them.
+!parity/assets/*/out/**

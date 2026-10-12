@@ -1,0 +1,72 @@
+{
+  "description": "A Fallout4.exe version BASE_FILES doesn't list: the game is Unknown (Unknown Game Version), so an Unknown f4se_loader.exe matches it and shows green with no problem (B-13), while Old-Gen and Next-Gen binaries are the Wrong Version and a missing f4se_steam_loader.dll is File Not Found. The Address Library is looked for under the unknown version.",
+  "operation": "overview-tab",
+  "parity": [
+    "OVW-B4",
+    "OVW-B5",
+    "OVW-B7",
+    "OVW-P2",
+    "OVW-P3",
+    "OVW-P5",
+    "OVW-P6",
+    "B-13"
+  ],
+  "emptyDirs": [
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}
