@@ -1,4 +1,6 @@
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
+using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Settings;
 
 namespace CMToolkit.Core.Scanner;
@@ -91,9 +93,12 @@ public sealed class ScanSettings
 
     private readonly IReadOnlyDictionary<ScanSetting, bool> _values;
 
-    private ScanSettings(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game)
+    private ScanSettings(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)
     {
         _values = values;
+        Host = host;
+        ModulesEnabled = overview?.Modules.Enabled ?? [];
+        ArchivesEnabled = new HashSet<PythonPath>(overview?.Archives.Enabled ?? [], PythonPath.Equality);
         // Overview Issues and Race Subgraphs don't need the walk; any other ticked box does.
         SkipDataScan = !All.Any(s => values[s] && s is not (ScanSetting.OverviewIssues or ScanSetting.RaceSubgraphs));
         Game = game;
@@ -137,19 +142,49 @@ public sealed class ScanSettings
     /// <summary>The folders the mod file index skips: <see cref="IgnoreFolders"/> joined with MO2's <c>skip_directories</c>.</summary>
     public IReadOnlySet<string> SkipDirectories { get; }
 
+    /// <summary>
+    /// <c>game.modules_enabled</c> as the scan's Overview refresh left it: the modules the Race Subgraphs count reads
+    /// (SCN-S5), in order. Empty without an Overview report.
+    /// </summary>
+    public IReadOnlyList<PythonPath> ModulesEnabled { get; }
+
+    /// <summary>
+    /// <c>game.archives_enabled</c> as the scan's Overview refresh left it, compared case-insensitively (T-8): an
+    /// enabled archive is never an Invalid Archive Name (SCN-C8).
+    /// </summary>
+    public IReadOnlySet<PythonPath> ArchivesEnabled { get; }
+
+    /// <summary>The machine the scan reads: relative paths resolve against its working directory.</summary>
+    public IHostEnvironment Host { get; }
+
     /// <summary>Takes the snapshot: <c>ScanSettings(side_pane)</c>, without its save (see <see cref="ChangedSettings"/>).</summary>
     /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
     /// <param name="game">The installation being scanned.</param>
     /// <exception cref="ArgumentException">A setting is missing from <paramref name="values"/>.</exception>
     public static ScanSettings Snapshot(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game)
+        => Snapshot(values, game, null, SystemHostEnvironment.Instance);
+
+    /// <summary>
+    /// Takes the snapshot with what the worker reads from the Overview refresh the scan just ran (the reference's shared
+    /// <c>cmc.game</c> state) and the machine it reads.
+    /// </summary>
+    /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
+    /// <param name="game">The installation being scanned.</param>
+    /// <param name="overview">The current Overview report, or null when there is none (no modules or archives enabled).</param>
+    /// <param name="host">The machine the scan reads.</param>
+    /// <exception cref="ArgumentException">A setting is missing from <paramref name="values"/>.</exception>
+    public static ScanSettings Snapshot(
+        IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)
     {
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(host);
         var missing = All.Where(s => !values.ContainsKey(s)).ToList();
         if (missing.Count > 0)
         {
             throw new ArgumentException($"No value for {string.Join(", ", missing)}.", nameof(values));
         }
 
-        return new ScanSettings(All.ToDictionary(s => s, s => values[s]), game);
+        return new ScanSettings(All.ToDictionary(s => s, s => values[s]), game, overview, host);
     }
 
     /// <summary>

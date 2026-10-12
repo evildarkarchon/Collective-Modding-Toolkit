@@ -200,3 +200,20 @@ SHELL-11
 T-15
 # SCN-R2 is proven in part (the empty-mod fallback without an index) and deferred: #58 also claims it.
 # SET-7 is proven in part (the Scanner saves only a changed box) and deferred: #61 also claims it.
+# Scanner: data walk, mod file index and race subgraphs (#58)
+SCN-S4
+SCN-S5
+SCN-S6
+SCN-C1
+SCN-C2
+SCN-C3
+SCN-C4
+SCN-C5
+SCN-C6
+SCN-C7
+SCN-C8
+SCN-C9
+# SCN-R2: #56 proved the empty-mod fallback without an index; #58, its last claimant, the with-index remap
+# (scanner/data-walk-mo2).
+SCN-R2
+B-2

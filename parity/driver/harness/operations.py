@@ -1578,3 +1578,214 @@ def scanner_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
 			"errors": len(errors),
 		},
 	}
+
+
+# The boxes each scanner-scan run ticks, by ScanSetting member name: every box first, then each box alone in pane order.
+_SCAN_RUNS: list[set[str]] = [
+	{"OverviewIssues", "Errors", "WrongFormat", "LoosePrevis", "JunkFiles", "ProblemOverrides", "RaceSubgraphs"},
+	{"OverviewIssues"},
+	{"Errors"},
+	{"WrongFormat"},
+	{"LoosePrevis"},
+	{"JunkFiles"},
+	{"ProblemOverrides"},
+	{"RaceSubgraphs"},
+]
+
+
+def _scan_problem(golden: GoldenContext, problem: Any) -> dict[str, Any]:
+	"""``_overview_problem`` plus the file list a ``SimpleProblemInfo`` can carry (the Race Subgraphs problem's
+	``(count, module)`` pairs, SCN-S5), or ``None``.
+	"""
+	projected = _overview_problem(golden, problem)
+	file_list = getattr(problem, "file_list", None)
+	projected["fileList"] = None if file_list is None else [[count, _path_text(golden, path)] for count, path in file_list]
+	return projected
+
+
+def _mod_file_index(golden: GoldenContext, mod_files: Any) -> dict[str, Any] | None:
+	"""``scan_settings.mod_files`` (SCN-S6) in dict order: each entry's key (``str`` of the mod-relative path, or the
+	file name), mod and staged path. ``None`` when no index was built.
+	"""
+	if mod_files is None:
+		return None
+
+	def entries(table: dict[Any, tuple[str, Any]]) -> list[dict[str, Any]]:
+		return [{"key": str(key), "mod": mod, "path": _path_text(golden, path)} for key, (mod, path) in table.items()]
+
+	return {
+		"folders": entries(mod_files.folders),
+		"files": entries(mod_files.files),
+		"modules": entries(mod_files.modules),
+		"archives": entries(mod_files.archives),
+	}
+
+
+@operation("scanner-scan")
+def scanner_scan(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""SCN-S4..S6, SCN-C1..C9, SCN-R2 (with an index), B-3, B-5: the real ``CMChecker`` with its Overview loaded and its
+	Scanner selected, scanned once per ``_SCAN_RUNS`` entry by ticking those boxes and pressing Scan Game.
+
+	The worker runs synchronously on the UI thread (issue #8's harness design): ``_scanner.threading.Thread`` is
+	replaced by one whose ``start`` runs the target inline, so the walk's directory order is the only order there is,
+	and the B-2 completion-flag race (exempt, ADR-0003) can't happen. Each progress update the worker queues (the
+	top-level folder tuple, or a folder name) is drained at once by the tab's own ``check_scan_progress``, with its
+	``after`` re-arm suppressed, and the scanning label and progress bar are read after it (``updates``): the finest
+	timing the 100 ms polling could show. The problems list is left to the real polling, which then populates the
+	results (``results``). A worker that raises is caught where its thread would have died: the error is recorded
+	(``workerError``, with Python's object address masked) and the tab is read after its polling has spun for a while,
+	stuck (B-3); the script stops there, since Scan Game stays disabled.
+
+	``index`` is the mod file index the run built, or ``None``; ``workerLog`` the lines the worker logged.
+	"""
+	import re  # noqa: PLC0415
+	import time  # noqa: PLC0415
+	from itertools import groupby  # noqa: PLC0415
+	from queue import Queue  # noqa: PLC0415
+	from types import SimpleNamespace  # noqa: PLC0415
+
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from scan_settings import ScanSetting  # noqa: PLC0415
+	from tabs import _overview, _scanner  # noqa: PLC0415, PLC2701 - the modules the patched names are used in
+
+	_scanner.ToolTip = _Tooltips()
+	_overview.ToolTip = _Tooltips()
+
+	real_side, real_details = _scanner.SidePane, _scanner.ResultDetailsPane
+
+	class HiddenSidePane(real_side):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+
+	class HiddenDetailsPane(real_details):  # type: ignore[misc, valid-type]
+		def __init__(self, *args: Any, **kwargs: Any) -> None:
+			super().__init__(*args, **kwargs)
+			self.wm_withdraw()
+
+	_scanner.SidePane = HiddenSidePane
+	_scanner.ResultDetailsPane = HiddenDetailsPane
+
+	root = session.root
+	assert root is not None
+	errors: list[BaseException] = []
+	root.report_callback_exception = lambda _type, value, _tb: errors.append(value)  # type: ignore[method-assign]
+	capture = capture_logs()
+
+	worker: dict[str, Any] = {}
+
+	class InlineThread:
+		"""``threading.Thread`` for the scan worker: ``start`` runs it to completion on the calling (UI) thread."""
+
+		def __init__(self, target: Callable[..., None], args: tuple[Any, ...] = ()) -> None:
+			self._target, self._args = target, args
+
+		def start(self) -> None:
+			worker["settings"] = self._args[0]
+			first = len(capture.records)
+			try:
+				self._target(*self._args)
+			except Exception as error:  # noqa: BLE001 - the thread died here; the tab is left polling (B-3)
+				worker["error"] = error
+			worker["log"] = capture.records[first:]
+
+	_scanner.threading = SimpleNamespace(Thread=InlineThread)  # type: ignore[attr-defined]
+
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	scanner = checker.tabs[Tab.Scanner]
+	scanner.master.select(scanner)
+	root.update()
+	if not scanner.is_loaded:
+		msg = "the Scanner tab didn't load"
+		raise RuntimeError(msg)
+
+	updates: list[dict[str, Any]] = []
+
+	class ProbedQueue(Queue):  # type: ignore[type-arg]
+		"""The progress queue: each folder tuple or name is drained by the tab as soon as it is put."""
+
+		def put(self, item: Any, block: bool = True, timeout: float | None = None) -> None:  # noqa: FBT001, FBT002
+			super().put(item, block, timeout)
+			if isinstance(item, list):
+				return
+			update = {"folders": list(item)} if isinstance(item, tuple) else {"folder": item}
+			# check_scan_progress re-arms itself with after() while the worker runs; the real poll does that instead.
+			root.after = lambda *_args, **_kwargs: ""  # type: ignore[method-assign]
+			try:
+				scanner.check_scan_progress(worker.get("settings"))
+			finally:
+				del root.after
+			updates.append({"update": update, "scanningText": scanner.sv_scanning_text.get(), "progress": float(scanner.dv_progress.get())})
+
+	scanner.queue_progress = ProbedQueue()
+
+	def read_tab() -> dict[str, Any]:
+		tree = scanner.tree_results
+		groups = []
+		for group in tree.get_children():
+			items = []
+			for item in tree.get_children(group):
+				values = tree.item(item, "values")
+				items.append({
+					"text": str(tree.item(item, "text")),
+					"values": [str(v) for v in values] if values else [],
+					"problem": _scan_problem(golden, scanner.tree_results_data[item]),
+				})
+			text = str(tree.item(group, "text"))
+			if text == "Invalid Archive":
+				# The Overview adds these in enabled-archive set order (T-15); each same-mod run is unordered.
+				items = [golden.unordered(sorted(run, key=str)) for _, run in groupby(items, key=lambda i: i["problem"]["mod"])]
+			groups.append({"text": text, "open": bool(tree.item(group, "open")), "items": items})
+		side = scanner.side_pane
+		return {
+			"resultsInfo": scanner.sv_results_info.get(),
+			"scanningLabel": None if scanner.label_scanning_text is None else scanner.sv_scanning_text.get(),
+			"progress": float(scanner.dv_progress.get()),
+			"groups": golden.unordered(sorted(groups, key=lambda g: g["text"])),
+			"scan": {"text": str(side.button_scan.cget("text")), "enabled": not side.button_scan.instate(["disabled"])},
+		}
+
+	runs = []
+	for ticked in _SCAN_RUNS:
+		side = scanner.side_pane
+		frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+		for check, setting in zip(frame.pack_slaves(), ScanSetting, strict=True):
+			if bool(side.bool_vars[setting].get()) != (setting.name in ticked):
+				check.invoke()
+		updates.clear()
+		worker.clear()
+		side.button_scan.invoke()
+		if "error" in worker:
+			# The reference's polling spins forever on a dead worker; let it run a few times before reading the tab.
+			deadline = time.monotonic() + 0.5
+			while time.monotonic() < deadline:
+				root.update()
+				time.sleep(0.01)
+		else:
+			deadline = time.monotonic() + 30
+			while str(side.button_scan.cget("text")) != "Scan Game":
+				if time.monotonic() > deadline:
+					msg = "the scan didn't finish"
+					raise RuntimeError(msg)
+				root.update()
+				time.sleep(0.01)
+		error = worker.get("error")
+		runs.append({
+			"boxes": [setting.value[0] for setting in ScanSetting if setting.name in ticked],
+			"updates": list(updates),
+			"workerError": None if error is None else re.sub(r"0x[0-9A-Fa-f]+", "0x<ADDRESS>", golden.text(str(error))),
+			"workerLog": log_lines_of(golden, worker.get("log", []), {"helpers", "tabs._scanner"}),
+			"index": _mod_file_index(golden, worker["settings"].mod_files),
+			"results": read_tab(),
+		})
+		if error is not None:
+			break
+
+	return {"scanner": {"usingStage": scanner.using_stage, "runs": runs, "errors": len(errors)}}

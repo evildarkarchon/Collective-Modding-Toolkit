@@ -39,6 +39,12 @@ public sealed record Problem(
     public ModSource ModSource { get; init; }
 
     /// <summary>
+    /// A simple problem's <c>file_list</c>: the files behind it with a count each, which the details pane's File List
+    /// button lists (SCN-R7); null for none. Only the Race Subgraphs problem has one (SCN-S5).
+    /// </summary>
+    public IReadOnlyList<FileListEntry>? FileList { get; init; }
+
+    /// <summary>
     /// <c>ProblemInfo(problem, path, relative_path, mod, summary, solution)</c>: a problem about a file.
     /// </summary>
     /// <param name="kind">The <c>ProblemType</c> value, such as <see cref="ProblemTypes.FileNotFound"/>.</param>

@@ -245,7 +245,8 @@ gets a posted click on the opening button, fixed in `MODAL_BUTTONS`. The capture
 
 `--tab Scanner --scan` runs an Overview Issues scan before capturing: the reference unticks the six data boxes and
 presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks at `SCAN_CLICKS` in its side
-pane. `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
+pane. `--scan-all` scans with every box still ticked instead: only Scan Game is pressed (the last `SCAN_CLICKS`
+point on the exe). `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
 black, so the capture shows them in place.
 
 Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
