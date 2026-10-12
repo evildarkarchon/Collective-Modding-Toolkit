@@ -1,5 +1,6 @@
 using CMToolkit.App.Runtime;
 using CMToolkit.App.ViewModels;
+using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
 
 namespace CMToolkit.App;
@@ -17,4 +18,13 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
 {
     /// <summary>The settings in effect, which the Settings tab, the Scanner and the Downgrader read and save.</summary>
     public SettingsStore Settings => Model.Settings;
+
+    /// <summary>The machine startup ran on, which the tabs keep reading (file versions, the exe name).</summary>
+    public IHostEnvironment Host { get; init; } = SystemHostEnvironment.Instance;
+
+    /// <summary>
+    /// The current Overview report (the reference's <c>cmc.game</c> Overview state and <c>cmc.overview_problems</c>),
+    /// which the Overview tab sets and the F4SE, Scanner and Downgrader read.
+    /// </summary>
+    public OverviewState Overview { get; } = new();
 }

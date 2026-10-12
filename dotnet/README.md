@@ -89,3 +89,10 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   #9), centred on the screen, since no main window exists yet.
 - Game INI section names and keys are lowercased with `ToLowerInvariant`, with the same `str.lower()` differences as
   MO2's `skip_*` values above.
+- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/)): until the Archives and Modules
+  frames get their content (the next Overview slice), the three frames split the width differently from Tk's, so the
+  Binaries frame is wider and its content sits ~6 px further right. Tk lays out a Binaries frame narrower than its
+  content and overflows it; recheck the pair once the other frames are built. The Downgrade Manager and refresh
+  buttons' paddings were measured off the pair rather than derived from sv_ttk.
+- If an Overview refresh fails, its error is reported and the previous report and frames stay. The reference cleared
+  the problem list first and was left with a partial one.

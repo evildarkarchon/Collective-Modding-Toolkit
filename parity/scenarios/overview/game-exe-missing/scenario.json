@@ -1,5 +1,5 @@
 {
-  "description": "A portable MO2 2.5.3 on Windows 11 24H2 (no OS warning: newer than 2.5.2) names a game folder without Fallout4.exe, which MO2's path never checks (GP-1). The game's Install Type is then Not Found, so every missing binary equals it and shows green, with no problems, and no Address Library is looked for.",
+  "description": "A portable MO2 2.5.3 on Windows 11 24H2 (no OS warning: newer than 2.5.2) names a game folder without Fallout4.exe, which MO2's path never checks (GP-1). The game's Install Type is then Not Found, so every missing binary equals it and shows green, with no problems, and no Address Library is looked for (bug #84).",
   "operation": "overview-tab",
   "parity": [
     "OVW-5",
