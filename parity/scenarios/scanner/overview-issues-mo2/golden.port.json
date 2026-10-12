@@ -443,37 +443,37 @@
               "tooltip": "Report details of issues from Overview"
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Errors",
               "tooltip": "Check for errors in mod configuration or files."
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Wrong File Formats",
               "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Loose Previs",
               "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Junk Files",
               "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Problem Overrides",
               "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
             },
             {
-              "checked": true,
+              "checked": false,
               "enabled": true,
               "text": "Race Subgraphs",
               "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
@@ -501,37 +501,37 @@
             "tooltip": "Report details of issues from Overview"
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Errors",
             "tooltip": "Check for errors in mod configuration or files."
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Wrong File Formats",
             "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Loose Previs",
             "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Junk Files",
             "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Problem Overrides",
             "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
           },
           {
-            "checked": true,
+            "checked": false,
             "enabled": true,
             "text": "Race Subgraphs",
             "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
@@ -545,30 +545,6 @@
         "title": "Scan Settings"
       },
       "toggles": [
-        {
-          "check": "Errors",
-          "scanEnabled": true
-        },
-        {
-          "check": "Wrong File Formats",
-          "scanEnabled": true
-        },
-        {
-          "check": "Loose Previs",
-          "scanEnabled": true
-        },
-        {
-          "check": "Junk Files",
-          "scanEnabled": true
-        },
-        {
-          "check": "Problem Overrides",
-          "scanEnabled": true
-        },
-        {
-          "check": "Race Subgraphs",
-          "scanEnabled": true
-        },
         {
           "check": "Overview Issues",
           "scanEnabled": false

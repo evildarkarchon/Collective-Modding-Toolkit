@@ -218,7 +218,8 @@ public sealed class ScannerTab : TabPage
             return;
         }
 
-        SidePane = new ScanSidePane();
+        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
         SidePane.ScanRequested += (_, _) => _ = RunScanAsync();
         if (TopLevel.GetTopLevel(_tree) is not null)
         {

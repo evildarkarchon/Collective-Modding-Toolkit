@@ -46,25 +46,25 @@ public sealed record AppSettings
     /// <summary><c>update_source</c>. Its default comes from the Download Source; see <see cref="Defaults"/>.</summary>
     public required UpdateSource UpdateSource { get; init; }
 
-    /// <summary><c>scanner_OverviewIssues</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_OverviewIssues</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerOverviewIssues { get; init; } = true;
 
-    /// <summary><c>scanner_Errors</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_Errors</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerErrors { get; init; } = true;
 
-    /// <summary><c>scanner_WrongFormat</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_WrongFormat</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerWrongFormat { get; init; } = true;
 
-    /// <summary><c>scanner_LoosePrevis</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_LoosePrevis</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerLoosePrevis { get; init; } = true;
 
-    /// <summary><c>scanner_JunkFiles</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_JunkFiles</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerJunkFiles { get; init; } = true;
 
-    /// <summary><c>scanner_ProblemOverrides</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_ProblemOverrides</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerProblemOverrides { get; init; } = true;
 
-    /// <summary><c>scanner_RaceSubgraphs</c>. Written but never read by the reference (SET-8, B-1).</summary>
+    /// <summary><c>scanner_RaceSubgraphs</c>. Written but never read by the reference (SET-8, B-1); the port's side pane starts from it (bug #20).</summary>
     public bool ScannerRaceSubgraphs { get; init; } = true;
 
     /// <summary><c>downgrader_keep_backups</c>.</summary>

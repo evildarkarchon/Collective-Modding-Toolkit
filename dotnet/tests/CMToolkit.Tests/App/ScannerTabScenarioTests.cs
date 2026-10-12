@@ -213,6 +213,13 @@ public sealed class ScannerTabScenarioTests
         var toggles = new List<JsonNode>();
         foreach (var setting in ScanSettings.All.Skip(1))
         {
+            // Only a ticked box is clicked. In the reference every box was ticked again on return (B-1), so this is
+            // the driver's script; the port's returned pane already has the saved, unticked boxes (bug #20 fixed).
+            if (scanner.SidePane!.Checks[setting].IsChecked != true)
+            {
+                continue;
+            }
+
             MouseClick.On(scanner.SidePane!.Checks[setting]);
             toggles.Add(Toggle(scanner, setting));
         }

@@ -71,9 +71,15 @@ public sealed class ScanDetailsPaneScenarioTests
         var tabs = window.GetLogicalDescendants().OfType<TabControl>().Single();
         tabs.SelectedIndex = 1;
         Dispatcher.UIThread.RunJobs();
-        foreach (var setting in ScanSettings.All.Where(s => s is not (ScanSetting.OverviewIssues or ScanSetting.RaceSubgraphs)))
+        // The driver unticks every box but Overview Issues and Race Subgraphs, from all ticked (B-1). The port's pane
+        // starts with the saved boxes (bug #20 fixed), so each box is clicked only if it isn't as the scan needs it.
+        foreach (var setting in ScanSettings.All)
         {
-            MouseClick.On(scanner.SidePane!.Checks[setting]);
+            var wanted = setting is ScanSetting.OverviewIssues or ScanSetting.RaceSubgraphs;
+            if ((scanner.SidePane!.Checks[setting].IsChecked == true) != wanted)
+            {
+                MouseClick.On(scanner.SidePane!.Checks[setting]);
+            }
         }
 
         Scan(scanner);

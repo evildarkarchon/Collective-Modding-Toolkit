@@ -188,6 +188,28 @@ public sealed class ScanSettings
     }
 
     /// <summary>
+    /// The boxes as <paramref name="stored"/> saved them: each setting's <c>scanner_*</c> value. The side pane starts
+    /// from these (SET-8). The reference never read them and ticked every box (B-1); the port fixes that (bug #20).
+    /// </summary>
+    /// <param name="stored">The settings in effect.</param>
+    /// <returns>A value for every <see cref="ScanSetting"/>.</returns>
+    public static IReadOnlyDictionary<ScanSetting, bool> Stored(AppSettings stored)
+    {
+        ArgumentNullException.ThrowIfNull(stored);
+        return All.ToDictionary(s => s, s => s switch
+        {
+            ScanSetting.OverviewIssues => stored.ScannerOverviewIssues,
+            ScanSetting.Errors => stored.ScannerErrors,
+            ScanSetting.WrongFormat => stored.ScannerWrongFormat,
+            ScanSetting.LoosePrevis => stored.ScannerLoosePrevis,
+            ScanSetting.JunkFiles => stored.ScannerJunkFiles,
+            ScanSetting.ProblemOverrides => stored.ScannerProblemOverrides,
+            ScanSetting.RaceSubgraphs => stored.ScannerRaceSubgraphs,
+            _ => throw new ArgumentOutOfRangeException(nameof(stored), s, "Unknown scan setting."),
+        });
+    }
+
+    /// <summary>
     /// What the snapshot saves (SET-7): <paramref name="stored"/> with every <c>scanner_*</c> value set to its box, when
     /// at least one box differs from its stored value; null when none does, and then nothing is written.
     /// </summary>

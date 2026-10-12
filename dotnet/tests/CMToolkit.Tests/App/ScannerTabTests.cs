@@ -123,7 +123,7 @@ public sealed class ScannerTabTests
         var side = Assert.IsType<ScanSidePane>(app.Scanner.SidePane);
         Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
         Assert.True(side.ScanButton.IsEnabled);
-        // The new pane starts all ticked again (B-1, bug #20).
+        // The new pane starts with the saved boxes (bug #20 fixed): every box ticked here, as the scan saved nothing.
         Assert.All(side.Checks.Values, c => Assert.True(c.IsChecked));
         Assert.Single(app.Window.OwnedWindows);
     }
@@ -189,6 +189,46 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    [AvaloniaFact]
+    [Trait("Parity", "SET-8"), Deviation(20, "The side pane's boxes start as the saved scanner_* settings say instead of all ticked.")]
+    [Trait("Parity", "SCN-3")]
+    public void The_side_pane_starts_with_the_saved_scanner_settings()
+    {
+        // Bug #20, fixed (ADR-0006): the reference ticked every box whatever settings.json said.
+        var stored = CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub) with { ScannerErrors = false, ScannerJunkFiles = false };
+        using var app = ScannerApp.Start(stored: stored);
+        var side = app.Scanner.SidePane!;
+
+        Assert.Equal(
+            [true, false, true, true, false, true, true],
+            ScanSettings.All.Select(s => side.Checks[s].IsChecked == true));
+        Assert.True(side.ScanButton.IsEnabled);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SET-8"), Deviation(20, "With every saved scanner_* setting false, every box starts unticked, so Scan Game starts disabled.")]
+    [Trait("Parity", "SCN-3")]
+    public void With_every_saved_box_unticked_scan_game_starts_disabled()
+    {
+        var stored = CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub) with
+        {
+            ScannerOverviewIssues = false,
+            ScannerErrors = false,
+            ScannerWrongFormat = false,
+            ScannerLoosePrevis = false,
+            ScannerJunkFiles = false,
+            ScannerProblemOverrides = false,
+            ScannerRaceSubgraphs = false,
+        };
+        using var app = ScannerApp.Start(stored: stored);
+        var side = app.Scanner.SidePane!;
+
+        Assert.All(side.Checks.Values, c => Assert.False(c.IsChecked));
+        Assert.False(side.ScanButton.IsEnabled);
+        MouseClick.On(side.Checks[ScanSetting.OverviewIssues]);
+        Assert.True(side.ScanButton.IsEnabled);
+    }
+
     /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>
     private sealed class ScannerApp : IDisposable
     {
@@ -221,7 +261,8 @@ public sealed class ScannerTabTests
 
         public static ScannerApp Start(
             Func<GameInstall, IHostEnvironment, ILogger, OverviewReport?, OverviewReport>? gatherer = null,
-            Func<ScanSettings, ScanOutcome>? worker = null)
+            Func<ScanSettings, ScanOutcome>? worker = null,
+            CMToolkit.Core.Settings.AppSettings? stored = null)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
@@ -234,7 +275,7 @@ public sealed class ScannerTabTests
                 OpenFolder = _ => { },
                 Gatherer = gatherer ?? OverviewReport.Gather,
             };
-            var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
+            var settings = SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
             var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ScanWorker.Run };
             var window = new MainWindow(runtime, [overview, scanner]);
             window.Show();

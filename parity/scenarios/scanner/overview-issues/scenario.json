@@ -22,6 +22,10 @@
     {
       "bug": 23,
       "reason": "The results tree lists its groups in the order their problem types first appear in the results, the same every run, instead of in Python's per-process set order."
+    },
+    {
+      "bug": 20,
+      "reason": "On return to the tab the side pane's boxes start as the first scan saved them (only Overview Issues ticked) instead of all ticked again."
     }
   ],
   "emptyDirs": [
