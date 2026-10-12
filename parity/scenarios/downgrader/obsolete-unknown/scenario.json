@@ -6,6 +6,12 @@
     "DG-2",
     "DG-3"
   ],
+  "deviations": [
+    {
+      "bug": 85,
+      "reason": "The window widens past 600 px to fit the long Next-Gen & Anniversary label, so Patch All and About stay visible."
+    }
+  ],
   "host": {
     "cwd": "<ROOT>/Cwd",
     "argv0": "cm-toolkit.exe",

@@ -1,8 +1,9 @@
 namespace CMToolkit.Core.Downgrader;
 
 /// <summary>
-/// The Patch All button's state, where the run sets it: <c>button_patch.configure(state=NORMAL)</c> after the file loop
-/// when its last file didn't need patching (B-11), and when the queue empties.
+/// The Patch All button's state, where the run sets it: after the file loop, on exactly when the queue isn't running
+/// (the reference turned it on only when the loop's last file didn't need patching, B-11, bug #28, fixed), and on when
+/// the queue empties.
 /// </summary>
 /// <param name="Enabled">Whether the button is now enabled.</param>
 public sealed record PatchAllEnabled(bool Enabled) : OperationEvent;

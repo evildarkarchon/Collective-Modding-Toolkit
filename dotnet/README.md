@@ -161,10 +161,13 @@ can't be opened (SHELL-13).
   Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
   cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves
   the patches unencoded); like the update check, HttpClient doesn't follow an https-to-http redirect. The progress bar
-  shows the last value each 100 ms poll drained, which is all Tk drew. A download that fails ends its poll operation
-  with the error reported, where the reference's poll went on waiting forever; nothing else differs (B-10). Decoding
+  shows the last value each 100 ms poll drained, which is all Tk drew. A download that fails (an error status, the
+  network, a body cut off) is logged in the pane, saves nothing, and puts its file back from the backup, and the
+  queue moves on, where the reference's poll went on waiting forever; a response without a Content-Length downloads
+  in full; a patch that fails to decode is deleted so the next run downloads it again (B-10, bug #15, a Deviation). Decoding
   is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
-  on, to leave exactly the windows xdelta3 would on a failed decode.
+  on, to leave exactly the windows xdelta3 would on a failed decode. A failed decode then deletes those windows and
+  puts the backup back as the live file (bug #14, a Deviation).
 - The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
   a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
   no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.

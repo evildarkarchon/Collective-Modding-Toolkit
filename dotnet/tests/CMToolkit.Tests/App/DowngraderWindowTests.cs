@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
@@ -13,8 +14,8 @@ namespace CMToolkit.Tests.App;
 
 /// <summary>
 /// How the Downgrader is reached and laid out: both Downgrade Manager buttons open it over the main window from the
-/// real startup composition (OVW-B9, TOOL-1), and a long version label pushes Patch All and About out of the fixed
-/// window, as in the reference.
+/// real startup composition (OVW-B9, TOOL-1), and a long version label widens the window instead of pushing Patch All
+/// and About out of it, as the reference's fixed window did (bug #85, fixed).
 /// </summary>
 public sealed class DowngraderWindowTests
 {
@@ -50,11 +51,12 @@ public sealed class DowngraderWindowTests
     /// <summary>
     /// The reference's grid gives column 2 (Patch All, About) all the spare width of a fixed 600 px window, so when
     /// <c>Next-Gen &amp; Anniversary</c> widens the first column past it, Tk shrinks that column to nothing and the
-    /// buttons can't be seen or clicked (screenshot pair <c>downgrader/dg-game</c>). Bug #85: reproduced, not fixed (ADR-0001).
+    /// buttons can't be seen or clicked (screenshot pair <c>downgrader/dg-game</c>). Bug #85 is fixed (ADR-0006): the
+    /// port's window grows to the width its grid asks for, so both buttons keep their requested width, inside the window.
     /// </summary>
     [AvaloniaFact]
-    [Trait("Parity", "DG-2")]
-    public void The_patch_and_about_buttons_get_no_width_when_a_long_label_overflows_the_window()
+    [Trait("Parity", "DG-2"), Deviation(85, "The Downgrader widens past 600 px to fit a long version label, so Patch All and About stay visible.")]
+    public void The_window_widens_to_keep_the_patch_and_about_buttons_when_a_long_label_overflows_600_px()
     {
         using var app = new ComposedApp("downgrader/dg-game");
 
@@ -62,8 +64,31 @@ public sealed class DowngraderWindowTests
 
         var downgrader = app.WaitForDowngrader();
         Assert.Equal("Next-Gen & Anniversary", app.Named<TextBlock>(downgrader, "Game2").Text);
-        Assert.Equal(0, app.Named<Button>(downgrader, "PatchAll").Bounds.Width);
-        Assert.Equal(0, app.Named<Button>(downgrader, "About").Bounds.Width);
+        Assert.True(downgrader.Width > 600);
+        foreach (var name in new[] { "PatchAll", "About" })
+        {
+            var button = app.Named<Button>(downgrader, name);
+            Assert.True(button.Bounds.Width > 30, $"{name} is {button.Bounds.Width} px wide.");
+            // Its right edge (plus its 10 px padx) lies inside the window's client area.
+            var right = button.TranslatePoint(new Point(button.Bounds.Width, 0), downgrader)!.Value.X;
+            Assert.True(right + 10 <= downgrader.Width + 0.5, $"{name} ends at {right}, past {downgrader.Width}.");
+        }
+
+        // Clicked with the mouse, About opens: the button is really there to click.
+        MouseClick.On(app.Named<Button>(downgrader, "About"));
+        DispatcherWait.Until(() => downgrader.OwnedWindows.OfType<AboutWindow>().Any());
+        downgrader.OwnedWindows.OfType<AboutWindow>().Single().Close();
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "DG-2")]
+    public void The_window_keeps_its_600_px_when_the_labels_fit()
+    {
+        using var app = new ComposedApp("downgrader/og-steam");
+
+        MouseClick.On(app.Named<Button>("DowngradeManager"));
+
+        Assert.Equal(600, app.WaitForDowngrader().Width);
     }
 
     [AvaloniaFact]

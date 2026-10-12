@@ -25,11 +25,12 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-4")]
-    [Trait("Parity", "B-11")]
-    public async Task Bug_28_every_skip_says_why_and_an_unknown_last_file_leaves_the_button_disabled_for_good()
+    [Trait("Parity", "B-11"), Deviation(28, "Patch All comes back on when nothing was queued, even if the last file was skipped by the CRC check.")]
+    public async Task Bug_28_every_skip_says_why_and_the_button_comes_back_when_nothing_was_queued()
     {
-        // Bug #28 (B-11), reproduced: Archive2Interop.dll's unknown CRC gets past patch_files, so it "needed" a patch,
-        // and the button is never re-enabled although nothing was patched or queued.
+        // Bug #28 (B-11), fixed (ADR-0006): Archive2Interop.dll's unknown CRC gets past patch_files, so in the reference
+        // it "needed" a patch and the button was never re-enabled although nothing was patched or queued. The port
+        // re-enables the button whenever the queue isn't running once the loop is done.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
         machine.Place("Fallout4Launcher.exe", "0E696744");
@@ -50,7 +51,8 @@ public sealed class DowngraderRunTests
                 "Info: Skipped Archive2Interop.dll: Unsupported Version.",
             ],
             host.Lines);
-        Assert.DoesNotContain(host.Events.Items, e => e is PatchAllEnabled or QueueRunning);
+        Assert.Equal([true], host.Events.Items.OfType<PatchAllEnabled>().Select(e => e.Enabled));
+        Assert.DoesNotContain(host.Events.Items, e => e is QueueRunning);
         Assert.Empty(host.Polls);
         Assert.Equal(0, host.Refreshes);
     }
@@ -155,11 +157,12 @@ public sealed class DowngraderRunTests
     }
 
     [Fact]
-    [Trait("Parity", "DG-5")]
-    public async Task Bug_91_a_file_whose_only_attribute_is_read_only_stays_read_only()
+    [Trait("Parity", "DG-5"), Deviation(91, "A file whose only attribute is read-only is made writable, so its backup can be deleted and the restore succeeds.")]
+    public async Task Bug_91_a_file_whose_only_attribute_is_read_only_is_made_writable_too()
     {
-        // Bug #91, reproduced: CPython's chmod writes back an attribute word of 0, which Windows ignores, so the
-        // read-only bit survives into the backup (verified against CPython 3.14.5).
+        // Bug #91, fixed (ADR-0006): CPython's chmod wrote back an attribute word of 0, which Windows ignores, so the
+        // read-only bit survived into the backup, and deleting that backup (Keep Backups off) failed after the restore
+        // (Patched, then Failed patching). The port sets FILE_ATTRIBUTE_NORMAL instead, so the backup is deleted.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C5965A2E");
         machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
@@ -168,10 +171,25 @@ public sealed class DowngraderRunTests
 
         await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
 
-        // Keep Backups is off, so deleting the read-only backup fails after the restore: Patched, then Failed patching.
-        // The rename marks it for archiving too; only the read-only bit matters.
-        Assert.True(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
-        Assert.Equal(["Good: Patched Fallout4.exe", "Bad: Failed patching Fallout4.exe"], host.Lines.Take(2));
+        Assert.False(File.Exists(machine.GamePath("Fallout4_downgradeBackup.exe")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal(["Good: Patched Fallout4.exe"], host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-5"), Deviation(91, "A file whose only attribute is read-only keeps no read-only bit into its backup.")]
+    public async Task Bug_91_the_backup_of_a_file_whose_only_attribute_was_read_only_is_not_read_only()
+    {
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C5965A2E");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        File.SetAttributes(machine.GamePath("Fallout4.exe"), FileAttributes.ReadOnly);
+        var host = new ScriptedHost { KeepBackups = true };
+
+        await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
+
+        Assert.False(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
+        Assert.Contains("Good: Patched Fallout4.exe", host.Lines);
     }
 
     [Fact]
@@ -197,7 +215,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "NET-3")]
-    [Trait("Parity", "THR-2")]
+    [Trait("Parity", "THR-2"), Deviation(28, "Patch All stays off while a download runs, though the loop's last file was skipped.")]
     public async Task A_missing_patch_downloads_while_the_ui_is_live_then_decodes_under_the_block()
     {
         using var machine = new Machine();
@@ -207,8 +225,8 @@ public sealed class DowngraderRunTests
 
         await machine.Run(server).PatchAllAsync(InstallType.NextGen, host, host.Events);
 
-        // The click is over with the download still in flight: the window not closable, the bar at 0, and (B-11, the
-        // last file wasn't there) the button back on.
+        // The click is over with the download still in flight: the window not closable, the bar at 0, and the button
+        // off. (B-11: the reference turned it back on here, as the last file wasn't there; bug #28, fixed.)
         Assert.Equal(
             [
                 "running",
@@ -218,7 +236,7 @@ public sealed class DowngraderRunTests
                 "Info: Skipped CreationKit.exe: Not Found.",
                 "Info: Skipped Archive2.exe: Not Found.",
                 "Info: Skipped Archive2Interop.dll: Not Found.",
-                "button on",
+                "button off",
             ],
             host.Script);
         Assert.Single(host.Polls);
@@ -287,8 +305,8 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-10")]
-    public async Task Bug_15_a_patch_already_in_the_working_directory_is_used_without_a_download_or_a_check()
+    [Trait("Parity", "B-10"), Deviation(15, "A saved patch is checked by decoding it; a good one is used without a download, as before.")]
+    public async Task Bug_15_a_patch_already_in_the_working_directory_that_decodes_is_used_without_a_download()
     {
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
@@ -309,75 +327,175 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-9")]
-    public async Task Bug_14_a_failed_decode_still_deletes_the_backup_when_keep_backups_is_off()
+    [Trait("Parity", "B-9"), Deviation(14, "A failed decode puts the backup back as the live file instead of deleting it.")]
+    public async Task Bug_14_a_failed_decode_puts_the_backup_back_when_keep_backups_is_off()
     {
-        // Bug #14 (B-9), reproduced: the 404 page is saved as the patch, the decode fails, and the backup, the only copy
-        // of Fallout4.exe left, is deleted.
+        // Bug #14 (B-9), fixed (ADR-0006): a patch that doesn't decode (here a garbage one already in the working
+        // directory) left the reference with neither the file nor its backup when Keep Backups was off. The port moves
+        // the backup back into place, so the game is as it was before the click.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        File.WriteAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta"), "not a patch");
+        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+
+        await machine.Run().PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
+
+        Assert.Contains("Bad: Failed patching Fallout4.exe", host.Lines);
+        Assert.DoesNotContain("Good: Patched Fallout4.exe", host.Lines);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(File.Exists(machine.GamePath("Fallout4_upgradeBackup.exe")));
+        Assert.Equal("versions: Old-Gen, Not Found, Not Found, Not Found, Not Found, Not Found", host.Script.Single(s => s.StartsWith("versions", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-9"), Deviation(14, "A failed decode removes its partial output and copies the backup back, keeping it with Keep Backups on.")]
+    public async Task Bug_14_a_decode_failing_mid_file_leaves_the_original_and_keeps_the_backup_when_keep_backups_is_on()
+    {
+        // The real launcher patch cut short: xdelta3 writes the windows it verified before the cut, so the reference left
+        // a fragment as the launcher. The port deletes the fragment and copies the backup back.
+        using var machine = new Machine();
+        machine.Place("Fallout4Launcher.exe", "02445570", fromFile: Path.Combine(Patches, "big", "og", "Fallout4Launcher.exe"));
+        var big = File.ReadAllBytes(Path.Combine(Patches, "big", "OG-to-NG-Fallout4Launcher.exe.xdelta"));
+        File.WriteAllBytes(machine.CwdPath("OG-to-NG-Fallout4Launcher.exe.xdelta"), big[..(big.Length / 2)]);
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+
+        await machine.Run().PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
+
+        Assert.Contains("Bad: Failed patching Fallout4Launcher.exe", host.Lines);
+        Assert.Equal("02445570", FileCrc32.Of(machine.GamePath("Fallout4Launcher.exe")));
+        Assert.Equal("02445570", FileCrc32.Of(machine.GamePath("Fallout4Launcher_upgradeBackup.exe")));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-6")]
+    [Trait("Parity", "B-10"), Deviation(15, "A saved patch that doesn't decode is deleted, so the next Patch All downloads it afresh.")]
+    public async Task Bug_15_a_saved_patch_that_does_not_decode_is_deleted_so_the_next_run_downloads_it()
+    {
+        // Bug #15 (B-10), fixed (ADR-0006): the reference reused a same-named patch in the working directory without a
+        // check, so an error page or a truncated file from an earlier run failed every run after it. The port deletes a
+        // patch that doesn't decode, whatever Delete Patches says, and the next click downloads a good one.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        File.WriteAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta"), "Not Found");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+
+        Assert.Empty(server.Requested);
+        Assert.Equal(["Bad: Failed patching Fallout4.exe"], host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+
+        server.Release();
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
+
+        Assert.Equal(["OG-to-NG-Fallout4.exe.xdelta"], server.Requested);
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.True(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-6")]
+    [Trait("Parity", "B-10"), Deviation(15, "A response without a Content-Length downloads in full; the bar jumps to 100 when it's done.")]
+    public async Task Bug_15_a_response_without_a_content_length_downloads_and_applies()
+    {
+        // Bug #15 (B-10), fixed (ADR-0006): the reference divided by the missing Content-Length on the first chunk, and
+        // its poll then waited forever with the window unclosable. The port downloads the whole patch, showing no
+        // progress until it is done.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        var patch = File.ReadAllBytes(Path.Combine(Patches, "OG-to-NG-Fallout4.exe.xdelta"));
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body(patch, contentLength: false) };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Equal(patch, File.ReadAllBytes(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal([0.0, 100.0], host.Events.Items.OfType<Percent>().Select(p => p.Value));
+        Assert.False(run.InProgress);
+        Assert.Equal(["button on", "idle"], host.Script.TakeLast(2));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A failed download is logged, its file is put back from its backup, and the queue moves on to its end.")]
+    [Trait("Parity", "NET-3")]
+    public async Task Bug_15_a_network_error_fails_that_file_and_the_queue_moves_on()
+    {
+        // Bug #15 (B-10), fixed (ADR-0006): the reference's download thread died, and the poll waited for it forever
+        // with the button off and the window unclosable. The port logs the failure, puts the file back, patches the
+        // next file and finishes the queue.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        machine.Place("Fallout4Launcher.exe", "02445570");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Failure() };
+        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Equal(
+            [
+                "Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection failure.",
+                "Bad: Failed patching Fallout4.exe",
+                "Good: Patched Fallout4Launcher.exe",
+            ],
+            host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(File.Exists(machine.GamePath("Fallout4_upgradeBackup.exe")));
+        Assert.Equal("F6A06FF5", FileCrc32.Of(machine.GamePath("Fallout4Launcher.exe")));
+        Assert.False(run.InProgress);
+        Assert.Equal(["versions: Old-Gen, Next-Gen, Not Found, Not Found, Not Found, Not Found", "button on", "idle"], host.Script.TakeLast(3));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "An HTTP error status fails the download without saving the error page as the patch.")]
+    public async Task Bug_15_an_error_page_is_not_saved_as_the_patch()
+    {
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
         var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body("Not Found"u8.ToArray(), HttpStatusCode.NotFound) };
-        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
 
         await machine.Run(server).PatchAllAsync(InstallType.NextGen, host, host.Events);
         server.Release();
         await host.RunPollsAsync();
 
-        Assert.Contains("Bad: Failed patching Fallout4.exe", host.Lines);
-        Assert.False(File.Exists(machine.GamePath("Fallout4.exe")));
-        Assert.False(File.Exists(machine.GamePath("Fallout4_upgradeBackup.exe")));
-        Assert.Equal("Not Found", File.ReadAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
-        Assert.Equal("versions: Not Found, Not Found, Not Found, Not Found, Not Found, Not Found", host.Script.Single(s => s.StartsWith("versions", StringComparison.Ordinal)));
-    }
-
-    [Fact]
-    [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-10")]
-    public async Task Bug_15_a_response_without_a_content_length_fails_after_its_first_chunk_and_the_queue_never_moves_again()
-    {
-        // Bug #15 (B-10), reproduced: ZeroDivisionError on the first chunk, after writing it. The poll ends with the
-        // error; the button stays off, the window stays unclosable, and the launcher's patch stays queued.
-        using var machine = new Machine();
-        machine.Place("Fallout4.exe", "C6053902");
-        machine.Place("Fallout4Launcher.exe", "02445570");
-        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Body(new byte[3000], contentLength: false) };
-        var host = new ScriptedHost { KeepBackups = true };
-        var run = machine.Run(server);
-
-        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
-        server.Release();
-        await Assert.ThrowsAsync<DivideByZeroException>(host.RunPollsAsync);
-
-        Assert.Equal(1024, new FileInfo(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")).Length);
-        Assert.True(run.InProgress);
-        Assert.DoesNotContain("idle", host.Script);
-        Assert.DoesNotContain(host.Script, s => s.StartsWith("versions", StringComparison.Ordinal));
-        Assert.Equal(["OG-to-NG-Fallout4.exe.xdelta"], server.Requested);
-
-        // A later click (B-11 left the button on: the last file wasn't there) still sees Fallout4.exe as Old-Gen, but it
-        // has been renamed to its backup, so reading its CRC raises out of the click, as in the reference.
-        Assert.Equal("button on", host.Script[^1]);
-        await Assert.ThrowsAsync<FileNotFoundException>(() => run.PatchAllAsync(InstallType.NextGen, host, host.Events));
-        Assert.Empty(host.Polls);
-    }
-
-    [Fact]
-    [Trait("Parity", "B-10")]
-    [Trait("Parity", "NET-3")]
-    public async Task Bug_15_a_network_error_fails_the_download_before_anything_is_saved()
-    {
-        using var machine = new Machine();
-        machine.Place("Fallout4.exe", "C6053902");
-        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Failure() };
-        var host = new ScriptedHost();
-        var run = machine.Run(server);
-
-        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
-        server.Release();
-        await Assert.ThrowsAsync<HttpRequestException>(host.RunPollsAsync);
-
+        Assert.Contains("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found).", host.Lines);
         Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
-        Assert.True(run.InProgress);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4_upgradeBackup.exe")));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A download cut off mid-body leaves no partial patch behind.")]
+    public async Task Bug_15_a_download_cut_off_mid_body_leaves_no_partial_patch()
+    {
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.CutOff(new byte[3000], after: 2048) };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Contains(host.Lines, l => l.StartsWith("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: ", StringComparison.Ordinal));
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(run.InProgress);
     }
 
     [Theory]
@@ -404,10 +522,11 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-4")]
-    [Trait("Parity", "B-11")]
-    public async Task Bug_28_a_skipped_last_file_re_enables_the_button_while_a_download_still_runs()
+    [Trait("Parity", "B-11"), Deviation(28, "A skipped last file no longer re-enables Patch All while a download still runs.")]
+    public async Task Bug_28_a_skipped_last_file_leaves_the_button_off_while_a_download_still_runs()
     {
-        // Bug #28 (B-11), reproduced: Archive2Interop.dll isn't there, so the loop ends with patch_needed False.
+        // Bug #28 (B-11), fixed (ADR-0006): Archive2Interop.dll isn't there, so the reference's loop ended with
+        // patch_needed False and turned the button back on mid-download. The port keeps it off until the queue empties.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
         var server = new PatchServer();
@@ -416,9 +535,34 @@ public sealed class DowngraderRunTests
 
         await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
 
-        Assert.Equal("button on", host.Script[^1]);
+        Assert.DoesNotContain("button on", host.Script);
+        Assert.Equal("button off", host.Script[^1]);
         Assert.True(run.InProgress);
         Assert.Single(host.Polls);
+
+        server.Release();
+        await host.RunPollsAsync();
+        Assert.Equal(["button on", "idle"], host.Script.TakeLast(2));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-4"), Deviation(28, "A restore that empties the queue mid-loop no longer leaves Patch All on while a later file downloads.")]
+    public async Task Bug_28_a_queue_finished_mid_loop_does_not_leave_the_button_on_for_a_later_download()
+    {
+        // Fallout4.exe is restored from its backup, so the queue empties and the "finished" step turns the button on in
+        // the middle of the loop; the launcher then starts a download. The button is off again when the loop is done.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C5965A2E");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        machine.Place("Fallout4Launcher.exe", "F6A06FF5");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.OldGen, host, host.Events);
+
+        Assert.True(run.InProgress);
+        Assert.Equal("button off", host.Script.Last(s => s.StartsWith("button", StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -823,6 +967,14 @@ public sealed class DowngraderRunTests
 
         public static Func<HttpResponseMessage> Failure() => () => throw new HttpRequestException(HttpRequestError.ConnectionError, "Canned connection failure.");
 
+        /// <summary>A 200 with the whole body's Content-Length whose body fails with an I/O error after <paramref name="after"/> bytes.</summary>
+        public static Func<HttpResponseMessage> CutOff(byte[] body, int after) => () =>
+        {
+            var content = new StreamContent(new CutOffStream(body, after));
+            content.Headers.ContentLength = body.Length;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        };
+
         public void Release() => _released.TrySetResult();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -843,6 +995,37 @@ public sealed class DowngraderRunTests
         private sealed class NonSeekable(byte[] data) : MemoryStream(data, writable: false)
         {
             public override bool CanSeek => false;
+        }
+
+        /// <summary>A body whose connection drops after <paramref name="after"/> bytes.</summary>
+        private sealed class CutOffStream(byte[] data, int after) : MemoryStream(data, writable: false)
+        {
+            public override bool CanSeek => false;
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (Position >= after)
+                {
+                    throw new IOException("Canned connection reset.");
+                }
+
+                // MemoryStream's array overload reads directly; its span overload would call back into this one.
+                return base.Read(buffer, offset, (int)Math.Min(count, after - Position));
+            }
+
+            public override int Read(Span<byte> buffer)
+            {
+                var chunk = new byte[buffer.Length];
+                var read = Read(chunk, 0, chunk.Length);
+                chunk.AsSpan(0, read).CopyTo(buffer);
+                return read;
+            }
+
+            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+                => ValueTask.FromResult(Read(buffer.Span));
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => Task.FromResult(Read(buffer, offset, count));
         }
     }
 }
