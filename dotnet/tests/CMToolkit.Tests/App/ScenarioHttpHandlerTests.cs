@@ -12,8 +12,9 @@ public sealed class ScenarioHttpHandlerTests
 {
     private static readonly Dictionary<string, Uri> UrlOf = new()
     {
-        ["nexus-page"] = new Uri("https://www.nexusmods.com/fallout4/mods/87907"),
-        ["github-latest-release"] = new Uri("https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest"),
+        // The URLs the update check asks for.
+        ["nexus-page"] = new Uri(CMToolkit.Core.Updates.UpdateCheck.NexusPageUrl),
+        ["github-latest-release"] = new Uri(CMToolkit.Core.Updates.UpdateCheck.GitHubLatestReleaseUrl),
     };
 
     public static TheoryData<string> HttpResources =>

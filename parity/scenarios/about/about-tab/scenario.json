@@ -6,5 +6,11 @@
     "NET-4",
     "THR-3"
   ],
-  "host": {}
+  "host": {},
+  "deviations": [
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
 }
