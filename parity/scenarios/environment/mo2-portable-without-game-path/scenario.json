@@ -1,0 +1,23 @@
+{
+  "description": "A portable INI without gamePath is read, then read again by the fallback; the game path stays unset.",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-1",
+    "MO2-3",
+    "MO2-9"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

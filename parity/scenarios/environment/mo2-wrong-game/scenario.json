@@ -1,0 +1,21 @@
+{
+  "description": "gameName other than Fallout 4 is fatal, with the INI path in the message (MO2-8).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-8"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

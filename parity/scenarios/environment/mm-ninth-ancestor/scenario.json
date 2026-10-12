@@ -1,0 +1,45 @@
+{
+  "description": "Vortex as the 9th ancestor is beyond the walk.",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "launcher1.exe"
+      },
+      {
+        "name": "launcher2.exe"
+      },
+      {
+        "name": "launcher3.exe"
+      },
+      {
+        "name": "launcher4.exe"
+      },
+      {
+        "name": "launcher5.exe"
+      },
+      {
+        "name": "launcher6.exe"
+      },
+      {
+        "name": "launcher7.exe"
+      },
+      {
+        "name": "launcher8.exe"
+      },
+      {
+        "name": "Vortex.exe",
+        "exe": "<ROOT>/Vortex/Vortex.exe",
+        "fileVersion": [
+          1,
+          13,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}

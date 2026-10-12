@@ -1,0 +1,37 @@
+{
+  "description": "An instance MO2: CurrentInstance names the folder under %LOCALAPPDATA%\\ModOrganizer. base_directory moves every default directory, and the [customExecutables] entries are skipped (MO2-10 is not ported).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-2",
+    "MO2-4",
+    "MO2-5",
+    "MO2-6",
+    "MO2-7",
+    "MO2-9"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          4,
+          4,
+          0
+        ]
+      }
+    ],
+    "registry": {
+      "HKCU\\Software\\Mod Organizer Team\\Mod Organizer": {
+        "CurrentInstance": {
+          "type": "REG_SZ",
+          "value": "Fallout 4"
+        }
+      }
+    },
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    }
+  }
+}

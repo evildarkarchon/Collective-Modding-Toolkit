@@ -60,3 +60,7 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   100 %, 1440p). Accepted rather than reproduced.
 - The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see [`parity/screenshots/shell/`](../parity/screenshots/shell/)). The
   main-window-shell prototype has the same offset, so it predates this tree. Horizontal positions match exactly.
+- MO2's `skip_*` values are lowercased with `ToLowerInvariant`. Python's `str.lower()` differs for U+0130 (`İ` becomes
+  two characters) and a word-final capital sigma (`ς`); no scenario covers them.
+- `platform.release()` and the build come from `RtlGetVersion` (version and product type), where Python asks WMI. They
+  report the same numbers; a machine whose WMI is broken makes Python fall back to `ver`, which isn't reproduced.

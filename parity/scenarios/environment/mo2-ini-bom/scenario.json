@@ -1,0 +1,23 @@
+{
+  "description": "A UTF-8 BOM is kept as U+FEFF, so the first line isn't a [General] header and its keys are never read: no profile (T-1).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-4",
+    "MO2-8",
+    "T-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

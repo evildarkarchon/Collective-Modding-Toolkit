@@ -1,0 +1,45 @@
+{
+  "description": "Windows 10 22H2 with an AMD CPU padded with spaces, a video device path without the \\Registry\\Machine\\ prefix, and 2.5 GiB RAM / 3.5 GiB VRAM to show banker's rounding.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-2",
+    "PC-3",
+    "PC-4",
+    "PC-5",
+    "T-11"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "AMD Radeon RX 6600"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 3758096384
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "10",
+      "build": 19045
+    },
+    "pc": {
+      "ramBytes": 2684354560
+    }
+  }
+}

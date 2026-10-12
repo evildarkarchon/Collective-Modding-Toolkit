@@ -1,0 +1,42 @@
+{
+  "description": "Values of the wrong registry type are ignored without a log line. The CPU default then goes through the clean-up, which strips ' CPU' from 'Unknown CPU'.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-4",
+    "PC-5"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_DWORD",
+          "value": 7
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_EXPAND_SZ",
+          "value": "NVIDIA GeForce RTX 4090"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_DWORD",
+          "value": 24
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 22000
+    },
+    "pc": {
+      "ramBytes": 8589934592
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "kind": "fileNotFound",
+    "message": "Unable to find ModOrganizer.ini. Please report this along with your MO2 instance details."
+  },
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  }
+}

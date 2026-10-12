@@ -1,0 +1,19 @@
+{
+  "description": "No mod manager among the ancestors.",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "cmd.exe",
+        "exe": "C:\\Windows\\System32\\cmd.exe"
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ]
+  }
+}

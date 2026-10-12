@@ -1,0 +1,22 @@
+{
+  "description": "An INI that isn't valid UTF-8 fails the strict decode (T-1).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-4",
+    "T-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

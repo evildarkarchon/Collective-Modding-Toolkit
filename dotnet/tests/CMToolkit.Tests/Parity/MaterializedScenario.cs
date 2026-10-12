@@ -266,4 +266,120 @@ public sealed class FakeHostEnvironment : IHostEnvironment
         => value.StartsWith(MaterializedScenario.RootToken, StringComparison.Ordinal)
             ? Root + value[MaterializedScenario.RootToken.Length..]
             : value;
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Mirrors the driver's <c>FakeWinreg</c>: hives <c>HKLM</c>/<c>HKCU</c> (or their long names), key paths and value
+    /// names matched case-insensitively, and a key that is only the parent of a listed key exists but has no values.
+    /// </remarks>
+    public RegistryData ReadRegistryValue(RegistryRoot root, string keyPath, string valueName)
+    {
+        var wanted = keyPath.ToUpperInvariant();
+        var keyExists = false;
+        foreach (var (fullPath, values) in Block.Registry ?? new Dictionary<string, IReadOnlyDictionary<string, RegistryValue>>())
+        {
+            var separator = fullPath.IndexOf('\\', StringComparison.Ordinal);
+            var hive = separator < 0 ? fullPath : fullPath[..separator];
+            var path = separator < 0 ? string.Empty : fullPath[(separator + 1)..];
+            var listedRoot = hive.ToUpperInvariant() switch
+            {
+                "HKLM" or "HKEY_LOCAL_MACHINE" => RegistryRoot.LocalMachine,
+                "HKCU" or "HKEY_CURRENT_USER" => RegistryRoot.CurrentUser,
+                _ => throw new InvalidOperationException($"Unknown registry hive in '{fullPath}'; use HKLM or HKCU."),
+            };
+            if (listedRoot != root)
+            {
+                continue;
+            }
+
+            var listed = path.ToUpperInvariant();
+            if (listed == wanted)
+            {
+                keyExists = true;
+                foreach (var (name, value) in values)
+                {
+                    if (string.Equals(name, valueName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return ToRegistryData(value);
+                    }
+                }
+            }
+            else if (listed.StartsWith(wanted + "\\", StringComparison.Ordinal))
+            {
+                keyExists = true;
+            }
+        }
+
+        throw new FileNotFoundException(keyExists
+            ? $@"The scenario's registry key {root}\{keyPath} has no value '{valueName}'."
+            : $@"The scenario's registry has no key {root}\{keyPath}.");
+    }
+
+    /// <summary>A host-block registry value as Core sees it, with <c>&lt;ROOT&gt;</c> expanded in strings.</summary>
+    private RegistryData ToRegistryData(RegistryValue value) => value.Type switch
+    {
+        "REG_SZ" => new RegistryData(RegistryDataType.String, Expand(value.Value.GetString()!)),
+        "REG_EXPAND_SZ" => new RegistryData(RegistryDataType.ExpandString, Expand(value.Value.GetString()!)),
+        "REG_DWORD" => new RegistryData(RegistryDataType.DWord, value.Value.GetInt64()),
+        "REG_QWORD" => new RegistryData(RegistryDataType.QWord, value.Value.GetInt64()),
+        _ => throw new InvalidOperationException($"Unknown registry value type '{value.Type}'."),
+    };
+
+    /// <inheritdoc/>
+    public bool IsWine => Block.Os?.Wine ?? false;
+
+    /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The host block has no <c>os</c>.</exception>
+    public OperatingSystemInfo OsInfo
+        => Block.Os is { } os
+            ? new OperatingSystemInfo(os.System, os.Release, os.Build)
+            : throw new InvalidOperationException("The scenario's host block has no os.");
+
+    /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The host block has no <c>pc</c>.</exception>
+    public long TotalPhysicalMemory
+        => Block.Pc?.RamBytes ?? throw new InvalidOperationException("The scenario's host block has no pc.");
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The host block's chain, from the parent up. An omitted <c>exe</c> is one that can't be read (the driver's fake
+    /// raises psutil's <c>AccessDenied</c> for it).
+    /// </remarks>
+    public IReadOnlyList<AncestorProcess> GetAncestorProcesses(int maxCount)
+        => [.. (Block.Processes ?? []).Take(maxCount).Select(p => new AncestorProcess(p.Name, p.Exe is null ? null : Expand(p.Exe)))];
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The <c>fileVersion</c> of a host-block process whose exe is <paramref name="path"/>, else the real file's version
+    /// resource, as the driver's <c>file_version_wrapper</c> does.
+    /// </remarks>
+    public IReadOnlyList<int>? GetFileVersion(string path)
+    {
+        var full = Path.GetFullPath(path);
+        foreach (var process in Block.Processes ?? [])
+        {
+            if (process is { Exe: { } exe, FileVersion: { } version }
+                && string.Equals(Path.GetFullPath(Expand(exe)), full, StringComparison.OrdinalIgnoreCase))
+            {
+                return version;
+            }
+        }
+
+        return CMToolkit.Core.Win32.FileVersionResource.Read(path);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Only the host block's <c>env</c> exists, matched case-insensitively, so the real environment can't leak in.</remarks>
+    public string? GetEnvironmentVariable(string name)
+    {
+        foreach (var (key, value) in Block.Env ?? new Dictionary<string, string>())
+        {
+            if (string.Equals(key, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return Expand(value);
+            }
+        }
+
+        return null;
+    }
 }

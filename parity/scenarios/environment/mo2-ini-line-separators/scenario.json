@@ -1,0 +1,23 @@
+{
+  "description": "Lines split on every splitlines separator (\\v \\f \\x1c-\\x1e \\x85 \\u2028 \\u2029 and a lone \\r), not just CRLF (T-1).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-4",
+    "MO2-7",
+    "T-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

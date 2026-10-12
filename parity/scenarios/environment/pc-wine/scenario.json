@@ -1,0 +1,45 @@
+{
+  "description": "ntdll exports wine_get_version, so the OS string is Linux (WINE) and the OS release and build are never read.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-1",
+    "PC-3",
+    "PC-4",
+    "PC-5"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "Intel(R) Core(TM) i5-8400 CPU @ 2.80GHz"
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce GTX 1060 6GB"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 6442450944
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "10",
+      "build": 19045,
+      "wine": true
+    },
+    "pc": {
+      "ramBytes": 17179869184
+    }
+  }
+}

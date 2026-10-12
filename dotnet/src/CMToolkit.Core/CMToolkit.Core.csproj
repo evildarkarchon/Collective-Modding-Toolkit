@@ -6,5 +6,12 @@
   <PropertyGroup>
     <RootNamespace>CMToolkit.Core</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- The LibraryImport source generator emits unsafe marshalling code for Win32/NativeMethods.cs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core logs through ILogger only (issue #7); the App owns the cm-toolkit.log provider. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+  </ItemGroup>
 </Project>

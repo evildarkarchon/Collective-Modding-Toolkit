@@ -1,0 +1,101 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  },
+  "mo2": {
+    "gamePath": "X:\\Games\\Fallout 4",
+    "iniPath": "<ROOT>\\MO2\\ModOrganizer.ini",
+    "overwritePath": "Over",
+    "portable": true,
+    "portableTxtPath": "<ROOT>\\MO2\\portable.txt",
+    "profilesPath": "Profiles",
+    "selectedProfile": "Default",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "<ROOT>\\MO2"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\webcache"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\downloads"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "Mods"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "Over"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": false
+      },
+      {
+        "key": "profile_local_saves",
+        "value": false
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "Profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": [
+          ".b"
+        ]
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "a"
+        ]
+      },
+      {
+        "key": "gameName",
+        "value": {
+          "text": "Fallout 4"
+        }
+      },
+      {
+        "key": "gamePath",
+        "value": {
+          "path": "X:\\Games\\Fallout 4"
+        }
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": "Default"
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        "a"
+      ]
+    },
+    "skipFileSuffixes": [
+      ".b"
+    ],
+    "stagePath": "Mods"
+  }
+}

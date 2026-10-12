@@ -1,0 +1,18 @@
+{
+  "description": "Neither the CPU nor the video keys exist: Unknown CPU and Unknown GPU / 0, each with a logged exception.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-4",
+    "PC-5"
+  ],
+  "host": {
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 22631
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}
