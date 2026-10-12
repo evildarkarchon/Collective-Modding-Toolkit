@@ -96,7 +96,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   which the port logs as a failed check where the reference failed startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
   chardet. Real chunk boundaries also differ:
   the port always reads the Nexus page in 512-byte chunks (as the parity harness does), while urllib3 follows the
-  server's chunked encoding, so bug #82 strikes on different pages. HttpClient does not follow an https-to-http
+  server's chunked encoding. That no longer changes the result, since the port joins a CRLF split across two reads
+  (bug #82, which struck the reference on some pages only). HttpClient does not follow an https-to-http
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
   its link tooltips are Avalonia's, not tktooltip's.
