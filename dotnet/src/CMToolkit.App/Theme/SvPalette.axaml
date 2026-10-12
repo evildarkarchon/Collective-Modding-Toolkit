@@ -21,11 +21,12 @@
   <x:Double x:Key="CmtLineLarge">35</x:Double>
   <!-- GDI hinting snaps Cascadia's 1200/2048 em advance to whole pixels; Skia doesn't. LetterSpacing = rounded - exact
        restores Tk's line widths, and with them its wraplength wrap points:
-       16 px 9.375->9, 13 px 7.617->8, 11 px 6.445->6, 27 px 15.82->16. -->
-  <x:Double x:Key="CmtSpacingSmaller">-0.445</x:Double>
-  <x:Double x:Key="CmtSpacingSmall">0.383</x:Double>
+       16 px 9.375->9, 13 px 7.617->8, 11 px 6.445->6, 27 px 15.82->16. The values are exact (n * 1200 / 2048 is a
+       binary fraction): a rounded 0.383 left a line a hair over whole pixels, which layout rounding made 1 px wider. -->
+  <x:Double x:Key="CmtSpacingSmaller">-0.4453125</x:Double>
+  <x:Double x:Key="CmtSpacingSmall">0.3828125</x:Double>
   <x:Double x:Key="CmtSpacingNormal">-0.375</x:Double>
-  <x:Double x:Key="CmtSpacingLarge">0.18</x:Double>
+  <x:Double x:Key="CmtSpacingLarge">0.1796875</x:Double>
 
   <!-- src/globals.py COLOR_*; Tk named colours are resolved through the Tk 8.6 colour table. -->
   <SolidColorBrush x:Key="CmtDefault" Color="#CACACA" />
@@ -45,8 +46,15 @@
   <SolidColorBrush x:Key="SvStrip" Color="#2F2F2F" />
   <SolidColorBrush x:Key="SvHover" Color="#292929" />
   <SolidColorBrush x:Key="SvSep" Color="#2F2F2F" />
+  <!-- sv_ttk radio sprites, sampled from the Settings tab: the unselected ring and fill, and the selected disc. -->
+  <SolidColorBrush x:Key="SvRadioBorder" Color="#929292" />
+  <SolidColorBrush x:Key="SvRadioFill" Color="#191919" />
+  <SolidColorBrush x:Key="SvAccent" Color="#3CD648" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+  <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by
+       line + 13 px (measured on the Tools tab), less Fluent's 1 px border. -->
+  <Thickness x:Key="ButtonPadding">11,5,11,6</Thickness>
 
   <ResourceDictionary.ThemeDictionaries>
     <ResourceDictionary x:Key="Dark">

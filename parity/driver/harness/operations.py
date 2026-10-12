@@ -300,3 +300,222 @@ def mod_manager(session: Session, golden: GoldenContext) -> dict[str, Any]:  # n
 		"settings": [{"key": k, "value": _setting_value(golden, v)} for k, v in manager.mo2_settings.items()],
 	}
 	return result
+
+
+class _Tooltips:
+	"""Stands in for ``tktooltip.ToolTip`` where a tab module uses it: records each widget's tooltip text instead of
+	binding hover events, so the golden can read it back by widget.
+	"""
+
+	def __init__(self) -> None:
+		self.by_widget: dict[str, str] = {}
+
+	def __call__(self, widget: Any, msg: str, *_args: Any, **_kwargs: Any) -> None:
+		self.by_widget[str(widget)] = msg
+
+	def of(self, widget: Any) -> str | None:
+		"""The tooltip bound to ``widget``, or ``None``."""
+		return self.by_widget.get(str(widget))
+
+
+def _grid_children(master: Any) -> list[Any]:
+	"""``master``'s gridded children in (row, column) order: the order the user reads them in."""
+	children = [c for c in master.winfo_children() if c.winfo_manager() == "grid"]
+	return sorted(children, key=lambda c: (int(c.grid_info()["row"]), int(c.grid_info()["column"])))
+
+
+def _image_path(cmc: Any, widget: Any) -> str | None:
+	"""The assets-relative path of the image a label shows, looked up in the ``cmc`` stub's image cache."""
+	# A ttk image option is an image spec (a list: the default image, then state/image pairs); the first is shown.
+	specs = widget.tk.splitlist(widget.cget("image"))
+	if not specs:
+		return None
+	name = str(specs[0])
+	for path, image in cmc._images.items():  # noqa: SLF001 - the stub's own cache
+		if str(image) == name:
+			return path
+	return None
+
+
+def _build_tab(session: Session, tab_class: Any, **state: Any) -> tuple[Any, Any]:
+	"""Builds one tab on a ``cmc`` stub through ``CMCTabFrame.load``, as selecting it would. Returns (tab, cmc)."""
+	from tkinter import ttk  # noqa: PLC0415
+
+	cmc = session.make_cmc(**state)
+	notebook = ttk.Notebook(session.root)
+	tab = tab_class(cmc, notebook)
+	tab.load()
+	return tab, cmc
+
+
+@operation("tools-tab")
+def tools_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noqa: ARG001
+	"""TOOL-1, TOOL-2, NET-4: the real ``ToolsTab``, read back off its widgets, column by column.
+
+	Each button is invoked with ``webbrowser`` and the two utility windows replaced by recorders, so ``opens`` is what
+	the button actually does: ``{"url": ...}`` or ``{"window": ...}``. ``tooltip`` is the button's hover text and
+	``info`` the info icon's (``None`` without one). The whole golden is rendered UI, compared in full by the App test.
+	"""
+	from tabs import _tools  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	tooltips = _Tooltips()
+	opened: list[dict[str, str]] = []
+	_tools.ToolTip = tooltips
+	_tools.webbrowser = ModuleProxy(_tools.webbrowser, open=lambda url, *_a, **_k: opened.append({"url": url}))
+	_tools.Downgrader = lambda *_a, **_k: opened.append({"window": "Downgrader"})
+	_tools.ArchivePatcher = lambda *_a, **_k: opened.append({"window": "ArchivePatcher"})
+
+	tab, cmc = _build_tab(session, _tools.ToolsTab)
+	columns = []
+	for frame in _grid_children(tab):
+		rows: dict[int, dict[str, Any]] = {}
+		for widget in _grid_children(frame):
+			row = rows.setdefault(int(widget.grid_info()["row"]), {})
+			if widget.winfo_class() == "TButton":
+				row["button"] = widget
+			else:
+				row["info"] = widget
+
+		buttons = []
+		for row in rows.values():
+			button = row["button"]
+			before = len(opened)
+			button.invoke()
+			info = row.get("info")
+			buttons.append({
+				"text": str(button.cget("text")),
+				"enabled": not button.instate(["disabled"]),
+				"opens": opened[before] if len(opened) > before else None,
+				"tooltip": tooltips.of(button),
+				"info": None if info is None else {"image": _image_path(cmc, info), "tooltip": tooltips.of(info)},
+			})
+		columns.append({"title": str(frame.cget("text")), "buttons": buttons})
+
+	return {"toolsTab": {"columns": columns}}
+
+
+@operation("settings-tab")
+def settings_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noqa: ARG001
+	"""SETT-1, SET-7: the real ``SettingsTab`` over ``AppSettings()`` loaded from the scenario's working directory.
+
+	``settingsTab`` is the frames and radios as built: text, value, tooltip and whether each is selected. Then every
+	radio is clicked in turn, the last one twice (``invoke``, as a click does), and each click records which radios are selected after
+	it, the ``settings.json`` it left behind and the ``app_settings`` log lines it wrote. The settings load's own lines
+	are not captured; the ``settings-load`` scenarios cover them.
+	"""
+	import app_settings  # noqa: PLC0415
+	from tabs import _settings  # noqa: PLC0415, PLC2701 - the module the patched name is used in
+
+	tooltips = _Tooltips()
+	_settings.ToolTip = tooltips
+	settings = app_settings.AppSettings()
+	capture = capture_logs()
+	tab, _ = _build_tab(session, _settings.SettingsTab, settings=settings)
+
+	frames = _grid_children(tab)
+	radios = [radio for frame in frames for radio in frame.pack_slaves()]
+
+	def selected() -> list[str]:
+		return [str(radio.cget("text")) for radio in radios if radio.instate(["selected"])]
+
+	built = [
+		{
+			"title": str(frame.cget("text")),
+			"radios": [
+				{
+					"text": str(radio.cget("text")),
+					"value": str(radio.cget("value")),
+					"selected": radio.instate(["selected"]),
+					"tooltip": tooltips.of(radio),
+				}
+				for radio in frame.pack_slaves()
+			],
+		}
+		for frame in frames
+	]
+
+	clicks = []
+	# The last radio is clicked twice: clicking the radio that is already selected still runs its command and saves.
+	for radio in [*radios, radios[-1]]:
+		before = len(capture.records)
+		radio.invoke()
+		clicks.append({
+			"radio": str(radio.cget("text")),
+			"selected": selected(),
+			"settingsFile": file_snapshot(Path(app_settings.SETTINGS_PATH)),
+			"log": log_lines(capture.records[before:], "app_settings"),
+		})
+
+	return {"settingsTab": {"frames": built}, "clicks": clicks}
+
+
+@operation("about-tab")
+def about_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noqa: ARG001
+	"""ABOUT-1, NET-4, THR-3: the real ``AboutTab``, read back off its widgets.
+
+	``webbrowser``, the clipboard and ``after`` are replaced by recorders for the operation, so the real system
+	clipboard is never touched and the 3 s revert runs on demand. Each link row records its logo, what its open button
+	opens, and what its copy button copies, the button's state once clicked, the ``after`` delay, and its state once
+	that callback has run.
+	"""
+	import tkinter as tk  # noqa: PLC0415
+
+	from tabs import _about  # noqa: PLC0415, PLC2701 - the module the patched name is used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	opened: list[str] = []
+	clipboard: list[str] = []
+	scheduled: list[tuple[int, Any]] = []
+	_about.webbrowser = ModuleProxy(_about.webbrowser, open=lambda url, *_a, **_k: opened.append(url))
+	patched = {
+		"clipboard_clear": lambda _self, **_k: clipboard.clear(),
+		"clipboard_append": lambda _self, text, **_k: clipboard.append(text),
+		"after": lambda _self, ms, func=None, *args: scheduled.append((ms, lambda: func(*args))),
+	}
+	originals = {name: getattr(tk.Misc, name) for name in patched}
+	try:
+		for name, replacement in patched.items():
+			setattr(tk.Misc, name, replacement)
+		tab, cmc = _build_tab(session, _about.AboutTab)
+		# (row, column) order: the title (0, 0), the text frame spanning both rows of column 1, then the icon (1, 0).
+		title, text_frame, icon = _grid_children(tab)
+		text, *link_frames = _grid_children(text_frame)
+
+		def state(button: Any) -> dict[str, Any]:
+			return {"text": str(button.cget("text")), "enabled": not button.instate(["disabled"])}
+
+		links = []
+		for frame in link_frames:
+			logo, _separator, open_button, copy_button = _grid_children(frame)
+			copy_text = str(copy_button.cget("text"))
+			open_button.invoke()
+			copy_button.invoke()
+			clicked = state(copy_button)
+			delay, revert = scheduled.pop()
+			revert()
+			links.append({
+				"logo": _image_path(cmc, logo),
+				"open": {"text": str(open_button.cget("text")), "opens": opened.pop()},
+				"copy": {
+					"text": copy_text,
+					"copies": "".join(clipboard),
+					"clicked": clicked,
+					"revertAfterMs": delay,
+					"reverted": state(copy_button),
+				},
+			})
+	finally:
+		for name, original in originals.items():
+			setattr(tk.Misc, name, original)
+
+	return {
+		"aboutTab": {
+			"title": str(title.cget("text")),
+			"icon": _image_path(cmc, icon),
+			"text": str(text.cget("text")),
+			"links": links,
+		},
+	}

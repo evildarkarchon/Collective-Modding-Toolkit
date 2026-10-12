@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using CMToolkit.App.Runtime;
 
 namespace CMToolkit.App.Tabs;
 
@@ -28,6 +29,23 @@ public sealed class PlaceholderTab : TabPage
         new PlaceholderTab("Tools", "ToolsTab"),
         new PlaceholderTab("Settings", "SettingsTab"),
         new PlaceholderTab("About", "AboutTab"),
+    ];
+
+    /// <summary>
+    /// The six tabs as the app runs them: <see cref="Shell()"/> with every tab whose slice has landed swapped in, in
+    /// the same place. Each tab slice adds its arm here.
+    /// </summary>
+    /// <param name="runtime">The app runtime the real tabs share.</param>
+    /// <param name="settings">The settings in effect, which the Settings tab shows and saves.</param>
+    public static IReadOnlyList<TabPage> Shell(AppRuntime runtime, SettingsStore settings) =>
+    [
+        .. Shell().Select(page => page.LogName switch
+        {
+            "ToolsTab" => new ToolsTab(runtime),
+            "SettingsTab" => new SettingsTab(settings),
+            "AboutTab" => new AboutTab(runtime),
+            _ => page,
+        }),
     ];
 
     /// <inheritdoc/>

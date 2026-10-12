@@ -58,3 +58,10 @@ T-7
 T-11
 B-5
 B-6
+
+# Tools, Settings and About tabs (#55). TOOL-1, SET-7 and THR-3 are proven in part; their other slices add them.
+TOOL-2
+SETT-1
+SETT-2
+ABOUT-1
+NET-4

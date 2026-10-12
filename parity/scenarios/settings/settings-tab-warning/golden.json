@@ -1,0 +1,184 @@
+{
+  "clicks": [
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "All: GitHub & Nexus Mods",
+      "selected": [
+        "All: GitHub & Nexus Mods"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"WARNING\",\r\n\t\"update_source\": \"both\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Early: GitHub",
+      "selected": [
+        "Early: GitHub"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"WARNING\",\r\n\t\"update_source\": \"github\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Stable: Nexus Mods",
+      "selected": [
+        "Stable: Nexus Mods"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"WARNING\",\r\n\t\"update_source\": \"nexus\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Never: Don't Check",
+      "selected": [
+        "Never: Don't Check"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"WARNING\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Debug",
+      "selected": [
+        "Never: Don't Check",
+        "Debug"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"DEBUG\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Info",
+      "selected": [
+        "Never: Don't Check",
+        "Info"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Error",
+      "selected": [
+        "Never: Don't Check",
+        "Error"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"ERROR\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    },
+    {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "radio": "Error",
+      "selected": [
+        "Never: Don't Check",
+        "Error"
+      ],
+      "settingsFile": {
+        "text": "{\r\n\t\"log_level\": \"ERROR\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": false,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+      }
+    }
+  ],
+  "settingsTab": {
+    "frames": [
+      {
+        "radios": [
+          {
+            "selected": false,
+            "text": "All: GitHub & Nexus Mods",
+            "tooltip": "GitHub will always have the latest release.\nNexus Mods releases may be delayed due to\ntheir review process or to await more testing.",
+            "value": "both"
+          },
+          {
+            "selected": false,
+            "text": "Early: GitHub",
+            "tooltip": "GitHub will always have the latest release.\nNexus Mods releases may be delayed due to\ntheir review process or to await more testing.",
+            "value": "github"
+          },
+          {
+            "selected": false,
+            "text": "Stable: Nexus Mods",
+            "tooltip": "GitHub will always have the latest release.\nNexus Mods releases may be delayed due to\ntheir review process or to await more testing.",
+            "value": "nexus"
+          },
+          {
+            "selected": true,
+            "text": "Never: Don't Check",
+            "tooltip": "GitHub will always have the latest release.\nNexus Mods releases may be delayed due to\ntheir review process or to await more testing.",
+            "value": "none"
+          }
+        ],
+        "title": "Update Channel"
+      },
+      {
+        "radios": [
+          {
+            "selected": false,
+            "text": "Debug",
+            "tooltip": "Sets the minimum importance level for messages sent to the log file.\nDEBUG: Extra verbose.\nINFO: Default.\nERROR: Only log errors.",
+            "value": "DEBUG"
+          },
+          {
+            "selected": false,
+            "text": "Info",
+            "tooltip": "Sets the minimum importance level for messages sent to the log file.\nDEBUG: Extra verbose.\nINFO: Default.\nERROR: Only log errors.",
+            "value": "INFO"
+          },
+          {
+            "selected": false,
+            "text": "Error",
+            "tooltip": "Sets the minimum importance level for messages sent to the log file.\nDEBUG: Extra verbose.\nINFO: Default.\nERROR: Only log errors.",
+            "value": "ERROR"
+          }
+        ],
+        "title": "Log Level"
+      }
+    ]
+  }
+}

@@ -62,4 +62,15 @@
   <Style Selector="ScrollViewer">
     <Setter Property="AllowAutoHide" Value="False" />
   </Style>
+
+  <!-- A ttk.Button centres its label block in a stretched button (Fluent puts it on the left). The lines of a
+       multi-line label stay left-justified within the block, which is why the Tools tab's texts pad with spaces. -->
+  <Style Selector="Button">
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- ttk.Labelframe(labelanchor=N): the title centred on the top edge. -->
+  <Style Selector="GroupBox.centred">
+    <Setter Property="Theme" Value="{DynamicResource CentredGroupBox}" />
+  </Style>
 </Styles>
