@@ -12,6 +12,7 @@ using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Tests.Core.Overview;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
@@ -54,6 +55,8 @@ public sealed class OverviewTabScenarioTests
         var tab = new OverviewTab(runtime, machine.Host, pc, game, state, () => opened.Add(new JsonObject { ["window"] = "Downgrader" }))
         {
             OpenFolder = folder => opened.Add(new JsonObject { ["folder"] = Tokenise(machine, folder) }),
+            // Recorded with get_info_modules and get_info_archives stubbed out, so they are skipped here too.
+            Gatherer = (g, h, l, previous) => OverviewReport.Gather(g, h, l, previous, modulesAndArchives: false),
         };
         var window = TabHost.Show(runtime, tab);
 

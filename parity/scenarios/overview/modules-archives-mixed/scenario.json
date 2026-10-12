@@ -1,0 +1,89 @@
+{
+  "description": "An Old-Gen Data folder with every module and archive outcome. Masters (one a folder, so unreadable), Fallout4.ccc and plugins.txt build the enabled list, ccDup.esm counted twice (B-17); modules short, not TES4, without HEDR (no problem), and with unknown HEDR versions (0.94, 1.71, the unmatchable 1.70, 68.0, 0.0, 1e+20); the Light flag and the .esl extension. Archives from the INI lists (deduplicated case-insensitively) and beside enabled modules, NVFlex on with its BA2 missing, and every BA2 header outcome. The HEDR icon opens the TreeWindow.",
+  "operation": "overview-full",
+  "parity": [
+    "OVW-M2",
+    "OVW-M3",
+    "OVW-M4",
+    "OVW-M6",
+    "OVW-M7",
+    "OVW-M8",
+    "OVW-M9",
+    "OVW-M10",
+    "OVW-A3",
+    "OVW-A4",
+    "OVW-A5",
+    "OVW-C1",
+    "OVW-P10",
+    "OVW-P11",
+    "OVW-P12",
+    "OVW-P13",
+    "OVW-P16",
+    "OVW-P17",
+    "OVW-P18",
+    "T-3",
+    "T-8",
+    "T-15",
+    "B-7",
+    "B-17"
+  ],
+  "emptyDirs": [
+    "Game/Data/DLCRobot.esm",
+    "Game/Data/Folder.esp"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

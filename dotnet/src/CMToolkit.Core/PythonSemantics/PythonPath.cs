@@ -46,6 +46,57 @@ public sealed class PythonPath
         }
     }
 
+    /// <summary>
+    /// <c>self.suffix</c> as of Python 3.14: the last <c>.</c> and what follows it in <see cref="Name"/>, ignoring leading
+    /// dots, so <c>.esl</c> alone has none and <c>a.</c> has <c>.</c>; empty without one.
+    /// </summary>
+    public string Suffix
+    {
+        get
+        {
+            var name = Name.TrimStart('.');
+            var dot = name.LastIndexOf('.');
+            return dot == -1 ? string.Empty : name[dot..];
+        }
+    }
+
+    /// <summary>
+    /// <c>self.stem</c> as of Python 3.14: <see cref="Name"/> without its last suffix, unless that would leave only dots.
+    /// </summary>
+    public string Stem
+    {
+        get
+        {
+            var name = Name;
+            var dot = name.LastIndexOf('.');
+            return dot != -1 && name[..dot].TrimStart('.').Length > 0 ? name[..dot] : name;
+        }
+    }
+
+    /// <summary>
+    /// <c>PureWindowsPath</c> equality and hashing (T-8): the rendered path compared case-insensitively, as pathlib
+    /// compares <c>str(path).lower()</c>. Sets and <c>in</c> tests on reference paths use it.
+    /// </summary>
+    public static IEqualityComparer<PythonPath> Equality { get; } = new CaseInsensitiveEquality();
+
+    /// <summary><c>self.with_name(name)</c>: the same folder, another last segment.</summary>
+    /// <exception cref="ArgumentException">The path has no name, or <paramref name="name"/> isn't one segment.</exception>
+    public PythonPath WithName(string name)
+    {
+        if (name.Length == 0 || name == "." || name.Contains(Sep, StringComparison.Ordinal) || name.Contains(AltSep, StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"Invalid name '{name}'", nameof(name));
+        }
+
+        var (drive, root, tail) = Parse(Raw);
+        if (tail.Count == 0)
+        {
+            throw new ArgumentException($"{this} has an empty name");
+        }
+
+        return new PythonPath(Format(drive, root, [.. tail[..^1], name]));
+    }
+
     /// <summary><c>str(path)</c>: the normalised form, or <c>.</c> for an empty path.</summary>
     public override string ToString()
     {
@@ -189,5 +240,19 @@ public sealed class PythonPath
         }
 
         return resultDrive + resultRoot + resultPath;
+    }
+
+    /// <summary>
+    /// <c>_str_normcase</c>: <c>str(self).lower()</c>, with <see cref="string.ToLowerInvariant"/> standing in for
+    /// Python's <c>str.lower()</c> (see the README's residuals on lowercasing).
+    /// </summary>
+    private sealed class CaseInsensitiveEquality : IEqualityComparer<PythonPath>
+    {
+        public bool Equals(PythonPath? x, PythonPath? y)
+            => ReferenceEquals(x, y) || (x is not null && y is not null && string.Equals(Normcase(x), Normcase(y), StringComparison.Ordinal));
+
+        public int GetHashCode(PythonPath obj) => StringComparer.Ordinal.GetHashCode(Normcase(obj));
+
+        private static string Normcase(PythonPath path) => path.ToString().ToLowerInvariant();
     }
 }
