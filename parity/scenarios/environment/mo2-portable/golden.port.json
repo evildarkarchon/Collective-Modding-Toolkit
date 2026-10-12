@@ -69,7 +69,7 @@
       {
         "key": "skip_directories",
         "value": [
-          "set()"
+          ".git"
         ]
       },
       {
@@ -93,7 +93,7 @@
     ],
     "skipDirectories": {
       "$unordered": [
-        "set()"
+        ".git"
       ]
     },
     "skipFileSuffixes": [

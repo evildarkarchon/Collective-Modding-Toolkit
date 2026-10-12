@@ -161,9 +161,11 @@ public static class Mo2ConfigurationReader
         settings["profile_local_inis"] = new Mo2SettingValue.FlagValue(false);
         settings["profile_local_saves"] = new Mo2SettingValue.FlagValue(false);
         settings["profiles_directory"] = new DefaultDirectory("profiles");
-        // The defaults are a tuple and a set; their str() is what the CSV pass below parses (B-5).
-        settings["skip_file_suffixes"] = new PythonRepr("('.mohidden',)");
-        settings["skip_directories"] = new PythonRepr("set()");
+        // MO2's own defaults (Settings::skipFileSuffixes / skipDirectories), already as lists. The reference held a tuple
+        // and a set, whose str() the CSV pass below then parsed into garbage such as "('.mohidden'" (B-5, bug #24,
+        // fixed). Its set() default was also not MO2's: MO2 skips .git folders unless told otherwise.
+        settings["skip_file_suffixes"] = new Mo2SettingValue.ListValue([".mohidden"]);
+        settings["skip_directories"] = new Mo2SettingValue.ListValue([".git"]);
 
         string? section = null;
         foreach (var line in PythonText.SplitLines(text))
@@ -235,13 +237,13 @@ public static class Mo2ConfigurationReader
             }
             else if (name.StartsWith("skip_", StringComparison.Ordinal))
             {
-                var raw = current switch
+                // A value read from the INI is CSV-split; an unset key keeps its default list as is.
+                settings[name] = current switch
                 {
-                    Mo2SettingValue.TextValue t => t.Text,
-                    PythonRepr r => r.Repr,
+                    Mo2SettingValue.TextValue t => new Mo2SettingValue.ListValue(PythonCsv.ReadMo2Row(t.Text)),
+                    Mo2SettingValue.ListValue => current,
                     _ => throw new InvalidOperationException($"Unexpected {name} value {current}."),
                 };
-                settings[name] = new Mo2SettingValue.ListValue(PythonCsv.ReadMo2Row(raw));
             }
         }
 
@@ -294,12 +296,9 @@ public static class Mo2ConfigurationReader
     /// </summary>
     private sealed record DefaultDirectory(string Name);
 
-    /// <summary>A default <c>skip_*</c> value, as the <c>str()</c> of the Python tuple or set it is. Never left in a finished configuration.</summary>
-    private sealed record PythonRepr(string Repr);
-
     /// <summary>
     /// A string-keyed map that remembers first-insertion order, like a Python dict. Values are <see cref="Mo2SettingValue"/>s,
-    /// or a <see cref="DefaultDirectory"/> / <see cref="PythonRepr"/> until the resolution pass replaces them.
+    /// or a <see cref="DefaultDirectory"/> until the resolution pass replaces it.
     /// </summary>
     private sealed class OrderedSettings
     {

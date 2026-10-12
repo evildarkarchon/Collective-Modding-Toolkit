@@ -38,6 +38,10 @@
     {
       "bug": 25,
       "reason": "The port replaces %BASE_DIR% in a directory value with the base directory as MO2 does, so %BASE_DIR%/mods is <base>\\mods, not the drive root."
+    },
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
     }
   ]
 }

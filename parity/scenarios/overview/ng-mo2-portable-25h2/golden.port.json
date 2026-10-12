@@ -1,0 +1,514 @@
+{
+  "overview": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": "Game\\Fallout4.exe",
+        "hash": "7091EF8F",
+        "installType": "Next-Gen",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          10,
+          984,
+          0
+        ],
+        "versionString": "1.10.984.0"
+      },
+      {
+        "file": "Game\\Fallout4Launcher.exe",
+        "hash": "F6A06FF5",
+        "installType": "Next-Gen",
+        "name": "Fallout4Launcher.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      },
+      {
+        "file": "Game\\steam_api64.dll",
+        "hash": "EBFD32D2",
+        "installType": "Next-Gen",
+        "name": "steam_api64.dll",
+        "version": [
+          7,
+          40,
+          51,
+          27
+        ],
+        "versionString": "7.40.51.27"
+      },
+      {
+        "file": "Game\\f4se_loader.exe",
+        "hash": "36A91786",
+        "installType": "Next-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          7,
+          2
+        ],
+        "versionString": "0.0.7.2"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "Game\\CreationKit.exe",
+        "hash": "A31D5747",
+        "installType": "Next-Gen",
+        "name": "CreationKit.exe",
+        "version": [
+          1,
+          10,
+          982,
+          3
+        ],
+        "versionString": "1.10.982.3"
+      },
+      {
+        "file": "Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "71A5240B",
+        "installType": "Next-Gen",
+        "name": "Archive2.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.10.984.0",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "7.40.51.27",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.7.2",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.10.982.3",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.2 [Profile: Unknown]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 25H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "Unknown CPU\nUnknown GPU 0GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Next-Gen"
+        }
+      }
+    },
+    "installType": "Next-Gen",
+    "problems": [
+      {
+        "extraData": [
+          "https://www.nexusmods.com/fallout4/mods/47327"
+        ],
+        "itemText": "version-1-10-984-0.bin",
+        "mod": "",
+        "path": "Game\\Data\\F4SE\\Plugins\\version-1-10-984-0.bin",
+        "relativePath": "F4SE\\Plugins\\version-1-10-984-0.bin",
+        "solution": "Download the mod here:",
+        "summary": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+        "type": "File Not Found"
+      }
+    ]
+  },
+  "refresh": {
+    "addressLibrary": null,
+    "binaries": [
+      {
+        "file": "Game\\Fallout4.exe",
+        "hash": "7091EF8F",
+        "installType": "Next-Gen",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          10,
+          984,
+          0
+        ],
+        "versionString": "1.10.984.0"
+      },
+      {
+        "file": "Game\\Fallout4Launcher.exe",
+        "hash": "F6A06FF5",
+        "installType": "Next-Gen",
+        "name": "Fallout4Launcher.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      },
+      {
+        "file": "Game\\steam_api64.dll",
+        "hash": "EBFD32D2",
+        "installType": "Next-Gen",
+        "name": "steam_api64.dll",
+        "version": [
+          7,
+          40,
+          51,
+          27
+        ],
+        "versionString": "7.40.51.27"
+      },
+      {
+        "file": "Game\\f4se_loader.exe",
+        "hash": "36A91786",
+        "installType": "Next-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          7,
+          2
+        ],
+        "versionString": "0.0.7.2"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "f4se_steam_loader.dll",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "Game\\CreationKit.exe",
+        "hash": "A31D5747",
+        "installType": "Next-Gen",
+        "name": "CreationKit.exe",
+        "version": [
+          1,
+          10,
+          982,
+          3
+        ],
+        "versionString": "1.10.982.3"
+      },
+      {
+        "file": "Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "71A5240B",
+        "installType": "Next-Gen",
+        "name": "Archive2.exe",
+        "version": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "versionString": "1.0.0.1"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#AF5A66",
+          "label": "Address Library:",
+          "text": "Not Found",
+          "tooltip": "Address Library is required for many F4SE mods."
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.10.984.0",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "7.40.51.27",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.7.2",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "gray",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.10.982.3",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "1.0.0.1",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "Game"
+          },
+          "text": "Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Mod Organizer v2.5.2 [Profile: Unknown]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/info-16.png",
+          "opens": {
+            "height": 350,
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
+            "title": "Detected Mod Manager Settings",
+            "width": 750,
+            "window": "AboutWindow"
+          },
+          "tooltip": "Detection details"
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 25H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "Unknown CPU\nUnknown GPU 0GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Next-Gen"
+        }
+      }
+    },
+    "installType": "Next-Gen",
+    "problems": [
+      {
+        "extraData": [
+          "https://www.nexusmods.com/fallout4/mods/47327"
+        ],
+        "itemText": "version-1-10-984-0.bin",
+        "mod": "",
+        "path": "Game\\Data\\F4SE\\Plugins\\version-1-10-984-0.bin",
+        "relativePath": "F4SE\\Plugins\\version-1-10-984-0.bin",
+        "solution": "Download the mod here:",
+        "summary": "Address Library is a requirement for many F4SE mods and playing downgraded,\nand likely needs to be installed.",
+        "type": "File Not Found"
+      }
+    ]
+  }
+}

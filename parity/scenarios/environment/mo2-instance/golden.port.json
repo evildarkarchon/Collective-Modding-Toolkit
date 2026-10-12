@@ -62,8 +62,7 @@
       {
         "key": "skip_file_suffixes",
         "value": [
-          "('.mohidden'",
-          ")"
+          ".mohidden"
         ]
       },
       {
@@ -99,8 +98,7 @@
       ]
     },
     "skipFileSuffixes": [
-      "('.mohidden'",
-      ")"
+      ".mohidden"
     ],
     "stagePath": "X:\\Modding\\Fallout 4\\mods"
   }
