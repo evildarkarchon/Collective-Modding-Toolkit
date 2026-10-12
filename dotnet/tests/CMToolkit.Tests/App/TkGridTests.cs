@@ -57,6 +57,23 @@ public sealed class TkGridTests
     }
 
     [AvaloniaFact]
+    public void A_spanning_child_short_of_room_over_unweighted_rows_shares_the_shortfall_evenly()
+    {
+        // The Downgrader: the About button (pady=(5, 0), 30 px) alone in row 2, and the 90 px Current Creation Kit and
+        // Options frames spanning rows 2-3, no weights. Its 55 px shortfall went 27/28: About's row was 62 px, so the
+        // button, centred in it, sat 13 px below its pady (measured from the Tk window).
+        var about = new Border { MinHeight = 35 };
+        var below = new Border { [Grid.RowProperty] = 1 };
+        var frame = new Border { MinHeight = 90, [Grid.ColumnProperty] = 1, [Grid.RowSpanProperty] = 2 };
+        var grid = new TkGrid { Children = { about, below, frame } };
+        var window = new Window { Width = 600, Height = 334, Content = grid };
+        window.Show();
+
+        Assert.Equal(62, about.Bounds.Height);
+        Assert.Equal(new Rect(0, 62, 0, 28), below.Bounds);
+    }
+
+    [AvaloniaFact]
     public void A_column_pad_is_added_to_the_column_and_given_to_a_child_that_fills_it()
     {
         var child = new Border { Width = double.NaN, MinWidth = 180, Margin = new Thickness(5) };
