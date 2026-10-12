@@ -248,9 +248,11 @@ public sealed class PythonPath
     /// </summary>
     private sealed class CaseInsensitiveEquality : IEqualityComparer<PythonPath>
     {
+        /// <summary>Whether the two paths render the same once lowercased; two nulls are equal, one null is not.</summary>
         public bool Equals(PythonPath? x, PythonPath? y)
             => ReferenceEquals(x, y) || (x is not null && y is not null && string.Equals(Normcase(x), Normcase(y), StringComparison.Ordinal));
 
+        /// <summary>The hash of the lowercased rendering, so paths <see cref="Equals(PythonPath?, PythonPath?)"/> calls equal hash alike.</summary>
         public int GetHashCode(PythonPath obj) => StringComparer.Ordinal.GetHashCode(Normcase(obj));
 
         private static string Normcase(PythonPath path) => path.ToString().ToLowerInvariant();
@@ -266,6 +268,7 @@ public sealed class PythonPath
     /// <summary>See <see cref="Ordering"/>.</summary>
     private sealed class PartsOrdering : IComparer<PythonPath>
     {
+        /// <summary>Negative, zero or positive as <paramref name="x"/> sorts before, with or after <paramref name="y"/>; null first.</summary>
         public int Compare(PythonPath? x, PythonPath? y)
         {
             if (ReferenceEquals(x, y))

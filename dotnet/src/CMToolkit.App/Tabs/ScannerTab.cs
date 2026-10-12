@@ -49,6 +49,7 @@ public sealed class ScannerTab : TabPage
     // earlier scan can't reach this one.
     private volatile ConcurrentQueue<ScanUpdate>? _pending;
 
+    /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
     /// <param name="runtime">The app runtime: its log, error reporting and background operations.</param>
     /// <param name="game">The installation found at startup.</param>
     /// <param name="overview">The Overview state: its problems seed a scan, and it refreshes the Overview tab.</param>
@@ -179,6 +180,10 @@ public sealed class ScannerTab : TabPage
             Name = "ResultsScroll",
             Orientation = Orientation.Vertical,
             AllowAutoHide = false,
+            // 24: the width of the reference's scrollbar column here, its 12 px sv_ttk trough centred with 6 px either
+            // side (measured on parity/screenshots/scanner/results/tk.png, from the tree's card to the tab's edge).
+            // F4seTab's bar is 12 px with a 5 px margin because that is what its own pair measures; both widths copy
+            // the reference's screens rather than one rule.
             Width = 24,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
@@ -423,6 +428,7 @@ public sealed class ScannerTab : TabPage
         }
     }
 
+    /// <summary>Closes the details pane if one is open (<c>details_pane.destroy()</c>), so the next selection makes a new one.</summary>
     private void CloseDetails()
     {
         if (DetailsPane is not null)
@@ -437,6 +443,10 @@ public sealed class ScannerTab : TabPage
         => _docker ??= new OwnedPaneDocker(TopLevel.GetTopLevel(_tree) as Window
             ?? throw new InvalidOperationException("The Scanner tab isn't in a window."));
 
+    /// <summary>Collapse All or Expand All: a tight button that sets every result group's open state.</summary>
+    /// <param name="name">The control name, for tests.</param>
+    /// <param name="text">The caption.</param>
+    /// <param name="expanded">The open state the click sets on every group.</param>
     private Button ControlButton(string name, string text, bool expanded)
     {
         // ttk.Button(padding=0): the "tight" class.

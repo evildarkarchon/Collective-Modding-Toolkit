@@ -63,6 +63,8 @@ internal static class WindowsHost
         {
             RegistryValueKind.String => new RegistryData(RegistryDataType.String, data),
             RegistryValueKind.ExpandString => new RegistryData(RegistryDataType.ExpandString, data),
+            // RegistryKey hands a DWORD back as a signed int; winreg returns it unsigned, so 0xFFFFFFFF is 4294967295
+            // there, not -1. Unbox as int, reinterpret as uint, then widen.
             RegistryValueKind.DWord => new RegistryData(RegistryDataType.DWord, (long)(uint)(int)data),
             RegistryValueKind.QWord => new RegistryData(RegistryDataType.QWord, (long)data),
             _ => new RegistryData(RegistryDataType.Other, data),

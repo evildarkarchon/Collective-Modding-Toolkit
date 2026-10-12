@@ -1,5 +1,5 @@
 {
-  "description": "A Down-Grade game (Old-Gen binaries with the Next-Gen Startup.ba2) that still has the Next-Gen steam_api64.dll: Fallout4.exe is Old-Gen, so Old-Gen is the default Desired Version, and the shared steam_api64.dll shows Next-Gen & Anniversary in the bad colour, since the game's Install Type is Down-Grade.",
+  "description": "A Down-Grade game (Old-Gen binaries with the Next-Gen Startup.ba2) that still has the Next-Gen steam_api64.dll: Fallout4.exe is Old-Gen, so Old-Gen is the default Desired Version, and the shared steam_api64.dll shows Next-Gen & Anniversary in the bad colour, since the game's Install Type is Down-Grade. Port: fixed, see deviation #85.",
   "operation": "downgrader-window",
   "parity": [
     "DG-1",

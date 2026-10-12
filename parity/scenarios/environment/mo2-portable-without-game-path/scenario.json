@@ -1,5 +1,5 @@
 {
-  "description": "A portable INI without gamePath is read, then read again by the fallback; the game path stays unset.",
+  "description": "A portable INI without gamePath is read, then read again by the fallback; the game path stays unset. Port: fixed, see deviation #24.",
   "operation": "mod-manager",
   "parity": [
     "MO2-1",

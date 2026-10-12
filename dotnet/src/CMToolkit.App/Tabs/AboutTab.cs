@@ -30,6 +30,7 @@ public sealed class AboutTab : TabPage
 
     private readonly AppRuntime _runtime;
 
+    /// <summary>The About tab.</summary>
     /// <param name="runtime">The app runtime: its browser, clock and error reporter serve the link buttons.</param>
     public AboutTab(AppRuntime runtime)
         : base("About", "AboutTab")

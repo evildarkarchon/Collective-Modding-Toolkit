@@ -1,5 +1,5 @@
 {
-  "description": "Next-Gen with every limit one past: 257 General and 256 Texture archives, 255 Full and 4097 Light modules (one file per type listed many times, B-17). All counts are red and the four Limit Exceeded problems come last, archives before modules.",
+  "description": "Next-Gen with every limit one past: 257 General and 256 Texture archives, 255 Full and 4097 Light modules (one file per type listed many times, B-17). All counts are red and the four Limit Exceeded problems come last, archives before modules. Port: fixed, see deviation #33.",
   "operation": "overview-full",
   "parity": [
     "OVW-C1",

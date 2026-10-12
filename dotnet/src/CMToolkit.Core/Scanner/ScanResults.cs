@@ -88,8 +88,13 @@ public static class ScanResults
     /// <summary>Python's <c>str</c> ordering: by Unicode code point, not by UTF-16 code unit.</summary>
     private sealed class CodePointComparer : IComparer<string>
     {
+        /// <summary>The one instance; the comparer holds no state.</summary>
         public static readonly CodePointComparer Instance = new();
 
+        /// <summary>
+        /// Negative, zero or positive as <paramref name="x"/> sorts before, with or after <paramref name="y"/>, comparing
+        /// rune by rune so a character beyond the BMP sorts after every BMP one, as in Python; null first.
+        /// </summary>
         public int Compare(string? x, string? y)
         {
             if (x is null || y is null)

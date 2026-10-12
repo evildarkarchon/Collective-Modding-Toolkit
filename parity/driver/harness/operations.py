@@ -277,6 +277,7 @@ def mod_manager(session: Session, golden: GoldenContext) -> dict[str, Any]:  # n
 	try:
 		game_info.GameInfo.find_path(stand_in)  # type: ignore[arg-type]
 	except _StopAfterManager:
+		# Expected: the sentinel ends find_path once the mod manager part is done; the rest is recorded below.
 		pass
 	except Exception as e:  # noqa: BLE001 - recorded, or re-raised by _error
 		result["error"] = _error(golden, e)

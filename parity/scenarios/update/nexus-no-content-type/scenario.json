@@ -1,5 +1,5 @@
 {
-  "description": "No Content-Type: requests yields bytes, the str prefix test raises TypeError, which escapes the check and fails startup.",
+  "description": "No Content-Type: requests yields bytes, the str prefix test raises TypeError, which escapes the check and fails startup. Port: fixed, see deviation #81.",
   "operation": "update-check",
   "parity": [
     "NET-1"

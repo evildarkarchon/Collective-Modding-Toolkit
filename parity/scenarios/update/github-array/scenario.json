@@ -1,5 +1,5 @@
 {
-  "description": "A JSON array: TypeError escapes the check and fails startup.",
+  "description": "A JSON array: TypeError escapes the check and fails startup. Port: fixed, see deviation #81.",
   "operation": "update-check",
   "parity": [
     "NET-2"

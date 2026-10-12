@@ -1,5 +1,5 @@
 {
-  "description": "An Obsolete game with no Creation Kit: Fallout4.exe matches an Obsolete CRC and the launcher none (Unknown), both in the bad colour; the shared steam_api64.dll stays Next-Gen & Anniversary in the bad colour because the game is neither Next-Gen nor Anniversary; the three Creation Kit files are Not Found in gray.",
+  "description": "An Obsolete game with no Creation Kit: Fallout4.exe matches an Obsolete CRC and the launcher none (Unknown), both in the bad colour; the shared steam_api64.dll stays Next-Gen & Anniversary in the bad colour because the game is neither Next-Gen nor Anniversary; the three Creation Kit files are Not Found in gray. Port: fixed, see deviation #85.",
   "operation": "downgrader-window",
   "parity": [
     "DG-1",

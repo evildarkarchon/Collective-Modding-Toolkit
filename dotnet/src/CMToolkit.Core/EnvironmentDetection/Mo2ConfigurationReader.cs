@@ -125,8 +125,8 @@ public static class Mo2ConfigurationReader
     }
 
     /// <summary>
-    /// <c>utils.get_registry_value</c> for <c>CurrentInstance</c>: the value if it is a non-empty <c>REG_SZ</c>, else
-    /// null. Any registry failure (Python's <c>OSError</c>) means null.
+    /// <c>utils.get_registry_value</c> for <c>CurrentInstance</c>: the value if it is a <c>REG_SZ</c>, else null. Any
+    /// registry failure (Python's <c>OSError</c>) means null. An empty string is returned as is; the caller skips it.
     /// </summary>
     private static string? CurrentInstance(IHostEnvironment host)
     {
@@ -305,8 +305,14 @@ public static class Mo2ConfigurationReader
         private readonly List<string> _order = [];
         private readonly Dictionary<string, object> _values = new(StringComparer.Ordinal);
 
+        /// <summary>The keys in first-insertion order.</summary>
         public IReadOnlyList<string> Keys => _order;
 
+        /// <summary>
+        /// The value for <paramref name="key"/>. Setting a new key appends it; setting an existing one replaces its
+        /// value in place, keeping its position, as assigning to a Python dict key does.
+        /// </summary>
+        /// <exception cref="KeyNotFoundException">Getting a key that isn't there.</exception>
         public object this[string key]
         {
             get => _values[key];
@@ -323,6 +329,7 @@ public static class Mo2ConfigurationReader
             }
         }
 
+        /// <summary>The value for <paramref name="key"/>, if it is there.</summary>
         public bool TryGetValue(string key, out object value) => _values.TryGetValue(key, out value!);
     }
 }

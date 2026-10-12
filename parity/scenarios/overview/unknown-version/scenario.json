@@ -1,5 +1,5 @@
 {
-  "description": "A Fallout4.exe version BASE_FILES doesn't list: the game is Unknown (Unknown Game Version), so an Unknown f4se_loader.exe matches it and shows green with no problem (B-13), while Old-Gen and Next-Gen binaries are the Wrong Version and a missing f4se_steam_loader.dll is File Not Found. The Address Library is looked for under the unknown version.",
+  "description": "A Fallout4.exe version BASE_FILES doesn't list: the game is Unknown (Unknown Game Version), so an Unknown f4se_loader.exe matches it and shows green with no problem (B-13), while Old-Gen and Next-Gen binaries are the Wrong Version and a missing f4se_steam_loader.dll is File Not Found. The Address Library is looked for under the unknown version. Port: fixed, see deviation #30.",
   "operation": "overview-tab",
   "parity": [
     "OVW-B4",

@@ -1,5 +1,5 @@
 {
-  "description": "An Old-Gen game and Creation Kit patched to Next-Gen with Keep Backups on and Delete Patches clicked off (saved, SET-7): each of the six files is renamed to its _upgradeBackup, its OG-to-NG patch is downloaded to the working directory one at a time while the window stays live (the launcher's in eleven 1 KiB chunks), and applied; the read-only launcher stays read-only into its backup, as read-only is its only attribute (bug #91, reproduced). The button stays disabled until the queue empties, as the last file needed a patch; then the Overview is refreshed and every file reads Next-Gen.",
+  "description": "An Old-Gen game and Creation Kit patched to Next-Gen with Keep Backups on and Delete Patches clicked off (saved, SET-7): each of the six files is renamed to its _upgradeBackup, its OG-to-NG patch is downloaded to the working directory one at a time while the window stays live (the launcher's in eleven 1 KiB chunks), and applied; the read-only launcher stays read-only into its backup, as read-only is its only attribute (bug #91, reproduced). The button stays disabled until the queue empties, as the last file needed a patch; then the Overview is refreshed and every file reads Next-Gen. Port: fixed, see deviation #91.",
   "operation": "downgrader-run",
   "parity": [
     "DG-4",

@@ -1,5 +1,5 @@
 {
-  "description": "Bug #15 (B-10), reproduced: Fallout4.exe's patch response has no Content-Length, so the download thread dies on its first chunk (division by zero) after saving it. The poll waits forever: the progress bar stays at 0, the button stays disabled, the window can't be closed, and the launcher's queued patch is never fetched.",
+  "description": "Bug #15 (B-10), reproduced: Fallout4.exe's patch response has no Content-Length, so the download thread dies on its first chunk (division by zero) after saving it. The poll waits forever: the progress bar stays at 0, the button stays disabled, the window can't be closed, and the launcher's queued patch is never fetched. Port: fixed, see deviations #28, #15.",
   "operation": "downgrader-run",
   "parity": [
     "DG-6",

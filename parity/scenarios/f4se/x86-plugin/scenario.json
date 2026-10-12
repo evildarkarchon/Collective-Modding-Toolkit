@@ -1,5 +1,5 @@
 {
-  "description": "A 32-bit plugin among x64 ones: LoadLibraryExW fails (ERROR_BAD_EXE_FORMAT), the error escapes the load, and the tab stays on \"Scanning DLLs...\" for good. The DLLs before it were scanned, the one after never is.",
+  "description": "A 32-bit plugin among x64 ones: LoadLibraryExW fails (ERROR_BAD_EXE_FORMAT), the error escapes the load, and the tab stays on \"Scanning DLLs...\" for good. The DLLs before it were scanned, the one after never is. Port: fixed, see deviation #34.",
   "operation": "f4se-tab",
   "parity": [
     "B-18",

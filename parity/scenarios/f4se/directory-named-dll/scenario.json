@@ -1,5 +1,5 @@
 {
-  "description": "A folder whose name ends in .dll: the directory listing includes it, loading it fails, and the tab stays on \"Scanning DLLs...\".",
+  "description": "A folder whose name ends in .dll: the directory listing includes it, loading it fails, and the tab stays on \"Scanning DLLs...\". Port: fixed, see deviation #34.",
   "operation": "f4se-tab",
   "parity": [
     "B-18",

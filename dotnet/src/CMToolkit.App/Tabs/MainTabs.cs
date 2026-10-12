@@ -4,7 +4,7 @@ namespace CMToolkit.App.Tabs;
 
 /// <summary>
 /// Where the main window's tabs are composed (<c>CMChecker.setup_window</c>'s <c>self.tabs</c>), in the reference's
-/// order (SHELL-7). Each tab's slice replaces only its own line here with its real page, built from the session.
+/// order (SHELL-7), each a real page built from the session.
 /// </summary>
 public static class MainTabs
 {

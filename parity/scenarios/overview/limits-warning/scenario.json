@@ -1,5 +1,5 @@
 {
-  "description": "Module counts on the colour boundaries: 254 Full (the limit itself, orange), 3890 Light (one below 95 %, green) and 4144 in total (orange). No Limit Exceeded problems.",
+  "description": "Module counts on the colour boundaries: 254 Full (the limit itself, orange), 3890 Light (one below 95 %, green) and 4144 in total (orange). No Limit Exceeded problems. Port: fixed, see deviation #33.",
   "operation": "overview-full",
   "parity": [
     "OVW-C1",

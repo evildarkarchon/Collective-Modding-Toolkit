@@ -1,5 +1,5 @@
 {
-  "description": "No [Archive] section in the INIs: after the Fallout4.ccc warning and the modules, the archives raise and the Overview stays on its loading text (B-15).",
+  "description": "No [Archive] section in the INIs: after the Fallout4.ccc warning and the modules, the archives raise and the Overview stays on its loading text (B-15). Port: fixed, see deviation #31.",
   "operation": "overview-full",
   "parity": [
     "OVW-A2",

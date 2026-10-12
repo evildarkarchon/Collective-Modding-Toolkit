@@ -131,6 +131,8 @@ public static class ScanWorker
     /// </summary>
     internal static int CountSadd(string path)
     {
+        // Buffer size 1 turns off FileStream's own buffer: every read below asks for about 1 MiB, which a 4 KiB buffer
+        // would only copy through.
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.SequentialScan);
         var buffer = new byte[(1 << 20) + SaddBytes.Length - 1];
         var carry = 0;
@@ -166,6 +168,11 @@ public static class ScanWorker
         // data_root_lower starts as "Data" (not lowercased), the pseudo-root of Data's own files, which has no whitelist.
         private string _dataRoot = "Data";
 
+        /// <summary>
+        /// Walks <paramref name="data"/> top-down, pruning as the reference did, and adds each problem found to the
+        /// shared list; reports each top-level folder entered to the progress.
+        /// </summary>
+        /// <param name="data">The game's Data folder.</param>
         public void Run(PythonPath data)
         {
             foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(settings.Host, p)))

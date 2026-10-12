@@ -1,5 +1,5 @@
 {
-  "description": "An invalid Steam path is still used over a valid GOG one, so the app exits with the registry error (GP-1, GP-3; bug #80).",
+  "description": "An invalid Steam path is still used over a valid GOG one, so the app exits with the registry error (GP-1, GP-3; bug #80). Port: fixed, see deviation #80.",
   "operation": "game-info",
   "parity": [
     "GP-1",

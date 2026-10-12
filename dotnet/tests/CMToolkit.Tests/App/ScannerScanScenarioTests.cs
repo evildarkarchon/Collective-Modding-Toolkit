@@ -23,7 +23,8 @@ namespace CMToolkit.Tests.App;
 /// window, scanned once per driver run (every box, then each box alone), each run read back as the driver reads it:
 /// every progress update the worker reported with the scanning label and progress bar after the tab applied it, the
 /// worker's error and log lines, the mod file index it built, and the results tree. A worker that fails left the
-/// reference's scan stuck (B-3); the port ends the scan with the results it has (bug #22, in the port goldens). Either
+/// reference's scan stuck (B-3); the port ends the scan listing the seeded Overview problems only, the worker's results dying with it (bug #22, in
+/// the port goldens). Either
 /// way the script stops there. Compared in full.
 /// </summary>
 public sealed partial class ScannerScanScenarioTests

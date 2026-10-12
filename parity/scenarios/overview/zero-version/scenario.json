@@ -1,5 +1,5 @@
 {
-  "description": "A Fallout4.exe whose version resource really is 0.0.0.0: Python reads (0, 0, 0, 0), which is a version, so it is looked up as 0.0.0.0 rather than by CRC (T-4).",
+  "description": "A Fallout4.exe whose version resource really is 0.0.0.0: Python reads (0, 0, 0, 0), which is a version, so it is looked up as 0.0.0.0 rather than by CRC (T-4). Port: fixed, see deviation #30.",
   "operation": "overview-tab",
   "parity": [
     "OVW-B2",

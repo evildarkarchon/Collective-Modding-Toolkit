@@ -1,5 +1,5 @@
 {
-  "description": "MO2 stage mode whose selected profile has no modlist.txt: a scan with a data check ticked raises FileNotFoundError on the worker while building the mod file index (SCN-S6), so the scan is stuck on 'Building mod file index...' with Scan Game disabled (B-3, bug #22).",
+  "description": "MO2 stage mode whose selected profile has no modlist.txt: a scan with a data check ticked raises FileNotFoundError on the worker while building the mod file index (SCN-S6), so the scan is stuck on 'Building mod file index...' with Scan Game disabled (B-3, bug #22). Port: fixed, see deviations #23, #22.",
   "operation": "scanner-scan",
   "parity": [
     "SCN-S6",

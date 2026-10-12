@@ -1,5 +1,5 @@
 {
-  "description": "Bug #28 (B-11), reproduced: only Fallout4.exe is there (Old-Gen), patched to Next-Gen. Its download starts, then the loop's last file, Archive2Interop.dll, is Not Found, so the button is enabled again while the download runs and the window still can't be closed. The patch then applies and the queue finishes.",
+  "description": "Bug #28 (B-11), reproduced: only Fallout4.exe is there (Old-Gen), patched to Next-Gen. Its download starts, then the loop's last file, Archive2Interop.dll, is Not Found, so the button is enabled again while the download runs and the window still can't be closed. The patch then applies and the queue finishes. Port: fixed, see deviation #28.",
   "operation": "downgrader-run",
   "parity": [
     "DG-4",

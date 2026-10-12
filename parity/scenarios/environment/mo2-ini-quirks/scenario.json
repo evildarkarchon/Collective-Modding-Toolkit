@@ -1,5 +1,5 @@
 {
-  "description": "Parse quirks: untrimmed keys and values, a header with a trailing space switching tracking off, an @ByteArray( without its ')', an empty gamePath (Path('.')), empty and quoted/escaped CSV values, %BASE_DIR% with and without a separator, and a relative directory.",
+  "description": "Parse quirks: untrimmed keys and values, a header with a trailing space switching tracking off, an @ByteArray( without its ')', an empty gamePath (Path('.')), empty and quoted/escaped CSV values, %BASE_DIR% with and without a separator, and a relative directory. Port: fixed, see deviation #25.",
   "operation": "mod-manager",
   "parity": [
     "MO2-4",

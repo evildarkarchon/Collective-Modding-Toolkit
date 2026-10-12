@@ -11,10 +11,10 @@ ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-ups
 | `CMToolkit.slnx` | The solution. |
 | `Directory.Build.props` | Shared settings: .NET 10, the single `<Version>`, warnings-as-errors (trim/AOT included), `<CETCompat>false</CETCompat>`. |
 | `src/CMToolkit.Core` | The app's logic. No Avalonia reference; trim/AOT analyzers on (`IsAotCompatible`). |
-| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test). |
+| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test): `ScenarioHostEnvironment` and `ScenarioHttpHandler`, the exe's own copies of the test harness's fake host and HTTP handler. |
 | `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
 | `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
-| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). |
+| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). `generate-casefold.py` regenerates `PythonCaseFold.Table.cs` from the reference's Python (run by hand when its Unicode version changes). |
 
 ## Build, test and publish
 
@@ -169,7 +169,11 @@ can't be opened (SHELL-13).
   in full; a patch that fails to decode is deleted so the next run downloads it again (B-10, bug #15, a Deviation). Decoding
   is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
   on, to leave exactly the windows xdelta3 would on a failed decode. A failed decode then deletes those windows and
-  puts the backup back as the live file (bug #14, a Deviation).
+  puts the backup back as the live file (bug #14, a Deviation); a backup that can't be put back is logged and the
+  queue still finishes. Patch All is enabled exactly when nothing is queued or running, not by whether the loop's last
+  file needed a patch (B-11, bug #28, a Deviation). The window widens past its fixed 600 px to fit the long
+  `Next-Gen & Anniversary` label, so Patch All and About stay visible (bug #85, a Deviation). A file whose only
+  attribute is read-only is left writable, so its backup isn't read-only (bug #91, a Deviation).
 - The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
   a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
   no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.

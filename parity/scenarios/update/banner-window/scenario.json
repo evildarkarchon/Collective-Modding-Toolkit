@@ -1,5 +1,5 @@
 {
-  "description": "The shell machine (Steam install, no mod manager) with update_source both and both sources newer: drives the banner screenshot pair, and its banner is replayed like every update scenario.",
+  "description": "The shell machine (Steam install, no mod manager) with update_source both and both sources newer: drives the banner screenshot pair, and its banner is replayed like every update scenario. Port: fixed, see deviations #83, #32.",
   "operation": "update-check",
   "parity": [
     "UPD-2",

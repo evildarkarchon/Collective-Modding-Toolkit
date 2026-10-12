@@ -78,13 +78,23 @@ public sealed class OverviewTab : TabPage
     private readonly Action _openArchivePatcher;
     private readonly PackRow _frames = new();
 
+    /// <summary>
+    /// The Overview tab, registered as the shared state's refresher (<c>cmc.refresh_tab(Tab.Overview)</c>); it gathers
+    /// its first report when it first loads.
+    /// </summary>
     /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
     /// <param name="host">The machine the binaries are read on.</param>
     /// <param name="pc">The PC info for the PC Specs row.</param>
     /// <param name="game">The installation found at startup.</param>
     /// <param name="state">Where each report goes, for the other tabs.</param>
-    /// <param name="openDowngradeManager">Opens the Downgrader window. Until that slice lands, a no-op.</param>
-    /// <param name="openArchivePatcher">Opens the Archive Patcher window (OVW-A6). Until that slice lands, a no-op.</param>
+    /// <param name="openDowngradeManager">
+    /// Opens the Downgrader window (OVW-B9): <see cref="DowngraderWindow.Open"/> in the app (<see cref="MainTabs"/>).
+    /// Null makes the button do nothing, for tests that don't open windows.
+    /// </param>
+    /// <param name="openArchivePatcher">
+    /// Opens the Archive Patcher window (OVW-A6): <see cref="ArchivePatcherWindow.Open"/> in the app
+    /// (<see cref="MainTabs"/>). Null makes the button do nothing, for tests that don't open windows.
+    /// </param>
     public OverviewTab(
         AppRuntime runtime,
         IHostEnvironment host,
@@ -665,13 +675,13 @@ public sealed class OverviewTab : TabPage
         return value;
     }
 
-    /// <summary>A normal-size label in one of the palette's colours, named for tests.</summary>
     /// <summary>
     /// The Version value's colour. The reference always drew it in <c>COLOR_GOOD</c>; a game with no Fallout4.exe
     /// (<c>Not Found</c>) is red instead (deviation, bug #84), so the top block doesn't call a missing game good.
     /// </summary>
     private static string VersionColour(InstallType type) => type == InstallType.NotFound ? "CmtBad" : "CmtGood";
 
+    /// <summary>A normal-size label in one of the palette's colours, named for tests.</summary>
     private static TextBlock Label(string text, string colourKey, string name, Thickness margin = default)
     {
         var label = new TextBlock
@@ -756,9 +766,9 @@ public sealed class OverviewTab : TabPage
         using var process = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
     }
 
+    /// <summary>The utility buttons' action when no window opener was passed: nothing, for tests that open no windows.</summary>
     private static void NoWindow()
     {
-        // The Downgrader's and the Archive Patcher's slices wire them; until then the buttons are live but do nothing
-        // (OVW-B9, OVW-A6).
+        // Empty on purpose: the app always passes real openers (MainTabs); only tests leave them out (OVW-B9, OVW-A6).
     }
 }

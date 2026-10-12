@@ -1,5 +1,5 @@
 {
-  "description": "The instance INI has no gamePath, so the fallback reads the portable INI as well; only the second read's settings survive.",
+  "description": "The instance INI has no gamePath, so the fallback reads the portable INI as well; only the second read's settings survive. Port: fixed, see deviation #24.",
   "operation": "mod-manager",
   "parity": [
     "MO2-2",

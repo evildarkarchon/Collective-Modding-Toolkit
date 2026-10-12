@@ -5,8 +5,9 @@ namespace CMToolkit.Core.Settings;
 
 /// <summary>
 /// <c>settings.json</c>: loading, validating and writing it exactly as <c>app_settings.AppSettings</c> does (SET-1,
-/// SET-3..SET-6, T-10). Core owns the format; only the App calls <see cref="Save"/>, and no other Core operation touches
-/// the file (the Core seams resolution on issue #7).
+/// SET-3..SET-6, T-10). Core owns the format. <see cref="Load"/> writes the file itself when it is missing (SET-3) or
+/// had to be reset or repaired (SET-4, SET-5), as the reference's load did; every other write is the App's, through <see cref="Save"/>.
+/// No other Core operation touches the file (the Core seams resolution on issue #7).
 /// </summary>
 /// <remarks>
 /// Every message is logged with the reference's <c>Settings : </c> prefix and level (LOG-2). Which of them reach
@@ -228,6 +229,10 @@ public static class SettingsFile
         _ => (string)value,
     };
 
+    /// <summary>
+    /// The settings as values in <see cref="Keys"/> order: each <c>Literal</c> key's string, each other key's bool. The
+    /// shape <see cref="Validate"/> fills and the writer writes.
+    /// </summary>
     private static object[] ToValues(AppSettings settings) =>
     [
         LogLevels[(int)settings.LogLevel],
@@ -243,6 +248,7 @@ public static class SettingsFile
         settings.DowngraderDeleteDeltas,
     ];
 
+    /// <summary>The inverse of <see cref="ToValues"/>; every value must already be valid for its key.</summary>
     private static AppSettings FromValues(object[] values) => new()
     {
         LogLevel = (SettingsLogLevel)Array.IndexOf(LogLevels, (string)values[0]),

@@ -1,5 +1,5 @@
 {
-  "description": "CRLF lines with the label line's \\r\\n split over the first 512-byte chunk: iter_lines yields an empty line, so the version read fails (IndexError).",
+  "description": "CRLF lines with the label line's \\r\\n split over the first 512-byte chunk: iter_lines yields an empty line, so the version read fails (IndexError). Port: fixed, see deviation #82.",
   "operation": "update-check",
   "parity": [
     "NET-1"

@@ -1,5 +1,5 @@
 {
-  "description": "The GitHub latest release is newer: the banner shows one GitHub link.",
+  "description": "The GitHub latest release is newer: the banner shows one GitHub link. Port: fixed, see deviation #32.",
   "operation": "update-check",
   "parity": [
     "UPD-1",

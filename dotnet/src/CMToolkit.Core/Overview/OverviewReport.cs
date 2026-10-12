@@ -271,6 +271,11 @@ public sealed record OverviewReport(
 
         public PythonPath? AddressLibrary { get; private set; }
 
+        /// <summary>
+        /// <c>get_info_binaries</c>: the No Mod Manager problem if none launched the app, then each base file's info in
+        /// table order into <see cref="Files"/>. Fallout4.exe's sets <see cref="InstallType"/> as the loop reaches it and
+        /// runs the Address Library and Down-Grade checks (<see cref="CheckGame"/>).
+        /// </summary>
         public void Run()
         {
             logger.Write(LogLevel.Debug, "Gathering Info: Binaries");

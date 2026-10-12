@@ -53,7 +53,7 @@ public sealed class ToolsTabTests
 
     [AvaloniaFact]
     [Trait("Parity", "TOOL-1")]
-    public void The_utility_buttons_are_live_and_do_nothing_until_their_windows_are_wired()
+    public void The_utility_buttons_are_live_and_open_no_web_page_without_a_window_opener()
     {
         var (_, frames, browser) = Show();
 

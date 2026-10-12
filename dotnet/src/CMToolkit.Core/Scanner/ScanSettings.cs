@@ -93,6 +93,14 @@ public sealed class ScanSettings
 
     private readonly IReadOnlyDictionary<ScanSetting, bool> _values;
 
+    /// <summary>
+    /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, taken once, as
+    /// <c>ScanSettings.__init__</c> copied them. Built through the <c>Snapshot</c> overloads.
+    /// </summary>
+    /// <param name="values">Every setting's box, ticked or not.</param>
+    /// <param name="game">The installation; its mod manager decides the skip lists.</param>
+    /// <param name="overview">The Overview's last report, whose enabled modules and archives the scan checks; null for none.</param>
+    /// <param name="host">The machine the scan reads.</param>
     private ScanSettings(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)
     {
         _values = values;

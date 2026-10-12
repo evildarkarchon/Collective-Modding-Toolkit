@@ -1,5 +1,5 @@
 {
-  "description": "No tag_name: KeyError escapes the check and fails startup.",
+  "description": "No tag_name: KeyError escapes the check and fails startup. Port: fixed, see deviation #81.",
   "operation": "update-check",
   "parity": [
     "NET-2"
