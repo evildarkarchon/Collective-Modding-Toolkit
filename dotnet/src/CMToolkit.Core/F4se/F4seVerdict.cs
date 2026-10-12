@@ -55,11 +55,14 @@ public sealed record F4seVerdict(F4seSupport Og, F4seSupport Ng, F4seSupport Ae,
     };
 
     /// <summary>The verdicts for <paramref name="info"/> on a game of <paramref name="installType"/> (F4SE-5, F4SE-6).</summary>
-    /// <param name="info">The plugin's inspection.</param>
+    /// <param name="info">
+    /// The plugin's inspection, or null for a DLL the loader refused, which is treated as not a plugin (the reference's
+    /// <c>info is None</c> branch, reached since bug #34 was fixed).
+    /// </param>
     /// <param name="installType">The Install Type the Overview found, read when the tab is built.</param>
-    public static F4seVerdict Of(F4sePluginInfo info, InstallType installType)
+    public static F4seVerdict Of(F4sePluginInfo? info, InstallType installType)
     {
-        if (!info.IsF4se)
+        if (info is null || !info.IsF4se)
         {
             return NotAPlugin;
         }

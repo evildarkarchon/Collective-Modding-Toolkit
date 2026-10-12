@@ -14,8 +14,9 @@ namespace CMToolkit.App.Views;
 /// The update banner (<c>CMChecker.check_for_updates</c>, UPD-2): a pale green strip in the main window's row 0 above
 /// the tabs (SHELL-7) with the update icon and <c>An update is available:</c>, then a bold underlined link per source
 /// that has a newer version, <c>v{version} (NexusMods)</c> and/or <c>v{version} (GitHub)</c>, separated by
-/// <c> / </c>. A click opens <c>NEXUS_LINK</c> / <c>GITHUB_LINK</c> in the browser (NET-4). The version is shown as
-/// the source wrote it, so a <c>v</c>-prefixed tag reads <c>vv0.7.0</c> (bug #83, reproduced).
+/// <c> / </c>. A click opens <c>NEXUS_LINK</c> / <c>GITHUB_LINK</c> in the browser (NET-4). The version comes without
+/// the source's own leading <c>v</c>, so a <c>v0.7.0</c> tag reads <c>v0.7.0</c>, where the reference showed
+/// <c>vv0.7.0</c> (bug #83, fixed per ADR-0006; see <see cref="UpdateCheck"/>).
 /// </summary>
 public static class UpdateBanner
 {
@@ -43,10 +44,10 @@ public static class UpdateBanner
     /// <param name="source">The <c>update_source</c> setting.</param>
     /// <param name="http">The HTTP stack: the real network, or a Parity Scenario's canned responses.</param>
     /// <returns>What the check found.</returns>
-    /// <exception cref="UpdateCheckCrashException">
-    /// A response the reference didn't survive; like any startup exception it fails startup (SHELL-13).
-    /// </exception>
-    /// <remarks>Start on the UI thread; the check itself runs on the thread pool.</remarks>
+    /// <remarks>
+    /// Start on the UI thread; the check itself runs on the thread pool. A failed check is logged and is no update,
+    /// including a response the reference didn't survive and failed startup on (bug #81, fixed per ADR-0006).
+    /// </remarks>
     public static async Task<UpdateCheckResult> CheckAsync(MainWindow window, AppRuntime runtime, UpdateSource source, HttpMessageHandler http)
     {
         var check = new UpdateCheck(http, runtime.Logger);

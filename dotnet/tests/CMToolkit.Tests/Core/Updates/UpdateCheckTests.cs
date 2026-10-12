@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using CMToolkit.Core.Settings;
 using CMToolkit.Core.Updates;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Updates;
@@ -39,8 +40,8 @@ public sealed class UpdateCheckTests
 
     [Fact]
     [Trait("Parity", "NET-2")]
-    [Trait("Parity", "B-16")]
-    public async Task The_github_check_asks_wxmichaels_repository_with_the_api_headers()
+    [Trait("Parity", "B-16"), Deviation(32, "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases.")]
+    public async Task The_github_check_asks_the_repository_that_publishes_the_releases_with_the_api_headers()
     {
         var handler = new StubHandler(_ => Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
 
@@ -48,8 +49,10 @@ public sealed class UpdateCheckTests
 
         Assert.Equal("0.7.0", version);
         var request = Assert.Single(handler.Requests);
-        // B-16: the original author's releases, while the banner links to RowanSkie's fork.
-        Assert.Equal(new Uri("https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest"), request.RequestUri);
+        // B-16: the reference asked the original author's (wxMichael's) releases while its banner linked to RowanSkie's
+        // fork. The port asks the fork that publishes its releases (ADR-0005), the one its links open (bug #32, fixed
+        // per ADR-0006).
+        Assert.Equal(new Uri("https://api.github.com/repos/evildarkarchon/Collective-Modding-Toolkit/releases/latest"), request.RequestUri);
         Assert.Equal("application/vnd.github+json", string.Join(", ", request.Headers.GetValues("Accept")));
         Assert.Equal("2022-11-28", string.Join(", ", request.Headers.GetValues("X-GitHub-Api-Version")));
     }
@@ -67,13 +70,37 @@ public sealed class UpdateCheckTests
     }
 
     [Fact]
-    [Trait("Parity", "NET-1")]
-    public async Task A_charset_parameter_without_a_value_escapes_the_check_as_the_reference_s_attribute_error_did()
+    [Trait("Parity", "NET-1"), Deviation(81, "The port logs any update-check failure and treats it as no update, so startup continues.")]
+    public async Task A_charset_parameter_without_a_value_is_logged_as_a_failed_check()
     {
-        // requests stores a bare "charset" as True, and get_encoding_from_headers calls True.strip().
+        // requests stores a bare "charset" as True, and get_encoding_from_headers calls True.strip(). The reference's
+        // AttributeError escaped the check and failed startup; the port logs it as a failed check (bug #81, fixed per
+        // ADR-0006).
         var handler = new StubHandler(_ => Ok(new StringContent(NexusPage), "text/html; charset"));
+        var logger = new RecordingLogger();
 
-        await Assert.ThrowsAsync<UpdateCheckCrashException>(() => new UpdateCheck(handler, new RecordingLogger()).CheckNexusAsync(TestContext.Current.CancellationToken));
+        var version = await new UpdateCheck(handler, logger).CheckNexusAsync(TestContext.Current.CancellationToken);
+
+        Assert.Null(version);
+        var failure = Assert.Single(logger.Records, r => r.Message == "Update Check : Nexus Mods : Failed");
+        Assert.Equal(Microsoft.Extensions.Logging.LogLevel.Error, failure.Level);
+        Assert.NotNull(failure.Exception);
+    }
+
+    [Fact]
+    [Trait("Parity", "UPD-4"), Deviation(81, "The port logs any update-check failure and treats it as no update, so startup continues.")]
+    public async Task With_both_sources_a_failed_nexus_check_still_lets_github_be_checked()
+    {
+        // The Nexus page has no Content-Type (the reference's TypeError ended the whole check there); GitHub answers.
+        var handler = new StubHandler(request => request.RequestUri!.Host == "www.nexusmods.com"
+            ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Encoding.UTF8.GetBytes(NexusPage)) }
+            : Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
+        var logger = new RecordingLogger();
+
+        var result = await new UpdateCheck(handler, logger).RunAsync(UpdateSource.Both, TestContext.Current.CancellationToken);
+
+        Assert.Equal(new UpdateCheckResult(null, "0.7.0"), result);
+        Assert.Contains(logger.Records, r => r.Message == "Update Check : Nexus Mods : Failed" && r.Exception is not null);
     }
 
     [Fact]

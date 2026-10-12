@@ -162,7 +162,7 @@ public sealed class DowngraderWindowScenarioTests
     }
 
     /// <summary>
-    /// The log pane's text as the driver's <c>_text_runs</c> records it: each run with its own colour, or none when it
+    /// The log pane's text as the driver's <c>_log_pane_runs</c> records it: each run with its own colour, or none when it
     /// only inherits the pane's (an untagged range in Tk).
     /// </summary>
     private static JsonArray LogRuns(LogPane pane) => new([.. pane.Runs.Select(run => (JsonNode)new JsonObject

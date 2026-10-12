@@ -7,6 +7,7 @@ not by re-deriving them (ADR-0004).
 """
 
 import base64
+import itertools
 import logging
 import sys
 from collections.abc import Callable
@@ -849,11 +850,30 @@ def log_lines_of(golden: GoldenContext, records: list[logging.LogRecord], logger
 	return lines
 
 
+def _tk_offsets(content: str) -> list[int]:
+	"""For each Tk character offset into ``content`` (and the end), the Python string index it falls at.
+
+	Tk 8.6 counts in UTF-16 code units, so a non-BMP character such as ``💭`` is two Tk characters but one Python one.
+	An offset between the halves of such a pair maps to the index after the character.
+	"""
+	indices: list[int] = []
+	for index, char in enumerate(content):
+		indices.append(index)
+		if ord(char) > 0xFFFF:
+			indices.append(index + 1)
+	indices.append(len(content))
+	return indices
+
+
 def _text_runs(text: Any) -> list[dict[str, Any]]:
 	"""A Tk ``Text`` widget's content as runs in reading order: each tagged range with its tag's foreground, and the
 	untagged text between them with ``None``. The trailing newline Tk always keeps is left out.
+
+	Tag ranges are counted in Tk characters and mapped to string indices through ``_tk_offsets``: counting them as string
+	indices drifted by one after each non-BMP character.
 	"""
 	content = text.get("1.0", "end-1c")
+	index_at = _tk_offsets(content)
 	starts: list[tuple[int, int, str | None]] = []
 	for tag in text.tag_names():
 		if tag == "sel":
@@ -862,7 +882,7 @@ def _text_runs(text: Any) -> list[dict[str, Any]]:
 		for start, end in zip(ranges[::2], ranges[1::2], strict=True):
 			first = int(text.count("1.0", start, "chars")[0] or 0) if text.compare(start, ">", "1.0") else 0
 			length = int(text.count(start, end, "chars")[0] or 0)
-			starts.append((first, first + length, str(text.tag_cget(tag, "foreground")) or None))
+			starts.append((index_at[first], index_at[first + length], str(text.tag_cget(tag, "foreground")) or None))
 	runs: list[dict[str, Any]] = []
 	at = 0
 	for first, last, colour in sorted(starts):
@@ -873,6 +893,21 @@ def _text_runs(text: Any) -> list[dict[str, Any]]:
 	if at < len(content):
 		runs.append({"text": content[at:], "color": None})
 	return runs
+
+
+def _log_pane_runs(text: Any) -> list[dict[str, Any]]:
+	"""A ``Logger`` pane's content as ``_text_runs``, with each emoji and the space after it as one run (§9.5).
+
+	``log_message`` tags ``len("💭 ")`` = 2 Tk characters, which for ``💭`` is its surrogate pair alone, so Tk leaves the
+	space after it untagged where it tags the space after ``✅`` and ``❌``. A space's colour can't be seen, so it is
+	recorded with its emoji, as ``_log_pane_lines`` does.
+	"""
+	runs = _text_runs(text)
+	for run, after in itertools.pairwise(runs):
+		if run["color"] is not None and after["color"] is None and not run["text"].endswith(" ") and after["text"].startswith(" "):
+			run["text"] += " "
+			after["text"] = after["text"][1:]
+	return [run for run in runs if run["text"]]
 
 
 @operation("downgrader-window")
@@ -971,7 +1006,7 @@ def downgrader_window(session: Session, golden: GoldenContext) -> dict[str, Any]
 				"options": {"title": str(frame_options.cget("text")), "checks": options},
 				"patch": {"text": str(window.button_patch.cget("text")), "enabled": not window.button_patch.instate(["disabled"])},
 				"about": {"text": str(about.cget("text")), "opens": opened[before] if len(opened) > before else None},
-				"log": _text_runs(window.logger._text),  # noqa: SLF001 - the pane's only widget
+				"log": _log_pane_runs(window.logger._text),  # noqa: SLF001 - the pane's only widget
 				"progress": {"value": float(window.progress_var.get()), "maximum": float(window.progress_bar.cget("maximum"))},
 				"processingData": window.processing_data,
 				"logLines": log_lines_of(golden, capture.records, {"downgrader", "logger"}),
@@ -1624,9 +1659,10 @@ def _log_pane_lines(text: Any) -> list[dict[str, Any]]:
 	"""A ``Logger`` pane's messages, one per line (§9.5): the emoji and the space after it, the colour of the tag at the
 	start of the line, and the text after the emoji, which must be untagged.
 
-	Read per line rather than through ``_text_runs``: Tk 8.6 counts a non-BMP emoji (``💭``) as two characters, so
-	tag offsets counted in Tk characters drift against Python string indices after the first such line. For the same
-	reason Tk's tag on ``💭 `` ends before the space (``log_message`` tags ``len("💭 ")`` = 2 Tk characters, the
+	Read per line rather than through ``_text_runs``, which drifted against Python string indices after the first line
+	holding a non-BMP emoji when this was written (Tk 8.6 counts ``💭`` as two characters; ``_text_runs`` now maps the
+	offsets), and so the goldens keep one entry per message. Because Tk counts ``💭`` as two, its tag on ``💭 `` ends
+	before the space (``log_message`` tags ``len("💭 ")`` = 2 Tk characters, the
 	emoji's surrogate pair); a space's colour can't be seen, so the emoji and its space are recorded as one.
 	"""
 	lines: list[dict[str, Any]] = []

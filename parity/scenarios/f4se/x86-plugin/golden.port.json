@@ -1,0 +1,234 @@
+{
+  "f4se": {
+    "display": {
+      "about": {
+        "font": {
+          "bold": false,
+          "family": "Cascadia Mono",
+          "size": 10,
+          "underline": false
+        },
+        "runs": [
+          {
+            "color": "#FFE4C4",
+            "ranges": [
+              "2.0",
+              "2.18",
+              "10.0",
+              "10.1"
+            ],
+            "tag": "neutral"
+          },
+          {
+            "color": "#619267",
+            "ranges": [
+              "6.0",
+              "6.1"
+            ],
+            "tag": "good"
+          },
+          {
+            "color": "#4B92DA",
+            "ranges": [
+              "8.0",
+              "8.1"
+            ],
+            "tag": "independent"
+          },
+          {
+            "color": "#C5C464",
+            "ranges": [
+              "14.0",
+              "14.1"
+            ],
+            "tag": "note"
+          }
+        ],
+        "state": "disabled",
+        "text": "This checks all DLLs in\nData/F4SE/Plugins/ for\nversion-specific code to\ndetermine OG/NG support.\n\n\u2714 Version is supported\n\n\u2731 DLL uses Address Library\n\n\u2753 Not an F4SE DLL.\nMay still be loaded by\nother DLLs.\n\n\u26a0 Consult mod page to\nverify version support if\nyou see this icon.\nSome DLLs' version support\ncannot be reliably\ndetermined.",
+        "wrap": "char"
+      },
+      "heading": {
+        "font": {
+          "bold": false,
+          "family": "Cascadia Mono",
+          "size": 12,
+          "underline": false
+        },
+        "text": "F4SE DLLs"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AddressLibrary.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning Win32Plugin.dll"
+        },
+        {
+          "level": "WARNING",
+          "message": "Scanning Win32Plugin.dll : Failed : [WinError 193]"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning ZPlugin.dll"
+        }
+      ],
+      "scrollbar": {
+        "column": 1,
+        "orient": "vertical"
+      },
+      "tree": {
+        "columns": [
+          {
+            "anchor": "e",
+            "heading": "DLL",
+            "id": "#0",
+            "stretch": false,
+            "width": 240
+          },
+          {
+            "anchor": "center",
+            "heading": "OG",
+            "id": "og",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "NG",
+            "id": "ng",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "AE",
+            "id": "ae",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "Your Game",
+            "id": "user",
+            "stretch": false,
+            "width": 80
+          }
+        ],
+        "rows": [
+          {
+            "tags": [
+              "independent"
+            ],
+            "text": "AddressLibrary.dll",
+            "values": [
+              "",
+              "\u2731",
+              "\u2731",
+              "\u2731"
+            ]
+          },
+          {
+            "tags": [
+              "neutral"
+            ],
+            "text": "Win32Plugin.dll",
+            "values": [
+              "\u2753",
+              "\u2753",
+              "\u2753"
+            ]
+          },
+          {
+            "tags": [
+              "good"
+            ],
+            "text": "ZPlugin.dll",
+            "values": [
+              "\u2714",
+              "",
+              "",
+              "\u2714"
+            ]
+          }
+        ],
+        "tagColors": {
+          "bad": "#AF5A66",
+          "good": "#619267",
+          "independent": "#4B92DA",
+          "neutral": "#808080",
+          "note": "#C5C464"
+        }
+      }
+    },
+    "dlls": [
+      {
+        "addressIndependent": true,
+        "isF4se": true,
+        "name": "AddressLibrary.dll",
+        "structureIndependent": true,
+        "supportsAe": true,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": null,
+        "name": "Win32Plugin.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": null,
+        "supportsOg": null
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": true,
+        "name": "ZPlugin.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": true
+      }
+    ],
+    "failure": null,
+    "installType": "Old-Gen",
+    "loaded": true,
+    "loadingError": null,
+    "verdicts": [
+      {
+        "ae": "independent",
+        "name": "AddressLibrary.dll",
+        "ng": "independent",
+        "og": "unsupported",
+        "yourGame": "independent"
+      },
+      {
+        "ae": "unknown",
+        "name": "Win32Plugin.dll",
+        "ng": "unknown",
+        "og": "unknown",
+        "yourGame": null
+      },
+      {
+        "ae": "unsupported",
+        "name": "ZPlugin.dll",
+        "ng": "unsupported",
+        "og": "supported",
+        "yourGame": "supported"
+      }
+    ]
+  }
+}
