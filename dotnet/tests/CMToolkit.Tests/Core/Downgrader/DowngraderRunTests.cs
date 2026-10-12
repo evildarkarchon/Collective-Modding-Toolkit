@@ -25,11 +25,12 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-4")]
-    [Trait("Parity", "B-11")]
-    public async Task Bug_28_every_skip_says_why_and_an_unknown_last_file_leaves_the_button_disabled_for_good()
+    [Trait("Parity", "B-11"), Deviation(28, "Patch All comes back on when nothing was queued, even if the last file was skipped by the CRC check.")]
+    public async Task Bug_28_every_skip_says_why_and_the_button_comes_back_when_nothing_was_queued()
     {
-        // Bug #28 (B-11), reproduced: Archive2Interop.dll's unknown CRC gets past patch_files, so it "needed" a patch,
-        // and the button is never re-enabled although nothing was patched or queued.
+        // Bug #28 (B-11), fixed (ADR-0006): Archive2Interop.dll's unknown CRC gets past patch_files, so in the reference
+        // it "needed" a patch and the button was never re-enabled although nothing was patched or queued. The port
+        // re-enables the button whenever the queue isn't running once the loop is done.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
         machine.Place("Fallout4Launcher.exe", "0E696744");
@@ -50,7 +51,8 @@ public sealed class DowngraderRunTests
                 "Info: Skipped Archive2Interop.dll: Unsupported Version.",
             ],
             host.Lines);
-        Assert.DoesNotContain(host.Events.Items, e => e is PatchAllEnabled or QueueRunning);
+        Assert.Equal([true], host.Events.Items.OfType<PatchAllEnabled>().Select(e => e.Enabled));
+        Assert.DoesNotContain(host.Events.Items, e => e is QueueRunning);
         Assert.Empty(host.Polls);
         Assert.Equal(0, host.Refreshes);
     }
@@ -197,7 +199,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "NET-3")]
-    [Trait("Parity", "THR-2")]
+    [Trait("Parity", "THR-2"), Deviation(28, "Patch All stays off while a download runs, though the loop's last file was skipped.")]
     public async Task A_missing_patch_downloads_while_the_ui_is_live_then_decodes_under_the_block()
     {
         using var machine = new Machine();
@@ -207,8 +209,8 @@ public sealed class DowngraderRunTests
 
         await machine.Run(server).PatchAllAsync(InstallType.NextGen, host, host.Events);
 
-        // The click is over with the download still in flight: the window not closable, the bar at 0, and (B-11, the
-        // last file wasn't there) the button back on.
+        // The click is over with the download still in flight: the window not closable, the bar at 0, and the button
+        // off. (B-11: the reference turned it back on here, as the last file wasn't there; bug #28, fixed.)
         Assert.Equal(
             [
                 "running",
@@ -218,7 +220,7 @@ public sealed class DowngraderRunTests
                 "Info: Skipped CreationKit.exe: Not Found.",
                 "Info: Skipped Archive2.exe: Not Found.",
                 "Info: Skipped Archive2Interop.dll: Not Found.",
-                "button on",
+                "button off",
             ],
             host.Script);
         Assert.Single(host.Polls);
@@ -307,7 +309,7 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Trait("Parity", "B-10")]
+    [Trait("Parity", "B-10"), Deviation(28, "Patch All stays off while the stuck download's queue runs.")]
     public async Task Bug_15_a_response_without_a_content_length_fails_after_its_first_chunk_and_the_queue_never_moves_again()
     {
         // Bug #15 (B-10), reproduced: ZeroDivisionError on the first chunk, after writing it. The poll ends with the
@@ -329,11 +331,9 @@ public sealed class DowngraderRunTests
         Assert.DoesNotContain(host.Script, s => s.StartsWith("versions", StringComparison.Ordinal));
         Assert.Equal(["OG-to-NG-Fallout4.exe.xdelta"], server.Requested);
 
-        // A later click (B-11 left the button on: the last file wasn't there) still sees Fallout4.exe as Old-Gen, but it
-        // has been renamed to its backup, so reading its CRC raises out of the click, as in the reference.
-        Assert.Equal("button on", host.Script[^1]);
-        await Assert.ThrowsAsync<FileNotFoundException>(() => run.PatchAllAsync(InstallType.NextGen, host, host.Events));
-        Assert.Empty(host.Polls);
+        // The reference's B-11 left the button on here (the last file wasn't there), so a later click could run into
+        // Fallout4.exe renamed to its backup. The button stays off while the queue runs (bug #28, fixed).
+        Assert.Equal("button off", host.Script.Last(s => s.StartsWith("button", StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -379,10 +379,11 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-4")]
-    [Trait("Parity", "B-11")]
-    public async Task Bug_28_a_skipped_last_file_re_enables_the_button_while_a_download_still_runs()
+    [Trait("Parity", "B-11"), Deviation(28, "A skipped last file no longer re-enables Patch All while a download still runs.")]
+    public async Task Bug_28_a_skipped_last_file_leaves_the_button_off_while_a_download_still_runs()
     {
-        // Bug #28 (B-11), reproduced: Archive2Interop.dll isn't there, so the loop ends with patch_needed False.
+        // Bug #28 (B-11), fixed (ADR-0006): Archive2Interop.dll isn't there, so the reference's loop ended with
+        // patch_needed False and turned the button back on mid-download. The port keeps it off until the queue empties.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
         var server = new PatchServer();
@@ -391,9 +392,34 @@ public sealed class DowngraderRunTests
 
         await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
 
-        Assert.Equal("button on", host.Script[^1]);
+        Assert.DoesNotContain("button on", host.Script);
+        Assert.Equal("button off", host.Script[^1]);
         Assert.True(run.InProgress);
         Assert.Single(host.Polls);
+
+        server.Release();
+        await host.RunPollsAsync();
+        Assert.Equal(["button on", "idle"], host.Script.TakeLast(2));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-4"), Deviation(28, "A restore that empties the queue mid-loop no longer leaves Patch All on while a later file downloads.")]
+    public async Task Bug_28_a_queue_finished_mid_loop_does_not_leave_the_button_on_for_a_later_download()
+    {
+        // Fallout4.exe is restored from its backup, so the queue empties and the "finished" step turns the button on in
+        // the middle of the loop; the launcher then starts a download. The button is off again when the loop is done.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C5965A2E");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        machine.Place("Fallout4Launcher.exe", "F6A06FF5");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.OldGen, host, host.Events);
+
+        Assert.True(run.InProgress);
+        Assert.Equal("button off", host.Script.Last(s => s.StartsWith("button", StringComparison.Ordinal)));
     }
 
     [Fact]

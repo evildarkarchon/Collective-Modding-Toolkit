@@ -9,15 +9,16 @@ namespace CMToolkit.Core.Downgrader;
 /// <summary>
 /// The Downgrader's Patch All run (DG-4..DG-6): the state one Downgrader window keeps across its runs (its detected
 /// versions, the patch queue, the download in flight) and the reference's sequence over it, reproduced step for step,
-/// its bugs included (B-9, B-10, B-11).
+/// except for the reference bugs fixed as Deviations (ADR-0006): the Patch All button follows the queue (B-11, #28).
 /// </summary>
 /// <remarks>
 /// <para>
 /// The reference ran all of this on the Tk UI thread except each download, which ran on a worker thread while a 100 ms
 /// <c>after()</c> poll waited for it. Here each step runs on a worker thread under the App's runner, and a lock stands
 /// for the UI thread: a Patch All click holds it for its whole file loop, and the download poll takes it for each of
-/// its steps, so they interleave only where Tk's callbacks could. A click while a download runs (possible once B-11 has
-/// re-enabled the button) shares the queue and the in-progress flag with the run already going, as in Tk.
+/// its steps, so they interleave only where Tk's callbacks could. A click while a download runs (possible in the
+/// reference once B-11 had re-enabled the button; the port's button stays off then, bug #28) would share the queue and
+/// the in-progress flag with the run already going, as in Tk.
 /// </para>
 /// <para>
 /// The first file that gets past the version checks starts the queue (<c>check_download_queue</c>) right there, in the
@@ -102,12 +103,9 @@ public sealed class DowngraderRun
         await _ui.WaitAsync().ConfigureAwait(false);
         try
         {
-            // B-11: reset for every file, so only the last file decides whether the button comes back.
-            var patchNeeded = false;
             // Indexed afresh each time: a "finished" step mid-loop replaces the versions of the files still to come.
             for (var i = 0; i < _versions.Length; i++)
             {
-                patchNeeded = false;
                 var version = _versions[i];
                 var path = _game.GamePath.Join(version.FileName);
                 if (version.InstallType == desired)
@@ -126,14 +124,16 @@ public sealed class DowngraderRun
                         continue;
                 }
 
-                patchNeeded = true;
                 await PatchFileAsync(path, desired, host, events).ConfigureAwait(false);
             }
 
-            if (!patchNeeded)
-            {
-                events.Report(new PatchAllEnabled(true));
-            }
+            // Bug #28 (B-11), fixed as a Deviation (ADR-0006): the reference reset patch_needed for every file, so only
+            // the last file decided whether the button came back. It stayed off for good when that file was skipped by
+            // the CRC check, and came back on while a download still ran when it was skipped earlier. The button now
+            // follows the queue: on when nothing is queued or running, off while a download or patch is pending (the
+            // "finished" step turns it on again). Reported either way, as a "finished" step mid-loop may have turned
+            // it on before a later file started a download.
+            events.Report(new PatchAllEnabled(!_inProgress));
         }
         catch (RefreshFailedException)
         {

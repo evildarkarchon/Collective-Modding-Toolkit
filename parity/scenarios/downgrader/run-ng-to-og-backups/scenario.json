@@ -9,6 +9,12 @@
     "THR-2",
     "SET-7"
   ],
+  "deviations": [
+    {
+      "bug": 28,
+      "reason": "Patch All is enabled exactly when no patch is queued or running, not by whether the loop's last file needed a patch."
+    }
+  ],
   "attributes": [
     {
       "path": "Game/Tools/Archive2/Archive2Interop_downgradeBackup.dll",

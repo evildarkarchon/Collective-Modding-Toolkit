@@ -7,6 +7,12 @@
     "SET-7",
     "B-11"
   ],
+  "deviations": [
+    {
+      "bug": 28,
+      "reason": "Patch All is enabled exactly when no patch is queued or running, not by whether the loop's last file needed a patch."
+    }
+  ],
   "host": {
     "cwd": "<ROOT>/Cwd",
     "argv0": "cm-toolkit.exe",
