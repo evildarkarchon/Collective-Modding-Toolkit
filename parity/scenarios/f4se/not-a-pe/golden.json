@@ -1,0 +1,32 @@
+{
+  "f4se": {
+    "display": {
+      "loading": {
+        "color": null,
+        "text": "Scanning DLLs..."
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning Broken.dll"
+        }
+      ]
+    },
+    "dlls": null,
+    "failure": {
+      "kind": "os"
+    },
+    "installType": "Old-Gen",
+    "loaded": false,
+    "loadingError": null,
+    "verdicts": null
+  }
+}

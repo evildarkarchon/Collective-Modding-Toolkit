@@ -7,7 +7,7 @@ toolchain lands with the first slice that needs it:
 | Toolchain | First consumer |
 |---|---|
 | Version-resourced exe/dll stubs (C/`.rc`, MSVC): [`version-stubs/`](version-stubs/build.ps1), outputs in `version-stubs/out/<set>/` | Overview binaries |
-| Real-PE F4SE plugin DLLs (C, MSVC) | F4SE |
+| Real-PE F4SE plugin DLLs (C, MSVC): [`f4se-plugins/`](f4se-plugins/build.ps1), one per export/version-struct variant plus a 32-bit one, outputs in `f4se-plugins/out/<arch>/` | F4SE |
 | CRC32-forged small files: the forger [`crc32-forge/forge_crc32.py`](crc32-forge/forge_crc32.py) landed early with the Overview binaries, for CRC-keyed binaries and the Down-Grade `Startup.ba2` | Downgrader window |
 | Self-made xdelta3 Delta Patches, served from a scenario's `http/` | Downgrader run |
 | ESP/ESM/BA2 header authoring script (output committed, so it isn't on the test path) | Overview modules/archives |

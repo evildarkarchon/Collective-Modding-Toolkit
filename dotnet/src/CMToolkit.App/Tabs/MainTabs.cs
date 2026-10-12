@@ -11,7 +11,7 @@ public static class MainTabs
     public static IReadOnlyList<TabPage> Compose(AppSession session) =>
     [
         new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview),
-        PlaceholderTab.F4se(),
+        new F4seTab(session.Runtime, session.Host, session.Game, session.Overview),
         PlaceholderTab.Scanner(),
         new ToolsTab(session.Runtime),
         new SettingsTab(session.Settings),

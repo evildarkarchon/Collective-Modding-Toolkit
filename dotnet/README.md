@@ -107,3 +107,10 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   buttons' paddings were measured off the pair rather than derived from sv_ttk.
 - If an Overview refresh fails, its error is reported and the previous report and frames stay. The reference cleared
   the problem list first and was left with a partial one.
+- F4SE tab (see [`parity/screenshots/f4se/`](../parity/screenshots/f4se/)): the tree, its headings and rows, the
+  scrollbar column and the legend line up with Tk's to within a pixel. The glyphs fall back to Segoe UI Symbol, so
+  they take the row's colour as Tk's do, but they are its lighter shapes, not the heavier ones GDI draws (from Segoe
+  UI Emoji). The scrollbar's thumb is the app's Fluent one, filling the 12 px trough where sv_ttk's is a 6 px bar
+  with arrows, and with no rows to scroll it shows no thumb where sv_ttk's fills the trough. The legend wraps at
+  words, not characters (`wrap=CHAR`); no line of it is wide enough to wrap. Each plugin is unmapped once
+  inspected; the reference never freed its `WinDLL`s, so every plugin stayed locked against deletion until exit.
