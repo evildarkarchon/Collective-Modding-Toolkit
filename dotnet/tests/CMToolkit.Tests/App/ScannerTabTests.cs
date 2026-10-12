@@ -31,7 +31,6 @@ public sealed class ScannerTabTests
     {
         var gather = new ManualResetEventSlim(true);
         var work = new ManualResetEventSlim();
-        bool? blockedDuringRefresh = null;
         bool? workerOnUiThread = null;
         using var app = ScannerApp.Start(
             gatherer: (g, h, l, p) =>
@@ -48,8 +47,9 @@ public sealed class ScannerTabTests
 
         gather.Reset();
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        // The refresh's gathering is held, so input becoming blocked here is the refresh's doing; the wait is the
+        // assertion (it times out otherwise).
         DispatcherWait.Until(() => app.Runtime.Input.IsBlocking);
-        blockedDuringRefresh = app.Runtime.Input.IsBlocking;
         Assert.Equal("Refreshing Overview...", app.ScanningText.Text);
         gather.Set();
 
@@ -60,7 +60,6 @@ public sealed class ScannerTabTests
         work.Set();
         DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
 
-        Assert.True(blockedDuringRefresh);
         Assert.False(workerOnUiThread);
     }
 

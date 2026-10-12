@@ -119,24 +119,31 @@ public sealed class UpdateCheckTests
     [Trait("Parity", "T-14")]
     public async Task The_timeout_is_per_read_so_a_slow_steady_response_outlasting_it_still_arrives()
     {
-        // Ten 100 ms gaps: a second in all, against a 400 ms per-read timeout that a total timeout would blow.
-        var body = new string('a', 10);
-        await using var server = LoopbackServer.Start(async (stream, stopping) =>
-        {
-            await Write(stream, $"HTTP/1.1 200 OK\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n");
-            foreach (var c in body)
+        // Thirty 100 ms gaps: three seconds in all, against a 2 s per-read timeout that a total timeout would blow. The
+        // 20x margin between a gap and the timeout, and the writes paced by Thread.Sleep on a dedicated thread rather
+        // than Task.Delay on the pool, keep other tests that tie up pool threads from stretching a gap into a timeout.
+        var body = new string('a', 30);
+        await using var server = LoopbackServer.Start((stream, stopping) => Task.Factory.StartNew(
+            () =>
             {
-                await Task.Delay(100, stopping);
-                await Write(stream, c.ToString());
-            }
-        });
-        using var client = new HttpClient(UpdateCheck.CreateHandler(TimeSpan.FromMilliseconds(400))) { Timeout = Timeout.InfiniteTimeSpan };
+                WriteNow(stream, $"HTTP/1.1 200 OK\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n");
+                foreach (var c in body)
+                {
+                    stopping.ThrowIfCancellationRequested();
+                    Thread.Sleep(100);
+                    WriteNow(stream, c.ToString());
+                }
+            },
+            stopping,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default));
+        using var client = new HttpClient(UpdateCheck.CreateHandler(TimeSpan.FromSeconds(2))) { Timeout = Timeout.InfiniteTimeSpan };
 
         var watch = Stopwatch.StartNew();
         var text = await client.GetStringAsync(server.Url, TestContext.Current.CancellationToken).WithTimeout();
 
         Assert.Equal(body, text);
-        Assert.True(watch.Elapsed > TimeSpan.FromMilliseconds(400), $"The response took only {watch.Elapsed}.");
+        Assert.True(watch.Elapsed > TimeSpan.FromSeconds(2), $"The response took only {watch.Elapsed}.");
     }
 
     [Fact]
@@ -182,6 +189,13 @@ public sealed class UpdateCheckTests
     {
         await stream.WriteAsync(Encoding.ASCII.GetBytes(text));
         await stream.FlushAsync();
+    }
+
+    /// <summary>Writes and flushes <paramref name="text"/> synchronously, on the calling thread.</summary>
+    private static void WriteNow(Stream stream, string text)
+    {
+        stream.Write(Encoding.ASCII.GetBytes(text));
+        stream.Flush();
     }
 
     private static HttpResponseMessage Ok(HttpContent content, string contentType)
