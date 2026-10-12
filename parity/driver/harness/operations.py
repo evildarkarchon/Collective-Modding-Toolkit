@@ -9,6 +9,7 @@ not by re-deriving them (ADR-0004).
 import base64
 import itertools
 import logging
+import operator
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -1519,7 +1520,7 @@ def scanner_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
 			"scanningLabel": None if scanner.label_scanning_text is None else scanner.sv_scanning_text.get(),
 			"progress": float(scanner.dv_progress.get()),
 			"selectable": str(tree.cget("selectmode")) != "none",
-			"groups": golden.unordered(sorted(groups, key=lambda g: g["text"])),
+			"groups": golden.unordered(sorted(groups, key=operator.itemgetter("text"))),
 			"scan": None if side is None else {"text": str(side.button_scan.cget("text")), "enabled": not side.button_scan.instate(["disabled"])},
 			"detailsPane": scanner.details_pane is not None,
 			"sidePane": side is not None,
@@ -1548,7 +1549,7 @@ def scanner_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
 
 	def first_group() -> Any:
 		tree = scanner.tree_results
-		return sorted(tree.get_children(), key=lambda g: str(tree.item(g, "text")))[0]
+		return min(tree.get_children(), key=lambda g: str(tree.item(g, "text")))
 
 	def select_row(row: Any) -> bool:
 		scanner.tree_results.selection_set(row)
@@ -2234,7 +2235,7 @@ def scanner_scan(session: Session, golden: GoldenContext) -> dict[str, Any]:
 			"resultsInfo": scanner.sv_results_info.get(),
 			"scanningLabel": None if scanner.label_scanning_text is None else scanner.sv_scanning_text.get(),
 			"progress": float(scanner.dv_progress.get()),
-			"groups": golden.unordered(sorted(groups, key=lambda g: g["text"])),
+			"groups": golden.unordered(sorted(groups, key=operator.itemgetter("text"))),
 			"scan": {"text": str(side.button_scan.cget("text")), "enabled": not side.button_scan.instate(["disabled"])},
 		}
 
