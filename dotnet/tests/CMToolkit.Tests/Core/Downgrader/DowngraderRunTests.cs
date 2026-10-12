@@ -157,11 +157,12 @@ public sealed class DowngraderRunTests
     }
 
     [Fact]
-    [Trait("Parity", "DG-5")]
-    public async Task Bug_91_a_file_whose_only_attribute_is_read_only_stays_read_only()
+    [Trait("Parity", "DG-5"), Deviation(91, "A file whose only attribute is read-only is made writable, so its backup can be deleted and the restore succeeds.")]
+    public async Task Bug_91_a_file_whose_only_attribute_is_read_only_is_made_writable_too()
     {
-        // Bug #91, reproduced: CPython's chmod writes back an attribute word of 0, which Windows ignores, so the
-        // read-only bit survives into the backup (verified against CPython 3.14.5).
+        // Bug #91, fixed (ADR-0006): CPython's chmod wrote back an attribute word of 0, which Windows ignores, so the
+        // read-only bit survived into the backup, and deleting that backup (Keep Backups off) failed after the restore
+        // (Patched, then Failed patching). The port sets FILE_ATTRIBUTE_NORMAL instead, so the backup is deleted.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C5965A2E");
         machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
@@ -170,10 +171,25 @@ public sealed class DowngraderRunTests
 
         await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
 
-        // Keep Backups is off, so deleting the read-only backup fails after the restore: Patched, then Failed patching.
-        // The rename marks it for archiving too; only the read-only bit matters.
-        Assert.True(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
-        Assert.Equal(["Good: Patched Fallout4.exe", "Bad: Failed patching Fallout4.exe"], host.Lines.Take(2));
+        Assert.False(File.Exists(machine.GamePath("Fallout4_downgradeBackup.exe")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.Equal(["Good: Patched Fallout4.exe"], host.Lines.Where(l => !l.StartsWith("Info", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-5"), Deviation(91, "A file whose only attribute is read-only keeps no read-only bit into its backup.")]
+    public async Task Bug_91_the_backup_of_a_file_whose_only_attribute_was_read_only_is_not_read_only()
+    {
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C5965A2E");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        File.SetAttributes(machine.GamePath("Fallout4.exe"), FileAttributes.ReadOnly);
+        var host = new ScriptedHost { KeepBackups = true };
+
+        await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
+
+        Assert.False(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
+        Assert.Contains("Good: Patched Fallout4.exe", host.Lines);
     }
 
     [Fact]

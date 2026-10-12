@@ -193,7 +193,8 @@ public sealed class DowngraderRun
         var currentBackupFile = HostPaths.Resolve(_host, currentBackup);
         try
         {
-            // file_path.chmod(stat.S_IWRITE), which leaves a file read-only when that was its only attribute (bug #91).
+            // file_path.chmod(stat.S_IWRITE), which left a file read-only when that was its only attribute (bug #91,
+            // fixed in PythonChmod: the port always leaves the file writable).
             if (File.GetAttributes(file).HasFlag(FileAttributes.ReadOnly))
             {
                 PythonChmod.SetWritable(file);

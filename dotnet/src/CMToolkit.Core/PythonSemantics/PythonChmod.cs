@@ -8,9 +8,10 @@ namespace CMToolkit.Core.PythonSemantics;
 internal static class PythonChmod
 {
     /// <summary>
-    /// <c>path.chmod(stat.S_IWRITE)</c>. When read-only is the file's only attribute, clearing it leaves a word of 0,
-    /// which changes nothing, so the file stays read-only (bug #91, reproduced, not fixed yet; verified against CPython
-    /// 3.14.5). <see cref="File.SetAttributes(string, FileAttributes)"/> would clear it, so that case is left alone.
+    /// <c>path.chmod(stat.S_IWRITE)</c>: clears the read-only attribute, keeping the others. When read-only is the
+    /// file's only attribute, CPython wrote back a word of 0, which changes nothing, so the file stayed read-only (bug
+    /// #91; verified against CPython 3.14.5). The port fixes that as a Deviation (ADR-0006): it writes
+    /// <c>FILE_ATTRIBUTE_NORMAL</c> then, so the file is always writable afterwards.
     /// </summary>
     /// <param name="path">The file.</param>
     /// <exception cref="IOException">Windows refused the change (Python's <c>OSError</c>).</exception>
@@ -18,12 +19,7 @@ internal static class PythonChmod
     public static void SetWritable(string path)
     {
         var remaining = File.GetAttributes(path) & ~FileAttributes.ReadOnly;
-        if (remaining == 0)
-        {
-            // Bug #91: the zero word CPython writes is ignored by Windows.
-            return;
-        }
-
-        File.SetAttributes(path, remaining);
+        // Bug #91: an empty word is ignored by Windows, so say NORMAL ("no other attributes") instead.
+        File.SetAttributes(path, remaining == 0 ? FileAttributes.Normal : remaining);
     }
 }

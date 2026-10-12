@@ -9,6 +9,12 @@
     "THR-2",
     "SET-7"
   ],
+  "deviations": [
+    {
+      "bug": 91,
+      "reason": "Clearing read-only on a file whose only attribute it is leaves the file writable (FILE_ATTRIBUTE_NORMAL), so its backup isn't read-only."
+    }
+  ],
   "attributes": [
     {
       "path": "Game/Fallout4Launcher.exe",
