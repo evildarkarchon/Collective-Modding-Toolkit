@@ -1,0 +1,70 @@
+{
+  "description": "No mod manager, the overview-issues tree without its F4SE folder (so the Address Library is a File Not Found problem whose path and parent are both missing, with a Nexus link) and with 60 + 45 SADD records appended to two enabled modules (a Race Subgraph Record Count problem with a file list). An Overview Issues + Race Subgraphs scan, then every result selected in turn: the details pane's rows, its clickable path (a file opens its folder, a folder opens itself, a missing path is unbound with X_cursor), its solution text and link clicks, its buttons, Copy Details (the clipboard, Copied! for 3 s, which outlasts the next selection) and the File List window.",
+  "operation": "scanner-details",
+  "parity": [
+    "SCN-R4",
+    "SCN-R5",
+    "SCN-R6",
+    "SCN-R7",
+    "THR-3"
+  ],
+  "emptyDirs": [
+    "Game/Data/DLCRobot.esm",
+    "Game/Data/Folder.esp"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

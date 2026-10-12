@@ -139,3 +139,6 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
   the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
   problem types first appear.
+- The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
+  a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
+  no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.

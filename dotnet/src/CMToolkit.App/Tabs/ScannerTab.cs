@@ -80,6 +80,15 @@ public sealed class ScannerTab : TabPage
     /// <summary>The problem a results tree item stands for (<c>tree_results_data</c>), or null for a group row.</summary>
     public Problem? ProblemOf(TreeViewItem item) => _items.GetValueOrDefault(item);
 
+    /// <summary>
+    /// The machine the details pane checks result paths on (SCN-R5): a relative path is relative to its working
+    /// directory. The real machine by default.
+    /// </summary>
+    public IHostEnvironment Host { get; init; } = SystemHostEnvironment.Instance;
+
+    /// <summary>What the details pane's path click opens a folder with: the shell by default, a recorder in tests.</summary>
+    public Action<string> OpenFolder { get; init; } = ScanDetailsPane.StartFile;
+
     /// <summary><c>ScannerTab._load</c>: fails with <c>Data folder not found</c> when there is no Data folder (SCN-1).</summary>
     protected internal override Task<bool> LoadAsync()
     {
@@ -356,7 +365,7 @@ public sealed class ScannerTab : TabPage
 
         if (DetailsPane is null)
         {
-            DetailsPane = new ScanDetailsPane();
+            DetailsPane = new ScanDetailsPane(_runtime, Host) { OpenFolder = OpenFolder };
             Docker().Show(PaneSlot.Details, DetailsPane);
         }
 

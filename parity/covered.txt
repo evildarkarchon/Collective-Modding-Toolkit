@@ -200,3 +200,12 @@ SHELL-11
 T-15
 # SCN-R2 is proven in part (the empty-mod fallback without an index) and deferred: #58 also claims it.
 # SET-7 is proven in part (the Scanner saves only a changed box) and deferred: #61 also claims it.
+
+# Scanner: details pane (#57)
+SCN-R4
+SCN-R5
+SCN-R6
+SCN-R7
+SCN-R8
+# THR-3: #55 proved the About tab's copy buttons; #57, its last claimant, the Scanner's Copy Details (scanner-details goldens).
+THR-3
