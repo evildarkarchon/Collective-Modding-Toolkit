@@ -20,8 +20,32 @@ public sealed class SystemHostEnvironmentTests
 
         Assert.Equal("Windows", info.System);
         Assert.Equal(Environment.OSVersion.Version.Build, info.Build);
-        // platform.release() names Windows 11 "11" although its version is 10.0 (T-6). Test machines are clients.
-        Assert.Equal(info.Build >= 22000 ? "11" : "10", info.Release);
+        // platform.release() names Windows 11 "11" although its version is 10.0 (T-6). Developer machines are clients,
+        // but CI runs on Windows Server, where Python uses its server table instead (e.g. "2025Server").
+        Assert.Equal(ExpectedRelease(info.Build), info.Release);
+    }
+
+    /// <summary>
+    /// The release name Python reports for this machine's Windows 10+ build. The product type is read from the
+    /// registry (<c>WinNT</c> means a workstation) rather than from <c>RtlGetVersion</c>, so the expectation doesn't
+    /// share the implementation's source of truth.
+    /// </summary>
+    private static string ExpectedRelease(int build)
+    {
+        var productType = Host.ReadRegistryValue(
+            RegistryRoot.LocalMachine, @"SYSTEM\CurrentControlSet\Control\ProductOptions", "ProductType").AsRegSz;
+        if (productType == "WinNT")
+        {
+            return build >= 22000 ? "11" : "10";
+        }
+
+        return build switch
+        {
+            >= 26100 => "2025Server",
+            >= 20348 => "2022Server",
+            >= 17763 => "2019Server",
+            _ => "2016Server",
+        };
     }
 
     [Fact]
