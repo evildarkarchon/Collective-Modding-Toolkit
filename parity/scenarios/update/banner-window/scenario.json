@@ -62,5 +62,15 @@
     "pc": {
       "ramBytes": 68719476736
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 83,
+      "reason": "The port drops the surrounding whitespace and leading v that PEP 440 allows from a newer version before adding its own v, so the banner and log read v0.7.0, not vv0.7.0."
+    },
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
 }

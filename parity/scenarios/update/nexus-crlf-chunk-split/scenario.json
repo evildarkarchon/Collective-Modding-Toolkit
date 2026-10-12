@@ -6,5 +6,11 @@
   ],
   "host": {
     "cwd": "<ROOT>/Cwd"
-  }
+  },
+  "deviations": [
+    {
+      "bug": 82,
+      "reason": "The port joins a CRLF split across two 512-byte reads, so the version line after the tag is found."
+    }
+  ]
 }
