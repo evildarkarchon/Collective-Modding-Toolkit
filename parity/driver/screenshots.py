@@ -27,6 +27,7 @@ of the tree. Scripted ``dialogs`` answer only the reference's; the exe shows rea
 import argparse
 import contextlib
 import ctypes
+import json
 import os
 import runpy
 import subprocess
@@ -72,10 +73,20 @@ MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
 SCAN_VARIABLE = "CMT_SCREENSHOT_SCAN"
 # Tells the reference child which Scanner result to select once the scan has listed it (``--select``).
 SELECT_VARIABLE = "CMT_SCREENSHOT_SELECT"
-# The C# Scanner side pane's title (PaneWindow), and where ``--scan`` clicks in its client pixels: the six data boxes
-# (Errors .. Race Subgraphs) to untick them, then Scan Game. Measured from parity/screenshots/scanner/side-pane.
+# The C# Scanner side pane's title (PaneWindow), and where ``--scan`` clicks in its client pixels: each box with the
+# setting it starts from, then Scan Game. Measured from parity/screenshots/scanner/side-pane (Overview Issues sits one
+# 28 px row above Errors).
 SIDE_PANE_TITLE = "Collective Modding Toolkit pane (Side)"
-SCAN_CLICKS = [(26, 70), (26, 98), (26, 126), (26, 154), (26, 182), (26, 210), (100, 375)]
+SCAN_BOXES = [
+	("scanner_OverviewIssues", (26, 42)),
+	("scanner_Errors", (26, 70)),
+	("scanner_WrongFormat", (26, 98)),
+	("scanner_LoosePrevis", (26, 126)),
+	("scanner_JunkFiles", (26, 154)),
+	("scanner_ProblemOverrides", (26, 182)),
+	("scanner_RaceSubgraphs", (26, 210)),
+]
+SCAN_GAME = (100, 375)
 # Tells the reference child to run the Downgrader's Patch All once it is open (``--patch``), with this Desired Version.
 PATCH_VARIABLE = "CMT_SCREENSHOT_PATCH"
 # Where ``--patch`` clicks in the C# Downgrader's client pixels: each Desired Version radio, and Patch All. Measured from
@@ -242,6 +253,22 @@ def click(hwnd: int, point: tuple[int, int]) -> None:
 	user32.PostMessageW(target, WM_LBUTTONUP, 0, position)
 
 
+def saved_scan_boxes(folder: Path) -> list[bool]:
+	"""The C# Scanner boxes' starting states, in ``SCAN_BOXES`` order.
+
+	Since bug #20's fix the C# app ticks them from the ``scanner_*`` settings in its folder's ``settings.json`` (the
+	scenario's ``cwd`` here), where the reference always starts with every box ticked. A missing or unreadable file, or
+	a value that isn't a bool, means ticked, as ``SettingsFile.Load`` falls back to the default.
+	"""
+	try:
+		saved = json.loads((folder / "settings.json").read_text("utf-8"))
+	except (OSError, ValueError):
+		saved = {}
+	if not isinstance(saved, dict):
+		saved = {}
+	return [value if isinstance(value := saved.get(key), bool) else True for key, _ in SCAN_BOXES]
+
+
 def run_and_capture(
 	command: list[str],
 	cwd: Path,
@@ -259,6 +286,7 @@ def run_and_capture(
 	select: bool = False,
 	select_at: tuple[int, int] | None = None,
 	scan_all: bool = False,
+	scan_boxes: list[bool] | None = None,
 ) -> Image.Image:
 	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
 
@@ -266,8 +294,9 @@ def run_and_capture(
 	select it by clicking its header (the C# app), rather than the app selecting it itself (the reference child).
 	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
 	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself. With ``scan`` (on the Scanner tab), an
-	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes and Scan Game (``SCAN_CLICKS``),
-	otherwise the app runs it itself; with ``scan_all`` too, every box stays ticked and only Scan Game is clicked.
+	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes that ``scan_boxes`` (their starting
+	states, ``saved_scan_boxes``; all ticked when None) shows aren't as wanted, then Scan Game (``SCAN_BOXES``,
+	``SCAN_GAME``), otherwise the app runs it itself; with ``scan_all`` too, every box is wanted ticked.
 	With ``panes``, the app's other windows are pasted in place around the main one.
 	With ``select`` (after a scan), a result is selected so the details pane opens: ``click_tab`` clicks ``select_at``
 	in the main window's client pixels (a results row), otherwise the app selects it itself.
@@ -300,9 +329,17 @@ def run_and_capture(
 				if side is None:
 					msg = f"{label} showed no Scanner side pane"
 					raise RuntimeError(msg)
-				for point in SCAN_CLICKS[-1:] if scan_all else SCAN_CLICKS:
-					click(side, point)
-					time.sleep(0.2)
+				# Click only the boxes not already as wanted: Overview Issues ticked, and the six data boxes ticked
+				# for --scan-all, unticked otherwise. A posted click toggles, so clicking a box already right would
+				# undo it.
+				starting = scan_boxes if scan_boxes is not None else [True] * len(SCAN_BOXES)
+				wanted = [True] + [scan_all] * (len(SCAN_BOXES) - 1)
+				for (_, point), ticked, want in zip(SCAN_BOXES, starting, wanted, strict=True):
+					if ticked != want:
+						click(side, point)
+						time.sleep(0.2)
+				click(side, SCAN_GAME)
+				time.sleep(0.2)
 			# Long enough for the reference's delayed scan and for either app to refresh the Overview and list results.
 			time.sleep(4)
 		if select:
@@ -654,6 +691,7 @@ def main() -> int:
 			modal=args.modal,
 			scan=args.scan or args.scan_all,
 			scan_all=args.scan_all,
+			scan_boxes=saved_scan_boxes(cwd),
 			panes=args.panes,
 			patch=args.patch,
 			select=bool(args.select),

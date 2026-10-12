@@ -498,6 +498,101 @@ public sealed class DowngraderRunTests
         Assert.False(run.InProgress);
     }
 
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A download cut off mid-body is logged with its own error, even when its partial patch can't be deleted.")]
+    public async Task Bug_15_a_partial_patch_that_cannot_be_deleted_does_not_hide_why_the_download_failed()
+    {
+        // Something else (an antivirus scan, say) opens the partial patch without delete sharing as the connection
+        // drops, so deleting it fails too. The log must still say why the download failed, not why the delete did.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        FileStream? scanner = null;
+        var patch = machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta");
+        var server = new PatchServer
+        {
+            ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.CutOff(new byte[3000], after: 2048, onCut: () =>
+                scanner = new FileStream(patch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)),
+        };
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+        var run = machine.Run(server);
+
+        try
+        {
+            await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+            server.Release();
+            await host.RunPollsAsync();
+        }
+        finally
+        {
+            scanner?.Dispose();
+        }
+
+        Assert.Contains("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection reset.", host.Lines);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+        Assert.False(run.InProgress);
+    }
+
+    [Fact]
+    [Trait("Parity", "B-10"), Deviation(15, "A failed download whose backup can't be put back is logged, and the queue still moves on to its end.")]
+    public async Task Bug_15_a_backup_that_cannot_be_put_back_after_a_failed_download_is_logged_and_the_queue_finishes()
+    {
+        // The backup of the current version already matches the live file, so the click deletes the live file and keeps
+        // the backup. Held open without delete sharing (an antivirus scan, say), it can't be moved back once the download
+        // fails. Before, that exception escaped the poll and left the queue stuck, the #15 symptom again.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        var server = new PatchServer { ["OG-to-NG-Fallout4.exe.xdelta"] = PatchServer.Failure() };
+        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+        var run = machine.Run(server);
+
+        using (new FileStream(machine.GamePath("Fallout4_upgradeBackup.exe"), FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+            server.Release();
+            await host.RunPollsAsync();
+        }
+
+        var bad = host.Lines.Where(l => l.StartsWith("Bad", StringComparison.Ordinal)).ToList();
+        Assert.Equal(3, bad.Count);
+        Assert.Equal("Bad: Failed downloading OG-to-NG-Fallout4.exe.xdelta: Canned connection failure.", bad[0]);
+        Assert.Equal("Bad: Failed patching Fallout4.exe", bad[1]);
+        Assert.StartsWith("Bad: Failed restoring Fallout4.exe from Fallout4_upgradeBackup.exe: ", bad[2]);
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4_upgradeBackup.exe")));
+        Assert.False(run.InProgress);
+        Assert.Equal(["button on", "idle"], host.Script.TakeLast(2));
+    }
+
+    [Fact]
+    [Trait("Parity", "B-9"), Deviation(14, "A failed decode whose backup can't be put back is logged, and the click still finishes the queue.")]
+    public async Task Bug_14_a_backup_that_cannot_be_put_back_after_a_saved_patch_fails_to_decode_is_logged_and_the_click_finishes()
+    {
+        // As above, but the patch is already in the patch folder, so it is applied within the click: before, the
+        // restore's exception escaped Patch All itself, with the queue marked as running for good.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        File.WriteAllText(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta"), "not a patch");
+        var host = new ScriptedHost { KeepBackups = false, DeletePatches = false };
+        var run = machine.Run();
+
+        using (new FileStream(machine.GamePath("Fallout4_upgradeBackup.exe"), FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        }
+
+        Assert.Empty(host.Polls);
+        var bad = host.Lines.Where(l => l.StartsWith("Bad", StringComparison.Ordinal)).ToList();
+        Assert.Equal(2, bad.Count);
+        Assert.Equal("Bad: Failed patching Fallout4.exe", bad[0]);
+        Assert.StartsWith("Bad: Failed restoring Fallout4.exe from Fallout4_upgradeBackup.exe: ", bad[1]);
+        Assert.False(File.Exists(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C6053902", FileCrc32.Of(machine.GamePath("Fallout4_upgradeBackup.exe")));
+        Assert.False(run.InProgress);
+        // The queue finished within the click; the skip lines for the later files come after it.
+        Assert.Equal(["button on", "idle", "button on"], host.Script.Where(s => !s.StartsWith("Info", StringComparison.Ordinal)).TakeLast(3));
+    }
+
     [Theory]
     [Trait("Parity", "DG-6")]
     [InlineData(true, false)]
@@ -968,9 +1063,12 @@ public sealed class DowngraderRunTests
         public static Func<HttpResponseMessage> Failure() => () => throw new HttpRequestException(HttpRequestError.ConnectionError, "Canned connection failure.");
 
         /// <summary>A 200 with the whole body's Content-Length whose body fails with an I/O error after <paramref name="after"/> bytes.</summary>
-        public static Func<HttpResponseMessage> CutOff(byte[] body, int after) => () =>
+        /// <param name="body">The whole body the Content-Length announces.</param>
+        /// <param name="after">How many bytes are sent before the connection drops.</param>
+        /// <param name="onCut">Runs on the reading thread just before the drop is raised.</param>
+        public static Func<HttpResponseMessage> CutOff(byte[] body, int after, Action? onCut = null) => () =>
         {
-            var content = new StreamContent(new CutOffStream(body, after));
+            var content = new StreamContent(new CutOffStream(body, after, onCut));
             content.Headers.ContentLength = body.Length;
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
         };
@@ -998,7 +1096,7 @@ public sealed class DowngraderRunTests
         }
 
         /// <summary>A body whose connection drops after <paramref name="after"/> bytes.</summary>
-        private sealed class CutOffStream(byte[] data, int after) : MemoryStream(data, writable: false)
+        private sealed class CutOffStream(byte[] data, int after, Action? onCut) : MemoryStream(data, writable: false)
         {
             public override bool CanSeek => false;
 
@@ -1006,6 +1104,7 @@ public sealed class DowngraderRunTests
             {
                 if (Position >= after)
                 {
+                    onCut?.Invoke();
                     throw new IOException("Canned connection reset.");
                 }
 

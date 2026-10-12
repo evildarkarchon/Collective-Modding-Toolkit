@@ -1,5 +1,5 @@
 {
-  "description": "Bug #28 (B-11), reproduced: Old-Gen (the default) on an Old-Gen game. Every file is skipped (already Old-Gen, Obsolete, Not Found, Anniversary), and the last, an Archive2Interop.dll of no known build, is skipped by the CRC check after counting as needing a patch, so the button is never re-enabled although nothing ran. The options weren't changed, so settings.json isn't saved (SET-7).",
+  "description": "Bug #28 (B-11), reproduced: Old-Gen (the default) on an Old-Gen game. Every file is skipped (already Old-Gen, Obsolete, Not Found, Anniversary), and the last, an Archive2Interop.dll of no known build, is skipped by the CRC check after counting as needing a patch, so the button is never re-enabled although nothing ran. The options weren't changed, so settings.json isn't saved (SET-7). Port: fixed, see deviation #28.",
   "operation": "downgrader-run",
   "parity": [
     "DG-4",

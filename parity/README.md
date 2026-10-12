@@ -64,7 +64,8 @@ keys are errors. Nothing in the app reads `Script/`, and the golden echoes the s
 }
 ```
 
-Unknown keys are errors on both sides, so a typo fails instead of being ignored.
+Unknown keys are errors on both sides, so a typo fails instead of being ignored. So is a key repeated in any object,
+which JSON parsers otherwise resolve by keeping the last one.
 
 ### The `host` block
 
@@ -211,8 +212,9 @@ reference like any other, then flipped as above.
 
 The checks enforce the pairing. `LoadGolden()` (and therefore `CommittedScenarioTests`) and the coverage check both fail
 on a declared deviation with no `golden.port.json`, and on a `golden.port.json` with no declared deviation. The coverage
-check also fails on a malformed bug number, a missing or blank reason, an empty `deviations` list, and a port golden
-identical to the recording. It lists every deviation on each run.
+check also fails on a malformed bug number, a missing or blank reason, the same bug listed twice, an empty `deviations`
+list, a port golden identical to the recording, and a `Deviation` attribute on a test with no `Trait("Parity", ...)` on
+its method or class. It lists every deviation on each run.
 
 ## Coverage check
 
@@ -254,9 +256,10 @@ reference opens it in-process two seconds after `CMChecker` is built (told which
 gets a posted click on the opening button, fixed in `MODAL_BUTTONS`. The capture is the window with that title.
 
 `--tab Scanner --scan` runs an Overview Issues scan before capturing: the reference unticks the six data boxes and
-presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks at `SCAN_CLICKS` in its side
-pane. `--scan-all` scans with every box still ticked instead: only Scan Game is pressed (the last `SCAN_CLICKS`
-point on the exe). `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
+presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks in its side pane
+(`SCAN_BOXES`, `SCAN_GAME`). The exe's boxes start from the `scanner_*` settings in its folder's `settings.json` (bug
+#20, fixed), so only the boxes not already as wanted are clicked, then Scan Game. `--scan-all` scans with every box
+ticked instead. `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
 black, so the capture shows them in place.
 `--select TEXT --select-at X,Y` then selects a result so the details pane opens: the reference selects the item with
 that text in-process once the scan has listed it (told by `CMT_SCREENSHOT_SELECT`), the exe gets a posted click at

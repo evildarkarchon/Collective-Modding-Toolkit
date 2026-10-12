@@ -68,6 +68,7 @@ public sealed record OverviewWarning(string Title, string Message);
 /// </summary>
 public sealed class OverviewIncompleteException : Exception
 {
+    /// <summary>The gathering's death, with what it had gathered; the message is the inner exception's.</summary>
     /// <param name="partial">What had been gathered.</param>
     /// <param name="innerException">What the gathering threw.</param>
     public OverviewIncompleteException(OverviewReport partial, Exception innerException)

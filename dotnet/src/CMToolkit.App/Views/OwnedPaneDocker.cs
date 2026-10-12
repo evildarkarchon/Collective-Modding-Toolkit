@@ -43,9 +43,6 @@ public sealed class PaneWindow : Window
     /// <summary>Where the pane docks.</summary>
     public PaneSlot Slot { get; }
 
-    /// <summary>The pane's view, without the counter-scaling wrapper.</summary>
-    public Control? View => _host.Child;
-
     /// <summary>
     /// Lays the view out in the owner's DIPs. A pane that straddles onto a monitor with another DPI gets that monitor's
     /// scaling, so its fixed physical size holds fewer (or more) DIPs and its content would render too big (or small)
@@ -184,6 +181,10 @@ public sealed class OwnedPaneDocker : IDisposable
 
     private void OnOwnerChanged(object? sender, EventArgs e) => Sync();
 
+    /// <summary>
+    /// Moves and sizes <paramref name="pane"/> to its slot beside the owner (<see cref="Expected"/>), converting the
+    /// owner's DIPs to the pane's own, and matches its content's scale to the owner's.
+    /// </summary>
     private void Place(PaneWindow pane)
     {
         var target = Expected(pane.Slot);

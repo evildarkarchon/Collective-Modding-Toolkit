@@ -1,5 +1,5 @@
 {
-  "description": "An MO2 2.5.2 instance on Windows 11 24H2 exactly: the OS warning icon shows (OVW-5). Anniversary binaries with the Address Library installed; the Creation Kit and f4se_steam_loader.dll are absent, which is expected, and an Old-Gen f4se_loader.exe is the Wrong Version because the game isn't Down-Grade.",
+  "description": "An MO2 2.5.2 instance on Windows 11 24H2 exactly: the OS warning icon shows (OVW-5). Anniversary binaries with the Address Library installed; the Creation Kit and f4se_steam_loader.dll are absent, which is expected, and an Old-Gen f4se_loader.exe is the Wrong Version because the game isn't Down-Grade. Port: fixed, see deviation #24.",
   "operation": "overview-tab",
   "parity": [
     "OVW-2",

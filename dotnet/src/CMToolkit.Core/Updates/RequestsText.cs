@@ -127,6 +127,8 @@ internal static class RequestsText
                 }
 
                 var lines = PythonText.SplitLines(chunk).ToList();
+                // requests' own test, kept as is: if the chunk's last character survived splitlines (it wasn't a line
+                // break), the chunk ended mid-line, so its last line is held back to be joined with the next chunk.
                 if (lines.Count > 0 && lines[^1].Length > 0 && lines[^1][^1] == chunk[^1])
                 {
                     pending = lines[^1];

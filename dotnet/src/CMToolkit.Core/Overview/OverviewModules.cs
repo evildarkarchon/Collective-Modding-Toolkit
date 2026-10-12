@@ -82,6 +82,9 @@ internal sealed class ModulesGathering(
 
     private static readonly HashSet<string> ModuleSuffixes = [".esp", ".esl", ".esm"];
 
+    /// <summary><c>enums.ModuleFlag.Light</c>: the TES4 record flag of an ESL-flagged (Light) module.</summary>
+    private const uint LightFlag = 0x0200;
+
     private readonly PathSet _unreadable = new();
     private readonly PathSet _hedr95 = new();
     private readonly List<UnknownHedrModule> _hedrUnknown = [];
@@ -255,6 +258,8 @@ internal sealed class ModulesGathering(
             return;
         }
 
+        // The little-endian float32 encodings of 0.95 and 1.0, compared as bytes like the reference's MODULE_VERSION_95
+        // and MODULE_VERSION_1: only those exact bit patterns count, and anything else is unpacked and rounded below.
         var version = head.AsSpan(30, 4);
         if (version.SequenceEqual((ReadOnlySpan<byte>)[0x33, 0x33, 0x73, 0x3f]))
         {
@@ -269,8 +274,9 @@ internal sealed class ModulesGathering(
             AddUnknown(module, PythonFloat.Round(BinaryPrimitives.ReadSingleLittleEndian(version), 2));
         }
 
+        // The record flags of the TES4 header; a Light (ESL-flagged) module or an .esl file counts as Light.
         var flags = BinaryPrimitives.ReadUInt32LittleEndian(head.AsSpan(8, 4));
-        if ((flags & 0x200) != 0 || module.Suffix.ToLowerInvariant() == ".esl")
+        if ((flags & LightFlag) != 0 || module.Suffix.ToLowerInvariant() == ".esl")
         {
             _light++;
         }

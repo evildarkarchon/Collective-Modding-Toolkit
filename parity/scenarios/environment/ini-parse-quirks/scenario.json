@@ -1,5 +1,5 @@
 {
-  "description": "The hand-rolled parse (INI-3, B-14): keys and values untrimmed, keys lowercased, values not, lines before any header under NO-SECTION, lines without '=' skipped, a value keeping later '='s, an empty header, a header that doesn't end with ']', a header with no keys, and splitlines() breaking on \\v, \\x1c and U+2028.",
+  "description": "The hand-rolled parse (INI-3, B-14): keys and values untrimmed, keys lowercased, values not, lines before any header under NO-SECTION, lines without '=' skipped, a value keeping later '='s, an empty header, a header that doesn't end with ']', a header with no keys, and splitlines() breaking on \\v, \\x1c and U+2028. Port: fixed, see deviation #17.",
   "operation": "game-info",
   "parity": [
     "INI-3",

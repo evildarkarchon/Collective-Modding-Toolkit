@@ -42,6 +42,7 @@ public sealed class AppFolderFilesTests
     }
 
     [Fact]
+    [Trait("Parity", "SET-1"), Trait("Parity", "SHELL-1"), Trait("Parity", "DG-6")]
     [Deviation(36, "settings.json, cm-toolkit.log and downloaded Delta Patches are resolved against the exe's folder, not the working directory.")]
     public void The_paths_do_not_depend_on_the_working_directory()
     {

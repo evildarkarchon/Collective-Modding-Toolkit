@@ -37,12 +37,16 @@ public sealed record ScenarioManifest(
         RespectNullableAnnotations = true,
         RespectRequiredConstructorParameters = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
+
+        // A repeated key would otherwise replace the first silently, hiding a deviation (or a parity ID) from the
+        // checks; the coverage check and the Python driver reject it too.
+        AllowDuplicateProperties = false,
     };
 
     /// <summary>Parses a <c>scenario.json</c>.</summary>
     /// <exception cref="JsonException">
-    /// The JSON doesn't fit the schema, or a deviation is malformed: a bug number that isn't a positive integer, a blank
-    /// reason, the same bug twice, or an empty <c>deviations</c> list.
+    /// The JSON doesn't fit the schema, repeats a key in any object, or a deviation is malformed: a bug number that
+    /// isn't a positive integer, a blank reason, the same bug twice, or an empty <c>deviations</c> list.
     /// </exception>
     public static ScenarioManifest Parse(string json)
     {

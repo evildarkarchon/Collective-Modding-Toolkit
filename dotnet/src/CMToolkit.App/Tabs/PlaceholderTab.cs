@@ -3,8 +3,9 @@ using Avalonia.Controls;
 namespace CMToolkit.App.Tabs;
 
 /// <summary>
-/// A tab whose slice hasn't landed yet: it has the reference's header, class name and loading text, loads at once and
-/// builds nothing. Each tab's slice replaces its placeholder's line in <see cref="MainTabs.Compose"/> with the real page.
+/// A stand-in for a real tab: it has the reference's header, class name and loading text, loads at once and builds
+/// nothing. The app composes the real pages in <see cref="MainTabs.Compose"/>; placeholders serve the shell's own tests
+/// and the XAML previewer.
 /// </summary>
 public sealed class PlaceholderTab : TabPage
 {

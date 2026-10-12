@@ -1,5 +1,5 @@
 {
-  "description": "Only GitHub is newer: the GitHub link takes column 1.",
+  "description": "Only GitHub is newer: the GitHub link takes column 1. Port: fixed, see deviation #32.",
   "operation": "update-check",
   "parity": [
     "UPD-1",

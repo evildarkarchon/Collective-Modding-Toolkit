@@ -48,12 +48,12 @@ public sealed class SystemHostEnvironmentTests
         };
     }
 
+    // No parity traits on the next two: they only sanity-check the real reads. PC-1 (Wine detection) and PC-3 (RAM
+    // rounding) are proved by the environment/pc-* scenarios against the fake host.
     [Fact]
-    [Trait("Parity", "PC-1")]
     public void Windows_is_not_wine() => Assert.False(Host.IsWine);
 
     [Fact]
-    [Trait("Parity", "PC-3")]
     public void Total_memory_is_at_least_a_gibibyte() => Assert.True(Host.TotalPhysicalMemory >= 1L << 30);
 
     [Fact]

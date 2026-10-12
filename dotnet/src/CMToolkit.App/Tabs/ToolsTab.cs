@@ -15,9 +15,16 @@ public sealed class ToolsTab : TabPage
     private readonly AppRuntime _runtime;
     private readonly IReadOnlyList<ToolColumn> _columns;
 
+    /// <summary>The Tools tab, with the Toolkit Utilities opening the given windows.</summary>
     /// <param name="runtime">The app runtime; its browser opens the links.</param>
-    /// <param name="openDowngradeManager">Opens the Downgrader window. Until that slice lands, a no-op.</param>
-    /// <param name="openArchivePatcher">Opens the Archive Patcher window. Until that slice lands, a no-op.</param>
+    /// <param name="openDowngradeManager">
+    /// Opens the Downgrader window: <see cref="Views.DowngraderWindow.Open"/> in the app (<see cref="MainTabs"/>). Null
+    /// makes the button do nothing, for tests that don't open windows.
+    /// </param>
+    /// <param name="openArchivePatcher">
+    /// Opens the Archive Patcher window: <see cref="Views.ArchivePatcherWindow.Open"/> in the app
+    /// (<see cref="MainTabs"/>). Null makes the button do nothing, for tests that don't open windows.
+    /// </param>
     public ToolsTab(AppRuntime runtime, Action? openDowngradeManager = null, Action? openArchivePatcher = null)
         : base("Tools", "ToolsTab")
     {
@@ -121,9 +128,10 @@ public sealed class ToolsTab : TabPage
         return grid;
     }
 
+    /// <summary>A Toolkit Utilities button's action when no window opener was passed: nothing, for tests that open no windows.</summary>
     private static void NoWindow()
     {
-        // The window's slice wires it; until then the button is live but does nothing (TOOL-1 part).
+        // Empty on purpose: the app always passes real openers (MainTabs); only tests leave them out (TOOL-1).
     }
 
     /// <summary>The three columns, <c>tool_buttons</c> in <c>_tools.py</c>: texts keep their deliberate line breaks and padding.</summary>

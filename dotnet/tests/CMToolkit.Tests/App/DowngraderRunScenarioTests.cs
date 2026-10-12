@@ -47,6 +47,23 @@ public sealed class DowngraderRunScenarioTests
 
     public static TheoryData<ParityScenario> Scenarios => ParityScenarios.Of("downgrader", "downgrader-run");
 
+    /// <summary>
+    /// Patch bodies for downloads only the port makes, by scenario id and logical resource. A Deviation can make the
+    /// port fetch a patch the reference never reached, and the scenario's <c>http/</c> folder can't script it: it is the
+    /// reference's recording input. Without one, the port golden would record the harness's "Unscripted HTTP request"
+    /// failure instead of the app's behaviour.
+    /// </summary>
+    private static readonly Dictionary<string, Dictionary<string, string>> PortOnlyResponses = new(StringComparer.Ordinal)
+    {
+        // Bug #15: the hung Fallout4.exe download now fails and the queue moves on to the launcher's patch, which the
+        // reference's stuck poll never fetched. The self-made patch turns the scenario's Old-Gen stand-in into Next-Gen.
+        ["downgrader/run-download-hangs"] = new(StringComparer.Ordinal)
+        {
+            ["delta/OG-to-NG-Fallout4Launcher.exe.xdelta"] = Path.Combine(
+                RepoPaths.DotnetRoot, "..", "parity", "assets", "delta-patches", "out", "OG-to-NG-Fallout4Launcher.exe.xdelta"),
+        },
+    };
+
     [AvaloniaTheory]
     [MemberData(nameof(Scenarios))]
     [Trait("Parity", "DG-4")]
@@ -59,7 +76,7 @@ public sealed class DowngraderRunScenarioTests
     {
         using var machine = scenario.Materialize();
         var logger = new CapturingLogger();
-        var http = new HeldHandler(machine.HasHttp ? machine.CreateHttpHandler() : null);
+        var http = new HeldHandler(machine.HasHttp ? machine.CreateHttpHandler() : null, PortOnlyResponses.GetValueOrDefault(scenario.Id));
         var (main, session) = Compose(machine, logger, http);
         var runtime = session.Runtime;
 
@@ -251,10 +268,17 @@ public sealed class DowngraderRunScenarioTests
     {
         private readonly TaskCompletionSource _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<string> _requests = [];
+        private readonly IReadOnlyDictionary<string, string> _portOnly;
 
-        public HeldHandler(ParityHttpHandler? inner)
+        /// <param name="inner">The scenario's canned responses; null for a scenario without an <c>http/</c> folder.</param>
+        /// <param name="portOnly">
+        /// Bodies served with a 200 by logical resource, for requests only the port makes (see
+        /// <see cref="PortOnlyResponses"/>); they take precedence over <paramref name="inner"/>.
+        /// </param>
+        public HeldHandler(ParityHttpHandler? inner, IReadOnlyDictionary<string, string>? portOnly = null)
         {
             InnerHandler = inner ?? new ParityHttpHandler(Path.Combine(Path.GetTempPath(), "cmt-no-http"));
+            _portOnly = portOnly ?? new Dictionary<string, string>();
         }
 
         /// <summary>The logical resource of each request, in order.</summary>
@@ -273,12 +297,19 @@ public sealed class DowngraderRunScenarioTests
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            var resource = ParityHttpHandler.LogicalResource(request.RequestUri!) ?? request.RequestUri!.ToString();
             lock (_requests)
             {
-                _requests.Add(ParityHttpHandler.LogicalResource(request.RequestUri!) ?? request.RequestUri!.ToString());
+                _requests.Add(resource);
             }
 
             await _released.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            if (_portOnly.TryGetValue(resource, out var body))
+            {
+                var content = new ByteArrayContent(await File.ReadAllBytesAsync(body, cancellationToken).ConfigureAwait(false));
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = content, RequestMessage = request };
+            }
+
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }

@@ -1,5 +1,5 @@
 {
-  "description": "A Fallout4.exe without a version resource (None in Python, T-4): its CRC stands in for the version string, in the Unknown Game Version text and in the Address Library file name, and hovering it shows Not Found.",
+  "description": "A Fallout4.exe without a version resource (None in Python, T-4): its CRC stands in for the version string, in the Unknown Game Version text and in the Address Library file name, and hovering it shows Not Found. Port: fixed, see deviation #30.",
   "operation": "overview-tab",
   "parity": [
     "OVW-B2",

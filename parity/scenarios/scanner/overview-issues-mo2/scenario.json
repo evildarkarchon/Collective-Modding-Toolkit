@@ -1,5 +1,5 @@
 {
-  "description": "MO2 (stage mode, so the results get the mod column) on the Anniversary tree, plus an enabled module with a bad header and its archive, so the Overview has OVERVIEW problems: without a data scan there's no mod file index, so they get an empty mod. settings.json is compact and already holds the boxes the scan uses, so no scan writes it.",
+  "description": "MO2 (stage mode, so the results get the mod column) on the Anniversary tree, plus an enabled module with a bad header and its archive, so the Overview has OVERVIEW problems: without a data scan there's no mod file index, so they get an empty mod. settings.json is compact and already holds the boxes the scan uses, so no scan writes it. Port: fixed, see deviations #23, #20.",
   "operation": "scanner-tab",
   "parity": [
     "SCN-2",

@@ -26,9 +26,6 @@ public static class ProblemDetails
     /// <summary>The File List window's column headings, the second with its leading space.</summary>
     public static readonly IReadOnlyList<string> FileListHeaders = ["Records", " Module"];
 
-    /// <summary>The race subgraph count's group (<c>SimpleProblemInfo.problem</c>), whose File List has its own title.</summary>
-    public const string RaceSubgraphKind = "Race Subgraph Record Count";
-
     /// <summary>The File List window's size: <c>TreeWindow(..., 400, 500, ...)</c>.</summary>
     public const int FileListWidth = 400;
 
@@ -118,7 +115,8 @@ public static class ProblemDetails
             return null;
         }
 
-        if (problem.Kind != RaceSubgraphKind)
+        // The race subgraph count's group (SimpleProblemInfo.problem) is the one whose File List has its own title.
+        if (problem.Kind != ScanProblemTypes.RaceSubgraphRecordCount)
         {
             return ("Files", "");
         }

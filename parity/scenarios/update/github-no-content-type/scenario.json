@@ -1,5 +1,5 @@
 {
-  "description": "No Content-Type: the JSON encoding is guessed from the bytes (UTF-8).",
+  "description": "No Content-Type: the JSON encoding is guessed from the bytes (UTF-8). Port: fixed, see deviation #32.",
   "operation": "update-check",
   "parity": [
     "NET-2"

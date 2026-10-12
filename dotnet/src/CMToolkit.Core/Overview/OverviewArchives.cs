@@ -186,18 +186,14 @@ internal sealed class ArchivesGathering(
         {
             // The reference decoded the format strictly, so bytes that aren't UTF-8 raised and failed the Overview
             // (T-1). The port replaces them with U+FFFD, as errors="replace" would (deviation, bug #86).
-            _unreadable.Add(archive);
-            problems.Add(Problem.ForOverviewFile(
-                ProblemTypes.InvalidArchive,
-                archive,
-                $"Archive format ({HeaderFiles.LenientUtf8.GetString(format)}) is not valid for Fallout 4.",
-                null));
+            Unreadable(archive, $"Archive format ({HeaderFiles.LenientUtf8.GetString(format)}) is not valid for Fallout 4.");
             return;
         }
 
         (nextGen ? _nextGen : _oldGen).Add(archive);
     }
 
+    /// <summary>Records <paramref name="archive"/> as unreadable and adds its Invalid Archive problem with <paramref name="summary"/>.</summary>
     private void Unreadable(PythonPath archive, string summary)
     {
         _unreadable.Add(archive);

@@ -1,5 +1,5 @@
 {
-  "description": "A .dll that isn't a PE at all (text): loading it fails and the tab stays on \"Scanning DLLs...\".",
+  "description": "A .dll that isn't a PE at all (text): loading it fails and the tab stays on \"Scanning DLLs...\". Port: fixed, see deviation #34.",
   "operation": "f4se-tab",
   "parity": [
     "B-18",

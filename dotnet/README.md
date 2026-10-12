@@ -11,10 +11,10 @@ ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-ups
 | `CMToolkit.slnx` | The solution. |
 | `Directory.Build.props` | Shared settings: .NET 10, the single `<Version>`, warnings-as-errors (trim/AOT included), `<CETCompat>false</CETCompat>`. |
 | `src/CMToolkit.Core` | The app's logic. No Avalonia reference; trim/AOT analyzers on (`IsAotCompatible`). |
-| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test). |
+| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test): `ScenarioHostEnvironment` and `ScenarioHttpHandler`, the exe's own copies of the test harness's fake host and HTTP handler. |
 | `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
 | `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
-| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). |
+| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). `generate-casefold.py` regenerates `PythonCaseFold.Table.cs` from the reference's Python (run by hand when its Unicode version changes). |
 
 ## Build, test and publish
 
@@ -110,14 +110,16 @@ can't be opened (SHELL-13).
   (bug #82, which struck the reference on some pages only). HttpClient does not follow an https-to-http
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
-  its link tooltips are Avalonia's, not tktooltip's. That pair predates the fix for bug #83: the port's GitHub link
-  now reads `v0.7.1 (GitHub)` where Tk's reads `vv0.7.1 (GitHub)`.
+  its link tooltips are Avalonia's, not tktooltip's. The pair shows the fix for bug #83 (a Deviation): the port's
+  GitHub link reads `v0.7.1 (GitHub)` where Tk's reads `vv0.7.1 (GitHub)`.
 - Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
   built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
   unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side
   gutters. The Binaries names column still sits ~2 px right of Tk's (a ttk label's internal padding around its text).
   The Downgrade Manager, Archive Patcher and refresh buttons' paddings were measured off the pairs rather than derived
-  from sv_ttk.
+  from sv_ttk. The `modules-archives-mixed` pair shows the fix for bug #33 (a Deviation): the port counts the CC
+  module listed in both Fallout4.ccc and plugins.txt once, so its Modules frame reads 10 Full and 13 Total where Tk's
+  reads 11 and 14.
 - If an Overview load or refresh fails part-way (no local app data folder, or a binary, module or archive that can't
   be read for a reason other than permissions), the error is reported and the report becomes what had been gathered,
   as the reference's shared state was left; a step that never started keeps the previous report's part. The frames stay as they were. A failed load's warning boxes
@@ -126,7 +128,8 @@ can't be opened (SHELL-13).
   order is the string hash's; only the order of the Invalid Archive problems and `Archives: Checking` log lines
   depends on it (T-15), and the goldens compare those as unordered.
 - Downgrader (see [`parity/screenshots/downgrader/`](../parity/screenshots/downgrader/)): the frames, radios, checkboxes,
-  buttons and the log pane's box line up with Tk's. The log pane's emoji is Segoe UI Symbol's filled glyph in the
+  buttons and the log pane's box line up with Tk's. The `dg-game` pair shows the fix for bug #85 (a Deviation): its
+  `Next-Gen & Anniversary` label widens the port's window, so Patch All and About stay visible where Tk's lost them. The log pane's emoji is Segoe UI Symbol's filled glyph in the
   tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
   scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
   progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
@@ -158,7 +161,10 @@ can't be opened (SHELL-13).
 - The results tree's open groups keep Fluent's down chevron, where sv_ttk draws the right-pointing indicator for
   open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
   the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
-  problem types first appear, the same on every run (bug #23, a Deviation).
+  problem types first appear, the same on every run (bug #23, a Deviation), so the scanner pairs list the groups in
+  another order than Tk's. Their No Mod Manager result names `cm-toolkit.exe` where Tk's names `main.py`, the
+  program each was started as. The port's boxes start from the saved `scanner_*` settings (bug #20, a Deviation);
+  `screenshots.py --scan` clicks only the boxes not already as wanted.
 - Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
   Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
   cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves
@@ -169,7 +175,11 @@ can't be opened (SHELL-13).
   in full; a patch that fails to decode is deleted so the next run downloads it again (B-10, bug #15, a Deviation). Decoding
   is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
   on, to leave exactly the windows xdelta3 would on a failed decode. A failed decode then deletes those windows and
-  puts the backup back as the live file (bug #14, a Deviation).
+  puts the backup back as the live file (bug #14, a Deviation); a backup that can't be put back is logged and the
+  queue still finishes. Patch All is enabled exactly when nothing is queued or running, not by whether the loop's last
+  file needed a patch (B-11, bug #28, a Deviation). The window widens past its fixed 600 px to fit the long
+  `Next-Gen & Anniversary` label, so Patch All and About stay visible (bug #85, a Deviation). A file whose only
+  attribute is read-only is left writable, so its backup isn't read-only (bug #91, a Deviation).
 - The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
   a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
   no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.

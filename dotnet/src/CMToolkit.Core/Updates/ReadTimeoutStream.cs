@@ -8,7 +8,7 @@ namespace CMToolkit.Core.Updates;
 /// </summary>
 /// <param name="inner">The connection's stream; owned, and disposed with this one.</param>
 /// <param name="timeout">The longest any one read or write may take.</param>
-public sealed class ReadTimeoutStream(Stream inner, TimeSpan timeout) : Stream
+internal sealed class ReadTimeoutStream(Stream inner, TimeSpan timeout) : Stream
 {
     /// <inheritdoc/>
     public override bool CanRead => inner.CanRead;

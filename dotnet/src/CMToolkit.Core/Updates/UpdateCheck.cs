@@ -371,25 +371,9 @@ public sealed class UpdateCheck
     /// <param name="latest">A version <see cref="Pep440Version"/> accepted.</param>
     internal static string WithoutPrefix(string latest)
     {
-        var start = 0;
-        var end = latest.Length;
-        // Version._regex's \s, which in Python is str.isspace() (U+001C..U+001F included).
-        while (start < end && PythonSemantics.PythonText.IsSpace(latest[start]))
-        {
-            start++;
-        }
-
-        while (end > start && PythonSemantics.PythonText.IsSpace(latest[end - 1]))
-        {
-            end--;
-        }
-
-        if (start < end && latest[start] is 'v' or 'V')
-        {
-            start++;
-        }
-
-        return latest[start..end];
+        // Version._regex's \s, which in Python is str.isspace() (U+001C..U+001F included): str.strip()'s set.
+        var stripped = PythonSemantics.PythonText.Strip(latest);
+        return stripped.Length > 0 && stripped[0] is 'v' or 'V' ? stripped[1..] : stripped;
     }
 
     /// <summary>The no-argument <c>str.lstrip()</c>.</summary>

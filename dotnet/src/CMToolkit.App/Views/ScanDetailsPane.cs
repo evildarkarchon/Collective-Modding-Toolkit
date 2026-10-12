@@ -186,6 +186,10 @@ public sealed class ScanDetailsPane : UserControl
         using var process = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
     }
 
+    /// <summary>A right-aligned row title in the label column, added to the grid at <paramref name="row"/>.</summary>
+    /// <param name="text">The title, such as <c>Problem:</c>.</param>
+    /// <param name="row">The grid row.</param>
+    /// <param name="small">The small font; the Mod row's title is the normal size.</param>
     private TextBlock Label(string text, int row, bool small)
     {
         // sticky=NE, padx=5, pady=5.
@@ -245,6 +249,10 @@ public sealed class ScanDetailsPane : UserControl
         };
     }
 
+    /// <summary>
+    /// A left click on the path while it can be opened opens its folder (<c>os.startfile</c>); a failure is reported
+    /// in the Error Window, as the Tk callback's exception was.
+    /// </summary>
     private void OnPathPressed(object? sender, PointerPressedEventArgs e)
     {
         // <Button-1> is bound only while the path can be opened.
@@ -263,6 +271,7 @@ public sealed class ScanDetailsPane : UserControl
         }
     }
 
+    /// <summary>On a solution that is a URL: a left click opens it in the browser, a right click copies it.</summary>
     private void OnSolutionPressed(object? sender, PointerPressedEventArgs e)
     {
         if (_url is not { } url)
@@ -283,6 +292,10 @@ public sealed class ScanDetailsPane : UserControl
         }
     }
 
+    /// <summary>
+    /// Puts <paramref name="url"/> on the clipboard; a failure is reported in the Error Window rather than left in the
+    /// task, which the click handler discards.
+    /// </summary>
     private async Task CopyUrlAsync(string url)
     {
         try

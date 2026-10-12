@@ -80,6 +80,10 @@ public static class DowngraderFiles
     /// </summary>
     public static IReadOnlyDictionary<InstallType, IReadOnlyList<string>> CrcsByType { get; } = GroupByType();
 
+    /// <summary>
+    /// Builds <see cref="CrcsByType"/>: the reference's <c>CRCs_by_type</c> derivation from <c>CRCs_game</c> and
+    /// <c>CRCs_ck</c>, in table order.
+    /// </summary>
     private static Dictionary<InstallType, IReadOnlyList<string>> GroupByType()
     {
         // The reference's MappingProxyType has exactly these four keys; its derivation loop appends to them in place.

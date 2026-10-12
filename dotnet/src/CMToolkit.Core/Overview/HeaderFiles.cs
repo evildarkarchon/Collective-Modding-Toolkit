@@ -15,9 +15,6 @@ internal static class HeaderFiles
     private const int SharingViolation = unchecked((int)0x80070020);
     private const int LockViolation = unchecked((int)0x80070021);
 
-    /// <summary>UTF-8 that throws on bad bytes, as <c>bytes.decode("utf-8")</c> does (T-1).</summary>
-    public static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
     /// <summary>
     /// UTF-8 that replaces each maximal invalid subsequence with U+FFFD, as <c>bytes.decode("utf-8", "replace")</c>
     /// does. The port decodes with it where the reference's strict decode failed the Overview (bug #86).
@@ -58,7 +55,7 @@ internal static class HeaderFiles
         try
         {
             valid = true;
-            return StrictUtf8.GetString(bytes);
+            return PythonText.DecodeUtf8Strict(bytes);
         }
         catch (DecoderFallbackException)
         {

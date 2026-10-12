@@ -193,7 +193,9 @@ public static partial class CoverageCheck
             string[] cited;
             try
             {
-                using var doc = JsonDocument.Parse(File.ReadAllText(manifest));
+                // Duplicate keys are an error, as in the C# replay and the Python driver: with the last one winning, a
+                // second "parity" or "deviations" would hide the first from every check.
+                using var doc = JsonDocument.Parse(File.ReadAllText(manifest), new JsonDocumentOptions { AllowDuplicateProperties = false });
                 cited = doc.RootElement.GetProperty("parity").EnumerateArray().Select(e => e.GetString()!).ToArray();
                 CollectScenarioDeviations(id, dir, doc.RootElement, errors, deviations);
             }
@@ -212,8 +214,8 @@ public static partial class CoverageCheck
 
     /// <summary>
     /// Reads a scenario's <c>deviations</c> (ADR-0006) and checks that they come together with a <c>golden.port.json</c>
-    /// that actually differs from the reference golden. Each deviation needs a positive integer <c>bug</c> and a
-    /// non-blank <c>reason</c>; a malformed one is an error and isn't listed. It never throws for a malformed shape, so
+    /// that actually differs from the reference golden. Each deviation needs a positive integer <c>bug</c>, listed once,
+    /// and a non-blank <c>reason</c>; a malformed one is an error and isn't listed. It never throws for a malformed shape, so
     /// the caller's "no readable parity array" message stays about the <c>parity</c> array.
     /// </summary>
     private static void CollectScenarioDeviations(string id, string dir, JsonElement manifest, List<string> errors, List<Deviation> deviations)
@@ -253,6 +255,7 @@ public static partial class CoverageCheck
             return;
         }
 
+        var seen = new HashSet<int>();
         foreach (var entry in list.EnumerateArray())
         {
             if (entry.ValueKind != JsonValueKind.Object)
@@ -276,6 +279,13 @@ public static partial class CoverageCheck
             if (string.IsNullOrWhiteSpace(reason))
             {
                 errors.Add($"{source}: the deviation for bug #{bug} needs a reason.");
+                continue;
+            }
+
+            // ScenarioManifest.ValidateDeviations rejects this too; one bug, one entry, one reason.
+            if (!seen.Add(bug))
+            {
+                errors.Add($"{source}: the deviation for bug #{bug} is listed twice.");
                 continue;
             }
 
@@ -304,7 +314,9 @@ public static partial class CoverageCheck
     /// <summary>
     /// <c>Deviation(&lt;bug&gt;, "&lt;reason&gt;")</c> attributes in the test sources (ADR-0006), found textually like the
     /// parity traits. The bug must be a positive integer literal and the reason a non-blank regular string literal; a
-    /// constant, a verbatim or raw string, or a missing argument can't be read without a build, so it is an error.
+    /// constant, a verbatim or raw string, or a missing argument can't be read without a build, so it is an error. The
+    /// test must also carry a <c>Trait("Parity", …)</c>, on its method or on an enclosing class (see
+    /// <see cref="HasParityTrait"/>): a deviation is a fix to a Parity behaviour, and one tied to no ID proves nothing.
     /// </summary>
     private static IEnumerable<Deviation> TestDeviations(RepoLayout layout, List<string> errors)
     {
@@ -321,6 +333,7 @@ public static partial class CoverageCheck
         {
             var source = $"test {Path.GetRelativePath(layout.Root, file).Replace('\\', '/')}";
             var text = File.ReadAllText(file);
+            var lines = text.Split('\n');
             foreach (Match head in DeviationHead().Matches(text))
             {
                 var call = DeviationArguments().Match(text, head.Index + head.Length);
@@ -339,12 +352,81 @@ public static partial class CoverageCheck
                     continue;
                 }
 
+                var line = text.AsSpan(0, head.Index).Count('\n');
+                if (!HasParityTrait(lines, line))
+                {
+                    errors.Add($"{source}:{line + 1}: the Deviation for bug #{bug} has no Trait(\"Parity\", …) on its test or its class.");
+                    continue;
+                }
+
                 found.Add(new Deviation(bug, reason.Groups["reason"].Value, source));
             }
         }
 
         return found;
     }
+
+    /// <summary>
+    /// Whether the attribute on line <paramref name="line"/> sits with a parity trait: in the same attribute list (the
+    /// lines around it up to a blank line, a comment or a line ending a statement or block), or in the attribute list
+    /// of a class, record or struct that encloses it, found as a declaration above it with less indentation. Textual,
+    /// like the rest of the check, so it needs no build.
+    /// </summary>
+    /// <param name="lines">The source file's lines.</param>
+    /// <param name="line">The zero-based line the attribute starts on.</param>
+    private static bool HasParityTrait(string[] lines, int line)
+    {
+        if (AttributeLines(lines, line, upOnly: false).Any(l => ParityTrait().IsMatch(l)))
+        {
+            return true;
+        }
+
+        var indent = Indentation(lines[line]);
+        for (var i = line - 1; i >= 0 && indent > 0; i--)
+        {
+            if (Indentation(lines[i]) >= indent || !TypeDeclaration().IsMatch(lines[i]))
+            {
+                continue;
+            }
+
+            if (AttributeLines(lines, i - 1, upOnly: true).Any(l => ParityTrait().IsMatch(l)))
+            {
+                return true;
+            }
+
+            // An outer type may still carry it.
+            indent = Indentation(lines[i]);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// The attribute lines around <paramref name="line"/>: the lines next to it that are neither blank nor comments and
+    /// don't end a statement or a block, which keeps a multi-line <c>InlineData</c> inside the list.
+    /// </summary>
+    private static IEnumerable<string> AttributeLines(string[] lines, int line, bool upOnly)
+    {
+        static bool InList(string text)
+        {
+            var trimmed = text.Trim();
+            return trimmed.Length > 0
+                   && !trimmed.StartsWith("//", StringComparison.Ordinal)
+                   && !trimmed.EndsWith('{') && !trimmed.EndsWith('}') && !trimmed.EndsWith(';');
+        }
+
+        for (var i = line; i >= 0 && InList(lines[i]); i--)
+        {
+            yield return lines[i];
+        }
+
+        for (var i = line + 1; !upOnly && i < lines.Length && InList(lines[i]); i++)
+        {
+            yield return lines[i];
+        }
+    }
+
+    private static int Indentation(string text) => text.Length - text.TrimStart(' ', '\t').Length;
 
     /// <summary>
     /// <c>[Trait("Parity", "&lt;ID&gt;")]</c> in the test sources, found textually so the check needs no build. That
@@ -451,6 +533,10 @@ public static partial class CoverageCheck
 
     [GeneratedRegex("^[1-9][0-9]*$")]
     private static partial Regex PositiveInteger();
+
+    /// <summary>A line declaring a class, record or struct, after any modifiers.</summary>
+    [GeneratedRegex("""^\s*(?:(?:public|internal|private|protected|file|sealed|static|abstract|partial|readonly)\s+)*(?:class|record|struct)\s+\w""")]
+    private static partial Regex TypeDeclaration();
 
     /// <summary>The port-expected golden beside a deviating scenario's <c>golden.json</c> (ADR-0006).</summary>
     public const string PortGoldenFileName = "golden.port.json";

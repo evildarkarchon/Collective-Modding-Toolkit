@@ -62,12 +62,6 @@ public static class TkKeys
     /// <summary><c>Mod3Mask</c>, which Tk on Windows sets while Scroll Lock is on.</summary>
     public const int ScrollLock = 0x20;
 
-    /// <summary>
-    /// <c>globals.KEY_CTRL</c>: the one mask the reference's <c>block_text_input</c> let a key through with, which on
-    /// Windows no Ctrl+A or Ctrl+C ever carries (bug #88). The port's filter no longer reads it.
-    /// </summary>
-    public const int KeyCtrl = 12;
-
     /// <summary>Tk's keysym for the Escape key.</summary>
     private const string EscapeKeysym = "Escape";
 
@@ -114,7 +108,7 @@ public static class TkKeys
     /// Escape still closes it, and A or C in either case with Control held, whatever Shift and the lock keys.
     /// </summary>
     /// <remarks>
-    /// The reference matched the mask exactly against <see cref="KeyCtrl"/> (Control with Num Lock on and nothing else)
+    /// The reference matched the mask exactly against <c>globals.KEY_CTRL</c> (12: Control with Num Lock on and nothing else)
     /// and the keysym as a substring of <c>"AC"</c>. Under that mask a letter's keysym is lower case, so on Windows no
     /// key ever passed, and its <c>break</c> for Escape stopped the toplevel's binding (bug #88). The port fixes it
     /// (ADR-0006): Control is tested as a bit and the keysym case-insensitively, as the issue's correct behaviour says.

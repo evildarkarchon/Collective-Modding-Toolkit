@@ -5,8 +5,9 @@ namespace CMToolkit.Core.Settings;
 
 /// <summary>
 /// <c>settings.json</c>: loading, validating and writing it exactly as <c>app_settings.AppSettings</c> does (SET-1,
-/// SET-3..SET-6, T-10). Core owns the format; only the App calls <see cref="Save"/>, and no other Core operation touches
-/// the file (the Core seams resolution on issue #7).
+/// SET-3..SET-6, T-10). Core owns the format. <see cref="Load"/> writes the file itself when it is missing (SET-3) or
+/// had to be reset or repaired (SET-4, SET-5), as the reference's load did; every other write is the App's, through <see cref="Save"/>.
+/// No other Core operation touches the file (the Core seams resolution on issue #7).
 /// </summary>
 /// <remarks>
 /// Every message is logged with the reference's <c>Settings : </c> prefix and level (LOG-2). Which of them reach
@@ -35,9 +36,6 @@ public static class SettingsFile
         new("downgrader_keep_backups", null),
         new("downgrader_delete_deltas", null),
     ];
-
-    /// <summary>UTF-8 that throws on bad bytes and keeps a BOM, like Python's <c>read_text("utf-8")</c> (T-1).</summary>
-    private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     /// <summary>
     /// The settings as <c>(key, value)</c> pairs in file order, each value a <see cref="string"/> (the two
@@ -78,7 +76,8 @@ public static class SettingsFile
         {
             // Python reads in text mode, which turns CR and CRLF into LF first. That can't change the outcome: outside
             // strings both are whitespace, and inside strings both are refused as control characters.
-            var text = StrictUtf8.GetString(File.ReadAllBytes(path));
+            // Strict UTF-8 that keeps a BOM, like Python's read_text("utf-8") (T-1).
+            var text = PythonSemantics.PythonText.ReadUtf8Strict(path);
             json = PythonJson.Loads(text) as PythonDict
                    ?? throw new InvalidDataException($"{name} doesn't contain a JSON object.");
         }
@@ -228,6 +227,10 @@ public static class SettingsFile
         _ => (string)value,
     };
 
+    /// <summary>
+    /// The settings as values in <see cref="Keys"/> order: each <c>Literal</c> key's string, each other key's bool. The
+    /// shape <see cref="Validate"/> fills and the writer writes.
+    /// </summary>
     private static object[] ToValues(AppSettings settings) =>
     [
         LogLevels[(int)settings.LogLevel],
@@ -243,6 +246,7 @@ public static class SettingsFile
         settings.DowngraderDeleteDeltas,
     ];
 
+    /// <summary>The inverse of <see cref="ToValues"/>; every value must already be valid for its key.</summary>
     private static AppSettings FromValues(object[] values) => new()
     {
         LogLevel = (SettingsLogLevel)Array.IndexOf(LogLevels, (string)values[0]),

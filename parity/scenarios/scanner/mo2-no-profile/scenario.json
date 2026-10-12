@@ -1,5 +1,5 @@
 {
-  "description": "MO2 stage mode with an empty selected_profile, which startup accepts: a scan with a data check ticked raises the 'Missing MO2 settings' ValueError with its dump of the manager (Python's object repr, address masked) and its paths, so the scan is stuck (B-3, bug #22).",
+  "description": "MO2 stage mode with an empty selected_profile, which startup accepts: a scan with a data check ticked raises the 'Missing MO2 settings' ValueError with its dump of the manager (Python's object repr, address masked) and its paths, so the scan is stuck (B-3, bug #22). Port: fixed, see deviations #23, #22.",
   "operation": "scanner-scan",
   "parity": [
     "SCN-S6",

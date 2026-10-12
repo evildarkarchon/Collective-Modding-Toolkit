@@ -1,5 +1,5 @@
 {
-  "description": "Fallout4Custom.ini is ANSI (cp1252 bytes): the strict UTF-8 read fails, fatal at startup (INI-3, B-14, T-1).",
+  "description": "Fallout4Custom.ini is ANSI (cp1252 bytes): the strict UTF-8 read fails, fatal at startup (INI-3, B-14, T-1). Port: fixed, see deviation #17.",
   "operation": "game-info",
   "parity": [
     "INI-3",

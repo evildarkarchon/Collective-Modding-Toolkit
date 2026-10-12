@@ -37,11 +37,12 @@ public sealed class MainWindowViewModel : ObservableObject
     /// <summary>The settings in effect, which the Settings tab, the Scanner and the Downgrader read and save (SET-7).</summary>
     public SettingsStore Settings { get; }
 
-    /// <summary>Runs the startup Core calls against <paramref name="appDirectory"/>, the folder holding the exe.</summary>
+    /// <summary>
+    /// Reads only the Download Source from <paramref name="appDirectory"/>, the folder holding the exe, with unsaved
+    /// default settings and nothing logged: for tests of the lookup alone. Startup uses
+    /// <see cref="Load(IHostEnvironment, LogFile, string)"/>.
+    /// </summary>
     public static MainWindowViewModel Load(string appDirectory) => new(DownloadSourceFile.Read(appDirectory));
-
-    /// <summary>Runs the startup Core calls against <paramref name="host"/>'s exe folder.</summary>
-    public static MainWindowViewModel Load(IHostEnvironment host) => Load(host.AppDirectory);
 
     /// <summary>
     /// The startup Core calls in <c>main.py</c>'s order, once <paramref name="log"/> is open and its start lines written:

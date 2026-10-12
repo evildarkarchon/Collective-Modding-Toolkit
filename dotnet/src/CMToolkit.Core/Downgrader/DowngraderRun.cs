@@ -333,7 +333,7 @@ public sealed class DowngraderRun
                     // couldn't be closed. The port logs it, puts the file back and moves on through the queue.
                     events.Report(new LogLine(LogType.Bad, $"Failed downloading {PatchName(current.Patch)}: {reason}"));
                     events.Report(new LogLine(LogType.Bad, $"Failed patching {current.Patch.Target.Name}"));
-                    RestoreBackup(HostPaths.Resolve(_host, current.Patch.Source), HostPaths.Resolve(_host, current.Patch.Target), host);
+                    RestoreBackup(HostPaths.Resolve(_host, current.Patch.Source), HostPaths.Resolve(_host, current.Patch.Target), host, events);
                 }
                 else
                 {
@@ -385,7 +385,7 @@ public sealed class DowngraderRun
         }
         else
         {
-            RestoreBackup(source, target, host);
+            RestoreBackup(source, target, host, events);
         }
 
         // Bug #15 (B-10), fixed as a Deviation (ADR-0006): the reference reused a patch it found in the working
@@ -400,28 +400,42 @@ public sealed class DowngraderRun
     /// <summary>
     /// Undoes a patch that failed: deletes whatever part of the live file the decode wrote, then puts the
     /// current-version backup back in its place, copied with Keep Backups on and moved otherwise, as
-    /// <c>patch_file</c>'s restore from a backup does.
+    /// <c>patch_file</c>'s restore from a backup does. A restore that fails (a locked file, an antivirus scan) is
+    /// logged in the pane and goes no further, so the queue still moves on; the backup is left where it is.
     /// </summary>
     /// <remarks>
     /// Bug #14 (B-9), fixed as a Deviation (ADR-0006): the reference deleted the backup after a failed decode whenever
     /// Keep Backups was off, and xdelta3 had left nothing, or only the windows it verified, as the live file, so the
-    /// game could be left with neither version of the file.
+    /// game could be left with neither version of the file. Its failure is caught here rather than left to the caller:
+    /// raised out of the poll it left the queue running for good, the bug #15 symptom.
     /// </remarks>
-    private static void RestoreBackup(string backup, string target, IDowngraderHost host)
+    /// <param name="backup">The current-version backup to put back.</param>
+    /// <param name="target">The live file the failed patch was rebuilding.</param>
+    /// <param name="host">The window, for its live Keep Backups option.</param>
+    /// <param name="events">Where a failed restore is logged.</param>
+    private static void RestoreBackup(string backup, string target, IDowngraderHost host, IProgress<OperationEvent> events)
     {
-        if (File.Exists(target))
+        try
         {
-            File.Delete(target);
-        }
+            if (File.Exists(target))
+            {
+                File.Delete(target);
+            }
 
-        if (host.KeepBackups)
-        {
-            // shutil.copy2, as in patch_file: the data, the attributes and the times.
-            File.Copy(backup, target);
+            if (host.KeepBackups)
+            {
+                // shutil.copy2, as in patch_file: the data, the attributes and the times.
+                File.Copy(backup, target);
+            }
+            else
+            {
+                File.Move(backup, target);
+            }
         }
-        else
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            File.Move(backup, target);
+            // The OSError family, as patch_file catches it.
+            events.Report(new LogLine(LogType.Bad, $"Failed restoring {Path.GetFileName(target)} from {Path.GetFileName(backup)}: {ex.Message}"));
         }
     }
 
@@ -502,7 +516,16 @@ public sealed class DowngraderRun
         catch
         {
             // A partial patch would be found and used by the next run; the file is closed by now (the usings above).
-            File.Delete(patchFile);
+            try
+            {
+                File.Delete(patchFile);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Swallowed so the download's own error is the one logged, not the delete's. A partial patch left
+                // behind is harmless: the next run's decode is its check and deletes it (bug #15).
+            }
+
             throw;
         }
 

@@ -104,6 +104,14 @@ internal sealed class PythonCodec
         private Decoder? _decoder;
         private byte[] _head = [];
 
+        /// <summary>A decoder for <paramref name="codec"/>, ready for the stream's first chunk.</summary>
+        /// <param name="codec">
+        /// A normalised codec name (<c>utf_8</c>, <c>latin_1</c>, <c>ascii</c>, <c>utf_16_le</c>, ...). The BOM-sniffing
+        /// <c>utf_8_sig</c>, <c>utf_16</c> and <c>utf_32</c> pick their decoder in <see cref="Decode"/> once the head is in.
+        /// </param>
+        /// <param name="strict">
+        /// <c>errors="strict"</c>: bytes that don't decode throw; otherwise each becomes U+FFFD (<c>"replace"</c>).
+        /// </param>
         public IncrementalDecoder(string codec, bool strict)
         {
             _codec = codec;

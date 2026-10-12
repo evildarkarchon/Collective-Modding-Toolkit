@@ -1,5 +1,5 @@
 {
-  "description": "A v-prefixed tag is valid PEP 440, and the banner adds its own v: vv0.7.0.",
+  "description": "A v-prefixed tag is valid PEP 440, and the banner adds its own v: vv0.7.0. Port: fixed, see deviations #83, #32.",
   "operation": "update-check",
   "parity": [
     "UPD-2",

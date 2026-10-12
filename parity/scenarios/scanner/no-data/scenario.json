@@ -1,5 +1,5 @@
 {
-  "description": "The game folder has no Data folder: the Scanner fails to load with 'Data folder not found'. Leaving the tab then raises in switch_from (the tree was never built), so the Overview is never switched to and the Tools tab never loads: every later tab change raises again (bug #87; fixed, leaving the tab raises nothing, the Overview becomes current and Tools loads).",
+  "description": "The game folder has no Data folder: the Scanner fails to load with 'Data folder not found'. Leaving the tab then raises in switch_from (the tree was never built), so the Overview is never switched to and the Tools tab never loads: every later tab change raises again (bug #87; fixed, leaving the tab raises nothing, the Overview becomes current and Tools loads). Port: fixed, see deviation #87.",
   "operation": "scanner-tab",
   "parity": [
     "SCN-1"

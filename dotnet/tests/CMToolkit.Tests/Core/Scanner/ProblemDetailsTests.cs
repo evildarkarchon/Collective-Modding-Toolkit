@@ -50,7 +50,7 @@ public sealed class ProblemDetailsTests
     {
         var file = Problem.ForFile(ProblemTypes.WrongVersion, new PythonPath(@"C:\Game\a.exe"), new PythonPath("a.exe"), null, "Summary", null)
             with { FileList = Files };
-        var empty = Problem.Simple("x", ProblemDetails.RaceSubgraphKind, "Summary", "Solution") with { FileList = [] };
+        var empty = Problem.Simple("x", ScanProblemTypes.RaceSubgraphRecordCount, "Summary", "Solution") with { FileList = [] };
 
         Assert.Null(ProblemDetails.FileListWindow(file));
         Assert.Null(ProblemDetails.FileListWindow(empty));

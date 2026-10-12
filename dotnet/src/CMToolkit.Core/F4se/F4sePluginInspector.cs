@@ -29,6 +29,7 @@ public sealed record F4sePluginInfo(
 /// </summary>
 public sealed class F4sePluginLoadException : IOException
 {
+    /// <summary>The loader's refusal of <paramref name="path"/>, with the message Python's <c>OSError</c> would carry.</summary>
     /// <param name="path">The DLL's full path.</param>
     /// <param name="error">The Win32 error <c>LoadLibraryExW</c> failed with.</param>
     public F4sePluginLoadException(string path, int error)

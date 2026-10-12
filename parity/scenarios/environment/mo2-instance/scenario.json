@@ -1,5 +1,5 @@
 {
-  "description": "An instance MO2: CurrentInstance names the folder under %LOCALAPPDATA%\\ModOrganizer. base_directory moves every default directory, and the [customExecutables] entries are skipped (MO2-10 is not ported).",
+  "description": "An instance MO2: CurrentInstance names the folder under %LOCALAPPDATA%\\ModOrganizer. base_directory moves every default directory, and the [customExecutables] entries are skipped (MO2-10 is not ported). Port: fixed, see deviations #25, #24.",
   "operation": "mod-manager",
   "parity": [
     "MO2-2",

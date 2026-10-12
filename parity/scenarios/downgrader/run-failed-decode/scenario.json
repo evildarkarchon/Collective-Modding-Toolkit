@@ -1,5 +1,5 @@
 {
-  "description": "Bug #14 (B-9) and bug #15's unvalidated cache (B-10), reproduced: an Old-Gen game patched to Next-Gen with Keep Backups and Delete Patches clicked off. Fallout4.exe's patch request gets a 404 page, saved as the patch; the launcher's patch is a truncated copy already in the working directory, reused unchecked. Both decodes fail (the launcher's leaving its first 16 KiB window as the file), and both backups are deleted anyway: Fallout4.exe is gone, the launcher is a fragment.",
+  "description": "Bug #14 (B-9) and bug #15's unvalidated cache (B-10), reproduced: an Old-Gen game patched to Next-Gen with Keep Backups and Delete Patches clicked off. Fallout4.exe's patch request gets a 404 page, saved as the patch; the launcher's patch is a truncated copy already in the working directory, reused unchecked. Both decodes fail (the launcher's leaving its first 16 KiB window as the file), and both backups are deleted anyway: Fallout4.exe is gone, the launcher is a fragment. Port: fixed, see deviations #28, #14, #15.",
   "operation": "downgrader-run",
   "parity": [
     "DG-6",

@@ -6,8 +6,8 @@ namespace CMToolkit.App.Views;
 
 /// <summary>
 /// <c>utils.copy_text_button</c>: a button that copies a text to the clipboard, then reads <c>Copied!</c>, disabled,
-/// for 3 s before going back to its own text (THR-3). Used by the About tab's copy buttons, and later by the Scanner's
-/// <c>Copy Details</c>.
+/// for 3 s before going back to its own text (THR-3). Used by the About tab's copy buttons and the Scanner details
+/// pane's <c>Copy Details</c>.
 /// </summary>
 public static class CopyTextButton
 {

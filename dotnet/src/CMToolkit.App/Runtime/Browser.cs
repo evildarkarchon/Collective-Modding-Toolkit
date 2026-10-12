@@ -4,8 +4,8 @@ using System.Diagnostics;
 namespace CMToolkit.App.Runtime;
 
 /// <summary>
-/// Opens links in the user's browser (<c>webbrowser.open</c>, NET-4): the Tools and About tabs, and later the update
-/// banner and the Overview's solution links. Tests swap in a recorder through <see cref="AppRuntime.Browser"/>.
+/// Opens links in the user's browser (<c>webbrowser.open</c>, NET-4): the Tools and About tabs, the update banner and
+/// the Scanner details pane's solution links. Tests swap in a recorder through <see cref="AppRuntime.Browser"/>.
 /// </summary>
 public interface IBrowser
 {

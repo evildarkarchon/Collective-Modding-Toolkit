@@ -114,6 +114,21 @@ class ScenarioTests(unittest.TestCase):
 			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "deviation"):
 				load(scenario_id, self.root)
 
+	def test_duplicate_keys_are_rejected_like_the_csharp_side(self) -> None:
+		"""A repeated key would replace the first silently, hiding a deviation or a parity ID from the checks."""
+		cases = {
+			"m/top": '{"operation": "op", "parity": [], "host": {}, "parity": ["SET-1"]}',
+			"m/nested": '{"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 77, "reason": "x", "bug": 78}]}',
+		}
+		for scenario_id, text in cases.items():
+			directory = self.root / scenario_id
+			directory.mkdir(parents=True)
+			(directory / "scenario.json").write_text(text, "utf-8")
+
+		for scenario_id in cases:
+			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "duplicate key"):
+				load(scenario_id, self.root)
+
 	def test_discover_filters_by_glob_and_sorts_by_id(self) -> None:
 		for scenario_id in ("s/b", "s/a", "o/a"):
 			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}})
@@ -337,6 +352,23 @@ class SessionTests(unittest.TestCase):
 			result.stdout.strip(),
 			repr(("Windows 11 24H2", 64, "AMD Ryzen 7 7800X3D", "NVIDIA GeForce RTX 4070", 12, None, True, "en")),
 		)
+
+
+class ScreenshotScanBoxTests(unittest.TestCase):
+	def test_the_port_s_scanner_boxes_start_from_the_saved_settings_or_ticked(self) -> None:
+		"""Bug #20's fix: the C# app's boxes start from settings.json, so --scan clicks only those not as wanted."""
+		from screenshots import saved_scan_boxes  # noqa: PLC0415 - imports PIL and user32, so only this test pays for it
+
+		folder = Path(tempfile.mkdtemp(prefix="cmt-driver-tests-"))
+		try:
+			self.assertEqual(saved_scan_boxes(folder), [True] * 7)
+			saved = {"scanner_OverviewIssues": True, "scanner_Errors": False, "scanner_JunkFiles": "no"}
+			(folder / "settings.json").write_text(json.dumps(saved), "utf-8")
+			self.assertEqual(saved_scan_boxes(folder), [True, False, True, True, True, True, True])
+			(folder / "settings.json").write_text("not json", "utf-8")
+			self.assertEqual(saved_scan_boxes(folder), [True] * 7)
+		finally:
+			shutil.rmtree(folder, ignore_errors=True)
 
 
 class ScreenshotShutdownTests(unittest.TestCase):

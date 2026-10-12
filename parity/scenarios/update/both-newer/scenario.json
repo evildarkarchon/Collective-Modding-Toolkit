@@ -1,5 +1,5 @@
 {
-  "description": "Both sources list a newer version: both links, Nexus first, separated by ' / '.",
+  "description": "Both sources list a newer version: both links, Nexus first, separated by ' / '. Port: fixed, see deviations #83, #32.",
   "operation": "update-check",
   "parity": [
     "UPD-1",

@@ -1,5 +1,5 @@
 {
-  "description": "Bug #15 (B-10), reproduced: Fallout4.exe's patch request fails to connect, so the download thread dies before saving anything, and the poll waits forever with the window unclosable. The last file (Archive2Interop.dll) isn't there, so the button was re-enabled at the end of the loop (B-11) and stays so.",
+  "description": "Bug #15 (B-10), reproduced: Fallout4.exe's patch request fails to connect, so the download thread dies before saving anything, and the poll waits forever with the window unclosable. The last file (Archive2Interop.dll) isn't there, so the button was re-enabled at the end of the loop (B-11) and stays so. Port: fixed, see deviations #28, #15.",
   "operation": "downgrader-run",
   "parity": [
     "DG-6",

@@ -31,7 +31,6 @@ public sealed class ScannerTabTests
     {
         var gather = new ManualResetEventSlim(true);
         var work = new ManualResetEventSlim();
-        bool? blockedDuringRefresh = null;
         bool? workerOnUiThread = null;
         using var app = ScannerApp.Start(
             gatherer: (g, h, l, p) =>
@@ -48,8 +47,9 @@ public sealed class ScannerTabTests
 
         gather.Reset();
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        // The refresh's gathering is held, so input becoming blocked here is the refresh's doing; the wait is the
+        // assertion (it times out otherwise).
         DispatcherWait.Until(() => app.Runtime.Input.IsBlocking);
-        blockedDuringRefresh = app.Runtime.Input.IsBlocking;
         Assert.Equal("Refreshing Overview...", app.ScanningText.Text);
         gather.Set();
 
@@ -60,15 +60,14 @@ public sealed class ScannerTabTests
         work.Set();
         DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
 
-        Assert.True(blockedDuringRefresh);
         Assert.False(workerOnUiThread);
     }
 
     [AvaloniaFact]
     [Trait("Parity", "B-3")]
     [Trait("Parity", "THR-1")]
-    [Deviation(22, "A worker that raises is reported and the scan ends: the results it has are listed and Scan Game is enabled again.")]
-    public void A_worker_that_raises_is_reported_and_the_scan_ends_with_the_results_it_has()
+    [Deviation(22, "A worker that raises is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
+    public void A_worker_that_raises_is_reported_and_the_scan_ends_listing_the_overview_problems()
     {
         // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled.
         using var app = ScannerApp.Start(worker: _ => throw new FileNotFoundException("File doesn't exist: modlist.txt"));

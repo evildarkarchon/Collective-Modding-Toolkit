@@ -1,5 +1,5 @@
 {
-  "description": "A portable MO2 2.5.2 on Windows 11 25H2: no OS warning, because only the exact string 'Windows 11 24H2' gets one (B-8). Its empty selected_profile shows as Unknown, and its settings render with Python str() in the details window (T-9). Next-Gen binaries: steam_api64's Next-Gen & Anniversary entry becomes Next-Gen, and the missing f4se_steam_loader.dll is expected there. No Address Library in Data, and no CPU or GPU in the registry.",
+  "description": "A portable MO2 2.5.2 on Windows 11 25H2: no OS warning, because only the exact string 'Windows 11 24H2' gets one (B-8). Its empty selected_profile shows as Unknown, and its settings render with Python str() in the details window (T-9). Next-Gen binaries: steam_api64's Next-Gen & Anniversary entry becomes Next-Gen, and the missing f4se_steam_loader.dll is expected there. No Address Library in Data, and no CPU or GPU in the registry. Port: fixed, see deviations #24, #27.",
   "operation": "overview-tab",
   "parity": [
     "OVW-2",

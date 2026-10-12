@@ -19,7 +19,8 @@ public static class FileCrc32
     public static string Of(string path, bool skipBa2Header = false)
     {
         // FileShare.ReadWrite: Python's open() shares like the CRT's _SH_DENYNO, so a file another process has open for
-        // writing is still read.
+        // writing is still read. Buffer size 1 turns off FileStream's own buffer: Crc32.Append reads in chunks of its
+        // own, so a second buffer would only copy every byte twice.
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1, FileOptions.SequentialScan);
         if (skipBa2Header)
         {

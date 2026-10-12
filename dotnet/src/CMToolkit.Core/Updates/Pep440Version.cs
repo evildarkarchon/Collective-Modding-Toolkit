@@ -272,6 +272,10 @@ public sealed partial class Pep440Version : IComparable<Pep440Version>
 
         public static Segment NegativeInfinity { get; } = new(null, BigInteger.Zero, -1);
 
+        /// <summary>
+        /// Python's tuple ordering for these keys: <c>NegativeInfinity</c> below and <c>Infinity</c> above every tuple,
+        /// and tuples by letter (ordinal) then number. Never called with null.
+        /// </summary>
         public int CompareTo(Segment? other)
         {
             if (Rank != 0 || other!.Rank != 0)
@@ -287,6 +291,10 @@ public sealed partial class Pep440Version : IComparable<Pep440Version>
     /// <summary>One local part: <c>(number, "")</c>, or <c>(NegativeInfinity, text)</c> for a text part.</summary>
     private sealed record LocalPart(string? Text, BigInteger Number) : IComparable<LocalPart>
     {
+        /// <summary>
+        /// <c>packaging</c>'s local-part ordering: a text part sorts before a number, numbers numerically and texts
+        /// ordinally. Never called with null.
+        /// </summary>
         public int CompareTo(LocalPart? other)
         {
             if ((Text is null) != (other!.Text is null))

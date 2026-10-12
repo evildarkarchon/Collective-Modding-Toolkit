@@ -4,20 +4,15 @@ using System.Text;
 
 namespace CMToolkit.Core.Settings;
 
-/// <summary>JSON text that Python's <c>json.loads</c> would reject (or fail to convert).</summary>
+/// <summary>
+/// JSON text that Python's <c>json.loads</c> would reject (or fail to convert): a <c>json.JSONDecodeError</c>, or
+/// another <c>ValueError</c> (the int digit limit) or <c>RecursionError</c> (nesting). Every caller treats them alike:
+/// <c>AppSettings</c> resets the file, and the update check treats any failure as no update (bug #81, fixed).
+/// </summary>
 /// <param name="message">Python's message.</param>
 /// <param name="position">The character index it points at.</param>
-/// <param name="isDecodeError">
-/// Whether Python raises <c>json.JSONDecodeError</c> here, rather than another <c>ValueError</c> (the int digit limit)
-/// or <c>RecursionError</c> (nesting). <c>AppSettings</c> treats them all alike; the update check's
-/// <c>except requests.JSONDecodeError</c> catches only the first.
-/// </param>
-internal sealed class PythonJsonException(string message, int position, bool isDecodeError = true)
-    : FormatException($"{message}: char {position}")
-{
-    /// <summary>Whether Python raises <c>json.JSONDecodeError</c> (see the constructor).</summary>
-    public bool IsDecodeError { get; } = isDecodeError;
-}
+internal sealed class PythonJsonException(string message, int position)
+    : FormatException($"{message}: char {position}");
 
 /// <summary>
 /// Python's <c>json.loads(str)</c> with its default (C scanner, strict) settings, which <c>settings.json</c> goes
@@ -44,7 +39,7 @@ internal static class PythonJson
     /// <exception cref="PythonJsonException">Python would raise <c>JSONDecodeError</c> or <c>ValueError</c>.</exception>
     public static PythonValue Loads(string text)
     {
-        if (text.StartsWith('﻿'))
+        if (text.StartsWith('\uFEFF'))
         {
             throw new PythonJsonException("Unexpected UTF-8 BOM (decode using utf-8-sig)", 0);
         }
@@ -60,6 +55,11 @@ internal static class PythonJson
         return value;
     }
 
+    /// <summary>
+    /// CPython's C scanner (<c>Modules/_json.c</c>) over one string <paramref name="s"/>: each method takes the index to
+    /// start at and returns the value with the index after it, raising <see cref="PythonJsonException"/> with Python's
+    /// message and position.
+    /// </summary>
     private sealed class Parser(string s)
     {
         /// <summary>Python's <c>WHITESPACE</c>: <c>[ \t\n\r]*</c>.</summary>
@@ -152,6 +152,9 @@ internal static class PythonJson
                 }
             }
 
+            // s.Length - 1, not s.Length: CPython's _match_number_unicode bounds these two checks by end_idx, the index of
+            // the last character, so an 'e' or a sign that is the string's last character isn't taken as an exponent.
+            // The number then ends before it, and the caller fails on it as extra data or a missing delimiter.
             if (index < s.Length - 1 && s[index] is 'e' or 'E')
             {
                 var exponentStart = index;
@@ -186,7 +189,7 @@ internal static class PythonJson
             var digitCount = literal.Length - (literal[0] == '-' ? 1 : 0);
             if (digitCount > MaxIntDigits)
             {
-                throw new PythonJsonException("Exceeds the limit (4300 digits) for integer string conversion", start, isDecodeError: false);
+                throw new PythonJsonException("Exceeds the limit (4300 digits) for integer string conversion", start);
             }
 
             return (new PythonInt(BigInteger.Parse(literal, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture)), index);
@@ -291,6 +294,14 @@ internal static class PythonJson
             return (char)value;
         }
 
+        /// <summary>
+        /// <c>_parse_object</c>: the members of an object whose <c>{</c> ends just before <paramref name="index"/>, in
+        /// order, and the index after its <c>}</c>. A repeated key keeps its first position and takes the last value, as
+        /// a Python dict built from the pairs does.
+        /// </summary>
+        /// <param name="index">The index just after the opening brace.</param>
+        /// <param name="depth">The object's nesting depth (see <see cref="CheckDepth"/>).</param>
+        /// <exception cref="PythonJsonException">The object is malformed or nests too deeply.</exception>
         private (PythonValue Value, int End) ParseObject(int index, int depth)
         {
             CheckDepth(depth, index);
@@ -344,6 +355,13 @@ internal static class PythonJson
             }
         }
 
+        /// <summary>
+        /// <c>_parse_array</c>: the items of an array whose <c>[</c> ends just before <paramref name="index"/>, and the
+        /// index after its <c>]</c>.
+        /// </summary>
+        /// <param name="index">The index just after the opening bracket.</param>
+        /// <param name="depth">The array's nesting depth (see <see cref="CheckDepth"/>).</param>
+        /// <exception cref="PythonJsonException">The array is malformed or nests too deeply.</exception>
         private (PythonValue Value, int End) ParseArray(int index, int depth)
         {
             CheckDepth(depth, index);
@@ -373,11 +391,15 @@ internal static class PythonJson
             }
         }
 
+        /// <summary>Fails the parse once arrays and objects nest deeper than <see cref="MaxDepth"/>.</summary>
+        /// <param name="depth">The nesting depth of the array or object starting here, 1 for the outermost.</param>
+        /// <param name="index">Where it starts, for the error.</param>
+        /// <exception cref="PythonJsonException">Too deep; Python would raise <c>RecursionError</c>.</exception>
         private static void CheckDepth(int depth, int index)
         {
             if (depth > MaxDepth)
             {
-                throw new PythonJsonException("Maximum nesting depth exceeded", index, isDecodeError: false);
+                throw new PythonJsonException("Maximum nesting depth exceeded", index);
             }
         }
     }

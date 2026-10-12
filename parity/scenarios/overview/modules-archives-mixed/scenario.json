@@ -1,5 +1,5 @@
 {
-  "description": "An Old-Gen Data folder with every module and archive outcome. Masters (one a folder, so unreadable), Fallout4.ccc and plugins.txt build the enabled list, ccDup.esm counted twice (B-17); modules short, not TES4, without HEDR (no problem), and with unknown HEDR versions (0.94, 1.71, the unmatchable 1.70, 68.0, 0.0, 1e+20); the Light flag and the .esl extension. Archives from the INI lists (deduplicated case-insensitively) and beside enabled modules, NVFlex on with its BA2 missing, and every BA2 header outcome. The HEDR icon opens the TreeWindow.",
+  "description": "An Old-Gen Data folder with every module and archive outcome. Masters (one a folder, so unreadable), Fallout4.ccc and plugins.txt build the enabled list, ccDup.esm counted twice (B-17); modules short, not TES4, without HEDR (no problem), and with unknown HEDR versions (0.94, 1.71, the unmatchable 1.70, 68.0, 0.0, 1e+20); the Light flag and the .esl extension. Archives from the INI lists (deduplicated case-insensitively) and beside enabled modules, NVFlex on with its BA2 missing, and every BA2 header outcome. The HEDR icon opens the TreeWindow. Port: fixed, see deviations #33, #26.",
   "operation": "overview-full",
   "parity": [
     "OVW-M2",

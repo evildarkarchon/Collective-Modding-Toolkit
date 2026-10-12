@@ -1,5 +1,5 @@
 {
-  "description": "CurrentInstance is set but its INI doesn't exist, so the fallback reads the portable INI (no portable.txt) and marks the install portable.",
+  "description": "CurrentInstance is set but its INI doesn't exist, so the fallback reads the portable INI (no portable.txt) and marks the install portable. Port: fixed, see deviation #24.",
   "operation": "mod-manager",
   "parity": [
     "MO2-2",

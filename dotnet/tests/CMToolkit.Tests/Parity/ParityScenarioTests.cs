@@ -173,6 +173,17 @@ public sealed class ParityScenarioTests : IDisposable
         Assert.Throws<JsonException>(() => scenario.Manifest);
     }
 
+    [Theory]
+    [InlineData("""{"operation": "op", "parity": [], "host": {}, "parity": ["SET-1"]}""")]
+    [InlineData("""{"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 77, "reason": "x", "bug": 78}]}""")]
+    public void Duplicate_manifest_keys_are_rejected_rather_than_the_last_one_winning(string json)
+    {
+        // A second "deviations" or "bug" would silently replace the first, hiding a deviation from the checks.
+        var scenario = Author("m/s", json);
+
+        Assert.Throws<JsonException>(() => scenario.Manifest);
+    }
+
     [Fact]
     public void Required_manifest_keys_must_be_present()
     {

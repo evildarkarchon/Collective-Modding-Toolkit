@@ -1,5 +1,5 @@
 {
-  "description": "A version in PEP 440's alternative spellings (V prefix, padding, rc spelled pre).",
+  "description": "A version in PEP 440's alternative spellings (V prefix, padding, rc spelled pre). Port: fixed, see deviation #83.",
   "operation": "update-check",
   "parity": [
     "UPD-3",
