@@ -88,7 +88,9 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   where Tk's was owned by its withdrawn root. The yes/no and error boxes are the app's sv-styled message boxes (issue
   #9), centred on the screen, since no main window exists yet.
 - Game INI section names and keys are lowercased with `ToLowerInvariant`, with the same `str.lower()` differences as
-  MO2's `skip_*` values above.
+  MO2's `skip_*` values above. A game INI that isn't valid UTF-8 is read as Windows-1252 (the fix for bug #17), not in
+  the machine's ANSI code page, so a non-Western ANSI INI's non-ASCII values decode differently from what the game sees;
+  the settings the toolkit reads are ASCII.
 - The update check (#53) sends `User-Agent: cm-toolkit/<version>` and `Accept: */*`, where requests sent
   `python-requests/2.32.5` plus its other session defaults; GitHub needs some User-Agent. urllib3's own DEBUG lines
   ("Starting new HTTPS connection ...") that reached `cm-toolkit.log` at `log_level` DEBUG are not written.

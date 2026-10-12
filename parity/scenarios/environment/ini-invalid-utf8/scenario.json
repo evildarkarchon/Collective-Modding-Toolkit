@@ -22,5 +22,11 @@
     "knownFolders": {
       "Documents": "<ROOT>\\Documents"
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 17,
+      "reason": "The port reads game INIs with a UTF-8 BOM stripped, falls back to Windows-1252 for non-UTF-8 bytes, and trims lines, keys and values."
+    }
+  ]
 }

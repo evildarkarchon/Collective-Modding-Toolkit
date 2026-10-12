@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using CMToolkit.Core.PythonSemantics;
 
 namespace CMToolkit.Core.EnvironmentDetection;
@@ -9,7 +10,7 @@ namespace CMToolkit.Core.EnvironmentDetection;
 /// </summary>
 /// <param name="Settings">
 /// <c>game_settings</c>: <c>Fallout4.ini</c> merged with <c>Fallout4Custom.ini</c>, Custom overriding. Section names
-/// and keys are lowercased; nothing is trimmed (B-14).
+/// and keys are lowercased; lines, keys and values are trimmed (the reference trimmed nothing, B-14, bug #17).
 /// </param>
 /// <param name="Prefs"><c>game_prefs</c>: <c>Fallout4Prefs.ini</c>, parsed the same way.</param>
 /// <param name="Language">The language code, such as <c>en</c> or <c>ptbr</c> (<c>enums.Language</c>).</param>
@@ -53,7 +54,6 @@ public static class GameIniReader
     /// isn't a file (INI-2). Under MO2 these reads go through the VFS, which supplies the profile's INIs (T-12, issue #35).
     /// </summary>
     /// <exception cref="FileNotFoundException">The Documents folder doesn't exist (INI-1).</exception>
-    /// <exception cref="System.Text.DecoderFallbackException">An INI isn't valid UTF-8 (INI-3, B-14, T-1).</exception>
     /// <exception cref="IOException">An INI that exists can't be read.</exception>
     /// <exception cref="UnauthorizedAccessException">An INI that exists can't be read.</exception>
     public static GameInis Read(IHostEnvironment host)
@@ -69,7 +69,7 @@ public static class GameIniReader
                 continue;
             }
 
-            Parse(PythonText.ReadUtf8Strict(HostPaths.Resolve(host, path)), name == "Fallout4Prefs.ini" ? prefs : settings);
+            Parse(ReadIniText(HostPaths.Resolve(host, path)), name == "Fallout4Prefs.ini" ? prefs : settings);
         }
 
         var language = Lower(Get(settings, "general", "slanguage") ?? English);
@@ -81,17 +81,52 @@ public static class GameIniReader
         return new GameInis(Freeze(settings), Freeze(prefs), language);
     }
 
+    /// <summary>The UTF-8 byte order mark, which Notepad and some INI tools write.</summary>
+    private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
+
     /// <summary>
-    /// The hand-rolled parse (INI-3): <c>splitlines()</c>; a line that starts with <c>[</c> and ends with <c>]</c> is a
-    /// lowercased section name (a BOM before it makes it a plain line, B-14); otherwise the line splits on its first
-    /// <c>=</c> into a lowercased key and a value, neither trimmed, and a line without one is skipped. A section exists
-    /// only once a key lands in it, and each file starts under <see cref="NoSection"/>.
+    /// Windows-1252, for INIs that aren't UTF-8: the game reads its INIs through the ANSI profile API, so editors save
+    /// them in the ANSI code page. Fixed rather than the machine's code page, so a read never depends on the host's
+    /// locale; the settings the toolkit reads are ASCII either way.
+    /// </summary>
+    private static readonly Encoding Windows1252 = CodePagesEncodingProvider.Instance.GetEncoding(1252)
+        ?? throw new InvalidOperationException("Code page 1252 isn't available.");
+
+    /// <summary>
+    /// Decodes one INI: a leading UTF-8 BOM is dropped, the rest is strict UTF-8, and bytes that aren't valid UTF-8 make
+    /// the whole file Windows-1252 instead. The reference read strict UTF-8 only, keeping a BOM as U+FEFF (which broke
+    /// the first header) and failing at startup on an ANSI file (B-14, bug #17, fixed).
+    /// </summary>
+    /// <exception cref="IOException">The file can't be read.</exception>
+    /// <exception cref="UnauthorizedAccessException">The file can't be read.</exception>
+    private static string ReadIniText(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+        var body = bytes.AsSpan().StartsWith(Utf8Bom) ? bytes.AsSpan(Utf8Bom.Length) : bytes.AsSpan();
+        try
+        {
+            return PythonText.DecodeUtf8Strict(body);
+        }
+        catch (DecoderFallbackException)
+        {
+            // Not UTF-8: an ANSI file, read as the game would read it.
+            return Windows1252.GetString(body);
+        }
+    }
+
+    /// <summary>
+    /// The parse (INI-3): <c>splitlines()</c>, each line trimmed; a line that starts with <c>[</c> and ends with
+    /// <c>]</c> is a lowercased section name; otherwise the line splits on its first <c>=</c> into a lowercased key and
+    /// a value, both trimmed, and a line without one is skipped. A section exists only once a key lands in it, and each
+    /// file starts under <see cref="NoSection"/>. The reference trimmed nothing, so <c>bNVFlexEnable = 1</c> was stored
+    /// as <c>"bnvflexenable "</c> and missed, and <c>[Display] </c> wasn't a header (B-14, bug #17, fixed).
     /// </summary>
     private static void Parse(string text, OrderedDictionary<string, OrderedDictionary<string, string>> into)
     {
         var section = NoSection;
-        foreach (var line in PythonText.SplitLines(text))
+        foreach (var rawLine in PythonText.SplitLines(text))
         {
+            var line = PythonText.Strip(rawLine);
             if (line.StartsWith('[') && line.EndsWith(']'))
             {
                 // line[1:-1]: a bare "[]" gives the empty section name. A single "[" never gets here, since it doesn't
@@ -113,7 +148,7 @@ public static class GameIniReader
             }
 
             // A repeated key keeps its first position and takes the new value, as a dict assignment does.
-            entries[Lower(line[..equals])] = line[(equals + 1)..];
+            entries[Lower(PythonText.Strip(line[..equals]))] = PythonText.Strip(line[(equals + 1)..]);
         }
     }
 
