@@ -23,7 +23,8 @@ namespace CMToolkit.Tests.App;
 /// driven by the driver's script (select the Scanner, untick boxes, scan, select rows, leave and come back, rescan) and
 /// read back at each step: the side pane, the results tree, the info and scanning labels, the progress bar, which panes
 /// exist, <c>settings.json</c> and the log lines. A tab that fails to load is left to the Overview and then the Tools
-/// tab, as the driver does (bug #87). Compared in full.
+/// tab, as the driver does (bug #87: fixed, so <c>scanner/no-data</c>'s port golden has both switches complete).
+/// Compared in full.
 /// </summary>
 public sealed class ScannerTabScenarioTests
 {

@@ -1,0 +1,48 @@
+{
+  "scanner": {
+    "display": {
+      "loadingLabel": {
+        "color": "#AF5A66",
+        "text": "Data folder not found"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : ScannerTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : ScannerTab"
+        },
+        {
+          "level": "ERROR",
+          "message": "Load Tab : ScannerTab : Failed : Data folder not found"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : ToolsTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : ToolsTab"
+        }
+      ],
+      "switchAway": {
+        "overview": {
+          "currentTab": "OverviewTab",
+          "errors": 0
+        },
+        "tools": {
+          "currentTab": "ToolsTab",
+          "errors": 0,
+          "loaded": true
+        }
+      }
+    },
+    "loaded": false
+  }
+}

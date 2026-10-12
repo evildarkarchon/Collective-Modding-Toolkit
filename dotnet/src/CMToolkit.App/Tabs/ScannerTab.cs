@@ -242,18 +242,17 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// <c>ScannerTab.switch_from</c>: clears the selection and closes both panes (SCN-5).
+    /// <c>ScannerTab.switch_from</c>: clears the selection and closes both panes (SCN-5). Does nothing when the tab
+    /// never built because its load failed (SCN-1), so the tab change completes.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The tab never built, because its load failed (SCN-1): the reference's <c>switch_from</c> raised
-    /// <c>AttributeError</c> on the missing tree, which left the main window on this tab (bug #87).
-    /// </exception>
     protected internal override void SwitchFrom()
     {
         if (_tree is null)
         {
-            // Bug #87: reproduced, not fixed. The fix returns here instead.
-            throw new InvalidOperationException("The Scanner tab was never built, so it has no results tree (bug #87).");
+            // Bug #87, fixed (ADR-0006): the reference's switch_from raised AttributeError on the missing tree, which
+            // left the main window on this tab and broke every later tab change. A tab that never built has no tree
+            // and never opened its panes (SwitchTo runs only after a successful load), so there is nothing to undo.
+            return;
         }
 
         _tree.SelectedItem = null;
