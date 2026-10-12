@@ -62,8 +62,14 @@ public static class TkKeys
     /// <summary><c>Mod3Mask</c>, which Tk on Windows sets while Scroll Lock is on.</summary>
     public const int ScrollLock = 0x20;
 
-    /// <summary><c>globals.KEY_CTRL</c>: the one mask <c>block_text_input</c> lets a key through with.</summary>
+    /// <summary>
+    /// <c>globals.KEY_CTRL</c>: the one mask the reference's <c>block_text_input</c> let a key through with, which on
+    /// Windows no Ctrl+A or Ctrl+C ever carries (bug #88). The port's filter no longer reads it.
+    /// </summary>
     public const int KeyCtrl = 12;
+
+    /// <summary>Tk's keysym for the Escape key.</summary>
+    private const string EscapeKeysym = "Escape";
 
     /// <summary>The key event Tk would deliver for <paramref name="key"/> pressed with these modifiers and lock keys.</summary>
     public static TkKeyEvent Of(Key key, KeyModifiers modifiers, LockKeys locks)
@@ -104,17 +110,22 @@ public static class TkKeys
     }
 
     /// <summary>
-    /// <c>block_text_input</c>'s test for letting a key through: the mask exactly <see cref="KeyCtrl"/> (Control with
-    /// Num Lock on and nothing else) and the keysym a substring of <c>"AC"</c>. Under that mask a letter's keysym is
-    /// lower case, so on Windows no key ever passes: Ctrl+A and Ctrl+C are blocked like every other key (bug #88,
-    /// reproduced, not fixed).
+    /// <c>block_text_input</c>'s test for letting a key through, as the reference meant it: Escape, so the window's
+    /// Escape still closes it, and A or C in either case with Control held, whatever Shift and the lock keys.
     /// </summary>
+    /// <remarks>
+    /// The reference matched the mask exactly against <see cref="KeyCtrl"/> (Control with Num Lock on and nothing else)
+    /// and the keysym as a substring of <c>"AC"</c>. Under that mask a letter's keysym is lower case, so on Windows no
+    /// key ever passed, and its <c>break</c> for Escape stopped the toplevel's binding (bug #88). The port fixes it
+    /// (ADR-0006): Control is tested as a bit and the keysym case-insensitively, as the issue's correct behaviour says.
+    /// </remarks>
     public static bool BlockTextInputLetsThrough(TkKeyEvent key)
-        => key.State == KeyCtrl && "AC".Contains(key.Keysym, StringComparison.Ordinal);
+        => key.Keysym == EscapeKeysym
+           || ((key.State & Control) != 0 && key.Keysym is "a" or "A" or "c" or "C");
 
     /// <summary>
-    /// A letter's keysym in the given case; any other key gets a name of its own, which is never a substring of
-    /// <c>"AC"</c> (nor empty), as no Tk keysym for those keys is.
+    /// A letter's keysym in the given case, and Escape's Tk keysym; any other key gets a name of its own, which is
+    /// never a letter's nor <c>Escape</c>, so the filter can't mistake it for one.
     /// </summary>
     private static string Keysym(Key key, bool upper)
     {
@@ -124,6 +135,6 @@ public static class TkKeys
             return (upper ? char.ToUpperInvariant(letter) : letter).ToString();
         }
 
-        return "Key" + key;
+        return key == Key.Escape ? EscapeKeysym : "Key" + key;
     }
 }

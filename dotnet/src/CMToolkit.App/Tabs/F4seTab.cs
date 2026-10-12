@@ -28,9 +28,10 @@ public sealed record F4seRow(string Name, IReadOnlyList<string> Cells, F4seRowTa
 /// game (F4SE-1..F4SE-7), beside a legend.
 /// </summary>
 /// <remarks>
-/// The inspection runs as a blocking operation, as the reference ran it on the UI thread (ADR-0003). One DLL the loader
-/// refuses fails the whole load: the runner reports it, and the tab stays on its loading text for good (B-18). The
-/// verdicts are taken when the tree is built, from the Install Type the Overview found by then, and never redone.
+/// The inspection runs as a blocking operation, as the reference ran it on the UI thread (ADR-0003). A DLL the loader
+/// refuses is logged and listed as a non-plugin row, and the rest load (B-18); in the reference it failed the whole
+/// load and left the tab on its loading text for good (bug #34, fixed per ADR-0006). The verdicts are taken when the
+/// tree is built, from the Install Type the Overview found by then, and never redone.
 /// </remarks>
 public sealed class F4seTab : TabPage
 {

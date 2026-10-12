@@ -18,11 +18,11 @@ namespace CMToolkit.App.Views;
 /// </summary>
 /// <remarks>
 /// Read-only as the reference's Text was: every key pressed in it goes through <c>block_text_input</c>
-/// (<see cref="TkKeys.BlockTextInputLetsThrough"/>), which means to let Ctrl+A and Ctrl+C through but, by T-13's exact
-/// modifier match, never does on Windows (bug #88), so no key reaches the text. The mouse still selects, and a click
-/// gives the text keyboard focus, as Tk's Text class binding does; while it has focus the window's Escape does nothing
-/// (<see cref="HasKeyboardFocus"/>), because the binding's <c>break</c> also stopped the toplevel's. There is no context
-/// menu, as a Tk Text has none, so nothing in the pane can be copied.
+/// (<see cref="TkKeys.BlockTextInputLetsThrough"/>), which lets Ctrl+A (select all) and Ctrl+C (copy) through whatever
+/// the lock keys, and Escape to the window, and blocks every other key. In the reference T-13's exact modifier match
+/// let no key through on Windows and its <c>break</c> also stopped the window's Escape (bug #88, fixed per ADR-0006).
+/// The mouse still selects, and a click gives the text keyboard focus, as Tk's Text class binding does
+/// (<see cref="HasKeyboardFocus"/>). There is no context menu, as a Tk Text has none, so Ctrl+C is the way to copy.
 /// </remarks>
 public sealed class LogPane : UserControl
 {
@@ -137,8 +137,9 @@ public sealed class LogPane : UserControl
     public string SelectedText => _text.SelectedText;
 
     /// <summary>
-    /// Whether the pane has keyboard focus: then Escape doesn't close its window, as the pane's <c>&lt;Key&gt;</c>
-    /// binding broke off the toplevel's <c>&lt;Escape&gt;</c> binding (bug #88).
+    /// Whether the pane has keyboard focus, which a click gives it. Escape still closes its window then; in the
+    /// reference it didn't, as the pane's <c>&lt;Key&gt;</c> binding broke off the toplevel's <c>&lt;Escape&gt;</c>
+    /// binding (bug #88, fixed per ADR-0006).
     /// </summary>
     public bool HasKeyboardFocus => IsKeyboardFocusWithin;
 
@@ -177,14 +178,30 @@ public sealed class LogPane : UserControl
     public void Clear() => _text.Inlines!.Clear();
 
     /// <summary>
-    /// <c>utils.block_text_input</c> on every key pressed in the pane: the key is swallowed unless the reference's
-    /// exact-mask test lets it through, which on Windows it never does (T-13, bug #88).
+    /// <c>utils.block_text_input</c> on every key pressed in the pane (T-13): Ctrl+A selects all of the text and Ctrl+C
+    /// copies the selection, with or without Shift and whatever the lock keys; Escape is left to the window; every other
+    /// key is swallowed. The reference's exact-mask test let no key through on Windows (bug #88, fixed per ADR-0006).
     /// </summary>
     private void BlockTextInput(object? sender, KeyEventArgs e)
     {
         if (!TkKeys.BlockTextInputLetsThrough(TkKeys.Of(e.Key, e.KeyModifiers, ReadLockKeys())))
         {
             e.Handled = true;
+            return;
+        }
+
+        // Done here rather than left to the text's own gestures, which match Ctrl+A/Ctrl+C exactly and so would miss
+        // them with Shift held. Handled, so the text doesn't act on the key a second time.
+        switch (e.Key)
+        {
+            case Key.A:
+                _text.SelectAll();
+                e.Handled = true;
+                break;
+            case Key.C:
+                _text.Copy();
+                e.Handled = true;
+                break;
         }
     }
 }

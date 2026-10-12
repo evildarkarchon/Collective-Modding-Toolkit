@@ -1,5 +1,6 @@
 using Avalonia.Input;
 using CMToolkit.App.Views;
+using CMToolkit.Tests.Parity;
 
 namespace CMToolkit.Tests.App;
 
@@ -35,34 +36,56 @@ public sealed class TkKeysTests
         Assert.Equal(new TkKeyEvent(state, upper ? "C" : "c"), TkKeys.Of(Key.C, modifiers, locks));
     }
 
-    /// <summary>Bug #88: under every lock-key state, neither Ctrl+A nor Ctrl+C gets through block_text_input.</summary>
+    /// <summary>
+    /// Bug #88, fixed (ADR-0006): under every measured lock-key and Shift state, Ctrl+A and Ctrl+C get through the
+    /// filter. The reference's exact-mask test let neither through in any of them.
+    /// </summary>
     [Theory]
-    [Trait("Parity", "T-13")]
+    [Trait("Parity", "T-13"), Deviation(88, "Ctrl+A and Ctrl+C work in the log pane whatever the lock keys and Shift, and Escape still closes its window.")]
     [MemberData(nameof(Measured))]
-    public void Bug_88_ctrl_a_and_ctrl_c_never_get_through(bool numLock, bool capsLock, bool shift, int state, bool upper)
+    public void Ctrl_a_and_ctrl_c_get_through_under_every_lock_key_state(bool numLock, bool capsLock, bool shift, int state, bool upper)
     {
         _ = (state, upper);
         var modifiers = KeyModifiers.Control | (shift ? KeyModifiers.Shift : KeyModifiers.None);
         var locks = new LockKeys(capsLock, numLock, ScrollLock: false);
 
-        Assert.False(TkKeys.BlockTextInputLetsThrough(TkKeys.Of(Key.A, modifiers, locks)));
-        Assert.False(TkKeys.BlockTextInputLetsThrough(TkKeys.Of(Key.C, modifiers, locks)));
+        Assert.True(TkKeys.BlockTextInputLetsThrough(TkKeys.Of(Key.A, modifiers, locks)));
+        Assert.True(TkKeys.BlockTextInputLetsThrough(TkKeys.Of(Key.C, modifiers, locks)));
     }
 
+    /// <summary>
+    /// Bug #88, fixed (ADR-0006): the filter tests Control as a bit (lock keys and Shift ignored) and the keysym in
+    /// either case, and lets Escape through, where the reference matched the mask exactly against <c>"AC"</c>.
+    /// </summary>
     [Theory]
-    [Trait("Parity", "T-13")]
+    [Trait("Parity", "T-13"), Deviation(88, "Ctrl+A and Ctrl+C work in the log pane whatever the lock keys and Shift, and Escape still closes its window.")]
     [InlineData(12, "A", true)]
     [InlineData(12, "C", true)]
-    [InlineData(12, "a", false)]
-    [InlineData(12, "c", false)]
-    [InlineData(4, "A", false)]
-    [InlineData(13, "A", false)]
+    [InlineData(12, "a", true)]
+    [InlineData(12, "c", true)]
+    [InlineData(4, "a", true)]
+    [InlineData(5, "A", true)]
+    [InlineData(0x4 | 0x20, "c", true)]
+    [InlineData(0, "a", false)]
+    [InlineData(1, "A", false)]
+    [InlineData(8, "c", false)]
     [InlineData(12, "B", false)]
-    [InlineData(12, "Escape", false)]
-    public void The_filter_is_the_references_exact_mask_and_substring_test(int state, string keysym, bool passes)
+    [InlineData(4, "AC", false)]
+    [InlineData(4, "", false)]
+    [InlineData(0, "Escape", true)]
+    [InlineData(12, "Escape", true)]
+    [InlineData(0, "Delete", false)]
+    [InlineData(0, "BackSpace", false)]
+    public void The_filter_lets_ctrl_a_ctrl_c_and_escape_through(int state, string keysym, bool passes)
     {
-        // `event.state == KEY_CTRL and event.keysym in "AC"`, with only the inputs it was written for.
         Assert.Equal(passes, TkKeys.BlockTextInputLetsThrough(new TkKeyEvent(state, keysym)));
+    }
+
+    [Fact]
+    [Trait("Parity", "T-13")]
+    public void Escape_is_described_by_its_tk_keysym()
+    {
+        Assert.Equal(new TkKeyEvent(0, "Escape"), TkKeys.Of(Key.Escape, KeyModifiers.None, default));
     }
 
     [Fact]

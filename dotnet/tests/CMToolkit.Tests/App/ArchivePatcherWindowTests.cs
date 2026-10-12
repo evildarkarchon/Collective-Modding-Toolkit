@@ -19,7 +19,7 @@ namespace CMToolkit.Tests.App;
 /// How the Archive Patcher is reached and how it behaves around a run, beyond what its scenarios replay: both Archive
 /// Patcher buttons open it over the main window (OVW-A6, TOOL-1), a radio click on the selected radio still clears and
 /// lists again (AP-2), Patch All holds the UI through the Overview refresh and keeps the close guard after a failure
-/// (AP-3), Escape is swallowed while the log pane has focus (bug #88), and a game without a Data folder fails the
+/// (AP-3), Escape closes it even while the log pane has focus (bug #88, fixed), and a game without a Data folder fails the
 /// reference's assert.
 /// </summary>
 public sealed class ArchivePatcherWindowTests
@@ -113,12 +113,12 @@ public sealed class ArchivePatcherWindowTests
     }
 
     /// <summary>
-    /// Bug #88: the log pane's <c>&lt;Key&gt;</c> binding returns <c>break</c> for Escape too, so with the pane focused
-    /// the window's Escape binding never runs. With focus elsewhere, Escape closes the patcher.
+    /// Bug #88, fixed (ADR-0006): Escape closes the patcher while the log pane has keyboard focus. In the reference the
+    /// pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for Escape too, so the window's Escape binding never ran.
     /// </summary>
     [AvaloniaFact]
-    [Trait("Parity", "T-13")]
-    public void Bug_88_escape_does_nothing_while_the_log_pane_has_focus()
+    [Trait("Parity", "T-13"), Deviation(88, "Ctrl+A and Ctrl+C work in the log pane whatever the lock keys and Shift, and Escape still closes its window.")]
+    public void Escape_closes_the_patcher_while_the_log_pane_has_focus()
     {
         using var machine = Scenario("archive-patcher/round-trip").Materialize();
         using var app = new ComposedSession(machine);
@@ -127,11 +127,6 @@ public sealed class ArchivePatcherWindowTests
 
         MouseClick.On(patcher.Log.GetLogicalDescendants().OfType<SelectableTextBlock>().Single());
         Assert.True(patcher.Log.HasKeyboardFocus);
-        patcher.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
-        Dispatcher.UIThread.RunJobs();
-        Assert.True(patcher.IsVisible);
-
-        ComposedSession.Named<TextBox>(patcher, "NameFilter").Focus();
         patcher.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
         Dispatcher.UIThread.RunJobs();
         Assert.False(patcher.IsVisible);

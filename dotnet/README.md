@@ -120,7 +120,8 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
   scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
   progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
-  pane's key handling follows the reference's filter exactly (T-13), which blocks Ctrl+A/C too (bug #88).
+  pane lets Ctrl+A/C through whatever the lock keys and lets Escape close the window while it has focus, where the
+  reference's filter blocked all three (T-13, bug #88, a Deviation).
 - Archive Patcher (see [`parity/screenshots/archive-patcher/`](../parity/screenshots/archive-patcher/)): the top row,
   the Name Filter and the list line up with Tk's to within 1-2 px (Patch All and About sit 2 px higher). The list is
   plain rows, not a Treeview: no row selection or hover, and its scrollbar and the log pane's are Fluent's, as in the
