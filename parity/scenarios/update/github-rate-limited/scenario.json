@@ -1,0 +1,11 @@
+{
+  "description": "GitHub answers 403: no update, logged as no updates.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

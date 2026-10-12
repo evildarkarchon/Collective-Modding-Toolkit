@@ -197,3 +197,9 @@ Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_
 which `ScenarioHostEnvironmentTests` checks on every committed scenario. Two differences: with no `appDir` the exe uses
 its own folder, and `dialogs` aren't scripted on the exe side (it shows real ones), so screenshot scenarios should find
 the game without asking. The smoke test (`dotnet/eng/Test-ShellStarts.ps1 -Scenario <folder>`) uses the same variables.
+
+The scenario's `http/` folder reaches both sides too: the driver's `FakeRequests` serves the reference, and the exe's
+update check goes through `ScenarioHttpHandler` (same folder, same rules as the tests' `ParityHttpHandler`, checked by
+`ScenarioHttpHandlerTests`). A request the scenario has no response for fails startup rather than going online, so a
+screenshot scenario whose `settings.json` has an `update_source` other than `none` needs its responses
+(`update/banner-window` is the example).

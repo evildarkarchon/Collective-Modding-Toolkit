@@ -5,9 +5,18 @@ using System.Text;
 namespace CMToolkit.Core.Settings;
 
 /// <summary>JSON text that Python's <c>json.loads</c> would reject (or fail to convert).</summary>
-internal sealed class PythonJsonException(string message, int position)
+/// <param name="message">Python's message.</param>
+/// <param name="position">The character index it points at.</param>
+/// <param name="isDecodeError">
+/// Whether Python raises <c>json.JSONDecodeError</c> here, rather than another <c>ValueError</c> (the int digit limit)
+/// or <c>RecursionError</c> (nesting). <c>AppSettings</c> treats them all alike; the update check's
+/// <c>except requests.JSONDecodeError</c> catches only the first.
+/// </param>
+internal sealed class PythonJsonException(string message, int position, bool isDecodeError = true)
     : FormatException($"{message}: char {position}")
 {
+    /// <summary>Whether Python raises <c>json.JSONDecodeError</c> (see the constructor).</summary>
+    public bool IsDecodeError { get; } = isDecodeError;
 }
 
 /// <summary>
@@ -177,7 +186,7 @@ internal static class PythonJson
             var digitCount = literal.Length - (literal[0] == '-' ? 1 : 0);
             if (digitCount > MaxIntDigits)
             {
-                throw new PythonJsonException("Exceeds the limit (4300 digits) for integer string conversion", start);
+                throw new PythonJsonException("Exceeds the limit (4300 digits) for integer string conversion", start, isDecodeError: false);
             }
 
             return (new PythonInt(BigInteger.Parse(literal, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture)), index);
@@ -368,7 +377,7 @@ internal static class PythonJson
         {
             if (depth > MaxDepth)
             {
-                throw new PythonJsonException("Maximum nesting depth exceeded", index);
+                throw new PythonJsonException("Maximum nesting depth exceeded", index, isDecodeError: false);
             }
         }
     }

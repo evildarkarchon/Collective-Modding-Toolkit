@@ -1,0 +1,11 @@
+{
+  "description": "tag_name null is str()-ed to None: InvalidVersion, logged as a failure.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

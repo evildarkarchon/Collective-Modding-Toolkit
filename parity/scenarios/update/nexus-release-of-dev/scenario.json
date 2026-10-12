@@ -1,0 +1,11 @@
+{
+  "description": "Nexus Mods lists 0.6.2, the release of the running 0.6.2-dev: PEP 440 ranks it newer.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3",
+    "T-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

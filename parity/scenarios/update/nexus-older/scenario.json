@@ -1,0 +1,10 @@
+{
+  "description": "Nexus Mods lists an older version: no update.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

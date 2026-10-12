@@ -555,6 +555,104 @@ def game_info_operation(session: Session, golden: GoldenContext) -> dict[str, An
 	}
 
 
+def _tk_colour(widget: Any, colour: str) -> str | None:
+	"""A Tk colour name or spec as ``#RRGGBB`` (``winfo_rgb`` gives 16-bit channels), or ``None`` if unset."""
+	if not colour:
+		return None
+	red, green, blue = widget.winfo_rgb(colour)
+	return f"#{red >> 8:02X}{green >> 8:02X}{blue >> 8:02X}"
+
+
+def _tk_font(widget: Any) -> dict[str, Any]:
+	"""A label's ``font`` option as given (not ``font actual``, which depends on the fonts installed): the family, the
+	point size, and whether the style words include ``bold`` and ``underline``.
+	"""
+	family, size, *styles = widget.tk.splitlist(widget.cget("font"))
+	words = " ".join(str(s) for s in styles).split()
+	return {"family": str(family), "size": int(size), "bold": "bold" in words, "underline": "underline" in words}
+
+
+@operation("update-check")
+def update_check(session: Session, golden: GoldenContext) -> dict[str, Any]:  # noqa: ARG001
+	"""UPD-1..UPD-4, NET-1, NET-2: ``CMChecker.check_for_updates`` on a ``cmc`` stub, with ``AppSettings()`` loaded from
+	the scenario's working directory for ``update_source`` and ``requests`` serving the scenario's ``http/`` folder.
+
+	``updateCheck`` is what each source's check returned (``None`` when it wasn't run or found no update) and the
+	``utils`` log lines it wrote. ``banner`` is the update frame read back off its widgets, or ``None`` when none was
+	built: the frame's column weights, then each label in column order with its text, image, colours (as ``#RRGGBB``),
+	font, padding, cursor, tooltip, and what clicking it opens. An exception escaping the check is recorded as
+	``error``: it escapes ``CMChecker.__init__`` too, so startup fails (SHELL-13) and only that fact is compared.
+	"""
+	import app_settings  # noqa: PLC0415
+	import cm_checker  # noqa: PLC0415
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	tooltips = _Tooltips()
+	opened: list[str] = []
+	returned: dict[str, str | None] = {"nexusVersion": None, "githubVersion": None}
+	cm_checker.ToolTip = tooltips
+	cm_checker.webbrowser = ModuleProxy(cm_checker.webbrowser, open=lambda url, *_a, **_k: opened.append(url))
+
+	def recording(check: Callable[[], str | None], key: str) -> Callable[[], str | None]:
+		def run() -> str | None:
+			returned[key] = check()
+			return returned[key]
+
+		return run
+
+	cm_checker.check_for_update_nexus = recording(cm_checker.check_for_update_nexus, "nexusVersion")
+	cm_checker.check_for_update_github = recording(cm_checker.check_for_update_github, "githubVersion")
+
+	settings = app_settings.AppSettings()
+	capture = capture_logs()
+	cmc = session.make_cmc(settings=settings)
+	result: dict[str, Any] = {}
+	try:
+		cm_checker.CMChecker.check_for_updates(cmc)  # type: ignore[arg-type]
+	except Exception:  # noqa: BLE001 - only the fact of it is part of Behaviour Parity
+		result["error"] = {"kind": "startupFailure"}
+
+	result["updateCheck"] = {**returned, "display": {"log": log_lines(capture.records, "utils")}}
+
+	root = cmc.root
+	frames = root.grid_slaves(row=0, column=0)
+	if not frames:
+		result["banner"] = None
+		return result
+
+	(frame,) = frames
+	root.update_idletasks()
+	columns = int(frame.grid_size()[0])
+	labels = []
+	for label in _grid_children(frame):
+		before = len(opened)
+		label.event_generate("<Button-1>")
+		padding = label.cget("padding")
+		labels.append({
+			"column": int(label.grid_info()["column"]),
+			"sticky": str(label.grid_info()["sticky"]),
+			"text": str(label.cget("text")),
+			"image": _image_path(cmc, label),
+			"foreground": _tk_colour(label, str(label.cget("foreground"))),
+			"background": _tk_colour(label, str(label.cget("background"))),
+			"font": _tk_font(label),
+			# An unset padding is the theme's, and sv_ttk sets none for TLabel: measured, it is the same as padding=0.
+			"padding": [int(p) for p in label.tk.splitlist(padding)] if str(padding) else [0],
+			"cursor": str(label.cget("cursor")) or None,
+			"tooltip": tooltips.of(label),
+			"opens": opened[before] if len(opened) > before else None,
+		})
+
+	result["banner"] = {
+		"style": str(frame.cget("style")),
+		"columnWeights": [int(frame.grid_columnconfigure(i)["weight"]) for i in range(columns)],
+		"rowWeight": int(frame.grid_rowconfigure(0)["weight"]),
+		"labels": labels,
+	}
+	return result
+
+
 # The loggers whose lines an Overview load or refresh writes: the tab lifecycle (helpers), the gathering
 # (tabs._overview) and its resets (game_info).
 _OVERVIEW_LOGGERS = {"helpers", "tabs._overview", "game_info"}

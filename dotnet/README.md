@@ -89,6 +89,17 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   #9), centred on the screen, since no main window exists yet.
 - Game INI section names and keys are lowercased with `ToLowerInvariant`, with the same `str.lower()` differences as
   MO2's `skip_*` values above.
+- The update check (#53) sends `User-Agent: cm-toolkit/<version>` and `Accept: */*`, where requests sent
+  `python-requests/2.32.5` plus its other session defaults; GitHub needs some User-Agent. urllib3's own DEBUG lines
+  ("Starting new HTTPS connection ...") that reached `cm-toolkit.log` at `log_level` DEBUG are not written.
+  Response charsets other than the UTF-8/16/32, Latin-1 and ASCII codecs count as unknown (Python's `LookupError`,
+  which fails startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
+  chardet. Real chunk boundaries also differ:
+  the port always reads the Nexus page in 512-byte chunks (as the parity harness does), while urllib3 follows the
+  server's chunked encoding, so bug #82 strikes on different pages. HttpClient does not follow an https-to-http
+  redirect, which requests did.
+- The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
+  its link tooltips are Avalonia's, not tktooltip's.
 - Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/)): until the Archives and Modules
   frames get their content (the next Overview slice), the three frames split the width differently from Tk's, so the
   Binaries frame is wider and its content sits ~6 px further right. Tk lays out a Binaries frame narrower than its

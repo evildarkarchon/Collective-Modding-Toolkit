@@ -1,0 +1,11 @@
+{
+  "description": "The Nexus request times out: logged as a failure, no update.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-4",
+    "T-14"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

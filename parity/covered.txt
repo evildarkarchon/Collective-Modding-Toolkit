@@ -78,7 +78,18 @@ INI-4
 SHELL-5
 B-14
 
-# Overview: top block and binaries (#51). T-4 is proven in part; #53 and #54 add it.
+# Update check and banner (#53)
+UPD-1
+UPD-2
+UPD-3
+UPD-4
+NET-1
+NET-2
+B-16
+# SHELL-7: #45 proved the tab strip, this slice the banner row; #53 is its last claimant.
+SHELL-7
+
+# Overview: top block and binaries (#51). T-4 is proven in part; #54, its last claimant, adds it.
 OVW-1
 OVW-2
 OVW-3

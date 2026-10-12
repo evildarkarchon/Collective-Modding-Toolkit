@@ -98,6 +98,12 @@ New-Item -ItemType Directory -Path $workDir | Out-Null
 $startDir = $workDir
 # The real machine's own question when it has no Fallout 4; never accepted on a scenario's machine.
 $notFoundTitle = if ($Scenario) { $null } else { 'Fallout 4 Not Found' }
+if (-not $Scenario) {
+    # The update check runs before the main window shows (UPD-1). A smoke test must not reach the network, so the
+    # real-machine run turns it off; the missing settings keys get their defaults. A scenario run serves its own
+    # canned http/ responses (ScenarioHttpHandler) and fails on any request it has none for.
+    Set-Content -LiteralPath (Join-Path $workDir 'settings.json') -Value '{"update_source": "none"}' -Encoding utf8NoBOM
+}
 
 if ($Scenario) {
     # Materialize the scenario as the parity harness does: the tree, then emptyDirs (attributes don't matter here).

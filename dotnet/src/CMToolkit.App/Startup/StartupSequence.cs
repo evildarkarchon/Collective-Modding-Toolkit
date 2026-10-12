@@ -23,7 +23,8 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
 
     /// <summary>
     /// The update check (UPD-1, SHELL-5): awaited after the main window is built and before it is shown, so a banner it
-    /// adds is there from the first frame. <see cref="NoUpdateCheckAsync"/> until the update check slice (#53) fills it.
+    /// adds is there from the first frame. The app sets <see cref="UpdateBanner.StartupHook"/> (in <c>App.RunStartup</c>,
+    /// with its HTTP stack); the default, <see cref="NoUpdateCheckAsync"/>, keeps tests that don't set it offline.
     /// </summary>
     public Func<MainWindow, AppSession, Task> CheckForUpdatesAsync { get; init; } = NoUpdateCheckAsync;
 
@@ -56,6 +57,6 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
         return window;
     }
 
-    /// <summary>The update check hook's placeholder: <c>update_source</c> is never consulted yet, as if it were <c>none</c>.</summary>
+    /// <summary>The update check hook's default: <c>update_source</c> is not consulted, as if it were <c>none</c>.</summary>
     public static Task NoUpdateCheckAsync(MainWindow window, AppSession session) => Task.CompletedTask;
 }

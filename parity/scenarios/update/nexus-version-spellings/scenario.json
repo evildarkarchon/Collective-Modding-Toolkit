@@ -1,0 +1,11 @@
+{
+  "description": "A version in PEP 440's alternative spellings (V prefix, padding, rc spelled pre).",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3",
+    "T-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

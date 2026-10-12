@@ -1,0 +1,11 @@
+{
+  "description": "Nexus Mods times out and GitHub is newer: the failure is only logged.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

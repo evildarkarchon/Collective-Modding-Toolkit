@@ -1,0 +1,10 @@
+{
+  "description": "update_source none: no request is made and no banner is built.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}
