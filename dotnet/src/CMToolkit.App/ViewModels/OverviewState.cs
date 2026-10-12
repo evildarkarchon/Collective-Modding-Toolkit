@@ -18,4 +18,16 @@ public sealed partial class OverviewState : ObservableObject
 
     /// <summary>The game's Install Type (<c>install_type_sv</c>), bound live by the Overview's Version label (OVW-7).</summary>
     public InstallType InstallType => Report?.InstallType ?? InstallType.Unknown;
+
+    /// <summary>
+    /// Refreshes the Overview tab (<c>cmc.refresh_tab(Tab.Overview)</c>), as the Scanner does before each scan. Set by
+    /// the Overview tab when it is built; it returns whether the refresh completed.
+    /// </summary>
+    public Func<Task<bool>>? Refresher { get; set; }
+
+    /// <summary>Runs <see cref="Refresher"/>.</summary>
+    /// <returns>Whether the refresh completed; a failed one has already been reported.</returns>
+    /// <exception cref="InvalidOperationException">No Overview tab was built over this state.</exception>
+    public Task<bool> RefreshAsync()
+        => Refresher?.Invoke() ?? throw new InvalidOperationException("No Overview tab refreshes this state.");
 }

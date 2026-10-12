@@ -10,6 +10,7 @@ namespace CMToolkit.App.Views;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private readonly AppRuntime _runtime;
     private LazyTab? _current;
     private bool _opened;
 
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
     public MainWindow(AppRuntime runtime, IReadOnlyList<TabPage> pages)
     {
         InitializeComponent();
+        _runtime = runtime;
         foreach (var page in pages)
         {
             Tabs.Items.Add(new TabItem { Header = page.Header, Content = new LazyTab(page, runtime) });
@@ -60,6 +62,9 @@ public partial class MainWindow : Window
     /// </summary>
     public bool ProcessingData { get; set; }
 
+    /// <summary>The current tab's page (<c>CMChecker.current_tab</c>): the last one selected, or null before the first.</summary>
+    public TabPage? CurrentPage => _current?.Page;
+
     /// <summary>
     /// The update banner in row 0, above the tabs (SHELL-7, UPD-2), or null for none. The rows share the fixed
     /// 760x450 client area, so a banner takes its height from the tabs, as Tk's row 1 (weight 1) gave it up.
@@ -82,7 +87,18 @@ public partial class MainWindow : Window
     /// <summary><c>CMChecker.on_tab_changed</c>: switch from the old tab, then select (and maybe load) the new one.</summary>
     private void OnTabChanged()
     {
-        _current?.Deselect();
+        try
+        {
+            _current?.Deselect();
+        }
+        catch (Exception ex)
+        {
+            // The reference's switch_from raised inside on_tab_changed, before current_tab moved on and before the new
+            // tab loaded: the Error Window shows it and this tab stays current (bug #87's Failure Outcome).
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+            return;
+        }
+
         _current = (Tabs.SelectedItem as TabItem)?.Content as LazyTab;
         // SelectAsync reports its own exceptions, so the task is never faulted.
         _ = _current?.SelectAsync();

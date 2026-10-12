@@ -7,6 +7,7 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
     uv run python parity/driver/screenshots.py shell/main-window --slice shell --crop tab-strip=0,0,-1,80
     uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
     uv run python parity/driver/screenshots.py downgrader/og-steam --slice downgrader/og-steam --modal Downgrader
+    uv run python parity/driver/screenshots.py scanner/overview-issues --slice scanner/results --tab Scanner --scan --panes
 
 It writes ``parity/screenshots/<slice>/tk.png`` and ``avalonia.png`` (each window's outer rectangle, title bar included),
 ``compare.png`` (the two side by side plus a 50/50 blend), and one ``compare-<name>.png`` per ``--crop`` (the three
@@ -62,6 +63,12 @@ MODAL_BUTTONS = {
 }
 # Tells the reference child which modal to open, so its positional arguments stay as they were.
 MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
+# Tells the reference child to run an Overview Issues scan once the Scanner tab is up (``--scan``).
+SCAN_VARIABLE = "CMT_SCREENSHOT_SCAN"
+# The C# Scanner side pane's title (PaneWindow), and where ``--scan`` clicks in its client pixels: the six data boxes
+# (Errors .. Race Subgraphs) to untick them, then Scan Game. Measured from parity/screenshots/scanner/side-pane.
+SIDE_PANE_TITLE = "Collective Modding Toolkit pane (Side)"
+SCAN_CLICKS = [(26, 70), (26, 98), (26, 126), (26, 154), (26, 182), (26, 210), (100, 375)]
 PW_RENDERFULLCONTENT = 2
 DPI_100 = 96
 
@@ -167,6 +174,40 @@ def capture(hwnd: int) -> Image.Image:
 		user32.ReleaseDC(None, screen_dc)
 
 
+def visible_windows(pid: int) -> list[int]:
+	"""Every visible top-level window owned by ``pid`` or one of its descendants, in Z order (topmost first)."""
+	found: list[int] = []
+	pids = process_tree(pid)
+
+	def visit(hwnd: int, _: int) -> bool:
+		owner = wintypes.DWORD()
+		user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+		if owner.value in pids and user32.IsWindowVisible(hwnd):
+			found.append(hwnd)
+		return True
+
+	user32.EnumWindows(EnumWindowsProc(visit), 0)
+	return found
+
+
+def capture_with_panes(pid: int, main: int) -> Image.Image:
+	"""The main window with every other visible window of the app pasted where it sits on screen relative to it (the
+	Scanner's docked panes), on black. The canvas starts at the main window's outer top-left, so pairs align.
+	"""
+	rects: dict[int, wintypes.RECT] = {}
+	for hwnd in [main, *(h for h in reversed(visible_windows(pid)) if h != main)]:
+		rect = wintypes.RECT()
+		user32.GetWindowRect(hwnd, ctypes.byref(rect))
+		rects[hwnd] = rect
+	left, top = rects[main].left, rects[main].top
+	right = max(r.right for r in rects.values())
+	bottom = max(r.bottom for r in rects.values())
+	canvas = Image.new("RGB", (right - left, bottom - top))
+	for hwnd, rect in rects.items():
+		canvas.paste(capture(hwnd), (rect.left - left, rect.top - top))
+	return canvas
+
+
 def click(hwnd: int, point: tuple[int, int]) -> None:
 	"""Clicks at ``point`` in the window's client pixels without moving the real pointer: a posted left button down
 	and up, sent to the deepest visible child window under the point.
@@ -199,13 +240,17 @@ def run_and_capture(
 	tab: str | None = None,
 	click_tab: bool = False,
 	modal: str | None = None,
+	scan: bool = False,
+	panes: bool = False,
 ) -> Image.Image:
 	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
 
 	With ``tab``, the capture waits longer for that tab to be selected and built; ``click_tab`` makes this function
 	select it by clicking its header (the C# app), rather than the app selecting it itself (the reference child).
 	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
-	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself.
+	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself. With ``scan`` (on the Scanner tab), an
+	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes and Scan Game (``SCAN_CLICKS``),
+	otherwise the app runs it itself. With ``panes``, the app's other windows are pasted in place around the main one.
 	"""
 	process = subprocess.Popen(command, cwd=cwd, env=env)
 	try:
@@ -229,6 +274,17 @@ def run_and_capture(
 				click(hwnd, TAB_CENTRES[tab])
 			# Long enough for the reference's delayed select and for either app to build the tab.
 			time.sleep(3)
+		if scan:
+			if click_tab:
+				side = find_window(process.pid, SIDE_PANE_TITLE)
+				if side is None:
+					msg = f"{label} showed no Scanner side pane"
+					raise RuntimeError(msg)
+				for point in SCAN_CLICKS:
+					click(side, point)
+					time.sleep(0.2)
+			# Long enough for the reference's delayed scan and for either app to refresh the Overview and list results.
+			time.sleep(4)
 		if modal is not None:
 			if click_tab:
 				click(hwnd, MODAL_BUTTONS[modal])
@@ -242,7 +298,7 @@ def run_and_capture(
 		if dpi != DPI_100 and not allow_dpi:
 			msg = f"{label}'s window is at {dpi * 100 // DPI_100} % scaling; screenshot pairs are taken at 100 % (or pass --allow-dpi)"
 			raise RuntimeError(msg)
-		return capture(hwnd)
+		return capture_with_panes(process.pid, hwnd) if panes else capture(hwnd)
 	finally:
 		if process.poll() is None:
 			hwnd = find_window(process.pid, TITLE)
@@ -377,7 +433,29 @@ def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> 
 			self.root.after(2000, lambda: openers[modal](self))
 
 		cm_checker.CMChecker.__init__ = init_then_open  # type: ignore[method-assign]
+	if os.environ.get(SCAN_VARIABLE):
+		import cm_checker  # noqa: PLC0415
+
+		before_scan = cm_checker.CMChecker.__init__
+
+		def init_then_scan(self: Any, *args: Any, **kwargs: Any) -> None:
+			before_scan(self, *args, **kwargs)
+			# A second after the tab is selected: untick the data boxes, then press Scan Game, as --scan's clicks do.
+			self.root.after(3000, lambda: _scan_overview_issues(self))
+
+		cm_checker.CMChecker.__init__ = init_then_scan  # type: ignore[method-assign]
 	runpy.run_path(str(SRC / "main.py"), run_name="__main__")
+
+
+def _scan_overview_issues(checker: Any) -> None:
+	"""Unticks every Scanner box but Overview Issues and presses Scan Game, on the open side pane."""
+	from enums import Tab  # noqa: PLC0415
+
+	side = checker.tabs[Tab.Scanner].side_pane
+	frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+	for check in frame.pack_slaves()[1:]:
+		check.invoke()
+	side.button_scan.invoke()
 
 
 def _open_downgrader(checker: Any) -> None:
@@ -401,6 +479,8 @@ def main() -> int:
 	parser.add_argument("--crop", type=parse_crop, action="append", default=[], help="name=x,y,width,height (repeatable)")
 	parser.add_argument("--tab", choices=list(TAB_CENTRES), help="the tab to select before capturing (default: Overview)")
 	parser.add_argument("--modal", choices=list(MODAL_BUTTONS), help="capture this modal, opened from the Overview, instead")
+	parser.add_argument("--scan", action="store_true", help="with --tab Scanner: run an Overview Issues scan first")
+	parser.add_argument("--panes", action="store_true", help="paste the app's other windows (the Scanner panes) in place")
 	parser.add_argument("--timeout", type=float, default=60, help="seconds to wait for each window")
 	parser.add_argument("--allow-dpi", action="store_true", help="capture even when the window isn't at 100 %% scaling")
 	args = parser.parse_args()
@@ -419,6 +499,8 @@ def main() -> int:
 	env = {**os.environ, "PYTHONHASHSEED": "0"}
 	if args.modal is not None:
 		env[MODAL_VARIABLE] = args.modal
+	if args.scan:
+		env[SCAN_VARIABLE] = "1"
 
 	tk_machine = materialize(scenario)
 	try:
@@ -438,6 +520,8 @@ def main() -> int:
 			allow_dpi=args.allow_dpi,
 			tab=args.tab,
 			modal=args.modal,
+			scan=args.scan,
+			panes=args.panes,
 		)
 	finally:
 		tk_machine.cleanup()
@@ -461,6 +545,8 @@ def main() -> int:
 			tab=args.tab,
 			click_tab=True,
 			modal=args.modal,
+			scan=args.scan,
+			panes=args.panes,
 		)
 	finally:
 		av_machine.cleanup()

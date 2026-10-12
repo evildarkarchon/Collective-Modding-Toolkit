@@ -102,6 +102,8 @@ public sealed class OverviewTab : TabPage
         _state = state;
         _openDowngradeManager = openDowngradeManager ?? NoWindow;
         _openArchivePatcher = openArchivePatcher ?? NoWindow;
+        // cmc.refresh_tab(Tab.Overview): the Scanner refreshes this tab through the shared state.
+        state.Refresher = RefreshAsync;
     }
 
     /// <summary>
@@ -184,7 +186,11 @@ public sealed class OverviewTab : TabPage
     /// is reported, what it had gathered becomes the current report (the reference's shared state), and the frames are
     /// left as they were.
     /// </summary>
-    public async Task RefreshAsync()
+    /// <returns>
+    /// Whether the refresh completed. False when it died, which the Scanner's scan, refreshing through
+    /// <c>cmc.refresh_tab</c>, stops on (the exception ended its Tk callback too).
+    /// </returns>
+    public async Task<bool> RefreshAsync()
     {
         OverviewReport report;
         try
@@ -200,11 +206,12 @@ public sealed class OverviewTab : TabPage
                 _state.Report = incomplete.Partial;
             }
 
-            return;
+            return false;
         }
 
         _state.Report = report;
         BuildFrames();
+        return true;
     }
 
     private OverviewReport Gather(OverviewReport? previous) => Gatherer(_game, _host, _runtime.Logger, previous);

@@ -14,7 +14,7 @@ public static class MainTabs
     [
         new OverviewTab(session.Runtime, session.Host, session.Pc, session.Game, session.Overview, () => DowngraderWindow.Open(session)),
         new F4seTab(session.Runtime, session.Host, session.Game, session.Overview),
-        PlaceholderTab.Scanner(),
+        new ScannerTab(session.Runtime, session.Game, session.Overview, session.Settings),
         new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session)),
         new SettingsTab(session.Settings),
         new AboutTab(session.Runtime),

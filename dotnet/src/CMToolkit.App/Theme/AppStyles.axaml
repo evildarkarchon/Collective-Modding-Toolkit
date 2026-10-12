@@ -73,4 +73,58 @@
   <Style Selector="GroupBox.centred">
     <Setter Property="Theme" Value="{DynamicResource CentredGroupBox}" />
   </Style>
+
+  <!-- Accent.TButton (the Scanner's Scan Game): sv_ttk's accent sprite, black text on the green. Disabled, Fluent's
+       disabled template styles win, giving the plain disabled button as sv_ttk's accent-disabled sprite does. -->
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{DynamicResource SvAccent}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SvAccent}" />
+    <Setter Property="Foreground" Value="#000000" />
+  </Style>
+  <Style Selector="Button.accent /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="#000000" />
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#57DE61" />
+    <Setter Property="BorderBrush" Value="#57DE61" />
+    <Setter Property="Foreground" Value="#000000" />
+  </Style>
+  <Style Selector="Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#33B83E" />
+    <Setter Property="BorderBrush" Value="#33B83E" />
+    <Setter Property="Foreground" Value="#000000" />
+  </Style>
+  <!-- These app styles outrank Fluent's own :disabled ones, so the disabled look is restated. -->
+  <Style Selector="Button.accent:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ButtonBackgroundDisabled}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushDisabled}" />
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+  </Style>
+
+  <!-- ttk.Button(padding=0), the Scanner's Collapse All / Expand All: the label's own size plus the sprite border. -->
+  <Style Selector="Button.tight">
+    <Setter Property="Padding" Value="3" />
+  </Style>
+
+  <!-- The Scanner's results ttk.Treeview: style.configure("Treeview", font=FONT_SMALL), ~21 px rows (prototype). -->
+  <Style Selector="TreeView.results TreeViewItem">
+    <Setter Property="MinHeight" Value="21" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="TreeView.results TreeViewItem /template/ Border#PART_LayoutRoot">
+    <Setter Property="MinHeight" Value="21" />
+  </Style>
+  <!-- Tk's indicator sits 2 px further left with its text 7 px closer, and item text is 20 px (not 16) deeper than a
+       group's: measured from parity/screenshots/scanner/results. -->
+  <Style Selector="TreeView.results TreeViewItem /template/ Panel#PART_ExpandCollapseChevronContainer">
+    <Setter Property="Margin" Value="10,0,5,0" />
+  </Style>
+  <Style Selector="TreeView.results TreeViewItem.leaf">
+    <Setter Property="Padding" Value="5,0,0,0" />
+  </Style>
+  <Style Selector="TreeView.results :is(TextBlock)">
+    <Setter Property="FontSize" Value="{DynamicResource CmtFontSmall}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CmtLineSmall}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource CmtSpacingSmall}" />
+  </Style>
 </Styles>
