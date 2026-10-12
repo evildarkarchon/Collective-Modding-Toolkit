@@ -29,6 +29,25 @@ public sealed class PcInfoScenarioTests
     }
 
     /// <summary>
+    /// The MO2 OS warning's test (OVW-5): Windows 24H2 and every later build, mapped (25H2) or not (27000), but not
+    /// older builds and not Wine. The reference matched only the exact text <c>Windows 11 24H2</c> (B-8).
+    /// </summary>
+    [Theory]
+    [Trait("Parity", "B-8")]
+    [Deviation(27, "Windows build 26100 and later counts as 24H2+, not only the exact OS text Windows 11 24H2.")]
+    [InlineData("pc-intel-win11-24h2", true)]
+    [InlineData("pc-gpu-adapter-missing", true)]
+    [InlineData("pc-unknown-build", true)]
+    [InlineData("pc-win10-amd", false)]
+    [InlineData("pc-wine", false)]
+    public void Builds_from_24H2_on_count_as_24H2_or_later(string scenarioName, bool expected)
+    {
+        using var machine = new ParityScenario(ParityPaths.Scenarios, "environment/" + scenarioName).Materialize();
+
+        Assert.Equal(expected, PcInfo.Read(machine.Host, new RecordingLogger()).IsWindows24H2OrLater);
+    }
+
+    /// <summary>
     /// PC-4's name clean-up on names the scenarios don't cover. The expected names were produced by the reference's
     /// own <c>PCInfo._get_cpu()</c> under CPython 3.14, including Python's wider whitespace set (U+001C..U+001F).
     /// </summary>

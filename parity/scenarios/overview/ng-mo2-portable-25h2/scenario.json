@@ -64,6 +64,10 @@
     {
       "bug": 24,
       "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    },
+    {
+      "bug": 27,
+      "reason": "The port shows the MO2 2.5.2 OS warning on Windows 11 24H2 and every later build (build 26100+), so 25H2 gets it too."
     }
   ]
 }

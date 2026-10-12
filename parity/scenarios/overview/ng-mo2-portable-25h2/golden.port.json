@@ -222,7 +222,10 @@
           },
           "tooltip": "Detection details"
         },
-        "osWarning": null,
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
         "refresh": {
           "image": "images/refresh-32.png",
           "tooltip": "Refresh"
@@ -474,7 +477,10 @@
           },
           "tooltip": "Detection details"
         },
-        "osWarning": null,
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
         "refresh": {
           "image": "images/refresh-32.png",
           "tooltip": "Refresh"
