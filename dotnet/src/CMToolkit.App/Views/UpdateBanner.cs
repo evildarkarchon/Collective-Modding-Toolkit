@@ -43,10 +43,10 @@ public static class UpdateBanner
     /// <param name="source">The <c>update_source</c> setting.</param>
     /// <param name="http">The HTTP stack: the real network, or a Parity Scenario's canned responses.</param>
     /// <returns>What the check found.</returns>
-    /// <exception cref="UpdateCheckCrashException">
-    /// A response the reference didn't survive; like any startup exception it fails startup (SHELL-13).
-    /// </exception>
-    /// <remarks>Start on the UI thread; the check itself runs on the thread pool.</remarks>
+    /// <remarks>
+    /// Start on the UI thread; the check itself runs on the thread pool. A failed check is logged and is no update,
+    /// including a response the reference didn't survive and failed startup on (bug #81, fixed per ADR-0006).
+    /// </remarks>
     public static async Task<UpdateCheckResult> CheckAsync(MainWindow window, AppRuntime runtime, UpdateSource source, HttpMessageHandler http)
     {
         var check = new UpdateCheck(http, runtime.Logger);

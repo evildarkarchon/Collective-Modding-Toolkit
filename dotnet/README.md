@@ -93,7 +93,7 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   `python-requests/2.32.5` plus its other session defaults; GitHub needs some User-Agent. urllib3's own DEBUG lines
   ("Starting new HTTPS connection ...") that reached `cm-toolkit.log` at `log_level` DEBUG are not written.
   Response charsets other than the UTF-8/16/32, Latin-1 and ASCII codecs count as unknown (Python's `LookupError`,
-  which fails startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
+  which the port logs as a failed check where the reference failed startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
   chardet. Real chunk boundaries also differ:
   the port always reads the Nexus page in 512-byte chunks (as the parity harness does), while urllib3 follows the
   server's chunked encoding, so bug #82 strikes on different pages. HttpClient does not follow an https-to-http

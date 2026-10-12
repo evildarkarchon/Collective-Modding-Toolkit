@@ -47,17 +47,19 @@ public sealed class UpdateStartupTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SHELL-13")]
-    public async Task A_response_the_reference_did_not_survive_fails_startup()
+    [Trait("Parity", "SHELL-13"), Deviation(81, "The port logs any update-check failure and treats it as no update, so startup continues.")]
+    public async Task A_response_the_reference_did_not_survive_is_logged_and_startup_continues()
     {
+        // The reference's KeyError escaped CMChecker.__init__ and failed startup; the port logs the failed check and
+        // opens the main window without a banner (bug #81, fixed per ADR-0006).
         using var startup = new UpdateStartup("update/github-missing-tag");
 
         var result = await AppStartup.BuildAsync(startup.Runtime, async () => await startup.Sequence.BuildMainWindowAsync())
             .WithTimeout();
 
-        Assert.True(result.Failed);
-        Assert.Equal(1, result.ExitCode);
-        Assert.IsType<StartupFailureDialog>(result.Window);
+        Assert.False(result.Failed);
+        var window = Assert.IsType<MainWindow>(result.Window);
+        Assert.Null(window.UpdateBanner);
     }
 
     /// <summary>

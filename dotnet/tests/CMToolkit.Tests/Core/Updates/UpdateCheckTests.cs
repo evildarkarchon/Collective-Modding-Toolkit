@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using CMToolkit.Core.Settings;
 using CMToolkit.Core.Updates;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Updates;
@@ -67,13 +68,37 @@ public sealed class UpdateCheckTests
     }
 
     [Fact]
-    [Trait("Parity", "NET-1")]
-    public async Task A_charset_parameter_without_a_value_escapes_the_check_as_the_reference_s_attribute_error_did()
+    [Trait("Parity", "NET-1"), Deviation(81, "The port logs any update-check failure and treats it as no update, so startup continues.")]
+    public async Task A_charset_parameter_without_a_value_is_logged_as_a_failed_check()
     {
-        // requests stores a bare "charset" as True, and get_encoding_from_headers calls True.strip().
+        // requests stores a bare "charset" as True, and get_encoding_from_headers calls True.strip(). The reference's
+        // AttributeError escaped the check and failed startup; the port logs it as a failed check (bug #81, fixed per
+        // ADR-0006).
         var handler = new StubHandler(_ => Ok(new StringContent(NexusPage), "text/html; charset"));
+        var logger = new RecordingLogger();
 
-        await Assert.ThrowsAsync<UpdateCheckCrashException>(() => new UpdateCheck(handler, new RecordingLogger()).CheckNexusAsync(TestContext.Current.CancellationToken));
+        var version = await new UpdateCheck(handler, logger).CheckNexusAsync(TestContext.Current.CancellationToken);
+
+        Assert.Null(version);
+        var failure = Assert.Single(logger.Records, r => r.Message == "Update Check : Nexus Mods : Failed");
+        Assert.Equal(Microsoft.Extensions.Logging.LogLevel.Error, failure.Level);
+        Assert.NotNull(failure.Exception);
+    }
+
+    [Fact]
+    [Trait("Parity", "UPD-4"), Deviation(81, "The port logs any update-check failure and treats it as no update, so startup continues.")]
+    public async Task With_both_sources_a_failed_nexus_check_still_lets_github_be_checked()
+    {
+        // The Nexus page has no Content-Type (the reference's TypeError ended the whole check there); GitHub answers.
+        var handler = new StubHandler(request => request.RequestUri!.Host == "www.nexusmods.com"
+            ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Encoding.UTF8.GetBytes(NexusPage)) }
+            : Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
+        var logger = new RecordingLogger();
+
+        var result = await new UpdateCheck(handler, logger).RunAsync(UpdateSource.Both, TestContext.Current.CancellationToken);
+
+        Assert.Equal(new UpdateCheckResult(null, "0.7.0"), result);
+        Assert.Contains(logger.Records, r => r.Message == "Update Check : Nexus Mods : Failed" && r.Exception is not null);
     }
 
     [Fact]
