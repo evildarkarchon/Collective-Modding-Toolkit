@@ -1,0 +1,450 @@
+{
+  "downgraderRun": {
+    "afterClick": {
+      "display": {
+        "creationKit": {
+          "values": [
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            }
+          ]
+        },
+        "game": {
+          "values": [
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            }
+          ]
+        },
+        "log": [],
+        "logLines": [
+          {
+            "level": "DEBUG",
+            "message": "Settings : Saving settings.json"
+          }
+        ]
+      },
+      "patchEnabled": false,
+      "processingData": true,
+      "progress": 0.0,
+      "versions": [
+        {
+          "file": "Fallout4.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Fallout4Launcher.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "steam_api64.dll",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "CreationKit.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2Interop.dll",
+          "installType": "Old-Gen"
+        }
+      ]
+    },
+    "errors": {
+      "callback": 0,
+      "thread": 0
+    },
+    "files": [
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-Archive2.exe.xdelta",
+        "readonly": false,
+        "sha256": "d9e30d56d91403c70269db3d2986e21733a17e666620a311a752212d2860d647",
+        "size": 635
+      },
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-Archive2Interop.dll.xdelta",
+        "readonly": false,
+        "sha256": "ffbe2dcecb2a854f7d990fd69abc8486f185f2e78bae73b5abd9b88ffe768b00",
+        "size": 73
+      },
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-CreationKit.exe.xdelta",
+        "readonly": false,
+        "sha256": "deab1d363ef7693012b44569a62b07697fd9d9c3107eecff217c9f6a3d49a7e3",
+        "size": 139
+      },
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4.exe.xdelta",
+        "readonly": false,
+        "sha256": "b0d814903da1ab617d23c075d337fa806dfd4e2e63471f19fd37e26a1bf5e415",
+        "size": 133
+      },
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4Launcher.exe.xdelta",
+        "readonly": false,
+        "sha256": "1a781b8349efb9d52c59fb9ccb46971dc6a7a93c6a6fab052ae2c7582000d97f",
+        "size": 10687
+      },
+      {
+        "path": "<ROOT>/Cwd/OG-to-NG-steam_api64.dll.xdelta",
+        "readonly": false,
+        "sha256": "f6441c1261f2a5fc54296199d61b9be9b91980dccb47fb2b2394a6a2bf4c03f8",
+        "size": 139
+      },
+      {
+        "path": "<ROOT>/Cwd/settings.json",
+        "readonly": false,
+        "sha256": "61048646948bb7c0dfe3f5d2636baebf90eaec852e4de56a3aa8cb428afb6fb2",
+        "size": 347
+      },
+      {
+        "path": "<ROOT>/Game/CreationKit.exe",
+        "readonly": false,
+        "sha256": "f5efb05064f0fe1d531b81589e2596022827b7991649735215f3fc30a04f80bd",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/CreationKit_upgradeBackup.exe",
+        "readonly": false,
+        "sha256": "c2102b97a393d594f50d7d56045ea40042f8c4ad67d2e59b357ef024d9f4e41a",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+        "readonly": false,
+        "sha256": "fc0d339949993f321c3765fe9ac0b31b8fc3ec6ceaffd3503a00d8727e7a4e60",
+        "size": 78
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4.ccc",
+        "readonly": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1871069cabc4ff2349802cd1f375639042b210a72663919d76239781d2510b25",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4_upgradeBackup.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4Launcher.exe",
+        "readonly": false,
+        "sha256": "c03095748292fe7bbe3cbf8e0336952a9624d08559a5645b00aedadc1355d9b3",
+        "size": 65540
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4Launcher_upgradeBackup.exe",
+        "readonly": true,
+        "sha256": "d895ad2da67cf2d5aa0d018b97cafe9cf61c9cbc0ee202603ccecef04f0d8942",
+        "size": 65540
+      },
+      {
+        "path": "<ROOT>/Game/steam_api64.dll",
+        "readonly": false,
+        "sha256": "e5b26f92a2559e8cece94aa4b8ce300b1af063b749bdd3b8095c764770293d3e",
+        "size": 2052
+      },
+      {
+        "path": "<ROOT>/Game/steam_api64_upgradeBackup.dll",
+        "readonly": false,
+        "sha256": "4207979b39e9e98fdd97e3321b94e29e23f422c77cebc2bef807f038ad0bc3ea",
+        "size": 2052
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2.exe",
+        "readonly": false,
+        "sha256": "244413ed146f1efae97aaa155965cf21f59bb740db591e4fb5c6c6e2527556da",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2_upgradeBackup.exe",
+        "readonly": false,
+        "sha256": "6c4a88162de9e6e47b9b59923feaa8be98dab1d79b569f3b9c47465267ce3716",
+        "size": 1540
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2Interop.dll",
+        "readonly": false,
+        "sha256": "7366eece24fdda24ef94adb46d2167b3426bf9e1ad206f751efed54a578660a0",
+        "size": 96
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2Interop_upgradeBackup.dll",
+        "readonly": false,
+        "sha256": "4916138f37b6709b6c903bb166b282ccc99e5372f88b91aca2623b47b1f807a5",
+        "size": 96
+      }
+    ],
+    "final": {
+      "display": {
+        "creationKit": {
+          "values": [
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            },
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            },
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            }
+          ]
+        },
+        "game": {
+          "values": [
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            },
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            },
+            {
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
+            }
+          ]
+        },
+        "log": [
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Fallout4.exe"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Fallout4Launcher.exe"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched steam_api64.dll"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched CreationKit.exe"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Archive2.exe"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Archive2Interop.dll"
+          }
+        ],
+        "logLines": [
+          {
+            "level": "INFO",
+            "message": "Patched Fallout4.exe"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched Fallout4Launcher.exe"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched steam_api64.dll"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched CreationKit.exe"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched Archive2.exe"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched Archive2Interop.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Refresh Tab : Overview"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Archives"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Archives"
+          },
+          {
+            "$unordered": [
+              {
+                "level": "DEBUG",
+                "message": "Archives: Checking Fallout4 - Startup.ba2"
+              }
+            ]
+          }
+        ]
+      },
+      "patchEnabled": true,
+      "processingData": false,
+      "progress": 100.0,
+      "versions": [
+        {
+          "file": "Fallout4.exe",
+          "installType": "Next-Gen"
+        },
+        {
+          "file": "Fallout4Launcher.exe",
+          "installType": "Next-Gen"
+        },
+        {
+          "file": "steam_api64.dll",
+          "installType": "Next-Gen & Anniversary"
+        },
+        {
+          "file": "CreationKit.exe",
+          "installType": "Next-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2.exe",
+          "installType": "Next-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2Interop.dll",
+          "installType": "Next-Gen"
+        }
+      ]
+    },
+    "script": {
+      "deletePatches": false,
+      "desiredVersion": "Next-Gen"
+    },
+    "settings": {
+      "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": true,\r\n\t\"scanner_WrongFormat\": true,\r\n\t\"scanner_LoosePrevis\": true,\r\n\t\"scanner_JunkFiles\": true,\r\n\t\"scanner_ProblemOverrides\": true,\r\n\t\"scanner_RaceSubgraphs\": true,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": false\r\n}\r\n"
+    }
+  },
+  "httpRequests": [
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Fallout4.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Fallout4Launcher.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-steam_api64.dll.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-CreationKit.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Archive2.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Archive2Interop.dll.xdelta"
+    }
+  ]
+}

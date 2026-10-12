@@ -146,3 +146,11 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
   the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
   problem types first appear.
+- Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
+  Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
+  cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves
+  the patches unencoded); like the update check, HttpClient doesn't follow an https-to-http redirect. The progress bar
+  shows the last value each 100 ms poll drained, which is all Tk drew. A download that fails ends its poll operation
+  with the error reported, where the reference's poll went on waiting forever; nothing else differs (B-10). Decoding
+  is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
+  on, to leave exactly the windows xdelta3 would on a failed decode.

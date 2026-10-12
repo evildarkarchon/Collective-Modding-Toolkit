@@ -29,6 +29,12 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
     public Func<MainWindow, AppSession, Task> CheckForUpdatesAsync { get; init; } = NoUpdateCheckAsync;
 
     /// <summary>
+    /// What the Downgrader downloads Delta Patches through (<see cref="AppSession.DeltaPatchHttp"/>). The app sets it in
+    /// <c>App.RunStartup</c>; the default, none, keeps tests that don't set it offline.
+    /// </summary>
+    public HttpMessageHandler? DeltaPatchHttp { get; init; }
+
+    /// <summary>
     /// Runs the sequence and builds the main window, unshown.
     /// </summary>
     /// <returns>
@@ -51,7 +57,7 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
             return null;
         }
 
-        var session = new AppSession(runtime, model, pc, game) { Host = host };
+        var session = new AppSession(runtime, model, pc, game) { Host = host, DeltaPatchHttp = DeltaPatchHttp };
         var window = new MainWindow(runtime, MainTabs.Compose(session)) { DataContext = model };
         session.MainWindow = window;
         await CheckForUpdatesAsync(window, session);

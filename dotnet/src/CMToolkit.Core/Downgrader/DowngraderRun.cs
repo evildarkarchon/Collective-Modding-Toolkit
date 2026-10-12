@@ -190,11 +190,10 @@ public sealed class DowngraderRun
         var currentBackupFile = HostPaths.Resolve(_host, currentBackup);
         try
         {
-            // file_path.chmod(stat.S_IWRITE): Python's chmod on Windows only clears the read-only attribute.
-            var attributes = File.GetAttributes(file);
-            if (attributes.HasFlag(FileAttributes.ReadOnly))
+            // file_path.chmod(stat.S_IWRITE), which leaves a file read-only when that was its only attribute (bug #91).
+            if (File.GetAttributes(file).HasFlag(FileAttributes.ReadOnly))
             {
-                File.SetAttributes(file, attributes & ~FileAttributes.ReadOnly);
+                PythonChmod.SetWritable(file);
             }
 
             if (File.Exists(currentBackupFile))

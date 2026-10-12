@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Sockets;
 using CMToolkit.Core;
 using CMToolkit.Core.Downgrader;
 using CMToolkit.Core.EnvironmentDetection;
@@ -144,13 +145,33 @@ public sealed class DowngraderRunTests
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C5965A2E");
         machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
-        File.SetAttributes(machine.GamePath("Fallout4.exe"), FileAttributes.ReadOnly);
+        File.SetAttributes(machine.GamePath("Fallout4.exe"), FileAttributes.ReadOnly | FileAttributes.Archive);
         var host = new ScriptedHost { KeepBackups = true };
 
         await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
 
-        Assert.False(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
+        Assert.Equal(FileAttributes.Archive, File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")));
         Assert.Contains("Good: Patched Fallout4.exe", host.Lines);
+    }
+
+    [Fact]
+    [Trait("Parity", "DG-5")]
+    public async Task Bug_91_a_file_whose_only_attribute_is_read_only_stays_read_only()
+    {
+        // Bug #91, reproduced: CPython's chmod writes back an attribute word of 0, which Windows ignores, so the
+        // read-only bit survives into the backup (verified against CPython 3.14.5).
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C5965A2E");
+        machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
+        File.SetAttributes(machine.GamePath("Fallout4.exe"), FileAttributes.ReadOnly);
+        var host = new ScriptedHost { KeepBackups = false };
+
+        await machine.Run().PatchAllAsync(InstallType.OldGen, host, host.Events);
+
+        // Keep Backups is off, so deleting the read-only backup fails after the restore: Patched, then Failed patching.
+        // The rename marks it for archiving too; only the read-only bit matters.
+        Assert.True(File.GetAttributes(machine.GamePath("Fallout4_downgradeBackup.exe")).HasFlag(FileAttributes.ReadOnly));
+        Assert.Equal(["Good: Patched Fallout4.exe", "Bad: Failed patching Fallout4.exe"], host.Lines.Take(2));
     }
 
     [Fact]
@@ -426,6 +447,150 @@ public sealed class DowngraderRunTests
 
         await Assert.ThrowsAsync<FileNotFoundException>(() => run.PatchAllAsync(InstallType.NextGen, host, host.Events));
         Assert.Empty(host.Script);
+    }
+
+    [Fact]
+    [Trait("Parity", "T-14")]
+    [Trait("Parity", "NET-3")]
+    public void Downloads_time_out_per_read_after_ten_seconds_follow_redirects_and_keep_the_encoding()
+    {
+        using var handler = DeltaPatches.CreateHandler();
+
+        // requests' timeout=10 bounds each connect and each read, not the download (T-14).
+        Assert.Equal(TimeSpan.FromSeconds(10), DeltaPatches.ReadTimeout);
+        Assert.Equal(DeltaPatches.ReadTimeout, handler.ConnectTimeout);
+        Assert.NotNull(handler.ConnectCallback);
+        Assert.True(handler.AllowAutoRedirect);
+        Assert.Equal(DecompressionMethods.None, handler.AutomaticDecompression);
+    }
+
+    [Fact]
+    [Trait("Parity", "T-14")]
+    [Trait("Parity", "NET-3")]
+    public async Task A_patch_trickling_in_through_a_redirect_downloads_over_the_real_stack()
+    {
+        // The real handler over loopback: GitHub's asset URL redirects to its object store, and the patch arrives in
+        // small pieces with pauses between them, each well inside the per-read timeout.
+        var patch = File.ReadAllBytes(Path.Combine(Patches, "OG-to-NG-Fallout4.exe.xdelta"));
+        await using var server = LoopbackServer.Start(async (path, stream, stopping) =>
+        {
+            if (path != "/object-store/patch")
+            {
+                await Write(stream, "HTTP/1.1 302 Found\r\nLocation: /object-store/patch\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                return;
+            }
+
+            await Write(stream, $"HTTP/1.1 200 OK\r\nContent-Length: {patch.Length}\r\nConnection: close\r\n\r\n");
+            foreach (var piece in patch.Chunk(100))
+            {
+                await Task.Delay(50, stopping);
+                await stream.WriteAsync(piece, stopping);
+                await stream.FlushAsync(stopping);
+            }
+        });
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        using var http = new ToLoopback(server.Url, DeltaPatches.CreateHandler());
+        var host = new ScriptedHost { KeepBackups = true, DeletePatches = false };
+
+        await machine.Run(http).PatchAllAsync(InstallType.NextGen, host, host.Events);
+        await host.RunPollsAsync();
+
+        Assert.Equal(["/OG-to-NG-Fallout4.exe.xdelta", "/object-store/patch"], server.Paths);
+        Assert.Equal(patch, File.ReadAllBytes(machine.CwdPath("OG-to-NG-Fallout4.exe.xdelta")));
+        Assert.Equal("C5965A2E", FileCrc32.Of(machine.GamePath("Fallout4.exe")));
+    }
+
+    private static async Task Write(Stream stream, string text)
+    {
+        await stream.WriteAsync(System.Text.Encoding.ASCII.GetBytes(text));
+        await stream.FlushAsync();
+    }
+
+    /// <summary>Sends the run's requests for the patch host to a loopback server instead, keeping their path's file name.</summary>
+    private sealed class ToLoopback(Uri server, HttpMessageHandler inner) : DelegatingHandler(inner)
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.RequestUri = new Uri(server, "/" + request.RequestUri!.Segments[^1]);
+            return base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// An HTTP server on 127.0.0.1 that answers each connection with a script given the request's path, until disposed.
+    /// </summary>
+    private sealed class LoopbackServer : IAsyncDisposable
+    {
+        private readonly TcpListener _listener;
+        private readonly CancellationTokenSource _stopping = new();
+        private readonly Task _serving;
+        private readonly List<string> _paths = [];
+
+        private LoopbackServer(TcpListener listener, Func<string, NetworkStream, CancellationToken, Task> script)
+        {
+            _listener = listener;
+            var token = _stopping.Token;
+            _serving = Task.Run(async () =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    using var client = await listener.AcceptTcpClientAsync(token);
+                    var stream = client.GetStream();
+                    var head = new System.Text.StringBuilder();
+                    var buffer = new byte[1];
+                    while (!head.ToString().EndsWith("\r\n\r\n", StringComparison.Ordinal) && await stream.ReadAsync(buffer, token) > 0)
+                    {
+                        head.Append((char)buffer[0]);
+                    }
+
+                    var path = head.ToString().Split(' ')[1];
+                    lock (_paths)
+                    {
+                        _paths.Add(path);
+                    }
+
+                    await script(path, stream, token);
+                }
+            });
+        }
+
+        public Uri Url => new($"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/");
+
+        public IReadOnlyList<string> Paths
+        {
+            get
+            {
+                lock (_paths)
+                {
+                    return [.. _paths];
+                }
+            }
+        }
+
+        public static LoopbackServer Start(Func<string, NetworkStream, CancellationToken, Task> script)
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            return new LoopbackServer(listener, script);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _stopping.CancelAsync();
+            try
+            {
+                await _serving;
+            }
+            catch (Exception ex) when (ex is OperationCanceledException or IOException or SocketException)
+            {
+                // Stopped while waiting for a connection or mid-script: the test is over either way.
+            }
+
+            _listener.Stop();
+            _listener.Dispose();
+            _stopping.Dispose();
+        }
     }
 
     /// <summary>A temp game folder and working directory on a fake host, filled with the Downgrader's stand-ins.</summary>

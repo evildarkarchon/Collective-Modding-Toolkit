@@ -1,0 +1,75 @@
+{
+  "description": "A Next-Gen game patched to Old-Gen with Keep Backups clicked off (saved, SET-7): Fallout4.exe is restored from a valid _upgradeBackup, which empties the queue in the middle of the loop, so the Overview refresh, the re-detection and the re-enabled button happen before the launcher is looked at (the 'finished' step). The launcher's identical _downgradeBackup replaces it and its patch, already in the working directory, is applied at once without a download and deleted; steam_api64's stale backup and invalid Old-Gen backup are deleted and its patch downloaded, as is the Creation Kit's, with the button enabled throughout; Archive2.exe isn't there; Archive2Interop.dll is restored, then deleting its read-only identical backup fails (Patched, then Failed patching).",
+  "operation": "downgrader-run",
+  "parity": [
+    "DG-4",
+    "DG-5",
+    "DG-6",
+    "NET-3",
+    "THR-2",
+    "SET-7"
+  ],
+  "attributes": [
+    {
+      "path": "Game/Tools/Archive2/Archive2Interop_downgradeBackup.dll",
+      "set": [
+        "readonly"
+      ]
+    }
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

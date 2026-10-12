@@ -1798,3 +1798,173 @@ def archive_patcher(session: Session, golden: GoldenContext) -> dict[str, Any]:
 	steps.append(step("unfiltered"))
 
 	return {"archivePatcher": {"changes": changes, "steps": steps}}
+
+
+# The keys a downgrader-run scenario's Script/downgrader-run.json may set, each optional.
+_DOWNGRADER_SCRIPT_KEYS = {"desiredVersion", "keepBackups", "deletePatches"}
+
+# The loggers a Patch All run writes through: the log pane (logger), cmc.refresh_tab (cm_checker), the settings save
+# (app_settings) and the Overview refresh.
+_DOWNGRADER_RUN_LOGGERS = {"logger", "cm_checker", "app_settings", *_OVERVIEW_LOGGERS}
+
+
+def _downgrader_frame(frame: Any) -> dict[str, Any]:
+	"""A Downgrader Current frame's version labels, in row order: each one's text and colour (DG-3)."""
+	values = sorted(
+		(c for c in _grid_children(frame) if int(c.grid_info()["column"]) == 1),
+		key=lambda c: int(c.grid_info()["row"]),
+	)
+	return {"values": [{"text": str(v.cget("text")), "color": str(v.cget("foreground"))} for v in values]}
+
+
+def machine_snapshot(golden: GoldenContext, root: Path, folders: tuple[str, ...]) -> list[dict[str, Any]]:
+	"""Every file under the root's ``folders`` after a mutating run: path, size, SHA-256 and whether it is read-only,
+	sorted by the case-folded path.
+	"""
+	import hashlib  # noqa: PLC0415
+	import stat  # noqa: PLC0415
+
+	files = [p for folder in folders if (root / folder).is_dir() for p in (root / folder).rglob("*") if p.is_file()]
+	return [
+		{
+			"path": golden.path(p),
+			"size": p.stat().st_size,
+			"sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+			"readonly": bool(p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY),
+		}
+		for p in sorted(files, key=lambda p: str(p).casefold())
+	]
+
+
+@operation("downgrader-run")
+def downgrader_run(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""DG-4, DG-5, DG-6, NET-3, THR-2, SET-7: the real ``Downgrader`` over the real ``CMChecker`` (its Overview loaded
+	in full, as at startup), set up by the scenario's ``Script/downgrader-run.json`` (the Desired Version radio to click,
+	the Keep Backups / Delete Patches values to click the boxes to), then Patch All clicked and the Tk loop pumped until
+	the patch queue is done or stuck.
+
+	``afterClick`` is the window as the click's callback leaves it, before any download completes: the driver holds every
+	download until the callback has returned, as a real download takes longer than the loop (otherwise a fake download
+	could finish first and be applied inside the callback, which a real one never is). ``final`` is the window once the
+	queue has emptied, or once its download thread has died (B-10: the poll then waits forever, so the driver pumps a
+	little longer to show nothing else happens). Each holds the button, the close guard, the progress bar, the versions
+	the window holds, and in ``display`` the version labels, the log pane's lines and the log lines written since the
+	previous one (the Overview refresh's archive checks unordered, T-15).
+
+	``errors`` counts what died: ``callback`` for Tk callbacks (``patch_files``, a poll), ``thread`` for download threads.
+	``files`` is the Game and Cwd folders after the run (sizes, hashes, read-only), and ``settings`` is ``settings.json``
+	byte for byte (SET-7). Every HTTP request is in the golden's ``httpRequests``.
+	"""
+	import json  # noqa: PLC0415
+	import threading  # noqa: PLC0415
+	import time  # noqa: PLC0415
+
+	import downgrader  # noqa: PLC0415
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	machine_root = session.machine.root
+	script_path = machine_root / "Script" / "downgrader-run.json"
+	script: dict[str, Any] = json.loads(script_path.read_text("utf-8")) if script_path.is_file() else {}
+	if set(script) - _DOWNGRADER_SCRIPT_KEYS:
+		msg = f"{script_path}: unknown keys {sorted(set(script) - _DOWNGRADER_SCRIPT_KEYS)}"
+		raise RuntimeError(msg)
+
+	downgrader.ToolTip = _Tooltips()
+	_overview.ToolTip = _Tooltips()
+	# The run's print() progress notes went to the frozen exe's absent console, so they aren't part of the outcome; here
+	# they would land in the golden, which the child writes to stdout.
+	downgrader.print = lambda *_args, **_kwargs: None  # type: ignore[attr-defined]
+
+	released = threading.Event()
+	fake_get = session.http.get  # type: ignore[attr-defined]
+
+	def held_get(url: str, **kwargs: Any) -> Any:
+		if not released.wait(30):
+			msg = "the download was never released"
+			raise RuntimeError(msg)
+		return fake_get(url, **kwargs)
+
+	downgrader.requests = ModuleProxy(session.http, get=held_get)
+
+	thread_errors: list[str] = []
+	callback_errors: list[str] = []
+	threading.excepthook = lambda args: thread_errors.append(args.exc_type.__name__)
+
+	root = session.root
+	assert root is not None
+	root.report_callback_exception = lambda kind, _value, _tb: callback_errors.append(kind.__name__)  # type: ignore[method-assign]
+	checker = CMChecker(root, AppSettings())
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	window = downgrader.Downgrader(root, checker)
+	root.update_idletasks()
+
+	radios = _grid_children(_grid_at(window, 0, 1))
+	checks = {str(c.cget("text")): c for c in _grid_children(_grid_at(window, 2, 1))}
+	if "desiredVersion" in script:
+		(radio,) = [r for r in radios if str(r.cget("text")) == script["desiredVersion"]]
+		radio.invoke()
+	for key, text in (("keepBackups", "Keep Backups"), ("deletePatches", "Delete Patches")):
+		if key in script and bool(window.getvar(str(checks[text].cget("variable")))) != script[key]:
+			checks[text].invoke()
+
+	capture = capture_logs()
+	read_from = 0
+	pane = window.logger._text  # noqa: SLF001 - the log pane's only widget
+
+	def state() -> dict[str, Any]:
+		nonlocal read_from
+		records = capture.records[read_from:]
+		read_from = len(capture.records)
+		return {
+			"patchEnabled": not window.button_patch.instate(["disabled"]),
+			"processingData": window.processing_data,
+			"progress": float(window.progress_var.get()),
+			"versions": [{"file": name, "installType": str(t)} for name, t in window.current_versions.items()],
+			"display": {
+				"game": _downgrader_frame(window.frame_game),
+				"creationKit": _downgrader_frame(window.frame_ck),
+				# An empty pane has no lines (_log_pane_lines would read its empty text as one empty line).
+				"log": _log_pane_lines(pane) if pane.get("1.0", "end-1c") else [],
+				"logLines": unordered_runs(golden, log_lines_of(golden, records, _DOWNGRADER_RUN_LOGGERS), _is_archive_check),
+			},
+		}
+
+	window.button_patch.invoke()
+	after_click = state()
+	released.set()
+
+	deadline = time.monotonic() + 30
+	while window.download_or_patch_in_progress:
+		thread = window.download_thread
+		if thread is not None and not thread.is_alive():
+			# B-10: the thread died; the poll would wait for it forever. Pump a little longer to show nothing changes.
+			for _ in range(30):
+				root.update()
+				time.sleep(0.01)
+			break
+		if time.monotonic() > deadline:
+			msg = "the patch queue neither finished nor got stuck"
+			raise RuntimeError(msg)
+		root.update()
+		time.sleep(0.01)
+	root.update()
+
+	return {
+		"downgraderRun": {
+			"script": script,
+			"afterClick": after_click,
+			"final": state(),
+			"errors": {"callback": len(callback_errors), "thread": len(thread_errors)},
+			"files": machine_snapshot(golden, machine_root, ("Game", "Cwd")),
+			"settings": file_snapshot(machine_root / "Cwd" / "settings.json"),
+		},
+	}

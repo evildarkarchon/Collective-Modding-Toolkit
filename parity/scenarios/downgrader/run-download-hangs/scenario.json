@@ -1,0 +1,65 @@
+{
+  "description": "Bug #15 (B-10), reproduced: Fallout4.exe's patch response has no Content-Length, so the download thread dies on its first chunk (division by zero) after saving it. The poll waits forever: the progress bar stays at 0, the button stays disabled, the window can't be closed, and the launcher's queued patch is never fetched.",
+  "operation": "downgrader-run",
+  "parity": [
+    "DG-6",
+    "NET-3",
+    "THR-2",
+    "B-10"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

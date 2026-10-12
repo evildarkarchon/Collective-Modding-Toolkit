@@ -1,0 +1,65 @@
+{
+  "description": "Bug #14 (B-9) and bug #15's unvalidated cache (B-10), reproduced: an Old-Gen game patched to Next-Gen with Keep Backups and Delete Patches clicked off. Fallout4.exe's patch request gets a 404 page, saved as the patch; the launcher's patch is a truncated copy already in the working directory, reused unchecked. Both decodes fail (the launcher's leaving its first 16 KiB window as the file), and both backups are deleted anyway: Fallout4.exe is gone, the launcher is a fragment.",
+  "operation": "downgrader-run",
+  "parity": [
+    "DG-6",
+    "NET-3",
+    "B-9",
+    "B-10"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}
