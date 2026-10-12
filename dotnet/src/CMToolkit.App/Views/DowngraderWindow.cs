@@ -219,9 +219,9 @@ public sealed class DowngraderWindow : ModalWindow
     }
 
     /// <summary>
-    /// Patch All (<c>patch_files</c>, DG-4): disables the button, clears the log pane and saves Keep Backups and Delete
-    /// Patches if either differs from the settings (SET-7), then runs the click as a blocking operation for the Desired
-    /// Version the radios show now.
+    /// Patch All (<c>patch_files</c>, DG-4): disables the button, clears the log pane, then runs the click as a blocking
+    /// operation for the Desired Version the radios show now, which first saves Keep Backups and Delete Patches if either
+    /// differs from the settings (SET-7).
     /// </summary>
     /// <returns>
     /// A task that completes when the click is done; a download it started goes on in the poll. If the click fails, the
@@ -237,10 +237,9 @@ public sealed class DowngraderWindow : ModalWindow
         var current = _settings.Current;
         var keepBackups = _keepBackups!.IsChecked == true;
         var deletePatches = _deletePatches!.IsChecked == true;
-        if (current.DowngraderKeepBackups != keepBackups || current.DowngraderDeleteDeltas != deletePatches)
-        {
-            _settings.Save(current with { DowngraderKeepBackups = keepBackups, DowngraderDeleteDeltas = deletePatches });
-        }
+        var changed = current.DowngraderKeepBackups != keepBackups || current.DowngraderDeleteDeltas != deletePatches
+            ? current with { DowngraderKeepBackups = keepBackups, DowngraderDeleteDeltas = deletePatches }
+            : null;
 
         var desired = _oldGen!.IsChecked == true ? InstallType.OldGen : InstallType.NextGen;
         Interlocked.Increment(ref _operations);
@@ -249,6 +248,13 @@ public sealed class DowngraderWindow : ModalWindow
             await Runtime.Operations.RunPhasedAsync(
                 "Downgrader Patch All", OperationPhase.Blocking, async _ =>
                 {
+                    // The settings file is written inside the blocking operation, off the UI thread (ADR-0003), and
+                    // before the loop, as patch_files saved it first. The boxes were read above, at the click.
+                    if (changed is not null)
+                    {
+                        _settings.Save(changed);
+                    }
+
                     await run.PatchAllAsync(desired, new WindowHost(this), _events).ConfigureAwait(false);
                     return true;
                 });
