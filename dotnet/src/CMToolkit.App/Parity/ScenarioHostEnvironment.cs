@@ -211,6 +211,10 @@ public sealed class ScenarioHostEnvironment : IHostEnvironment
             ? Expand(path.GetString()!)
             : throw new InvalidOperationException($"The scenario's host block has no knownFolders.{folder}.");
 
+    /// <inheritdoc/>
+    /// <remarks>The host block's <c>argv0</c>, else the exe's own, as the driver leaves <c>sys.argv</c> alone without one.</remarks>
+    public string Argv0 => String("argv0") ?? SystemHostEnvironment.Instance.Argv0;
+
     /// <summary>A top-level string member of the host block, or null.</summary>
     private string? String(string name) => _host.TryGetProperty(name, out var value) ? value.GetString() : null;
 

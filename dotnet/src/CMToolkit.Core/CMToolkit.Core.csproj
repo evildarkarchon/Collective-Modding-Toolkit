@@ -13,5 +13,7 @@
   <ItemGroup>
     <!-- Core logs through ILogger only; the App supplies the cm-toolkit.log provider (the Core seams resolution, #7). -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <!-- CRC32 of game files (utils.get_crc32): Microsoft's vectorised implementation, trim- and AOT-safe. -->
+    <PackageReference Include="System.IO.Hashing" Version="10.0.9" />
   </ItemGroup>
 </Project>

@@ -107,6 +107,9 @@ public sealed class StartupOrderTests
             Record("game inis");
             return inner.GetKnownFolderPath(folder);
         }
+
+        // Not a startup step: only the Overview's No Mod Manager problem reads it, once the window is shown.
+        public string Argv0 => inner.Argv0;
     }
 
     [AvaloniaFact]

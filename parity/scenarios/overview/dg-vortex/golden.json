@@ -1,0 +1,508 @@
+{
+  "overview": {
+    "addressLibrary": "<ROOT>\\Game\\Data\\F4SE\\Plugins\\version-1-10-163-0.bin",
+    "binaries": [
+      {
+        "file": "<ROOT>\\Game\\Fallout4.exe",
+        "hash": "25D746A7",
+        "installType": "Old-Gen",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          10,
+          163,
+          0
+        ],
+        "versionString": "1.10.163.0"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "<ROOT>\\Game\\steam_api64.dll",
+        "hash": "D6E5195A",
+        "installType": "Old-Gen",
+        "name": "steam_api64.dll",
+        "version": [
+          2,
+          89,
+          45,
+          4
+        ],
+        "versionString": "2.89.45.4"
+      },
+      {
+        "file": "<ROOT>\\Game\\f4se_loader.exe",
+        "hash": "9917E92F",
+        "installType": "Old-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": "<ROOT>\\Game\\f4se_steam_loader.dll",
+        "hash": "58F43A44",
+        "installType": "Old-Gen",
+        "name": "f4se_steam_loader.dll",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": "<ROOT>\\Game\\CreationKit.exe",
+        "hash": "A31D5747",
+        "installType": "Next-Gen",
+        "name": "CreationKit.exe",
+        "version": [
+          1,
+          10,
+          982,
+          3
+        ],
+        "versionString": "1.10.982.3"
+      },
+      {
+        "file": "<ROOT>\\Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "4CDFC7B5",
+        "installType": "Old-Gen",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": "4CDFC7B5"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#619267",
+          "label": "Address Library:",
+          "text": "Installed",
+          "tooltip": null
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.10.163.0",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "2.89.45.4",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "1.10.982.3",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "<ROOT>\\Game"
+          },
+          "text": "<ROOT>\\Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Vortex v1.13.7 [Profile: Unknown]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/warning-16.png",
+          "opens": null,
+          "tooltip": "Note: Vortex is not yet fully supported.\nOverview should be accurate but Scanner will only look in Data and not your staging folders, so it cannot yet identify the source mod for each issue."
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Down-Grade"
+        }
+      }
+    },
+    "installType": "Down-Grade",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "CreationKit.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\CreationKit.exe",
+        "relativePath": "CreationKit.exe",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      }
+    ]
+  },
+  "refresh": {
+    "addressLibrary": "<ROOT>\\Game\\Data\\F4SE\\Plugins\\version-1-10-163-0.bin",
+    "binaries": [
+      {
+        "file": "<ROOT>\\Game\\Fallout4.exe",
+        "hash": "25D746A7",
+        "installType": "Old-Gen",
+        "name": "Fallout4.exe",
+        "version": [
+          1,
+          10,
+          163,
+          0
+        ],
+        "versionString": "1.10.163.0"
+      },
+      {
+        "file": null,
+        "hash": null,
+        "installType": "Not Found",
+        "name": "Fallout4Launcher.exe",
+        "version": null,
+        "versionString": null
+      },
+      {
+        "file": "<ROOT>\\Game\\steam_api64.dll",
+        "hash": "D6E5195A",
+        "installType": "Old-Gen",
+        "name": "steam_api64.dll",
+        "version": [
+          2,
+          89,
+          45,
+          4
+        ],
+        "versionString": "2.89.45.4"
+      },
+      {
+        "file": "<ROOT>\\Game\\f4se_loader.exe",
+        "hash": "9917E92F",
+        "installType": "Old-Gen",
+        "name": "f4se_loader.exe",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": "<ROOT>\\Game\\f4se_steam_loader.dll",
+        "hash": "58F43A44",
+        "installType": "Old-Gen",
+        "name": "f4se_steam_loader.dll",
+        "version": [
+          0,
+          0,
+          6,
+          23
+        ],
+        "versionString": "0.0.6.23"
+      },
+      {
+        "file": "<ROOT>\\Game\\CreationKit.exe",
+        "hash": "A31D5747",
+        "installType": "Next-Gen",
+        "name": "CreationKit.exe",
+        "version": [
+          1,
+          10,
+          982,
+          3
+        ],
+        "versionString": "1.10.982.3"
+      },
+      {
+        "file": "<ROOT>\\Game\\Tools\\Archive2\\Archive2.exe",
+        "hash": "4CDFC7B5",
+        "installType": "Old-Gen",
+        "name": "Archive2.exe",
+        "version": null,
+        "versionString": "4CDFC7B5"
+      }
+    ],
+    "display": {
+      "binaries": {
+        "addressLibrary": {
+          "color": "#619267",
+          "label": "Address Library:",
+          "text": "Installed",
+          "tooltip": null
+        },
+        "button": {
+          "opens": {
+            "window": "Downgrader"
+          },
+          "text": "Downgrade Manager..."
+        },
+        "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
+        "rows": [
+          {
+            "color": "#619267",
+            "hover": "1.10.163.0",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "Not Found",
+            "left": "Not Found",
+            "text": "Not Found"
+          },
+          {
+            "color": "#619267",
+            "hover": "2.89.45.4",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "0.0.6.23",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          },
+          {
+            "color": "#AF5A66",
+            "hover": "1.10.982.3",
+            "left": "Next-Gen",
+            "text": "Next-Gen"
+          },
+          {
+            "color": "#619267",
+            "hover": "Not Found",
+            "left": "Old-Gen",
+            "text": "Old-Gen"
+          }
+        ],
+        "title": "Binaries (EXE/DLL/BIN)"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        }
+      ],
+      "top": {
+        "gamePath": {
+          "color": "bisque",
+          "opens": {
+            "folder": "<ROOT>\\Game"
+          },
+          "text": "<ROOT>\\Game",
+          "tooltip": "Click to open folder"
+        },
+        "labels": "Mod Manager:\nGame Path:\nVersion:\nPC Specs:\n",
+        "modManager": {
+          "color": "bisque",
+          "text": "Vortex v1.13.7 [Profile: Unknown]",
+          "tooltip": null
+        },
+        "modManagerIcon": {
+          "image": "images/warning-16.png",
+          "opens": null,
+          "tooltip": "Note: Vortex is not yet fully supported.\nOverview should be accurate but Scanner will only look in Data and not your staging folders, so it cannot yet identify the source mod for each issue."
+        },
+        "osWarning": null,
+        "refresh": {
+          "image": "images/refresh-32.png",
+          "tooltip": "Refresh"
+        },
+        "specs": [
+          {
+            "color": "bisque",
+            "text": "Windows 11 24H2\n32GB RAM"
+          },
+          {
+            "color": "bisque",
+            "text": "AMD Ryzen 7 7800X3D\nNVIDIA GeForce RTX 4070 12GB"
+          }
+        ],
+        "version": {
+          "color": "#619267",
+          "text": "Down-Grade"
+        }
+      }
+    },
+    "installType": "Down-Grade",
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "CreationKit.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\CreationKit.exe",
+        "relativePath": "CreationKit.exe",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      }
+    ]
+  }
+}

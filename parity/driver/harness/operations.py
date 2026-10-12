@@ -553,3 +553,199 @@ def game_info_operation(session: Session, golden: GoldenContext) -> dict[str, An
 			"ba2Suffixes": list(game.ba2_suffixes),
 		},
 	}
+
+
+# The loggers whose lines an Overview load or refresh writes: the tab lifecycle (helpers), the gathering
+# (tabs._overview) and its resets (game_info).
+_OVERVIEW_LOGGERS = {"helpers", "tabs._overview", "game_info"}
+
+
+def _label_text(widget: Any) -> str:
+	"""A label's shown text: its ``textvariable``'s value when it has one (which overrides ``text``), else ``text``."""
+	variable = str(widget.cget("textvariable"))
+	return str(widget.getvar(variable)) if variable else str(widget.cget("text"))
+
+
+def _grid_at(master: Any, row: int, column: int) -> Any:
+	"""The gridded child of ``master`` whose cell starts at (``row``, ``column``), or ``None``."""
+	for child in _grid_children(master):
+		info = child.grid_info()
+		if int(info["row"]) == row and int(info["column"]) == column:
+			return child
+	return None
+
+
+def _overview_problem(golden: GoldenContext, problem: Any) -> dict[str, Any]:
+	"""One ``cmc.overview_problems`` entry as the Scanner reads it (SCN-R2..R5): its group (``type``), the tree item
+	text (``path.name`` for a ``ProblemInfo``, the plain ``path`` string for a ``SimpleProblemInfo``), the openable path
+	(``None`` for a plain string, which the details pane can't open), and the details texts.
+	"""
+	from helpers import ProblemInfo  # noqa: PLC0415
+
+	if isinstance(problem, ProblemInfo):
+		item_text, path = problem.path.name, _path_text(golden, problem.path)
+	else:
+		item_text, path = problem.path, None
+	return {
+		"type": str(problem.type),
+		"itemText": item_text,
+		"path": path,
+		"relativePath": golden.text(str(problem.relative_path)),
+		"mod": problem.mod,
+		"summary": golden.text(problem.summary),
+		"solution": None if problem.solution is None else str(problem.solution),
+		"extraData": problem.extra_data,
+	}
+
+
+@operation("overview-tab")
+def overview_tab(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""OVW-1..OVW-8, OVW-B1..B8, OVW-P1..P6, PC-6, MM-2, T-4, T-9, B-8, B-13: the real ``CMChecker`` (so PC info, the
+	``StringVar``s and ``GameInfo`` are built as at startup) with its Overview tab loaded, read back off the widgets,
+	then refreshed through its button and read again.
+
+	The Modules and Archives frames are the next Overview slice's (#52): their gathering is skipped, so they build
+	from empty state and add nothing, and they aren't read. ``overview`` holds the gathered binaries, Install Type,
+	Address Library and the problems in list order; its ``display`` is the top block and the Binaries frame as shown,
+	including what clicking the MO2 info icon, the game path and the Downgrade Manager button does, each value's hover
+	text and the text restored on leave, and the log lines written. ``refresh`` is the same after the refresh button.
+	"""
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	from harness.fakes import ModuleProxy  # noqa: PLC0415
+
+	tooltips = _Tooltips()
+	opened: list[dict[str, Any]] = []
+	_overview.ToolTip = tooltips
+	_overview.os = ModuleProxy(_overview.os, startfile=lambda path, *_a, **_k: opened.append({"folder": _path_text(golden, path)}))
+	_overview.AboutWindow = lambda _root, _cmc, width, height, title, text: opened.append({
+		"window": "AboutWindow",
+		"width": width,
+		"height": height,
+		"title": title,
+		"text": golden.text(text),
+	})
+	_overview.Downgrader = lambda *_a, **_k: opened.append({"window": "Downgrader"})
+	_overview.OverviewTab.get_info_modules = lambda _self, *, refresh=False: None  # type: ignore[method-assign]  # noqa: ARG005
+	_overview.OverviewTab.get_info_archives = lambda _self: None  # type: ignore[method-assign]
+
+	root = session.root
+	assert root is not None
+	checker = CMChecker(root, AppSettings())
+	tab = checker.tabs[Tab.Overview]
+	capture = capture_logs()
+	# Processing events delivers <<NotebookTabChanged>> for the first tab, which loads it as at startup.
+	root.update()
+	if not tab.is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	def click(widget: Any) -> dict[str, Any] | None:
+		before = len(opened)
+		widget.event_generate("<Button-1>")
+		return opened[before] if len(opened) > before else None
+
+	def read(first_record: int) -> dict[str, Any]:
+		frame_top = tab.pack_slaves()[0]
+		manager_icon = _grid_at(frame_top, 0, 1)
+		manager_label = _grid_at(frame_top, 0, 2)
+		path_label = _grid_at(frame_top, 1, 2)
+		version_label = _grid_at(frame_top, 2, 2)
+		os_icon = _grid_at(frame_top, 3, 1)
+		specs = _grid_children(_grid_at(frame_top, 3, 2))
+		refresh_button = _grid_at(frame_top, 0, 3)
+		top = {
+			"labels": _label_text(_grid_at(frame_top, 0, 0)),
+			"modManager": {
+				"text": _label_text(manager_label),
+				"color": str(manager_label.cget("foreground")),
+				"tooltip": tooltips.of(manager_label),
+			},
+			"modManagerIcon": None if manager_icon is None else {
+				"image": _image_path(checker, manager_icon),
+				"tooltip": tooltips.of(manager_icon),
+				"opens": click(manager_icon),
+			},
+			"gamePath": {
+				"text": golden.text(_label_text(path_label)),
+				"color": str(path_label.cget("foreground")),
+				"tooltip": tooltips.of(path_label),
+				"opens": click(path_label),
+			},
+			"version": {"text": _label_text(version_label), "color": str(version_label.cget("foreground"))},
+			"specs": [{"text": _label_text(s), "color": str(s.cget("foreground"))} for s in specs],
+			"osWarning": None if os_icon is None else {"image": _image_path(checker, os_icon), "tooltip": tooltips.of(os_icon)},
+			"refresh": {"image": _image_path(checker, refresh_button), "tooltip": tooltips.of(refresh_button)},
+		}
+
+		frame = tab.frame_info_binaries
+		names = _grid_at(frame, 0, 0)
+		rows = len(checker.game.file_info)
+		values = []
+		for row in range(rows):
+			label = _grid_at(frame, row, 1)
+			text = str(label.cget("text"))
+			label.event_generate("<Enter>")
+			hover = str(label.cget("text"))
+			label.event_generate("<Leave>")
+			values.append({"text": text, "color": str(label.cget("foreground")), "hover": hover, "left": str(label.cget("text"))})
+		address_label = _grid_at(frame, rows, 1)
+		button = _grid_at(frame, rows + 1, 0)
+		before = len(opened)
+		button.invoke()
+		binaries = {
+			"title": str(frame.cget("text")),
+			"names": str(names.cget("text")),
+			"rows": values,
+			"addressLibrary": {
+				"label": str(_grid_at(frame, rows, 0).cget("text")),
+				"text": str(address_label.cget("text")),
+				"color": str(address_label.cget("foreground")),
+				"tooltip": tooltips.of(address_label),
+			},
+			"button": {"text": str(button.cget("text")), "opens": opened[before] if len(opened) > before else None},
+		}
+
+		game = checker.game
+		return {
+			"installType": str(game.install_type),
+			"binaries": [
+				{
+					"name": name,
+					"file": _path_text(golden, info["File"]),
+					"version": None if info["Version"] is None else list(info["Version"]),
+					"versionString": info["VersionString"],
+					"hash": info["Hash"],
+					"installType": str(info["InstallType"]),
+				}
+				for name, info in game.file_info.items()
+			],
+			"addressLibrary": _path_text(golden, game.address_library),
+			"problems": [_overview_problem(golden, p) for p in checker.overview_problems],
+			"display": {
+				"top": top,
+				"binaries": binaries,
+				"log": log_lines_of(golden, capture.records[first_record:], _OVERVIEW_LOGGERS),
+			},
+		}
+
+	loaded = read(0)
+	before_refresh = len(capture.records)
+	_grid_at(tab.pack_slaves()[0], 0, 3).invoke()
+	return {"overview": loaded, "refresh": read(before_refresh)}
+
+
+def log_lines_of(golden: GoldenContext, records: list[logging.LogRecord], logger_names: set[str]) -> list[dict[str, Any]]:
+	"""``log_lines`` for several loggers at once, interleaved in the order they were written, with the temp root in
+	each message as ``<ROOT>``.
+	"""
+	lines = []
+	for record in records:
+		if record.name in logger_names:
+			for line in log_lines([record], record.name):
+				line["message"] = golden.text(line["message"])
+				lines.append(line)
+	return lines

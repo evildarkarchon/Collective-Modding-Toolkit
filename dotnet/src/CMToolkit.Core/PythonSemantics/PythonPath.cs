@@ -34,6 +34,18 @@ public sealed class PythonPath
         }
     }
 
+    /// <summary>
+    /// <c>self.name</c>: the last segment, or an empty string when there is none (a bare drive or root, or <c>.</c>).
+    /// </summary>
+    public string Name
+    {
+        get
+        {
+            var (_, _, tail) = Parse(Raw);
+            return tail.Count == 0 ? string.Empty : tail[^1];
+        }
+    }
+
     /// <summary><c>str(path)</c>: the normalised form, or <c>.</c> for an empty path.</summary>
     public override string ToString()
     {
