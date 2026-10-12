@@ -33,4 +33,29 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     /// such as the Downgrader. Set once it is built, after the tabs are composed; null before.
     /// </summary>
     public Views.MainWindow? MainWindow { get; set; }
+
+    /// <summary>
+    /// The Overview tab's refresh (<see cref="Tabs.OverviewTab.RefreshAsync"/>), which <see cref="Tabs.MainTabs"/> sets
+    /// when it composes the tabs; null without an Overview tab. Callers use <see cref="RefreshOverviewAsync"/>.
+    /// </summary>
+    public Func<Task<bool>>? OverviewRefresh { get; set; }
+
+    /// <summary>
+    /// <c>cmc.refresh_tab(Tab.Overview)</c>, which the Archive Patcher and the Downgrader call: logs
+    /// <c>Refresh Tab : Overview</c> at DEBUG, then refreshes the Overview tab as its button does (OVW-8).
+    /// </summary>
+    /// <remarks>
+    /// The Scanner (#56) reaches the same refresh through <see cref="ViewModels.OverviewState.RefreshAsync"/>, which
+    /// the Overview tab registers itself, and logs the DEBUG line there; both paths end in
+    /// <see cref="Tabs.OverviewTab.RefreshAsync"/>.
+    /// </remarks>
+    /// <returns>
+    /// False when the refresh failed (already reported), which in the reference raised out of the caller and skipped the
+    /// rest of it; true otherwise, including when there is no Overview tab to refresh.
+    /// </returns>
+    public async Task<bool> RefreshOverviewAsync()
+    {
+        Runtime.Logger.Write(Microsoft.Extensions.Logging.LogLevel.Debug, "Refresh Tab : Overview");
+        return OverviewRefresh is null || await OverviewRefresh();
+    }
 }

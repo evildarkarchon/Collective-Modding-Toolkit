@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CMToolkit.Core;
@@ -9,27 +11,18 @@ using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.App.Views;
 
-/// <summary>What a <see cref="LogPane"/> message is, which picks its emoji and the emoji's colour (<c>enums.LogType</c>).</summary>
-public enum LogType
-{
-    /// <summary><c>💭</c> in dodger blue; logged at INFO.</summary>
-    Info,
-
-    /// <summary><c>✅</c> in the good colour; logged at INFO.</summary>
-    Good,
-
-    /// <summary><c>❌</c> in the bad colour; logged at ERROR.</summary>
-    Bad,
-}
-
 /// <summary>
 /// <c>logger.Logger</c>, the Downgrader's and Archive Patcher's log pane (§9.5): a read-only, word-wrapped text 8 lines
 /// high at the small size, with a vertical scrollbar. Each message is one line, its emoji coloured by type and its text
 /// in the default colour, and the pane scrolls to the end after each.
 /// </summary>
 /// <remarks>
-/// The reference's key blocking (every key but Ctrl+A/Ctrl+C, and T-13's exact modifier match) belongs to the Archive
-/// Patcher slice, which owns the pane's proof; here the text is simply not editable, but stays selectable and copyable.
+/// Read-only as the reference's Text was: every key pressed in it goes through <c>block_text_input</c>
+/// (<see cref="TkKeys.BlockTextInputLetsThrough"/>), which means to let Ctrl+A and Ctrl+C through but, by T-13's exact
+/// modifier match, never does on Windows (bug #88), so no key reaches the text. The mouse still selects, and a click
+/// gives the text keyboard focus, as Tk's Text class binding does; while it has focus the window's Escape does nothing
+/// (<see cref="HasKeyboardFocus"/>), because the binding's <c>break</c> also stopped the toplevel's. There is no context
+/// menu, as a Tk Text has none, so nothing in the pane can be copied.
 /// </remarks>
 public sealed class LogPane : UserControl
 {
@@ -41,8 +34,8 @@ public sealed class LogPane : UserControl
 
     private static readonly IReadOnlyDictionary<LogType, string> Emoji = new Dictionary<LogType, string>
     {
-        [LogType.Bad] = "❌ ",
-        [LogType.Good] = "✅ ",
+        [LogType.Bad] = "\u274C ",
+        [LogType.Good] = "\u2705 ",
         [LogType.Info] = "\U0001F4AD ",
     };
 
@@ -76,6 +69,20 @@ public sealed class LogPane : UserControl
         _text.Classes.Add("small");
         // A classic Tk Text, not a ttk widget: tk_setPalette gives it sv_ttk's foreground, not the ttk labels' grey.
         _text.Bind(SelectableTextBlock.ForegroundProperty, _text.GetResourceObservable("SvFg"));
+        // A Tk Text takes keyboard focus when clicked (text.tcl's TextButton1 ends with `focus $w`), which matters
+        // because a focused pane swallows the window's Escape. handledEventsToo: the text's own selection handling
+        // marks the press handled.
+        _text.Focusable = true;
+        // Hit-testable below the last line too, as the whole of a Tk Text takes the click.
+        _text.Background = Brushes.Transparent;
+        _text.AddHandler(PointerPressedEvent, (_, _) => _text.Focus(), RoutingStrategies.Bubble, handledEventsToo: true);
+        // A Tk Text has no context menu, so there is no Copy item to fall back on either.
+        _text.ContextFlyout = null;
+        _text.ContextMenu = null;
+
+        // <Key> → block_text_input, ahead of the text's own key handling (Tk's widget binding runs before the Text
+        // class binding, and its "break" skips it).
+        AddHandler(KeyDownEvent, BlockTextInput, RoutingStrategies.Tunnel, handledEventsToo: true);
 
         // The text scrolls on its own; the bar beside it is a separate control, as the ttk.Scrollbar is a separate
         // widget gridded in the next column (sticky=NS) whether or not there is anything to scroll.
@@ -126,6 +133,23 @@ public sealed class LogPane : UserControl
     /// <summary>The pane's text, one run per coloured emoji and per message text, in order.</summary>
     public IReadOnlyList<Run> Runs => [.. _text.Inlines!.OfType<Run>()];
 
+    /// <summary>The selected text, empty when nothing is selected.</summary>
+    public string SelectedText => _text.SelectedText;
+
+    /// <summary>
+    /// Whether the pane has keyboard focus: then Escape doesn't close its window, as the pane's <c>&lt;Key&gt;</c>
+    /// binding broke off the toplevel's <c>&lt;Escape&gt;</c> binding (bug #88).
+    /// </summary>
+    public bool HasKeyboardFocus => IsKeyboardFocusWithin;
+
+    /// <summary>
+    /// Reads the lock keys a key press is described with (T-13): the thread's keyboard state by default. A test seam.
+    /// </summary>
+    public Func<LockKeys> ReadLockKeys { get; init; } = LockKeys.Read;
+
+    /// <summary>Shows a Core operation's log line (<see cref="LogMessage"/> with its <c>skip_logging</c>).</summary>
+    public void Log(LogLine line) => LogMessage(line.Type, line.Text, skipLogging: !line.WriteToLogFile);
+
     /// <summary>
     /// Appends <c>{emoji}{message}\n</c>, colouring only the emoji, and scrolls to the end (<c>log_message</c>).
     /// </summary>
@@ -151,4 +175,16 @@ public sealed class LogPane : UserControl
 
     /// <summary>Empties the pane (<c>clear</c>).</summary>
     public void Clear() => _text.Inlines!.Clear();
+
+    /// <summary>
+    /// <c>utils.block_text_input</c> on every key pressed in the pane: the key is swallowed unless the reference's
+    /// exact-mask test lets it through, which on Windows it never does (T-13, bug #88).
+    /// </summary>
+    private void BlockTextInput(object? sender, KeyEventArgs e)
+    {
+        if (!TkKeys.BlockTextInputLetsThrough(TkKeys.Of(e.Key, e.KeyModifiers, ReadLockKeys())))
+        {
+            e.Handled = true;
+        }
+    }
 }

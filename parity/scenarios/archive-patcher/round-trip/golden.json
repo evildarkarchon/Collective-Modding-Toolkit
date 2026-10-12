@@ -1,0 +1,797 @@
+{
+  "archivePatcher": {
+    "changes": [
+      "<ROOT>/Game/Data/Changed - Main.ba2",
+      "<ROOT>/Game/Data/Corrupt - Main.ba2",
+      "<ROOT>/Game/Data/Flipped - Main.ba2",
+      "<ROOT>/Game/Data/Gone - Main.ba2",
+      "<ROOT>/Game/Data/Short - Main.ba2"
+    ],
+    "steps": [
+      {
+        "desiredVersion": 1,
+        "display": {
+          "about": {
+            "opens": {
+              "height": 435,
+              "text": "There are 2 formats and 3 versions for Fallout 4 BA2 files:\n\u2022 General (GNRL)\n\u2022 Textures (DX10)\n\n\u2022 v1: Required by FO4 v1.10.163 and earlier. Works in all versions.\n\u2022 v7/8: Only supported in FO4 v1.10.980 and later.\n\nIt's suspected there are format differences between versions for XBox/PS, but for PC the only difference is the number itself.\nv7/8 are identical so this tool only patches to v1 & v8.\n\nWhy Patch Versions?\n\nPatching is only needed if you use tools that require it.\nMost tools check the version to ensure compatibility but v7/8 didn't exist when these tools were made, so they assume it's a different format and show errors.\nBecause they're actually identical, you can just patch the version number in the file header so the tools will allow reading them.",
+              "title": "Bethesda Archive (BA2) Formats & Versions",
+              "width": 500,
+              "window": "AboutWindow"
+            },
+            "text": "About"
+          },
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v7 & v8\n(Includes Base Game/DLC/CC)"
+          },
+          "desiredVersion": {
+            "radios": [
+              {
+                "selected": true,
+                "text": "v1 (OG)"
+              },
+              {
+                "selected": false,
+                "text": "v8 (NG)"
+              }
+            ],
+            "title": "Desired Version"
+          },
+          "filterEntry": "",
+          "height": 600,
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 11 files to be patched."
+            }
+          ],
+          "logLines": [],
+          "nameLabel": {
+            "color": "#CACACA",
+            "text": "Name Filter:"
+          },
+          "patch": {
+            "text": "Patch All"
+          },
+          "processingData": false,
+          "title": "Archive Patcher",
+          "tree": [
+            "Alias - Main.ba2",
+            "BOSS - Textures.ba2",
+            "Changed - Main.ba2",
+            "Corrupt - Main.ba2",
+            "Flipped - Main.ba2",
+            "Gone - Main.ba2",
+            "Plain - Main.ba2",
+            "ReadOnly - Main.ba2",
+            "Short - Main.ba2",
+            "Stra\u00dfe - Main.ba2",
+            "Alias - Main.ba2"
+          ],
+          "width": 700
+        },
+        "files": {
+          "$unordered": [
+            "<ROOT>/Game/Data/Alias - Main.ba2",
+            "<ROOT>/Game/Data/BOSS - Textures.ba2",
+            "<ROOT>/Game/Data/Changed - Main.ba2",
+            "<ROOT>/Game/Data/Corrupt - Main.ba2",
+            "<ROOT>/Game/Data/Flipped - Main.ba2",
+            "<ROOT>/Game/Data/Gone - Main.ba2",
+            "<ROOT>/Game/Data/Plain - Main.ba2",
+            "<ROOT>/Game/Data/ReadOnly - Main.ba2",
+            "<ROOT>/Game/Data/Short - Main.ba2",
+            "<ROOT>/Game/Data/Stra\u00dfe - Main.ba2",
+            "<ROOT>/Game/Data/Sub/../Alias - Main.ba2"
+          ]
+        },
+        "nameFilter": null,
+        "step": "opened"
+      },
+      {
+        "data": [
+          {
+            "path": "<ROOT>/Game/Data/Alias - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/BOSS - Textures.ba2",
+            "sha256": "b6158fbdabf2a4ceaa4d3a4d481fd9fad7e3589f939ee18ca4cc825cb7aeda31",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Changed - Main.ba2",
+            "sha256": "13745bd786e1996412660fd875850b4c40740fd227524b16a9aabc2bfb9da415",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Corrupt - Main.ba2",
+            "sha256": "75d886b1885277b3e8b1946ecc226c6b1706aeb53c3556781b762dbd6aa3a0ac",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+            "sha256": "fc0d339949993f321c3765fe9ac0b31b8fc3ec6ceaffd3503a00d8727e7a4e60",
+            "size": 78
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4 - Textures1.ba2",
+            "sha256": "b6158fbdabf2a4ceaa4d3a4d481fd9fad7e3589f939ee18ca4cc825cb7aeda31",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4.esm",
+            "sha256": "bfcce6d454da16295521d53b2c610c1ce08d8ce1ae4b6448331168174a589dfa",
+            "size": 42
+          },
+          {
+            "path": "<ROOT>/Game/Data/Flipped - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Plain - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/ReadOnly - Main.ba2",
+            "sha256": "3bbed8b4f5d3d53ec331a5dfcb864df7656086bb0698227d042efeb8df03d35b",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Short - Main.ba2",
+            "sha256": "53b2ea855021c6e31d1b29ca32efcc42dbf5c634e35bce47f13217979f9df615",
+            "size": 4
+          },
+          {
+            "path": "<ROOT>/Game/Data/Stra\u00dfe - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          }
+        ],
+        "desiredVersion": 1,
+        "display": {
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v7 & v8\n(Includes Base Game/DLC/CC)"
+          },
+          "filterEntry": "",
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 11 files to be patched."
+            },
+            {
+              "$unordered": [
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v1: Alias - Main.ba2"
+                },
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v1: BOSS - Textures.ba2"
+                },
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v1: Plain - Main.ba2"
+                },
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v1: Stra\u00dfe - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Failed patching (File Not Found): Gone - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Failed patching (Permissions/In-Use): ReadOnly - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Skipping already-patched archive: Alias - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Skipping already-patched archive: Flipped - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Unrecognized format: Corrupt - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Unrecognized version [02]: Changed - Main.ba2"
+                },
+                {
+                  "color": "#AF5A66",
+                  "emoji": "\u274c ",
+                  "text": "Unrecognized version []: Short - Main.ba2"
+                }
+              ]
+            },
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Patching complete. 4 Successful, 7 Failed."
+            },
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 1 files to be patched."
+            }
+          ],
+          "logLines": [
+            {
+              "level": "INFO",
+              "message": "Patcher Running: ArchivePatcher"
+            },
+            {
+              "level": "INFO",
+              "message": "Files: 11 | Version: 1 | Filter: None"
+            },
+            {
+              "$unordered": [
+                {
+                  "level": "ERROR",
+                  "message": "Failed patching (File Not Found): Gone - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Failed patching (Permissions/In-Use): ReadOnly - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Skipping already-patched archive: Alias - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Skipping already-patched archive: Flipped - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Unrecognized format: Corrupt - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Unrecognized version [02]: Changed - Main.ba2"
+                },
+                {
+                  "level": "ERROR",
+                  "message": "Unrecognized version []: Short - Main.ba2"
+                },
+                {
+                  "level": "INFO",
+                  "message": "Patched to v1: Alias - Main.ba2"
+                },
+                {
+                  "level": "INFO",
+                  "message": "Patched to v1: BOSS - Textures.ba2"
+                },
+                {
+                  "level": "INFO",
+                  "message": "Patched to v1: Plain - Main.ba2"
+                },
+                {
+                  "level": "INFO",
+                  "message": "Patched to v1: Stra\u00dfe - Main.ba2"
+                }
+              ]
+            },
+            {
+              "level": "INFO",
+              "message": "Patching complete. 4 Successful, 7 Failed."
+            },
+            {
+              "level": "INFO",
+              "message": "Patcher Finished"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Refresh Tab : Overview"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Binaries"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Binaries"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Modules"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Modules"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Archives"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Archives"
+            },
+            {
+              "$unordered": [
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Alias - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Alias - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking BOSS - Textures.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Changed - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Corrupt - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Fallout4 - Startup.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Fallout4 - Textures1.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Flipped - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Plain - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking ReadOnly - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Short - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Stra\u00dfe - Main.ba2"
+                }
+              ]
+            }
+          ],
+          "processingData": false,
+          "tree": [
+            "ReadOnly - Main.ba2"
+          ]
+        },
+        "files": {
+          "$unordered": [
+            "<ROOT>/Game/Data/ReadOnly - Main.ba2"
+          ]
+        },
+        "nameFilter": null,
+        "step": "patched"
+      },
+      {
+        "desiredVersion": 8,
+        "display": {
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v1\n(Includes Base Game/DLC/CC)"
+          },
+          "filterEntry": "",
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 8 files to be patched."
+            }
+          ],
+          "logLines": [],
+          "processingData": false,
+          "tree": [
+            "Alias - Main.ba2",
+            "BOSS - Textures.ba2",
+            "Fallout4 - Startup.ba2",
+            "Fallout4 - Textures1.ba2",
+            "Flipped - Main.ba2",
+            "Plain - Main.ba2",
+            "Stra\u00dfe - Main.ba2",
+            "Alias - Main.ba2"
+          ]
+        },
+        "files": {
+          "$unordered": [
+            "<ROOT>/Game/Data/Alias - Main.ba2",
+            "<ROOT>/Game/Data/BOSS - Textures.ba2",
+            "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+            "<ROOT>/Game/Data/Fallout4 - Textures1.ba2",
+            "<ROOT>/Game/Data/Flipped - Main.ba2",
+            "<ROOT>/Game/Data/Plain - Main.ba2",
+            "<ROOT>/Game/Data/Stra\u00dfe - Main.ba2",
+            "<ROOT>/Game/Data/Sub/../Alias - Main.ba2"
+          ]
+        },
+        "nameFilter": null,
+        "step": "v8"
+      },
+      {
+        "desiredVersion": 8,
+        "display": {
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v1\n(Includes Base Game/DLC/CC)"
+          },
+          "filterEntry": "\u1e9e",
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 2 files to be patched."
+            }
+          ],
+          "logLines": [],
+          "processingData": false,
+          "tree": [
+            "BOSS - Textures.ba2",
+            "Stra\u00dfe - Main.ba2"
+          ]
+        },
+        "files": {
+          "$unordered": [
+            "<ROOT>/Game/Data/BOSS - Textures.ba2",
+            "<ROOT>/Game/Data/Stra\u00dfe - Main.ba2"
+          ]
+        },
+        "nameFilter": "ss",
+        "step": "filtered"
+      },
+      {
+        "data": [
+          {
+            "path": "<ROOT>/Game/Data/Alias - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/BOSS - Textures.ba2",
+            "sha256": "c34e611bb2e99428a4acd23754b6d100e079ea52a3f4ba465f94a03d33aa3e8d",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Changed - Main.ba2",
+            "sha256": "13745bd786e1996412660fd875850b4c40740fd227524b16a9aabc2bfb9da415",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Corrupt - Main.ba2",
+            "sha256": "75d886b1885277b3e8b1946ecc226c6b1706aeb53c3556781b762dbd6aa3a0ac",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+            "sha256": "fc0d339949993f321c3765fe9ac0b31b8fc3ec6ceaffd3503a00d8727e7a4e60",
+            "size": 78
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4 - Textures1.ba2",
+            "sha256": "b6158fbdabf2a4ceaa4d3a4d481fd9fad7e3589f939ee18ca4cc825cb7aeda31",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Fallout4.esm",
+            "sha256": "bfcce6d454da16295521d53b2c610c1ce08d8ce1ae4b6448331168174a589dfa",
+            "size": 42
+          },
+          {
+            "path": "<ROOT>/Game/Data/Flipped - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Plain - Main.ba2",
+            "sha256": "034534d1d45d20432782a96f564fb411bb8ce0213b4d093423d135d70b01e4a8",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/ReadOnly - Main.ba2",
+            "sha256": "3bbed8b4f5d3d53ec331a5dfcb864df7656086bb0698227d042efeb8df03d35b",
+            "size": 24
+          },
+          {
+            "path": "<ROOT>/Game/Data/Short - Main.ba2",
+            "sha256": "53b2ea855021c6e31d1b29ca32efcc42dbf5c634e35bce47f13217979f9df615",
+            "size": 4
+          },
+          {
+            "path": "<ROOT>/Game/Data/Stra\u00dfe - Main.ba2",
+            "sha256": "3bbed8b4f5d3d53ec331a5dfcb864df7656086bb0698227d042efeb8df03d35b",
+            "size": 24
+          }
+        ],
+        "desiredVersion": 8,
+        "display": {
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v1\n(Includes Base Game/DLC/CC)"
+          },
+          "filterEntry": "\u1e9e",
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 2 files to be patched."
+            },
+            {
+              "$unordered": [
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v8: BOSS - Textures.ba2"
+                },
+                {
+                  "color": "#619267",
+                  "emoji": "\u2705 ",
+                  "text": "Patched to v8: Stra\u00dfe - Main.ba2"
+                }
+              ]
+            },
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Patching complete. 2 Successful, 0 Failed."
+            },
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 0 files to be patched."
+            }
+          ],
+          "logLines": [
+            {
+              "level": "INFO",
+              "message": "Patcher Running: ArchivePatcher"
+            },
+            {
+              "level": "INFO",
+              "message": "Files: 2 | Version: 8 | Filter: ss"
+            },
+            {
+              "$unordered": [
+                {
+                  "level": "INFO",
+                  "message": "Patched to v8: BOSS - Textures.ba2"
+                },
+                {
+                  "level": "INFO",
+                  "message": "Patched to v8: Stra\u00dfe - Main.ba2"
+                }
+              ]
+            },
+            {
+              "level": "INFO",
+              "message": "Patching complete. 2 Successful, 0 Failed."
+            },
+            {
+              "level": "INFO",
+              "message": "Patcher Finished"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Refresh Tab : Overview"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Binaries"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Binaries"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Modules"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Modules"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Gathering Info: Archives"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Reset Info: Archives"
+            },
+            {
+              "$unordered": [
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Alias - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Alias - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking BOSS - Textures.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Changed - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Corrupt - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Fallout4 - Startup.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Fallout4 - Textures1.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Flipped - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Plain - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking ReadOnly - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Short - Main.ba2"
+                },
+                {
+                  "level": "DEBUG",
+                  "message": "Archives: Checking Stra\u00dfe - Main.ba2"
+                }
+              ]
+            }
+          ],
+          "processingData": false,
+          "tree": []
+        },
+        "files": {
+          "$unordered": []
+        },
+        "nameFilter": "ss",
+        "step": "patchedFiltered"
+      },
+      {
+        "desiredVersion": 8,
+        "display": {
+          "caption": {
+            "color": "bisque",
+            "text": "Showing all v1\n(Includes Base Game/DLC/CC)"
+          },
+          "filterEntry": "",
+          "log": [
+            {
+              "color": "dodger blue",
+              "emoji": "\ud83d\udcad ",
+              "text": "Showing 6 files to be patched."
+            }
+          ],
+          "logLines": [],
+          "processingData": false,
+          "tree": [
+            "Alias - Main.ba2",
+            "Fallout4 - Startup.ba2",
+            "Fallout4 - Textures1.ba2",
+            "Flipped - Main.ba2",
+            "Plain - Main.ba2",
+            "Alias - Main.ba2"
+          ]
+        },
+        "files": {
+          "$unordered": [
+            "<ROOT>/Game/Data/Alias - Main.ba2",
+            "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+            "<ROOT>/Game/Data/Fallout4 - Textures1.ba2",
+            "<ROOT>/Game/Data/Flipped - Main.ba2",
+            "<ROOT>/Game/Data/Plain - Main.ba2",
+            "<ROOT>/Game/Data/Sub/../Alias - Main.ba2"
+          ]
+        },
+        "nameFilter": null,
+        "step": "unfiltered"
+      }
+    ]
+  }
+}
