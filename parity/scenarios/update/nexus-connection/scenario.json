@@ -1,0 +1,10 @@
+{
+  "description": "The Nexus request can't connect: logged as a failure, no update.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

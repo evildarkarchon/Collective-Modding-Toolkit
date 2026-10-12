@@ -1,0 +1,29 @@
+{
+  "banner": null,
+  "httpRequests": [
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 5
+      },
+      "resource": "nexus-page"
+    }
+  ],
+  "updateCheck": {
+    "display": {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Update Check : Nexus Mods"
+        },
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "Update Check : Nexus Mods : Failed"
+        }
+      ]
+    },
+    "githubVersion": null,
+    "nexusVersion": null
+  }
+}

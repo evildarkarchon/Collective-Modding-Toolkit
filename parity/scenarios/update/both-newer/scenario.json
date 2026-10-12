@@ -1,0 +1,12 @@
+{
+  "description": "Both sources list a newer version: both links, Nexus first, separated by ' / '.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2",
+    "SHELL-7"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

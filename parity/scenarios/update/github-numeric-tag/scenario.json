@@ -1,0 +1,10 @@
+{
+  "description": "A JSON number tag_name is str()-ed: 0.70 reads as 0.7, a newer version.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

@@ -60,6 +60,16 @@ public partial class MainWindow : Window
     /// </summary>
     public bool ProcessingData { get; set; }
 
+    /// <summary>
+    /// The update banner in row 0, above the tabs (SHELL-7, UPD-2), or null for none. The rows share the fixed
+    /// 760x450 client area, so a banner takes its height from the tabs, as Tk's row 1 (weight 1) gave it up.
+    /// </summary>
+    public Control? UpdateBanner
+    {
+        get => UpdateBannerHost.Content as Control;
+        set => UpdateBannerHost.Content = value;
+    }
+
     /// <summary>Closes the window unless <see cref="ProcessingData"/> is set (<c>CMChecker.on_close</c>).</summary>
     public void RequestClose()
     {

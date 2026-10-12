@@ -1,0 +1,11 @@
+{
+  "description": "The body isn't JSON: JSONDecodeError, logged as a failure.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

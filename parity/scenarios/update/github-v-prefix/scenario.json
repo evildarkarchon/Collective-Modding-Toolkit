@@ -1,0 +1,12 @@
+{
+  "description": "A v-prefixed tag is valid PEP 440, and the banner adds its own v: vv0.7.0.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-2",
+    "UPD-3",
+    "T-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

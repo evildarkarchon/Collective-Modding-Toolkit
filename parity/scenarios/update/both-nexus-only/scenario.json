@@ -1,0 +1,11 @@
+{
+  "description": "Only Nexus Mods is newer.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

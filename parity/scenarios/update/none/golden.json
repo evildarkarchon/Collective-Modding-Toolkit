@@ -1,0 +1,10 @@
+{
+  "banner": null,
+  "updateCheck": {
+    "display": {
+      "log": []
+    },
+    "githubVersion": null,
+    "nexusVersion": null
+  }
+}

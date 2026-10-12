@@ -1,0 +1,377 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Sockets;
+using CMToolkit.Core.Settings;
+using Microsoft.Extensions.Logging;
+
+namespace CMToolkit.Core.Updates;
+
+/// <summary>What the update check found (UPD-1): each source's newer version, as the source wrote it, or null.</summary>
+/// <param name="NexusVersion">The Nexus Mods version when it is newer than the running one.</param>
+/// <param name="GitHubVersion">The GitHub release tag when it is newer than the running one.</param>
+public sealed record UpdateCheckResult(string? NexusVersion, string? GitHubVersion)
+{
+    /// <summary>No update from either source, or no check at all.</summary>
+    public static UpdateCheckResult None { get; } = new(null, null);
+
+    /// <summary>Whether either source has a newer version, so the banner shows (UPD-2).</summary>
+    public bool UpdateAvailable => NexusVersion is not null || GitHubVersion is not null;
+}
+
+/// <summary>
+/// An exception the reference's update check doesn't catch, so it escaped <c>CMChecker.__init__</c> and startup failed
+/// (SHELL-13): an unexpected response, such as a page with no <c>Content-Type</c> or a release without a
+/// <c>tag_name</c> (bug #81, reproduced).
+/// </summary>
+/// <param name="pythonError">The Python exception the reference raised, for the log and the startup failure dialog.</param>
+public sealed class UpdateCheckCrashException(string pythonError)
+    : Exception($"The update check failed with an unhandled error: {pythonError}");
+
+/// <summary>
+/// The update check (<c>utils.check_for_update_nexus</c> / <c>check_for_update_github</c>, UPD-1..UPD-4): the Nexus
+/// Mods page scrape (NET-1) and the GitHub latest-release API (NET-2), each compared to the running version with
+/// PEP 440 (<see cref="Pep440Version"/>), with request failures logged and treated as no update.
+/// </summary>
+/// <remarks>
+/// Async, unlike most of Core, because it is HTTP (the Core seams decision, issue #7); the App awaits it before the
+/// main window shows. Log lines are the reference's, written through <see cref="PlainLog"/>.
+/// </remarks>
+public sealed class UpdateCheck
+{
+    /// <summary><c>NEXUS_LINK</c>, the page the Nexus check scrapes.</summary>
+    public const string NexusPageUrl = "https://www.nexusmods.com/fallout4/mods/87907";
+
+    /// <summary>
+    /// The release the GitHub check asks for. It is still the original author's repository (B-16, bug #32), while the
+    /// banner's link and the running version are RowanSkie's fork.
+    /// </summary>
+    public const string GitHubLatestReleaseUrl = "https://api.github.com/repos/wxMichael/Collective-Modding-Toolkit/releases/latest";
+
+    /// <summary>The line before the version on the Nexus page, matched after stripping leading whitespace.</summary>
+    private const string VersionLabelLine = "<meta property=\"twitter:label1\" content=\"Version\"";
+
+    private readonly HttpClient _client;
+    private readonly ILogger _logger;
+
+    /// <param name="handler">
+    /// The HTTP stack: <see cref="CreateHandler"/> for the real network, or a canned one in tests and on a Parity
+    /// Scenario's machine. Not disposed by the check.
+    /// </param>
+    /// <param name="logger">The app log.</param>
+    public UpdateCheck(HttpMessageHandler handler, ILogger logger)
+    {
+        // No total timeout: the handler's per-read timeout is the only one (T-14).
+        _client = new HttpClient(handler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// <c>timeout=5</c>: how long one connect, read or write may take. Not a limit on the whole request (T-14).
+    /// </summary>
+    public static TimeSpan ReadTimeout { get; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Sent with both requests. requests sent <c>python-requests/&lt;version&gt;</c>; GitHub's API refuses a request
+    /// without one, and <see cref="HttpClient"/> sends none by default (T-14).
+    /// </summary>
+    public static string UserAgent => $"cm-toolkit/{AppInfo.Version}";
+
+    /// <summary>
+    /// The real network stack: connects within <paramref name="readTimeout"/>, then gives every read and write on the
+    /// connection that long (<see cref="ReadTimeoutStream"/>), decompresses gzip and deflate (which requests asks
+    /// for), and follows redirects.
+    /// </summary>
+    /// <param name="readTimeout">The per-operation timeout; <see cref="ReadTimeout"/> by default.</param>
+    public static SocketsHttpHandler CreateHandler(TimeSpan? readTimeout = null)
+    {
+        var timeout = readTimeout ?? ReadTimeout;
+        return new SocketsHttpHandler
+        {
+            ConnectTimeout = timeout,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                // The standard connect (dual-mode socket, every address DNS gives), with the connection's stream
+                // wrapped so each socket operation is timed on its own, as a Python socket's timeout is.
+                var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+                try
+                {
+                    await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
+                    var stream = new NetworkStream(socket, ownsSocket: true)
+                    {
+                        ReadTimeout = (int)timeout.TotalMilliseconds,
+                        WriteTimeout = (int)timeout.TotalMilliseconds,
+                    };
+                    return new ReadTimeoutStream(stream, timeout);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            },
+        };
+    }
+
+    /// <summary>
+    /// <c>CMChecker.check_for_updates</c>' part before the banner (UPD-1): <c>none</c> checks nothing; <c>nexus</c>
+    /// and <c>github</c> check one source; <c>both</c> checks Nexus Mods, then GitHub.
+    /// </summary>
+    /// <exception cref="UpdateCheckCrashException">A response the reference didn't survive; startup fails.</exception>
+    /// <exception cref="FormatException">
+    /// A version with a number past Python's 4300-digit <c>int()</c> limit, which the reference doesn't catch either.
+    /// </exception>
+    public async Task<UpdateCheckResult> RunAsync(UpdateSource source, CancellationToken cancellationToken = default)
+    {
+        if (source == UpdateSource.None)
+        {
+            return UpdateCheckResult.None;
+        }
+
+        var nexus = source is UpdateSource.Nexus or UpdateSource.Both
+            ? await CheckNexusAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        var github = source is UpdateSource.GitHub or UpdateSource.Both
+            ? await CheckGitHubAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        return new UpdateCheckResult(nexus, github);
+    }
+
+    /// <summary>
+    /// <c>check_for_update_nexus</c> (NET-1): streams the mod page and reads the version from the line after the
+    /// <c>twitter:label1</c> Version tag, as <c>line.rsplit('"', 2)[1]</c>. A non-200 status is no update; a page
+    /// without the tag is logged as a failure; a request error, an invalid version or a line without a quote is
+    /// logged with its exception. Reading stops at the version line.
+    /// </summary>
+    /// <returns>The version as the page wrote it when it is newer than the running one; otherwise null.</returns>
+    /// <exception cref="UpdateCheckCrashException">
+    /// No usable encoding: no <c>Content-Type</c> (requests yields bytes, so the <c>str</c> prefix test raises
+    /// <c>TypeError</c>) or a charset Python doesn't know (<c>LookupError</c>).
+    /// </exception>
+    public async Task<string?> CheckNexusAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Write(LogLevel.Debug, "Update Check : Nexus Mods");
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, NexusPageUrl);
+            request.Headers.UserAgent.ParseAdd(UserAgent);
+            // requests' session default, which the page is served against.
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            using var response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var versionLine = await FindVersionLineAsync(response, cancellationToken).ConfigureAwait(false);
+                if (versionLine is null)
+                {
+                    _logger.Write(LogLevel.Error, "Update Check : Nexus Mods : Failed");
+                    return null;
+                }
+
+                if (versionLine.Count < 2)
+                {
+                    throw new PythonIndexError();
+                }
+
+                var latest = versionLine[1];
+                if (Pep440Version.IsNewerThanRunning(latest))
+                {
+                    _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{latest}");
+                    return latest;
+                }
+            }
+        }
+        catch (Exception ex) when (IsRequestFailure(ex, cancellationToken) || ex is InvalidVersionException or PythonIndexError)
+        {
+            _logger.Write(LogLevel.Error, "Update Check : Nexus Mods : Failed", ex);
+            return null;
+        }
+
+        _logger.Write(LogLevel.Debug, "Update Check : Nexus Mods : No Updates");
+        return null;
+    }
+
+    /// <summary>
+    /// <c>check_for_update_github</c> (NET-2, B-16): the latest release's <c>tag_name</c>, through <c>str()</c>. A
+    /// non-200 status is no update; a request error, a body that isn't JSON or a tag that isn't PEP 440 is logged with
+    /// its exception.
+    /// </summary>
+    /// <returns>The tag as GitHub wrote it when it is newer than the running version; otherwise null.</returns>
+    /// <exception cref="UpdateCheckCrashException">
+    /// JSON that isn't an object (<c>TypeError</c>) or an object without <c>tag_name</c> (<c>KeyError</c>).
+    /// </exception>
+    public async Task<string?> CheckGitHubAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Write(LogLevel.Debug, "Update Check : GitHub");
+        byte[] content;
+        HttpResponseMessage response;
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, GitHubLatestReleaseUrl);
+            request.Headers.UserAgent.ParseAdd(UserAgent);
+            request.Headers.TryAddWithoutValidation("Accept", "application/vnd.github+json");
+            request.Headers.TryAddWithoutValidation("X-GitHub-Api-Version", "2022-11-28");
+            // Not streamed: requests reads the whole body inside get(), so its read errors are request errors.
+            response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+        }
+        catch (Exception ex) when (IsRequestFailure(ex, cancellationToken))
+        {
+            _logger.Write(LogLevel.Error, "Update Check : GitHub : Failed", ex);
+            return null;
+        }
+
+        using (response)
+        {
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                try
+                {
+                    var release = RequestsText.Json(content, RequestsText.EncodingFromHeaders(response));
+                    var latest = TagName(release).Str();
+                    if (Pep440Version.IsNewerThanRunning(latest))
+                    {
+                        _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{latest}");
+                        return latest;
+                    }
+                }
+                catch (Exception ex) when (ex is PythonJsonException { IsDecodeError: true } or InvalidVersionException)
+                {
+                    _logger.Write(LogLevel.Error, "Update Check : GitHub : Failed", ex);
+                    return null;
+                }
+            }
+        }
+
+        _logger.Write(LogLevel.Debug, "Update Check : GitHub : No Updates");
+        return null;
+    }
+
+    /// <summary><c>release_data["tag_name"]</c>.</summary>
+    private static PythonValue TagName(PythonValue release)
+    {
+        if (release is not PythonDict dict)
+        {
+            throw new UpdateCheckCrashException($"TypeError: {release.TypeName} indices must be integers or slices, not str");
+        }
+
+        foreach (var (key, value) in dict.Items)
+        {
+            if (key == "tag_name")
+            {
+                return value;
+            }
+        }
+
+        throw new UpdateCheckCrashException("KeyError: 'tag_name'");
+    }
+
+    /// <summary>
+    /// Iterates the page's lines (<c>iter_lines(decode_unicode=True)</c>) up to the line after the Version tag, and
+    /// returns it split as <c>rsplit('"', 2)</c>; null if the page ends first.
+    /// </summary>
+    private static async Task<IReadOnlyList<string>?> FindVersionLineAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        var encoding = RequestsText.EncodingFromHeaders(response);
+        var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using (stream.ConfigureAwait(false))
+        {
+            var buffer = new byte[RequestsText.ChunkSize];
+
+            async ValueTask<byte[]> ReadChunk(CancellationToken token)
+            {
+                // raw.read(512): fills the chunk unless the body ends.
+                var filled = 0;
+                while (filled < buffer.Length)
+                {
+                    var read = await stream.ReadAsync(buffer.AsMemory(filled), token).ConfigureAwait(false);
+                    if (read == 0)
+                    {
+                        break;
+                    }
+
+                    filled += read;
+                }
+
+                return buffer[..filled];
+            }
+
+            if (encoding is null)
+            {
+                // With no encoding requests yields the lines as bytes, and bytes.startswith(str) raises TypeError at
+                // the first line. An empty body has no lines, so it ends as a page without the tag.
+                return (await ReadChunk(cancellationToken).ConfigureAwait(false)).Length > 0
+                    ? throw new UpdateCheckCrashException("TypeError: startswith first arg must be bytes or a tuple of bytes, not str")
+                    : null;
+            }
+
+            var decoder = PythonCodec.Lookup(encoding)?.CreateDecoder(strict: false)
+                          ?? throw new UpdateCheckCrashException($"LookupError: unknown encoding: {encoding}");
+            var useNext = false;
+            await foreach (var line in RequestsText.IterLinesAsync(ReadChunk, decoder, cancellationToken).ConfigureAwait(false))
+            {
+                if (useNext)
+                {
+                    return RSplitQuote(line);
+                }
+
+                if (LStrip(line).StartsWith(VersionLabelLine, StringComparison.Ordinal))
+                {
+                    useNext = true;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary><c>line.rsplit('"', 2)</c>.</summary>
+    private static List<string> RSplitQuote(string line)
+    {
+        var last = line.LastIndexOf('"');
+        if (last < 0)
+        {
+            return [line];
+        }
+
+        var previous = last == 0 ? -1 : line.LastIndexOf('"', last - 1);
+        return previous < 0
+            ? [line[..last], line[(last + 1)..]]
+            : [line[..previous], line[(previous + 1)..last], line[(last + 1)..]];
+    }
+
+    /// <summary>The no-argument <c>str.lstrip()</c>.</summary>
+    private static string LStrip(string value)
+    {
+        var start = 0;
+        while (start < value.Length && PythonSemantics.PythonText.IsSpace(value[start]))
+        {
+            start++;
+        }
+
+        return value[start..];
+    }
+
+    /// <summary>
+    /// Whether <paramref name="ex"/> is what requests raises as a <c>RequestException</c>: a connection, protocol or
+    /// read failure, or a timeout. A cancellation the caller asked for is not one.
+    /// </summary>
+    private static bool IsRequestFailure(Exception ex, CancellationToken cancellationToken) => ex switch
+    {
+        OperationCanceledException => !cancellationToken.IsCancellationRequested,
+        HttpRequestException or IOException or TimeoutException => true,
+        _ => false,
+    };
+
+    /// <summary>Python's <c>IndexError</c> from <c>version_line[1]</c>, which the Nexus check catches.</summary>
+    private sealed class PythonIndexError() : Exception("list index out of range");
+}
