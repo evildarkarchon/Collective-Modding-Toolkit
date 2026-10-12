@@ -119,3 +119,10 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
   progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
   pane's key handling (Ctrl+A/C only, T-13) is the Archive Patcher slice's.
+- F4SE tab (see [`parity/screenshots/f4se/`](../parity/screenshots/f4se/)): the tree, its headings and rows, the
+  scrollbar column and the legend line up with Tk's to within a pixel. The glyphs fall back to Segoe UI Symbol, so
+  they take the row's colour as Tk's do, but in Symbol's shapes rather than the Segoe UI Emoji ones GDI draws. The
+  scrollbar's thumb is the app's Fluent one, filling the 12 px trough where sv_ttk's is a 6 px bar with arrows, and
+  with no rows to scroll it shows no thumb where sv_ttk's fills the trough. The legend wraps at words, not characters
+  (`wrap=CHAR`); no line of it is wide enough to wrap. Each plugin is unmapped once inspected; the reference never
+  freed its `WinDLL`s, so every plugin stayed locked against deletion until exit.

@@ -1,0 +1,755 @@
+{
+  "f4se": {
+    "display": {
+      "about": {
+        "font": {
+          "bold": false,
+          "family": "Cascadia Mono",
+          "size": 10,
+          "underline": false
+        },
+        "runs": [
+          {
+            "color": "#FFE4C4",
+            "ranges": [
+              "2.0",
+              "2.18",
+              "10.0",
+              "10.1"
+            ],
+            "tag": "neutral"
+          },
+          {
+            "color": "#619267",
+            "ranges": [
+              "6.0",
+              "6.1"
+            ],
+            "tag": "good"
+          },
+          {
+            "color": "#4B92DA",
+            "ranges": [
+              "8.0",
+              "8.1"
+            ],
+            "tag": "independent"
+          },
+          {
+            "color": "#C5C464",
+            "ranges": [
+              "14.0",
+              "14.1"
+            ],
+            "tag": "note"
+          }
+        ],
+        "state": "disabled",
+        "text": "This checks all DLLs in\nData/F4SE/Plugins/ for\nversion-specific code to\ndetermine OG/NG support.\n\n\u2714 Version is supported\n\n\u2731 DLL uses Address Library\n\n\u2753 Not an F4SE DLL.\nMay still be loaded by\nother DLLs.\n\n\u26a0 Consult mod page to\nverify version support if\nyou see this icon.\nSome DLLs' version support\ncannot be reliably\ndetermined.",
+        "wrap": "char"
+      },
+      "heading": {
+        "font": {
+          "bold": false,
+          "family": "Cascadia Mono",
+          "size": 12,
+          "underline": false
+        },
+        "text": "F4SE DLLs"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AddressIndependentOnly.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AddressLibrary.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AllVersions.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AnniversaryFirstRelease.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning AVeryLongPluginNameThatOverflowsItsColumn.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning CompatibleAfterGap.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning HighVersion.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning MSDIA100.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning NextGenAndAnniversary.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning NextGenOnly.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning NoCompatibleVersions.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning NoExports.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning NotAPlugin.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning OldGenOnly.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning PreloadAndQuery.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning QueryAndVersionNoLoad.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning SignaturesOnly.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning StructureIndependentOnly.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Scanning Uppercase.DLL"
+        }
+      ],
+      "scrollbar": {
+        "column": 1,
+        "orient": "vertical"
+      },
+      "tree": {
+        "columns": [
+          {
+            "anchor": "e",
+            "heading": "DLL",
+            "id": "#0",
+            "stretch": false,
+            "width": 240
+          },
+          {
+            "anchor": "center",
+            "heading": "OG",
+            "id": "og",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "NG",
+            "id": "ng",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "AE",
+            "id": "ae",
+            "stretch": false,
+            "width": 60
+          },
+          {
+            "anchor": "center",
+            "heading": "Your Game",
+            "id": "user",
+            "stretch": false,
+            "width": 80
+          }
+        ],
+        "rows": [
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "AddressIndependentOnly.dll",
+            "values": [
+              "",
+              "\u26a0",
+              "\u2714",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "independent"
+            ],
+            "text": "AddressLibrary.dll",
+            "values": [
+              "",
+              "\u2731",
+              "\u2731",
+              "\u2731"
+            ]
+          },
+          {
+            "tags": [
+              "independent"
+            ],
+            "text": "AllVersions.dll",
+            "values": [
+              "\u2714",
+              "\u2731",
+              "\u2731",
+              "\u2731"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "AnniversaryFirstRelease.dll",
+            "values": [
+              "",
+              "\u26a0",
+              "\u26a0",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "AVeryLongPluginNameThatOverflowsItsColumn.dll",
+            "values": [
+              "",
+              "\u2714",
+              "\u2714",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "CompatibleAfterGap.dll",
+            "values": [
+              "",
+              "\u2714",
+              "\u2714",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "HighVersion.dll",
+            "values": [
+              "",
+              "\u26a0",
+              "\u2714",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "neutral"
+            ],
+            "text": "MSDIA100.dll",
+            "values": [
+              "\u2753",
+              "\u2753",
+              "\u2753"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "NextGenAndAnniversary.dll",
+            "values": [
+              "",
+              "\u2714",
+              "\u2714",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "NextGenOnly.dll",
+            "values": [
+              "",
+              "\u2714",
+              "\u26a0",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "NoCompatibleVersions.dll",
+            "values": [
+              "",
+              "\u26a0",
+              "\u26a0",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "neutral"
+            ],
+            "text": "NoExports.dll",
+            "values": [
+              "\u2753",
+              "\u2753",
+              "\u2753"
+            ]
+          },
+          {
+            "tags": [
+              "neutral"
+            ],
+            "text": "NotAPlugin.dll",
+            "values": [
+              "\u2753",
+              "\u2753",
+              "\u2753"
+            ]
+          },
+          {
+            "tags": [
+              "good"
+            ],
+            "text": "OldGenOnly.dll",
+            "values": [
+              "\u2714",
+              "",
+              "",
+              "\u2714"
+            ]
+          },
+          {
+            "tags": [
+              "good"
+            ],
+            "text": "PreloadAndQuery.dll",
+            "values": [
+              "\u2714",
+              "",
+              "",
+              "\u2714"
+            ]
+          },
+          {
+            "tags": [
+              "neutral"
+            ],
+            "text": "QueryAndVersionNoLoad.dll",
+            "values": [
+              "\u2753",
+              "\u2753",
+              "\u2753"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "SignaturesOnly.dll",
+            "values": [
+              "",
+              "\u26a0",
+              "\u26a0",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "bad"
+            ],
+            "text": "StructureIndependentOnly.dll",
+            "values": [
+              "",
+              "\u2714",
+              "\u26a0",
+              "\u274c"
+            ]
+          },
+          {
+            "tags": [
+              "good"
+            ],
+            "text": "Uppercase.DLL",
+            "values": [
+              "\u2714",
+              "",
+              "",
+              "\u2714"
+            ]
+          }
+        ],
+        "tagColors": {
+          "bad": "#AF5A66",
+          "good": "#619267",
+          "independent": "#4B92DA",
+          "neutral": "#808080",
+          "note": "#C5C464"
+        }
+      }
+    },
+    "dlls": [
+      {
+        "addressIndependent": true,
+        "isF4se": true,
+        "name": "AddressIndependentOnly.dll",
+        "structureIndependent": false,
+        "supportsAe": true,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": true,
+        "isF4se": true,
+        "name": "AddressLibrary.dll",
+        "structureIndependent": true,
+        "supportsAe": true,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": true,
+        "isF4se": true,
+        "name": "AllVersions.dll",
+        "structureIndependent": true,
+        "supportsAe": null,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": true
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "AnniversaryFirstRelease.dll",
+        "structureIndependent": false,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "AVeryLongPluginNameThatOverflowsItsColumn.dll",
+        "structureIndependent": false,
+        "supportsAe": true,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "CompatibleAfterGap.dll",
+        "structureIndependent": false,
+        "supportsAe": true,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "HighVersion.dll",
+        "structureIndependent": false,
+        "supportsAe": true,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": false,
+        "name": "MSDIA100.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "NextGenAndAnniversary.dll",
+        "structureIndependent": false,
+        "supportsAe": true,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "NextGenOnly.dll",
+        "structureIndependent": false,
+        "supportsAe": null,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "NoCompatibleVersions.dll",
+        "structureIndependent": false,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": false,
+        "name": "NoExports.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": false,
+        "name": "NotAPlugin.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": true,
+        "name": "OldGenOnly.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": true
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": true,
+        "name": "PreloadAndQuery.dll",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": true
+      },
+      {
+        "addressIndependent": true,
+        "isF4se": false,
+        "name": "QueryAndVersionNoLoad.dll",
+        "structureIndependent": true,
+        "supportsAe": null,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": true
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "SignaturesOnly.dll",
+        "structureIndependent": false,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": false,
+        "isF4se": true,
+        "name": "StructureIndependentOnly.dll",
+        "structureIndependent": true,
+        "supportsAe": null,
+        "supportsNg": true,
+        "supportsNgAe": true,
+        "supportsOg": false
+      },
+      {
+        "addressIndependent": null,
+        "isF4se": true,
+        "name": "Uppercase.DLL",
+        "structureIndependent": null,
+        "supportsAe": null,
+        "supportsNg": null,
+        "supportsNgAe": false,
+        "supportsOg": true
+      }
+    ],
+    "failure": null,
+    "installType": "Old-Gen",
+    "loaded": true,
+    "loadingError": null,
+    "verdicts": [
+      {
+        "ae": "supported",
+        "name": "AddressIndependentOnly.dll",
+        "ng": "note",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "independent",
+        "name": "AddressLibrary.dll",
+        "ng": "independent",
+        "og": "unsupported",
+        "yourGame": "independent"
+      },
+      {
+        "ae": "independent",
+        "name": "AllVersions.dll",
+        "ng": "independent",
+        "og": "supported",
+        "yourGame": "independent"
+      },
+      {
+        "ae": "note",
+        "name": "AnniversaryFirstRelease.dll",
+        "ng": "note",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "supported",
+        "name": "AVeryLongPluginNameThatOverflowsItsColumn.dll",
+        "ng": "supported",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "supported",
+        "name": "CompatibleAfterGap.dll",
+        "ng": "supported",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "supported",
+        "name": "HighVersion.dll",
+        "ng": "note",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "unknown",
+        "name": "MSDIA100.dll",
+        "ng": "unknown",
+        "og": "unknown",
+        "yourGame": null
+      },
+      {
+        "ae": "supported",
+        "name": "NextGenAndAnniversary.dll",
+        "ng": "supported",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "note",
+        "name": "NextGenOnly.dll",
+        "ng": "supported",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "note",
+        "name": "NoCompatibleVersions.dll",
+        "ng": "note",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "unknown",
+        "name": "NoExports.dll",
+        "ng": "unknown",
+        "og": "unknown",
+        "yourGame": null
+      },
+      {
+        "ae": "unknown",
+        "name": "NotAPlugin.dll",
+        "ng": "unknown",
+        "og": "unknown",
+        "yourGame": null
+      },
+      {
+        "ae": "unsupported",
+        "name": "OldGenOnly.dll",
+        "ng": "unsupported",
+        "og": "supported",
+        "yourGame": "supported"
+      },
+      {
+        "ae": "unsupported",
+        "name": "PreloadAndQuery.dll",
+        "ng": "unsupported",
+        "og": "supported",
+        "yourGame": "supported"
+      },
+      {
+        "ae": "unknown",
+        "name": "QueryAndVersionNoLoad.dll",
+        "ng": "unknown",
+        "og": "unknown",
+        "yourGame": null
+      },
+      {
+        "ae": "note",
+        "name": "SignaturesOnly.dll",
+        "ng": "note",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "note",
+        "name": "StructureIndependentOnly.dll",
+        "ng": "supported",
+        "og": "unsupported",
+        "yourGame": "unsupported"
+      },
+      {
+        "ae": "unsupported",
+        "name": "Uppercase.DLL",
+        "ng": "unsupported",
+        "og": "supported",
+        "yourGame": "supported"
+      }
+    ]
+  }
+}
