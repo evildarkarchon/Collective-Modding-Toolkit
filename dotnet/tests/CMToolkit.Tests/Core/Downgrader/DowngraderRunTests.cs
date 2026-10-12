@@ -26,7 +26,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-4")]
     [Trait("Parity", "B-11")]
-    public async Task Every_skip_says_why_and_an_unknown_last_file_leaves_the_button_disabled_for_good()
+    public async Task Bug_28_every_skip_says_why_and_an_unknown_last_file_leaves_the_button_disabled_for_good()
     {
         // Bug #28 (B-11), reproduced: Archive2Interop.dll's unknown CRC gets past patch_files, so it "needed" a patch,
         // and the button is never re-enabled although nothing was patched or queued.
@@ -263,7 +263,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "B-10")]
-    public async Task A_patch_already_in_the_working_directory_is_used_without_a_download_or_a_check()
+    public async Task Bug_15_a_patch_already_in_the_working_directory_is_used_without_a_download_or_a_check()
     {
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
@@ -285,7 +285,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "B-9")]
-    public async Task A_failed_decode_still_deletes_the_backup_when_keep_backups_is_off()
+    public async Task Bug_14_a_failed_decode_still_deletes_the_backup_when_keep_backups_is_off()
     {
         // Bug #14 (B-9), reproduced: the 404 page is saved as the patch, the decode fails, and the backup, the only copy
         // of Fallout4.exe left, is deleted.
@@ -308,7 +308,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "B-10")]
-    public async Task A_response_without_a_content_length_fails_after_its_first_chunk_and_the_queue_never_moves_again()
+    public async Task Bug_15_a_response_without_a_content_length_fails_after_its_first_chunk_and_the_queue_never_moves_again()
     {
         // Bug #15 (B-10), reproduced: ZeroDivisionError on the first chunk, after writing it. The poll ends with the
         // error; the button stays off, the window stays unclosable, and the launcher's patch stays queued.
@@ -339,7 +339,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "B-10")]
     [Trait("Parity", "NET-3")]
-    public async Task A_network_error_fails_the_download_before_anything_is_saved()
+    public async Task Bug_15_a_network_error_fails_the_download_before_anything_is_saved()
     {
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C6053902");
@@ -380,7 +380,7 @@ public sealed class DowngraderRunTests
     [Fact]
     [Trait("Parity", "DG-4")]
     [Trait("Parity", "B-11")]
-    public async Task A_skipped_last_file_re_enables_the_button_while_a_download_still_runs()
+    public async Task Bug_28_a_skipped_last_file_re_enables_the_button_while_a_download_still_runs()
     {
         // Bug #28 (B-11), reproduced: Archive2Interop.dll isn't there, so the loop ends with patch_needed False.
         using var machine = new Machine();

@@ -32,7 +32,7 @@ public sealed class DeltaPatchesTests
     [Fact]
     [Trait("Parity", "DG-6")]
     [Trait("Parity", "B-10")]
-    public void An_error_page_saved_as_a_patch_fails_without_an_output_file()
+    public void Bug_15_an_error_page_saved_as_a_patch_fails_without_an_output_file()
     {
         using var temp = new TempDirectory();
         var patch = temp.WriteBytes("NG-to-OG-Fallout4.exe.xdelta", "Not Found"u8.ToArray());
