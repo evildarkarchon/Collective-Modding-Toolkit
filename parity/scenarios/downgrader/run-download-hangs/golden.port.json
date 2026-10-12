@@ -143,7 +143,7 @@
       {
         "path": "<ROOT>/Game/Fallout4Launcher.exe",
         "readonly": false,
-        "sha256": "f066ba222844238acb536c119d30a0f071266ee0a4737dac04a8dd26338a1f59",
+        "sha256": "7f8d167c4ceb8d1627e75451cb02661c08d1c96d89d8e4140799a92ef3b9cb06",
         "size": 2564
       },
       {
@@ -178,8 +178,8 @@
               "text": "Old-Gen"
             },
             {
-              "color": "dodger blue",
-              "text": "Old-Gen"
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
             },
             {
               "color": "gray",
@@ -214,14 +214,9 @@
             "text": "Failed patching Fallout4.exe"
           },
           {
-            "color": "#AF5A66",
-            "emoji": "\u274c ",
-            "text": "Failed downloading OG-to-NG-Fallout4Launcher.exe.xdelta: Unscripted HTTP request: the scenario has no delta/OG-to-NG-Fallout4Launcher.exe.xdelta.response.json for https://github.com/evildarkarchon/Collective-Modding-Toolkit/releases/download/delta-patches/OG-to-NG-Fallout4Launcher.exe.xdelta."
-          },
-          {
-            "color": "#AF5A66",
-            "emoji": "\u274c ",
-            "text": "Failed patching Fallout4Launcher.exe"
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Fallout4Launcher.exe"
           }
         ],
         "logLines": [
@@ -230,12 +225,8 @@
             "message": "Failed patching Fallout4.exe"
           },
           {
-            "level": "ERROR",
-            "message": "Failed downloading OG-to-NG-Fallout4Launcher.exe.xdelta: Unscripted HTTP request: the scenario has no delta/OG-to-NG-Fallout4Launcher.exe.xdelta.response.json for https://github.com/evildarkarchon/Collective-Modding-Toolkit/releases/download/delta-patches/OG-to-NG-Fallout4Launcher.exe.xdelta."
-          },
-          {
-            "level": "ERROR",
-            "message": "Failed patching Fallout4Launcher.exe"
+            "level": "INFO",
+            "message": "Patched Fallout4Launcher.exe"
           },
           {
             "level": "DEBUG",
@@ -309,7 +300,7 @@
       },
       "patchEnabled": true,
       "processingData": false,
-      "progress": 0.0,
+      "progress": 100.0,
       "versions": [
         {
           "file": "Fallout4.exe",
@@ -317,7 +308,7 @@
         },
         {
           "file": "Fallout4Launcher.exe",
-          "installType": "Old-Gen"
+          "installType": "Next-Gen"
         },
         {
           "file": "steam_api64.dll",
