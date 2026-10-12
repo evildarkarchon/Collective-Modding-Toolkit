@@ -849,6 +849,316 @@ def log_lines_of(golden: GoldenContext, records: list[logging.LogRecord], logger
 	return lines
 
 
+def _text_runs(text: Any) -> list[dict[str, Any]]:
+	"""A Tk ``Text`` widget's content as runs in reading order: each tagged range with its tag's foreground, and the
+	untagged text between them with ``None``. The trailing newline Tk always keeps is left out.
+	"""
+	content = text.get("1.0", "end-1c")
+	starts: list[tuple[int, int, str | None]] = []
+	for tag in text.tag_names():
+		if tag == "sel":
+			continue
+		ranges = text.tag_ranges(tag)
+		for start, end in zip(ranges[::2], ranges[1::2], strict=True):
+			first = int(text.count("1.0", start, "chars")[0] or 0) if text.compare(start, ">", "1.0") else 0
+			length = int(text.count(start, end, "chars")[0] or 0)
+			starts.append((first, first + length, str(text.tag_cget(tag, "foreground")) or None))
+	runs: list[dict[str, Any]] = []
+	at = 0
+	for first, last, colour in sorted(starts):
+		if first > at:
+			runs.append({"text": content[at:first], "color": None})
+		runs.append({"text": content[first:last], "color": colour})
+		at = last
+	if at < len(content):
+		runs.append({"text": content[at:], "color": None})
+	return runs
+
+
+@operation("downgrader-window")
+def downgrader_window(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""DG-1, DG-2, DG-3: the real ``Downgrader`` opened over the real ``CMChecker`` once its Overview tab has loaded (as
+	at startup, so ``cmc.game``'s Install Type, which the labels read, comes from the Overview's binaries), read back off
+	its widgets. Nothing is patched: the Patch All run is the next slice's.
+
+	``downgrader`` holds the detected version of each of the six files in table order (``current_versions``), the game's
+	Install Type, the window title and size, and the derived ``CRCs_by_type``. Its ``display`` is the window as shown:
+	both Current frames (names label and each coloured value), the Desired Version radios and which is selected, the
+	Options checkboxes with their values and tooltips, the Patch All and About buttons (and what About opens), the log
+	pane's text as coloured runs, the progress bar, and the log lines written while opening. The Overview's Modules and
+	Archives gathering is skipped as in ``overview-tab``: the Downgrader doesn't read them.
+	"""
+	import downgrader  # noqa: PLC0415
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	tooltips = _Tooltips()
+	opened: list[dict[str, Any]] = []
+	downgrader.ToolTip = tooltips
+	downgrader.AboutWindow = lambda _parent, _cmc, width, height, title, text: opened.append({
+		"window": "AboutWindow",
+		"width": width,
+		"height": height,
+		"title": title,
+		"text": golden.text(text),
+	})
+	_overview.ToolTip = _Tooltips()
+	_overview.OverviewTab.get_info_modules = lambda _self, *, refresh=False: None  # type: ignore[method-assign]  # noqa: ARG005
+	_overview.OverviewTab.get_info_archives = lambda _self: None  # type: ignore[method-assign]
+
+	root = session.root
+	assert root is not None
+	checker = CMChecker(root, AppSettings())
+	# Processing events delivers <<NotebookTabChanged>> for the first tab, which loads it as at startup.
+	root.update()
+	if not checker.tabs[Tab.Overview].is_loaded:
+		msg = "the Overview tab didn't load"
+		raise RuntimeError(msg)
+
+	capture = capture_logs()
+	window = downgrader.Downgrader(root, checker)
+	root.update_idletasks()
+
+	def current(frame: Any) -> dict[str, Any]:
+		names = _grid_at(frame, 0, 0)
+		values = sorted(
+			(c for c in _grid_children(frame) if int(c.grid_info()["column"]) == 1),
+			key=lambda c: int(c.grid_info()["row"]),
+		)
+		return {
+			"title": str(frame.cget("text")),
+			"names": str(names.cget("text")),
+			"values": [{"text": str(v.cget("text")), "color": str(v.cget("foreground"))} for v in values],
+		}
+
+	frame_desired = _grid_at(window, 0, 1)
+	radios = [
+		{
+			"text": str(radio.cget("text")),
+			"selected": str(window.getvar(str(radio.cget("variable")))) == str(radio.cget("value")),
+		}
+		for radio in _grid_children(frame_desired)
+	]
+	frame_options = _grid_at(window, 2, 1)
+	options = [
+		{
+			"text": str(check.cget("text")),
+			"checked": bool(window.getvar(str(check.cget("variable")))),
+			"tooltip": tooltips.of(check),
+		}
+		for check in _grid_children(frame_options)
+	]
+	about = _grid_at(window, 2, 2)
+	before = len(opened)
+	about.invoke()
+	# The size the modal asks for in its wm_geometry: in record mode it is never mapped, so Tk would report 1x1.
+	width, height = window.width, window.height
+
+	return {
+		"downgrader": {
+			"gameInstallType": str(checker.game.install_type),
+			"versions": [{"file": name, "installType": str(t)} for name, t in window.current_versions.items()],
+			"crcsByType": {str(t): list(crcs) for t, crcs in downgrader.Downgrader.CRCs_by_type.items()},
+			"display": {
+				"title": window.wm_title(),
+				"width": width,
+				"height": height,
+				"game": current(window.frame_game),
+				"creationKit": current(window.frame_ck),
+				"desiredVersion": {"title": str(frame_desired.cget("text")), "radios": radios},
+				"options": {"title": str(frame_options.cget("text")), "checks": options},
+				"patch": {"text": str(window.button_patch.cget("text")), "enabled": not window.button_patch.instate(["disabled"])},
+				"about": {"text": str(about.cget("text")), "opens": opened[before] if len(opened) > before else None},
+				"log": _text_runs(window.logger._text),  # noqa: SLF001 - the pane's only widget
+				"progress": {"value": float(window.progress_var.get()), "maximum": float(window.progress_bar.cget("maximum"))},
+				"processingData": window.processing_data,
+				"logLines": log_lines_of(golden, capture.records, {"downgrader", "logger"}),
+			},
+		},
+	}
+
+
+def unordered_runs(golden: GoldenContext, items: list[Any], in_run: Callable[[Any], bool]) -> list[Any]:
+	"""``items`` with each run of consecutive items that ``in_run`` picks replaced by one unordered marker.
+
+	The Overview checks its enabled archives in set order (T-15), so the problems and log lines written in that loop
+	come in hash order, while everything around them is ordered.
+	"""
+	result: list[Any] = []
+	run: list[Any] = []
+	for item in [*items, None]:
+		if item is not None and in_run(item):
+			run.append(item)
+			continue
+		if run:
+			# Sorted, so a re-recording is byte-stable: the hash order changes with the temp root in every path.
+			result.append(golden.unordered(sorted(run, key=str)))
+			run = []
+		if item is not None:
+			result.append(item)
+	return result
+
+
+def _is_archive_problem(problem: dict[str, Any]) -> bool:
+	"""An ``Invalid Archive`` problem, which only the archive loop adds (OVW-P15..P18)."""
+	return problem["type"] == "Invalid Archive"
+
+
+def _is_archive_check(line: dict[str, Any]) -> bool:
+	"""The archive loop's per-archive log line."""
+	return line["message"].startswith("Archives: Checking ")
+
+
+@operation("overview-full")
+def overview_full(session: Session, golden: GoldenContext) -> dict[str, Any]:
+	"""OVW-M1..M10, OVW-A1..A6, OVW-C1, OVW-C2, OVW-P7..P18, T-2, T-3, T-8, T-15, B-7, B-15, B-17: the real ``CMChecker``
+	with its Overview tab loaded, nothing stubbed, then refreshed through its button.
+
+	``overview`` holds what the gathering left in ``GameInfo`` (modules, archives, counts, the Install Type) and the
+	problem list. Python sets come out as unordered arrays, and so do the archive loop's problems and log lines (T-15).
+	Its ``display`` is the Archives and Modules frames read off their widgets, including what the Archive Patcher
+	button and the HEDR info icon open (the real ``TreeWindow``, read back and closed), and the log lines. ``loaded`` is
+	false when the load raised (B-15, T-1): ``error`` is then the failure and ``display`` the loading label left up, and
+	there is nothing to refresh. The warnings shown are the golden's ``dialogs``, added by ``record.py``.
+	"""
+	from app_settings import AppSettings  # noqa: PLC0415
+	from cm_checker import CMChecker  # noqa: PLC0415
+	from enums import Tab  # noqa: PLC0415
+	from tabs import _overview  # noqa: PLC0415, PLC2701 - the module the patched names are used in
+
+	tooltips = _Tooltips()
+	opened: list[dict[str, Any]] = []
+	_overview.ToolTip = tooltips
+	_overview.ArchivePatcher = lambda *_a, **_k: opened.append({"window": "ArchivePatcher"})
+	real_tree_window = _overview.TreeWindow
+
+	def tree_window(*args: Any, **kwargs: Any) -> None:
+		window = real_tree_window(*args, **kwargs)
+		tree = window.tree_items
+		opened.append({
+			"window": "TreeWindow",
+			"width": window.width,
+			"height": window.height,
+			"title": str(window.wm_title()),
+			"text": window.win_text,
+			"headers": [str(tree.heading(f"#{c}", "text")) for c in range(len(window.headers))],
+			"rows": [[str(tree.item(i, "text")), *(str(v) for v in tree.item(i, "values"))] for i in tree.get_children()],
+		})
+		window.destroy()
+
+	_overview.TreeWindow = tree_window
+
+	root = session.root
+	assert root is not None
+	errors: list[BaseException] = []
+	# A tab load raises inside Tk's <<NotebookTabChanged>> callback; record it instead of printing it.
+	root.report_callback_exception = lambda _type, value, _tb: errors.append(value)  # type: ignore[method-assign]
+	checker = CMChecker(root, AppSettings())
+	tab = checker.tabs[Tab.Overview]
+	capture = capture_logs()
+	root.update()
+
+	def click(widget: Any) -> dict[str, Any] | None:
+		before = len(opened)
+		widget.event_generate("<Button-1>")
+		return opened[before] if len(opened) > before else None
+
+	def label(widget: Any) -> dict[str, Any]:
+		return {"text": str(widget.cget("text")), "color": str(widget.cget("foreground")), "tooltip": tooltips.of(widget)}
+
+	def counts(frame: Any, rows: list[int]) -> list[dict[str, Any]]:
+		return [{"row": row, **label(_grid_at(frame, row, 1))} for row in rows]
+
+	def button(frame: Any) -> dict[str, Any]:
+		widget = _grid_at(frame, frame.grid_size()[1] - 1, 0)
+		before = len(opened)
+		widget.invoke()
+		return {"text": str(widget.cget("text")), "opens": opened[before] if len(opened) > before else None}
+
+	def read_archives() -> dict[str, Any]:
+		frame = tab.frame_info_archives
+		return {
+			"title": str(frame.cget("text")),
+			"formats": label(_grid_at(frame, 0, 0)),
+			"unreadable": label(_grid_at(frame, 3, 0)),
+			"versions": label(_grid_at(frame, 5, 0)),
+			"counts": counts(frame, [0, 1, 2, 3, 5, 6]),
+			"limits": label(_grid_at(frame, 0, 2)),
+			"button": button(frame),
+		}
+
+	def read_modules() -> dict[str, Any]:
+		frame = tab.frame_info_modules
+		icon = _grid_at(frame, 7, 2)
+		return {
+			"title": str(frame.cget("text")),
+			"types": label(_grid_at(frame, 0, 0)),
+			"unreadable": label(_grid_at(frame, 3, 0)),
+			"hedr100": label(_grid_at(frame, 5, 0)),
+			"hedr95": label(_grid_at(frame, 6, 0)),
+			"hedrUnknown": label(_grid_at(frame, 7, 0)),
+			"counts": counts(frame, [0, 1, 2, 3, 5, 6, 7]),
+			"limits": label(_grid_at(frame, 0, 2)),
+			"hedrIcon": None if icon is None else {
+				"image": _image_path(checker, icon),
+				"tooltip": tooltips.of(icon),
+				"opens": click(icon),
+			},
+		}
+
+	def paths(values: Any) -> list[str | None]:
+		return [_path_text(golden, p) for p in values]
+
+	def state(first_record: int) -> dict[str, Any]:
+		game = checker.game
+		problems = [_overview_problem(golden, p) for p in checker.overview_problems]
+		log = log_lines_of(golden, capture.records[first_record:], _OVERVIEW_LOGGERS)
+		return {
+			"installType": str(game.install_type),
+			"modules": {
+				"enabled": paths(game.modules_enabled),
+				"unreadable": golden.unordered(sorted(paths(game.modules_unreadable))),
+				"hedr95": golden.unordered(sorted(paths(game.modules_hedr_95))),
+				"hedrUnknown": [{"module": _path_text(golden, k), "version": v} for k, v in game.modules_hedr_unknown.items()],
+				"full": game.module_count_full,
+				"light": game.module_count_light,
+				"hedr100": game.module_count_v1,
+			},
+			"archives": {
+				"enabled": golden.unordered(sorted(paths(game.archives_enabled))),
+				"unreadable": golden.unordered(sorted(paths(game.archives_unreadable))),
+				"oldGen": golden.unordered(sorted(paths(game.archives_og))),
+				"nextGen": golden.unordered(sorted(paths(game.archives_ng))),
+				"general": game.ba2_count_gnrl,
+				"texture": game.ba2_count_dx10,
+			},
+			"problems": unordered_runs(golden, problems, _is_archive_problem),
+			"display": {"log": unordered_runs(golden, log, _is_archive_check)},
+		}
+
+	if not tab.is_loaded:
+		(error,) = errors
+		failed = state(0)
+		failed["loaded"] = False
+		failed["error"] = _error(golden, error)  # type: ignore[arg-type]
+		failed["display"]["loadingLabel"] = {"text": tab.sv_loading_text.get(), "color": str(tab.label_loading.cget("foreground"))}
+		return {"overview": failed}
+
+	def read(first_record: int) -> dict[str, Any]:
+		result = state(first_record)
+		result["loaded"] = True
+		result["display"]["archives"] = read_archives()
+		result["display"]["modules"] = read_modules()
+		return result
+
+	loaded = read(0)
+	before_refresh = len(capture.records)
+	_grid_at(tab.pack_slaves()[0], 0, 3).invoke()
+	return {"overview": loaded, "refresh": read(before_refresh)}
+
+
 _F4SE_LOGGERS = {"helpers", "tabs._f4se"}
 
 # The F4SE tree's cell glyphs (tabs._f4se EMOJI_*), by the semantic verdict each shows. The OG/NG/AE cells show

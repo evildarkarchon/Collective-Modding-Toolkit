@@ -100,17 +100,29 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   redirect, which requests did.
 - The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
   its link tooltips are Avalonia's, not tktooltip's.
-- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/)): until the Archives and Modules
-  frames get their content (the next Overview slice), the three frames split the width differently from Tk's, so the
-  Binaries frame is wider and its content sits ~6 px further right. Tk lays out a Binaries frame narrower than its
-  content and overflows it; recheck the pair once the other frames are built. The Downgrade Manager and refresh
-  buttons' paddings were measured off the pair rather than derived from sv_ttk.
-- If an Overview refresh fails, its error is reported and the previous report and frames stay. The reference cleared
-  the problem list first and was left with a partial one.
+- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
+  built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
+  unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side
+  gutters. The Binaries names column still sits ~2 px right of Tk's (a ttk label's internal padding around its text).
+  The Downgrade Manager, Archive Patcher and refresh buttons' paddings were measured off the pairs rather than derived
+  from sv_ttk.
+- If an Overview load or refresh fails part-way (a missing `[Archive]` section, B-15; text that isn't UTF-8, T-1), the
+  error is reported and the report becomes what had been gathered, as the reference's shared state was left; a step
+  that never started keeps the previous report's part. The frames stay as they were. A failed load's warning boxes
+  appear after the Error Window rather than before the failure (error surfacing is outside parity, #18).
+- The Overview's enabled archives, like every Python set it keeps, are checked in insertion order, where Python's
+  order is the string hash's; only the order of the Invalid Archive problems and `Archives: Checking` log lines
+  depends on it (T-15), and the goldens compare those as unordered.
+- Downgrader (see [`parity/screenshots/downgrader/`](../parity/screenshots/downgrader/)): the frames, radios, checkboxes,
+  buttons and the log pane's box line up with Tk's. The log pane's emoji is Segoe UI Symbol's filled glyph in the
+  tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
+  scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
+  progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
+  pane's key handling (Ctrl+A/C only, T-13) is the Archive Patcher slice's.
 - F4SE tab (see [`parity/screenshots/f4se/`](../parity/screenshots/f4se/)): the tree, its headings and rows, the
   scrollbar column and the legend line up with Tk's to within a pixel. The glyphs fall back to Segoe UI Symbol, so
-  they take the row's colour as Tk's do, but they are its lighter shapes, not the heavier ones GDI draws (from Segoe
-  UI Emoji). The scrollbar's thumb is the app's Fluent one, filling the 12 px trough where sv_ttk's is a 6 px bar
-  with arrows, and with no rows to scroll it shows no thumb where sv_ttk's fills the trough. The legend wraps at
-  words, not characters (`wrap=CHAR`); no line of it is wide enough to wrap. Each plugin is unmapped once
-  inspected; the reference never freed its `WinDLL`s, so every plugin stayed locked against deletion until exit.
+  they take the row's colour as Tk's do, but in Symbol's shapes rather than the Segoe UI Emoji ones GDI draws. The
+  scrollbar's thumb is the app's Fluent one, filling the 12 px trough where sv_ttk's is a 6 px bar with arrows, and
+  with no rows to scroll it shows no thumb where sv_ttk's fills the trough. The legend wraps at words, not characters
+  (`wrap=CHAR`); no line of it is wide enough to wrap. Each plugin is unmapped once inspected; the reference never
+  freed its `WinDLL`s, so every plugin stayed locked against deletion until exit.

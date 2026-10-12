@@ -8,8 +8,8 @@ toolchain lands with the first slice that needs it:
 |---|---|
 | Version-resourced exe/dll stubs (C/`.rc`, MSVC): [`version-stubs/`](version-stubs/build.ps1), outputs in `version-stubs/out/<set>/` | Overview binaries |
 | Real-PE F4SE plugin DLLs (C, MSVC): [`f4se-plugins/`](f4se-plugins/build.ps1), one per export/version-struct variant plus a 32-bit one, outputs in `f4se-plugins/out/<arch>/` | F4SE |
-| CRC32-forged small files: the forger [`crc32-forge/forge_crc32.py`](crc32-forge/forge_crc32.py) landed early with the Overview binaries, for CRC-keyed binaries and the Down-Grade `Startup.ba2` | Downgrader window |
+| CRC32-forged small files: the forger [`crc32-forge/forge_crc32.py`](crc32-forge/forge_crc32.py) landed early with the Overview binaries, for CRC-keyed binaries and the Down-Grade `Startup.ba2`; [`crc32-forge/build_downgrader.py`](crc32-forge/build_downgrader.py) writes the Downgrader scenarios' installs to `crc32-forge/out/downgrader/<set>/` and a stand-in for every Downgrader table CRC to `out/downgrader/all/` | Downgrader window |
 | Self-made xdelta3 Delta Patches, served from a scenario's `http/` | Downgrader run |
-| ESP/ESM/BA2 header authoring script (output committed, so it isn't on the test path) | Overview modules/archives |
+| ESP/ESM/BA2 header authoring script [`plugin-headers/author_headers.py`](plugin-headers/author_headers.py): writes the headers (and the limit scenarios' long INI and `plugins.txt` lists) straight into the `overview/` scenario trees, where they are committed, so it isn't on the test path | Overview modules/archives |
 
 Scenarios copy the built outputs into their `tree/` (or `http/`); tests never build them.

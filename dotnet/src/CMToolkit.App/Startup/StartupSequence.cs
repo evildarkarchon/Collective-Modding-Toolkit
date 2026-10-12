@@ -53,6 +53,7 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
 
         var session = new AppSession(runtime, model, pc, game) { Host = host };
         var window = new MainWindow(runtime, MainTabs.Compose(session)) { DataContext = model };
+        session.MainWindow = window;
         await CheckForUpdatesAsync(window, session);
         return window;
     }

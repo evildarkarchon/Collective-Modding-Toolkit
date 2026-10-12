@@ -397,7 +397,7 @@ public sealed class F4seTab : TabPage
             Margin = new Thickness(7, 2, 0, 0),
         };
         about.Classes.Add("small");
-        about.Bind(TextBlock.ForegroundProperty, about.GetResourceObservable("CmtTextFg"));
+        about.Bind(TextBlock.ForegroundProperty, about.GetResourceObservable("SvFg"));
 
         var lines = AboutText.Split('\n');
         for (var line = 0; line < lines.Length; line++)
