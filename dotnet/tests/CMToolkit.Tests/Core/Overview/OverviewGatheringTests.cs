@@ -121,6 +121,46 @@ public sealed class OverviewGatheringTests
         Assert.DoesNotContain(partial.Problems, p => p.Kind is ProblemTypes.WrongVersion or "Limit Exceeded");
     }
 
+    [Fact]
+    [Trait("Parity", "OVW-C2"), Deviation(33, "Each enabled module is counted once, so the module limits are reached by distinct modules, not by one module listed many times.")]
+    public async Task Module_limits_count_distinct_modules_and_a_module_listed_again_once()
+    {
+        // overview/limits-exceeded reached the module limits by listing Full.esp and Light.esl thousands of times,
+        // which the reference counted each time (B-17). The port counts each module once (bug #33), so the limits
+        // are reached here with distinct modules, each also listed a second time.
+        using var machine = Scenario("overview/limits-exceeded");
+        var game = await Locate(machine);
+        var data = machine.PathOf(@"Game\Data");
+        var listed = new List<string> { "Full.esp", "Light.esl" };
+        for (var i = 0; i < 254; i++)
+        {
+            File.Copy(Path.Combine(data, "Full.esp"), Path.Combine(data, $"Full{i:D3}.esp"));
+            listed.Add($"Full{i:D3}.esp");
+        }
+
+        for (var i = 0; i < 4096; i++)
+        {
+            File.Copy(Path.Combine(data, "Light.esl"), Path.Combine(data, $"Light{i:D4}.esl"));
+            listed.Add($"Light{i:D4}.esl");
+        }
+
+        // Every module twice, the second time in other case: still one module each (T-8).
+        var lines = listed.Select(n => "*" + n).Concat(listed.Select(n => "*" + n.ToUpperInvariant()));
+        File.WriteAllLines(machine.PathOf(@"LocalAppData\Fallout4\plugins.txt"), lines);
+
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+
+        Assert.Equal(4352, report.Modules.Enabled.Count);
+        Assert.Equal(new LimitedCount(255, 254), report.FullModules);
+        Assert.Equal(new LimitedCount(4097, 4096), report.LightModules);
+        Assert.Equal(CountLevel.Exceeded, report.TotalModules.Level);
+        var full = Assert.Single(report.Problems, p => p.ItemText == "255 Full Modules");
+        Assert.Equal("Limit Exceeded", full.Kind);
+        Assert.Equal("You have 255 Full Modules enabled. The limit is 254.", full.Summary);
+        var light = Assert.Single(report.Problems, p => p.ItemText == "4097 Light Modules");
+        Assert.Equal("You have 4097 Light Modules enabled. The limit is 4096.", light.Summary);
+    }
+
     [Theory]
     [Trait("Parity", "OVW-C1")]
     [InlineData(242, 256, CountLevel.Good)]

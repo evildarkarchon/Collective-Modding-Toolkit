@@ -17,7 +17,9 @@ public sealed record UnknownHedrModule(PythonPath Module, double Version);
 /// </summary>
 /// <param name="Enabled">
 /// <c>modules_enabled</c>: the game masters, the CC modules, then plugins.txt's (or every module in Data), in that
-/// order and not de-duplicated, so a module listed twice is here, and counted, twice (B-17).
+/// order. The reference didn't de-duplicate it, so a CC module also in plugins.txt was listed, and counted, twice
+/// (B-17). The port keeps each module once, in first-listed order, compared regardless of case (T-8) as Python's
+/// <c>Path</c> equality does (deviation, bugs #33 and #90).
 /// </param>
 /// <param name="Unreadable"><c>modules_unreadable</c>, a set: one entry per module however often it is listed.</param>
 /// <param name="Hedr95"><c>modules_hedr_95</c>, a set.</param>
@@ -87,8 +89,11 @@ internal sealed class ModulesGathering(
     private int _light;
     private int _hedr100;
 
-    /// <summary><c>modules_enabled</c> as gathered so far; the archives read it next.</summary>
-    public List<PythonPath> Enabled { get; } = [];
+    // modules_enabled, de-duplicated (bugs #33, #90): the game loads a module once however often it is listed.
+    private readonly PathSet _enabled = new();
+
+    /// <summary><c>modules_enabled</c> as gathered so far, each module once; the archives read it next.</summary>
+    public IReadOnlyList<PythonPath> Enabled => _enabled.Items;
 
     /// <summary>What has been gathered so far, as a report part.</summary>
     public OverviewModules Snapshot()
@@ -113,13 +118,22 @@ internal sealed class ModulesGathering(
         }
 
         // exists(), not is_file(): a folder named like a master is listed, and then can't be read (OVW-M2).
-        Enabled.AddRange(GameMasters.Select(data.Join).Where(path => HostPaths.Exists(host, path)));
+        AddEnabled(GameMasters.Select(data.Join).Where(path => HostPaths.Exists(host, path)));
         AddCreationClub(data);
         AddPlugins(data);
 
         foreach (var module in Enabled)
         {
             Check(module);
+        }
+    }
+
+    /// <summary>Lists each module not already listed (deviation, bugs #33 and #90), keeping the first spelling.</summary>
+    private void AddEnabled(IEnumerable<PythonPath> modules)
+    {
+        foreach (var module in modules)
+        {
+            _enabled.Add(module);
         }
     }
 
@@ -135,7 +149,7 @@ internal sealed class ModulesGathering(
                 AddNotUtf8(ccc.Name, "CC modules on lines that aren't UTF-8 can't be detected.", SolutionTypes.VerifyFiles);
             }
 
-            Enabled.AddRange(PythonText.SplitLines(content)
+            AddEnabled(PythonText.SplitLines(content)
                 .Select(data.Join)
                 .Where(path => HostPaths.IsFile(host, path)));
             return;
@@ -181,7 +195,7 @@ internal sealed class ModulesGathering(
                 var path = data.Join(Path.GetFileName(entry));
                 if (ModuleSuffixes.Contains(path.Suffix.ToLowerInvariant()) && !current.Contains(path))
                 {
-                    Enabled.Add(path);
+                    _enabled.Add(path);
                 }
             }
 
@@ -196,7 +210,7 @@ internal sealed class ModulesGathering(
                 "Save plugins.txt as UTF-8, or have your mod manager write it again.");
         }
 
-        Enabled.AddRange(PythonText.SplitLines(content)
+        AddEnabled(PythonText.SplitLines(content)
             .Where(line => line.StartsWith('*'))
             .Select(line => data.Join(line[1..]))
             .Where(path => HostPaths.IsFile(host, path)));
