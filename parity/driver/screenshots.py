@@ -249,6 +249,7 @@ def run_and_capture(
 	panes: bool = False,
 	select: bool = False,
 	select_at: tuple[int, int] | None = None,
+	scan_all: bool = False,
 ) -> Image.Image:
 	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
 
@@ -257,7 +258,8 @@ def run_and_capture(
 	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
 	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself. With ``scan`` (on the Scanner tab), an
 	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes and Scan Game (``SCAN_CLICKS``),
-	otherwise the app runs it itself. With ``panes``, the app's other windows are pasted in place around the main one.
+	otherwise the app runs it itself; with ``scan_all`` too, every box stays ticked and only Scan Game is clicked.
+	With ``panes``, the app's other windows are pasted in place around the main one.
 	With ``select`` (after a scan), a result is selected so the details pane opens: ``click_tab`` clicks ``select_at``
 	in the main window's client pixels (a results row), otherwise the app selects it itself.
 	"""
@@ -289,7 +291,7 @@ def run_and_capture(
 				if side is None:
 					msg = f"{label} showed no Scanner side pane"
 					raise RuntimeError(msg)
-				for point in SCAN_CLICKS:
+				for point in SCAN_CLICKS[-1:] if scan_all else SCAN_CLICKS:
 					click(side, point)
 					time.sleep(0.2)
 			# Long enough for the reference's delayed scan and for either app to refresh the Overview and list results.
@@ -454,8 +456,10 @@ def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> 
 
 		def init_then_scan(self: Any, *args: Any, **kwargs: Any) -> None:
 			before_scan(self, *args, **kwargs)
-			# A second after the tab is selected: untick the data boxes, then press Scan Game, as --scan's clicks do.
-			self.root.after(3000, lambda: _scan_overview_issues(self))
+			# A second after the tab is selected: untick the data boxes, then press Scan Game, as --scan's clicks do
+			# (--scan-all: just press Scan Game).
+			scan = _scan_every_box if os.environ[SCAN_VARIABLE] == "all" else _scan_overview_issues
+			self.root.after(3000, lambda: scan(self))
 
 		cm_checker.CMChecker.__init__ = init_then_scan  # type: ignore[method-assign]
 	select = os.environ.get(SELECT_VARIABLE)
@@ -499,6 +503,13 @@ def _select_result(checker: Any, text: str) -> None:
 	checker.root.after(100, lambda: _select_result(checker, text))
 
 
+def _scan_every_box(checker: Any) -> None:
+	"""Presses Scan Game on the open side pane, every box still ticked as it starts (B-1)."""
+	from enums import Tab  # noqa: PLC0415
+
+	checker.tabs[Tab.Scanner].side_pane.button_scan.invoke()
+
+
 def _open_downgrader(checker: Any) -> None:
 	"""What the Overview's ``Downgrade Manager...`` button runs."""
 	from downgrader import Downgrader  # noqa: PLC0415
@@ -528,6 +539,7 @@ def main() -> int:
 	parser.add_argument("--tab", choices=list(TAB_CENTRES), help="the tab to select before capturing (default: Overview)")
 	parser.add_argument("--modal", choices=list(MODAL_BUTTONS), help="capture this modal, opened from the Overview, instead")
 	parser.add_argument("--scan", action="store_true", help="with --tab Scanner: run an Overview Issues scan first")
+	parser.add_argument("--scan-all", action="store_true", help="with --tab Scanner: run a scan with every box ticked first")
 	parser.add_argument("--panes", action="store_true", help="paste the app's other windows (the Scanner panes) in place")
 	parser.add_argument("--select", metavar="TEXT", help="with --scan: select the result with this item text (the reference)")
 	parser.add_argument(
@@ -554,8 +566,8 @@ def main() -> int:
 	env = {**os.environ, "PYTHONHASHSEED": "0"}
 	if args.modal is not None:
 		env[MODAL_VARIABLE] = args.modal
-	if args.scan:
-		env[SCAN_VARIABLE] = "1"
+	if args.scan or args.scan_all:
+		env[SCAN_VARIABLE] = "all" if args.scan_all else "1"
 	if args.select:
 		env[SELECT_VARIABLE] = args.select
 
@@ -577,7 +589,8 @@ def main() -> int:
 			allow_dpi=args.allow_dpi,
 			tab=args.tab,
 			modal=args.modal,
-			scan=args.scan,
+			scan=args.scan or args.scan_all,
+			scan_all=args.scan_all,
 			panes=args.panes,
 			select=bool(args.select),
 		)
@@ -603,7 +616,8 @@ def main() -> int:
 			tab=args.tab,
 			click_tab=True,
 			modal=args.modal,
-			scan=args.scan,
+			scan=args.scan or args.scan_all,
+			scan_all=args.scan_all,
 			panes=args.panes,
 			select=bool(args.select),
 			select_at=args.select_at,

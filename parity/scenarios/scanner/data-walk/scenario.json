@@ -1,0 +1,75 @@
+{
+  "description": "No mod manager, an Old-Gen game whose Data holds one case of every data check, scanned once with every box ticked and then with each box alone. Race Subgraphs: two enabled modules with 60 and 41 SADD records (101, over the threshold) and DLCCoast.esm, a folder, skipped as unreadable. The walk: Data's root files under the pseudo-root Data (junk, a DLL, archives with no, a bad, a foreign-language and a valid suffix, one enabled only by the INI, a whitelisted base-game name, a .vortex_backup skipped), then each top-level folder in NTFS order for the progress label: BodySlide and Meshes/Source and Scripts/Source pruned as skip dirs, fomod a junk folder, Interface and DLCCoast.esm pruned as not whitelisted, Vis loose previs, precombined (twice, at any depth) and AnimTextData under Meshes, wrong formats with and without a proper sibling (one found only by case), F4SE DLLs outside Plugins (and the PluginsExtra prefix quirk), and an F4SE script name in Scripts that never fires without a mod file index. The worker never queues the top-level folder tuple (bug #89), so every folder name is ignored and the scanning label stays on 'Building mod file index...' with the progress at 1 until the results replace them.",
+  "operation": "scanner-scan",
+  "parity": [
+    "SCN-S4",
+    "SCN-S5",
+    "SCN-C1",
+    "SCN-C2",
+    "SCN-C3",
+    "SCN-C4",
+    "SCN-C5",
+    "SCN-C6",
+    "SCN-C7",
+    "SCN-C8",
+    "SCN-C9"
+  ],
+  "emptyDirs": [
+    "Game/Data/DLCCoast.esm"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  }
+}

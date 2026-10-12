@@ -63,7 +63,6 @@ public sealed class ScanDetailsPaneScenarioTests
         {
             Host = machine.Host,
             OpenFolder = folder => started.Add(folder.Replace(machine.Root, MaterializedScenario.RootToken, StringComparison.Ordinal)),
-            Worker = s => RaceSubgraphs(machine.Host, state, s),
         };
         var window = new MainWindow(runtime, [overview, scanner]);
         window.Show();
@@ -153,64 +152,6 @@ public sealed class ScanDetailsPaneScenarioTests
 
         GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
         window.Close();
-    }
-
-    /// <summary>
-    /// Stands in for the data-walk slice's race subgraph count (SCN-S5, #58), which <see cref="ScanWorker.Run"/> doesn't
-    /// do yet: <c>00 53 41 44 44</c> counted across each enabled module, a problem when the total passes the threshold.
-    /// The details pane is what these scenarios test; the problem is only their input.
-    /// </summary>
-    private static ScanOutcome RaceSubgraphs(IHostEnvironment host, OverviewState state, ScanSettings settings)
-    {
-        if (!settings[ScanSetting.RaceSubgraphs])
-        {
-            return ScanOutcome.Empty;
-        }
-
-        byte[] sadd = [0x00, 0x53, 0x41, 0x44, 0x44];
-        var modules = new List<(int Count, PythonPath Module)>();
-        foreach (var module in state.Report!.Modules.Enabled)
-        {
-            byte[] bytes;
-            try
-            {
-                bytes = File.ReadAllBytes(Path.GetFullPath(module.ToString(), host.CurrentDirectory));
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                // read_bytes raising OSError: a missing module, or a folder named like one, is skipped.
-                continue;
-            }
-
-            var count = 0;
-            for (var at = bytes.AsSpan().IndexOf(sadd); at >= 0;)
-            {
-                count++;
-                var next = bytes.AsSpan(at + sadd.Length).IndexOf(sadd);
-                at = next < 0 ? -1 : at + sadd.Length + next;
-            }
-
-            if (count > 0)
-            {
-                modules.Add((count, module));
-            }
-        }
-
-        var total = modules.Sum(m => m.Count);
-        if (total <= ScanSettingTexts.RaceSubgraphThreshold)
-        {
-            return ScanOutcome.Empty;
-        }
-
-        var problem = Problem.Simple(
-            $"{total} SADD Records from {modules.Count} modules",
-            "Race Subgraph Record Count",
-            ScanSettingTexts.RaceSubgraphsInfo,
-            "IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.") with
-        {
-            FileList = modules,
-        };
-        return new ScanOutcome([problem], null);
     }
 
     /// <summary>The driver's sort key: (type, item text, relative path, mod).</summary>
