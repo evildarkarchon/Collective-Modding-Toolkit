@@ -76,5 +76,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 26,
+      "reason": "A HEDR version is matched to MODULE_VERSION_SUPPORT by value, so Legacy170.esp's problem names Skyrim LE, Skyrim VR and Skyrim SE as the games supporting v1.7."
+    }
+  ]
 }

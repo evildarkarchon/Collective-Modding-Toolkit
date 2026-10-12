@@ -1,0 +1,1135 @@
+{
+  "scanner": {
+    "columns": [],
+    "display": {
+      "during": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 1.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": false,
+          "text": "Scanning..."
+        },
+        "scanningLabel": "Refreshing Overview...",
+        "selectable": false,
+        "sidePane": true
+      },
+      "initial": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 0.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": false,
+        "sidePane": true
+      },
+      "left": {
+        "detailsPane": false,
+        "sidePane": false
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Refresh Tab : Overview"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: Fallout4 - Nvflex.ba2 | Problem: File Not Found"
+        },
+        {
+          "$unordered": [
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking BadMagic - main.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fallout4 - Interface.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fallout4 - Startup.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fallout4 - Textures1.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fallout4 - Textures2.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fo76 - main.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking NoHedr - textures.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Short - main.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Skyrim - voices_en.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Unofficial - main.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Unofficial - textures.ba2"
+            },
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking ccDup - main.ba2"
+            }
+          ]
+        },
+        {
+          "level": "DEBUG",
+          "message": "Settings : Saving settings.json"
+        }
+      ],
+      "rescan": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - Nvflex.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - Nvflex.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Nvidia Flex is enabled in your game INIs (bNVFlexEnable=1) but the Nvflex BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - Nvflex.ba2",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Fo76 - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Fo76 - main.ba2",
+                        "relativePath": "Fo76 - main.ba2",
+                        "solution": null,
+                        "summary": "Archive format (ABCD) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Fo76 - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Short - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Short - main.ba2",
+                        "relativePath": "Short - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Short - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Skyrim - voices_en.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Skyrim - voices_en.ba2",
+                        "relativePath": "Skyrim - voices_en.ba2",
+                        "solution": null,
+                        "summary": "Archive version (2) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Skyrim - voices_en.ba2",
+                      "values": []
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "dlcrobot.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\dlcrobot.esm",
+                    "relativePath": "dlcrobot.esm",
+                    "solution": null,
+                    "summary": "Failed to read module due to permissions or the file is missing.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "dlcrobot.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Short.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Short.esp",
+                    "relativePath": "Short.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Short.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Skyrim.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Skyrim.esp",
+                    "relativePath": "Skyrim.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Skyrim.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "SkyrimSE.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\SkyrimSE.esp",
+                    "relativePath": "SkyrimSE.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.71) is not valid for Fallout 4.\nGames supporting v1.71: Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "SkyrimSE.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Legacy170.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Legacy170.esp",
+                    "relativePath": "Legacy170.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Legacy170.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fo76.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Fo76.esm",
+                    "relativePath": "Fo76.esm",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (68.0) is not valid for Fallout 4.\nGames supporting v68.0: Fallout 76",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Fo76.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Zero.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Zero.esp",
+                    "relativePath": "Zero.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.0) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Zero.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Huge.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Huge.esp",
+                    "relativePath": "Huge.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.0000000200408773e+20) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Huge.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Unknown.esl",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Unknown.esl",
+                    "relativePath": "Unknown.esl",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Unknown.esl",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "cm-toolkit.exe",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "cm-toolkit.exe",
+                    "solution": "Your mod manager must launch the app to be detected.",
+                    "summary": "No Mod Manager Detected",
+                    "type": "No Mod Manager"
+                  },
+                  "text": "cm-toolkit.exe",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "No Mod Manager"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "16 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "sidePane": true
+      },
+      "rescanDuring": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 1.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": false,
+          "text": "Scanning..."
+        },
+        "scanningLabel": "Refreshing Overview...",
+        "selectable": false,
+        "sidePane": true
+      },
+      "results": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - Nvflex.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - Nvflex.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Nvidia Flex is enabled in your game INIs (bNVFlexEnable=1) but the Nvflex BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - Nvflex.ba2",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Fo76 - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Fo76 - main.ba2",
+                        "relativePath": "Fo76 - main.ba2",
+                        "solution": null,
+                        "summary": "Archive format (ABCD) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Fo76 - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Short - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Short - main.ba2",
+                        "relativePath": "Short - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Short - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Skyrim - voices_en.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Skyrim - voices_en.ba2",
+                        "relativePath": "Skyrim - voices_en.ba2",
+                        "solution": null,
+                        "summary": "Archive version (2) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Skyrim - voices_en.ba2",
+                      "values": []
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "dlcrobot.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\dlcrobot.esm",
+                    "relativePath": "dlcrobot.esm",
+                    "solution": null,
+                    "summary": "Failed to read module due to permissions or the file is missing.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "dlcrobot.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Short.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Short.esp",
+                    "relativePath": "Short.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Short.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Skyrim.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Skyrim.esp",
+                    "relativePath": "Skyrim.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Skyrim.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "SkyrimSE.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\SkyrimSE.esp",
+                    "relativePath": "SkyrimSE.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.71) is not valid for Fallout 4.\nGames supporting v1.71: Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "SkyrimSE.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Legacy170.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Legacy170.esp",
+                    "relativePath": "Legacy170.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Legacy170.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fo76.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Fo76.esm",
+                    "relativePath": "Fo76.esm",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (68.0) is not valid for Fallout 4.\nGames supporting v68.0: Fallout 76",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Fo76.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Zero.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Zero.esp",
+                    "relativePath": "Zero.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.0) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Zero.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Huge.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Huge.esp",
+                    "relativePath": "Huge.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.0000000200408773e+20) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Huge.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Unknown.esl",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Unknown.esl",
+                    "relativePath": "Unknown.esl",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Unknown.esl",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "cm-toolkit.exe",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "cm-toolkit.exe",
+                    "solution": "Your mod manager must launch the app to be detected.",
+                    "summary": "No Mod Manager Detected",
+                    "type": "No Mod Manager"
+                  },
+                  "text": "cm-toolkit.exe",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "No Mod Manager"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "16 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "sidePane": true
+      },
+      "returned": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - Nvflex.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - Nvflex.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Nvidia Flex is enabled in your game INIs (bNVFlexEnable=1) but the Nvflex BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - Nvflex.ba2",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Fo76 - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Fo76 - main.ba2",
+                        "relativePath": "Fo76 - main.ba2",
+                        "solution": null,
+                        "summary": "Archive format (ABCD) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Fo76 - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Short - main.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Short - main.ba2",
+                        "relativePath": "Short - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Short - main.ba2",
+                      "values": []
+                    },
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "Skyrim - voices_en.ba2",
+                        "mod": "",
+                        "path": "<ROOT>\\Game\\Data\\Skyrim - voices_en.ba2",
+                        "relativePath": "Skyrim - voices_en.ba2",
+                        "solution": null,
+                        "summary": "Archive version (2) is not valid for Fallout 4.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "Skyrim - voices_en.ba2",
+                      "values": []
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "dlcrobot.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\dlcrobot.esm",
+                    "relativePath": "dlcrobot.esm",
+                    "solution": null,
+                    "summary": "Failed to read module due to permissions or the file is missing.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "dlcrobot.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Short.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Short.esp",
+                    "relativePath": "Short.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Short.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Skyrim.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Skyrim.esp",
+                    "relativePath": "Skyrim.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Skyrim.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "SkyrimSE.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\SkyrimSE.esp",
+                    "relativePath": "SkyrimSE.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.71) is not valid for Fallout 4.\nGames supporting v1.71: Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "SkyrimSE.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Legacy170.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Legacy170.esp",
+                    "relativePath": "Legacy170.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Legacy170.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fo76.esm",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Fo76.esm",
+                    "relativePath": "Fo76.esm",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (68.0) is not valid for Fallout 4.\nGames supporting v68.0: Fallout 76",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Fo76.esm",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Zero.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Zero.esp",
+                    "relativePath": "Zero.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.0) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Zero.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Huge.esp",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Huge.esp",
+                    "relativePath": "Huge.esp",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (1.0000000200408773e+20) is not valid for Fallout 4.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Huge.esp",
+                  "values": []
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Unknown.esl",
+                    "mod": "",
+                    "path": "<ROOT>\\Game\\Data\\Unknown.esl",
+                    "relativePath": "Unknown.esl",
+                    "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+                    "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+                    "type": "Invalid Module"
+                  },
+                  "text": "Unknown.esl",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "cm-toolkit.exe",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "cm-toolkit.exe",
+                    "solution": "Your mod manager must launch the app to be detected.",
+                    "summary": "No Mod Manager Detected",
+                    "type": "No Mod Manager"
+                  },
+                  "text": "cm-toolkit.exe",
+                  "values": []
+                }
+              ],
+              "open": true,
+              "text": "No Mod Manager"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "16 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "selection": [],
+        "side": {
+          "checks": [
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Overview Issues",
+              "tooltip": "Report details of issues from Overview"
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Errors",
+              "tooltip": "Check for errors in mod configuration or files."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Wrong File Formats",
+              "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Loose Previs",
+              "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Junk Files",
+              "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Problem Overrides",
+              "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Race Subgraphs",
+              "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
+            }
+          ],
+          "scan": {
+            "enabled": true,
+            "style": "Accent.TButton",
+            "text": "Scan Game"
+          },
+          "title": "Scan Settings"
+        },
+        "sidePane": true
+      },
+      "selection": {
+        "group": false,
+        "item": true
+      },
+      "side": {
+        "checks": [
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Overview Issues",
+            "tooltip": "Report details of issues from Overview"
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Errors",
+            "tooltip": "Check for errors in mod configuration or files."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Wrong File Formats",
+            "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Loose Previs",
+            "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Junk Files",
+            "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Problem Overrides",
+            "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Race Subgraphs",
+            "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
+          }
+        ],
+        "scan": {
+          "enabled": true,
+          "style": "Accent.TButton",
+          "text": "Scan Game"
+        },
+        "title": "Scan Settings"
+      },
+      "toggles": [
+        {
+          "check": "Errors",
+          "scanEnabled": true
+        },
+        {
+          "check": "Wrong File Formats",
+          "scanEnabled": true
+        },
+        {
+          "check": "Loose Previs",
+          "scanEnabled": true
+        },
+        {
+          "check": "Junk Files",
+          "scanEnabled": true
+        },
+        {
+          "check": "Problem Overrides",
+          "scanEnabled": true
+        },
+        {
+          "check": "Race Subgraphs",
+          "scanEnabled": true
+        },
+        {
+          "check": "Overview Issues",
+          "scanEnabled": false
+        },
+        {
+          "check": "Overview Issues",
+          "scanEnabled": true
+        }
+      ]
+    },
+    "errors": 0,
+    "loaded": true,
+    "settingsAfter": {
+      "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": false,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": false,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
+    },
+    "settingsAfterRescan": null,
+    "settingsBefore": {
+      "text": "{\n\t\"log_level\": \"INFO\",\n\t\"update_source\": \"none\",\n\t\"scanner_OverviewIssues\": true,\n\t\"scanner_Errors\": true,\n\t\"scanner_WrongFormat\": true,\n\t\"scanner_LoosePrevis\": true,\n\t\"scanner_JunkFiles\": true,\n\t\"scanner_ProblemOverrides\": true,\n\t\"scanner_RaceSubgraphs\": true,\n\t\"downgrader_keep_backups\": true,\n\t\"downgrader_delete_deltas\": true\n}\n"
+    },
+    "usingStage": false
+  }
+}

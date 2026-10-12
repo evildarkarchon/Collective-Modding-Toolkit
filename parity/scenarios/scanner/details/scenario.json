@@ -71,6 +71,10 @@
     {
       "bug": 90,
       "reason": "Race Subgraphs counts each enabled module once, so ccDup.esm (in both Fallout4.ccc and plugins.txt) makes 105 SADD Records from 2 modules, listed once."
+    },
+    {
+      "bug": 26,
+      "reason": "A HEDR version is matched to MODULE_VERSION_SUPPORT by value, so Legacy170.esp's problem names Skyrim LE, Skyrim VR and Skyrim SE as the games supporting v1.7."
     }
   ]
 }

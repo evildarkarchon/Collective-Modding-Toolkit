@@ -61,8 +61,9 @@ internal sealed class ModulesGathering(
     ];
 
     /// <summary>
-    /// <c>MODULE_VERSION_SUPPORT</c> (<c>globals.py</c>), verbatim and in order: the HEDR versions each game accepts, as
-    /// the text <c>str(round(version, 2))</c> must equal. <c>1.70</c> can never match, since Python prints 1.7 (B-7).
+    /// <c>MODULE_VERSION_SUPPORT</c> (<c>globals.py</c>), verbatim and in order: the HEDR versions each game accepts. The
+    /// reference matched them as text against <c>str(round(version, 2))</c>, so <c>1.70</c> never matched, since Python
+    /// prints 1.7 (B-7). The port matches them by value (deviation, bug #26).
     /// </summary>
     private static readonly (string Game, string[] Versions)[] VersionSupport =
     [
@@ -281,12 +282,17 @@ internal sealed class ModulesGathering(
 
     /// <summary>
     /// An unsupported HEDR version: recorded against the module (a dict, so a module listed twice keeps its first place)
-    /// and reported, naming the games whose versions include its text (OVW-P12, T-3, B-7).
+    /// and reported, naming the games whose versions include its value (OVW-P12, T-3; by value since bug #26, B-7).
     /// </summary>
     private void AddUnknown(PythonPath module, double hedr)
     {
         var text = PythonFloat.Repr(hedr);
-        var games = VersionSupport.Where(s => s.Versions.Contains(text)).Select(s => s.Game).ToList();
+        // By value, not by text: "1.70" is 1.7 (bug #26). Both sides are the nearest double to a two-decimal number,
+        // so equal values compare exactly.
+        var games = VersionSupport
+            .Where(s => s.Versions.Any(v => double.Parse(v, System.Globalization.CultureInfo.InvariantCulture) == hedr))
+            .Select(s => s.Game)
+            .ToList();
         var validGames = games.Count > 0 ? $"\nGames supporting v{text}: " + string.Join(", ", games) : string.Empty;
         if (_hedrUnknownIndex.TryGetValue(module, out var index))
         {
