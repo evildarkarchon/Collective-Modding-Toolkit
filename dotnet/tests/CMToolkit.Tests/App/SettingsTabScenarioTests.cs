@@ -30,7 +30,7 @@ public sealed class SettingsTabScenarioTests
         // As in the driver, the load's own lines are the settings-load scenarios' business.
         var loaded = logger.Records.Count;
         var runtime = new AppRuntime(new CapturingLogger());
-        var window = TabHost.Show(runtime, new SettingsTab(store));
+        var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
 
         var frames = TabHost.Content(window).GetLogicalChildren().OfType<GroupBox>().ToList();
         var radios = frames.SelectMany(Radios).ToList();
@@ -55,6 +55,9 @@ public sealed class SettingsTabScenarioTests
         foreach (var radio in radios.Append(radios[^1]))
         {
             MouseClick.On(radio);
+            // The click's write is a blocking operation off the UI thread: the snapshot is taken once it has ended, as
+            // the driver's was once the Tk callback returned. The next click would be discarded while it runs.
+            DispatcherWait.Until(() => !runtime.Input.IsBlocking);
             var log = new JsonArray();
             foreach (var record in logger.Records.Skip(seen))
             {

@@ -24,6 +24,23 @@ public sealed class SettingsTabTests
 
     private static RadioButton Radio(MainWindow window, string text) => Radios(window).Single(r => (string)r.Content! == text);
 
+    /// <summary>The tab over unsaved default settings, shown.</summary>
+    private static MainWindow ShowDefaults()
+    {
+        var runtime = new AppRuntime(new CapturingLogger());
+        return TabHost.Show(runtime, new SettingsTab(runtime, SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub))));
+    }
+
+    /// <summary>
+    /// Clicks <paramref name="radio"/> and waits for the blocking operation that writes its save to end. A click made
+    /// while it runs would be discarded by the input block, as ADR-0003 discards input to the frozen UI.
+    /// </summary>
+    private static void ClickAndWaitForTheSave(AppRuntime runtime, RadioButton radio)
+    {
+        MouseClick.On(radio);
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
+    }
+
     [AvaloniaFact]
     [Trait("Parity", "SETT-2")]
     public void A_click_saves_at_once_but_the_log_level_only_changes_at_the_next_launch()
@@ -33,10 +50,11 @@ public sealed class SettingsTabTests
         using var log = LogFile.Open(Path.Combine(temp.Path, "cm-toolkit.log"));
         var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
         log.MinimumLevel = store.Current.LogLevel.ToLogLevel();
-        var window = TabHost.Show(new AppRuntime(log), new SettingsTab(store));
+        var runtime = new AppRuntime(log);
+        var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
 
-        MouseClick.On(Radio(window, "Debug"));
-        MouseClick.On(Radio(window, "Never: Don't Check"));
+        ClickAndWaitForTheSave(runtime, Radio(window, "Debug"));
+        ClickAndWaitForTheSave(runtime, Radio(window, "Never: Don't Check"));
 
         Assert.Contains("\"log_level\": \"DEBUG\"", File.ReadAllText(settingsPath), StringComparison.Ordinal);
         Assert.Contains("\"update_source\": \"none\"", File.ReadAllText(settingsPath), StringComparison.Ordinal);
@@ -46,15 +64,43 @@ public sealed class SettingsTabTests
     }
 
     [AvaloniaFact]
+    public void A_click_saves_off_the_ui_thread_in_a_blocking_operation()
+    {
+        // on_radio_change wrote the file on the Tk thread, so the click froze input until the write was done (ADR-0003).
+        using var temp = new TempDirectory();
+        var settingsPath = Path.Combine(temp.Path, "settings.json");
+        var log = new HeldSaveLogger();
+        var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
+        var runtime = new AppRuntime(new CapturingLogger());
+        var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
+        var before = File.ReadAllBytes(settingsPath);
+
+        log.Hold();
+        MouseClick.On(Radio(window, "Debug"));
+        DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
+
+        Assert.False(log.WritesOnUiThread[0]);
+        Assert.True(runtime.Input.IsBlocking);
+        Assert.Equal(before, File.ReadAllBytes(settingsPath));
+        // The settings in effect change at the click, so a click made before the write lands builds on this one.
+        Assert.Equal(SettingsLogLevel.Debug, store.Current.LogLevel);
+
+        log.Release();
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
+        Assert.Contains("\"log_level\": \"DEBUG\"", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "SETT-1")]
     public void The_radios_show_the_values_from_when_the_tab_was_constructed()
     {
         // The reference's StringVars were filled in SettingsTab.__init__, at startup, not when the tab is first shown.
         var store = SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub));
-        var tab = new SettingsTab(store);
+        var runtime = new AppRuntime(new CapturingLogger());
+        var tab = new SettingsTab(runtime, store);
         store.Save(store.Current with { UpdateSource = UpdateSource.None, LogLevel = SettingsLogLevel.Error });
 
-        var window = TabHost.Show(new AppRuntime(new CapturingLogger()), tab);
+        var window = TabHost.Show(runtime, tab);
 
         Assert.Equal(["Early: GitHub", "Info"], Radios(window).Where(r => r.IsChecked == true).Select(r => (string)r.Content!));
     }
@@ -65,10 +111,11 @@ public sealed class SettingsTabTests
     {
         // on_radio_change writes into the shared settings dict, so a Scanner save made earlier is kept.
         var store = SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub));
-        var window = TabHost.Show(new AppRuntime(new CapturingLogger()), new SettingsTab(store));
+        var runtime = new AppRuntime(new CapturingLogger());
+        var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
         store.Save(store.Current with { ScannerJunkFiles = false });
 
-        MouseClick.On(Radio(window, "Error"));
+        ClickAndWaitForTheSave(runtime, Radio(window, "Error"));
 
         Assert.False(store.Current.ScannerJunkFiles);
         Assert.Equal(SettingsLogLevel.Error, store.Current.LogLevel);
@@ -78,7 +125,7 @@ public sealed class SettingsTabTests
     [Trait("Parity", "SETT-1")]
     public void Radios_are_sized_and_placed_like_sv_ttk_radiobuttons()
     {
-        var window = TabHost.Show(new AppRuntime(new CapturingLogger()), new SettingsTab(SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub))));
+        var window = ShowDefaults();
         var frames = TabHost.Content(window).GetLogicalChildren().OfType<GroupBox>().ToList();
         var page = TabHost.Content(window);
 
@@ -100,7 +147,7 @@ public sealed class SettingsTabTests
     [Trait("Parity", "SETT-1")]
     public void A_selected_radio_is_a_green_disc_with_a_black_centre()
     {
-        var window = TabHost.Show(new AppRuntime(new CapturingLogger()), new SettingsTab(SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub))));
+        var window = ShowDefaults();
         var selected = Radio(window, "Info");
         var glyph = selected.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().Single(e => e.Name == "CheckGlyph");
         var indicator = selected.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().Single(e => e.Name == "Indicator");

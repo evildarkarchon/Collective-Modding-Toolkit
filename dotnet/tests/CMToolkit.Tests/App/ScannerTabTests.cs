@@ -64,6 +64,41 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
+    public void Scan_game_saves_the_changed_boxes_off_the_ui_thread_in_a_blocking_operation_before_the_worker()
+    {
+        // start_threaded_scan saved the boxes on the Tk thread, after the refresh and before it started the scan thread,
+        // so the save froze input as the refresh did (ADR-0003).
+        using var temp = new TempDirectory();
+        var settingsPath = Path.Combine(temp.Path, "settings.json");
+        var log = new HeldSaveLogger();
+        var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
+        var workerStarted = false;
+        using var app = ScannerApp.Start(
+            worker: s =>
+            {
+                workerStarted = true;
+                return ScanWorker.Run(s);
+            },
+            settingsStore: store);
+        var before = File.ReadAllBytes(settingsPath);
+        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
+
+        log.Hold();
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
+
+        Assert.False(log.WritesOnUiThread[0]);
+        Assert.True(app.Runtime.Input.IsBlocking);
+        Assert.Equal(before, File.ReadAllBytes(settingsPath));
+        Assert.False(workerStarted);
+
+        log.Release();
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
+        Assert.True(workerStarted);
+        Assert.Contains("\"scanner_JunkFiles\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "B-3")]
     [Trait("Parity", "THR-1")]
     [Deviation(22, "A worker that raises is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
@@ -261,7 +296,8 @@ public sealed class ScannerTabTests
         public static ScannerApp Start(
             Func<GameInstall, IHostEnvironment, ILogger, OverviewReport?, OverviewReport>? gatherer = null,
             Func<ScanSettings, ScanOutcome>? worker = null,
-            CMToolkit.Core.Settings.AppSettings? stored = null)
+            CMToolkit.Core.Settings.AppSettings? stored = null,
+            SettingsStore? settingsStore = null)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
@@ -274,7 +310,8 @@ public sealed class ScannerTabTests
                 OpenFolder = _ => { },
                 Gatherer = gatherer ?? OverviewReport.Gather,
             };
-            var settings = SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
+            var settings = settingsStore
+                ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
             var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ScanWorker.Run };
             var window = new MainWindow(runtime, [overview, scanner]);
             window.Show();

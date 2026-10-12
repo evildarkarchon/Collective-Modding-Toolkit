@@ -302,11 +302,22 @@ public sealed class ScannerTab : TabPage
             return;
         }
 
-        // SCN-S2: the snapshot, saving the boxes only when one differs from its stored value (SET-7).
+        // SCN-S2: the snapshot, saving the boxes only when one differs from its stored value (SET-7). The reference saved
+        // on the Tk thread before it started the scan thread, so the write is a blocking operation, awaited before the
+        // worker starts (ADR-0003).
         var settings = ScanSettings.Snapshot(side.Values, _game, _overview.Report, Host);
         if (settings.ChangedSettings(_settings.Current) is { } changed)
         {
-            _settings.Save(changed);
+            try
+            {
+                await _settings.SaveAsync(_runtime.Operations, changed);
+            }
+            catch (OperationFailedException)
+            {
+                // Already reported by the runner. A save that raised ended start_threaded_scan in Tk: the scan stops
+                // here with the button disabled, as after a refresh that died.
+                return;
+            }
         }
 
         // SCN-S3.

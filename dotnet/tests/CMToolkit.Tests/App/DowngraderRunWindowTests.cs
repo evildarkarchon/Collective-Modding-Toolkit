@@ -73,10 +73,40 @@ public sealed class DowngraderRunWindowTests
         main.Close();
     }
 
-    /// <summary>The app on the machine, its Downgrader opened from the Overview and set to Next-Gen.</summary>
-    private static (MainWindow Main, DowngraderWindow Window, AppRuntime Runtime) Open(MaterializedScenario machine, HttpMessageHandler http)
+    [AvaloniaFact]
+    public void Patch_all_saves_the_changed_boxes_off_the_ui_thread_in_its_blocking_operation()
     {
-        var (main, session) = DowngraderRunScenarioTests.Compose(machine, new CapturingLogger(), http);
+        // patch_files saved the boxes on the Tk thread before its loop, so the save froze input (ADR-0003).
+        using var machine = Machine.Materialize();
+        var log = new HeldSaveLogger();
+        var (main, window, runtime) = Open(machine, machine.CreateHttpHandler(), log);
+        var settingsPath = Path.Combine(machine.Root, "Cwd", "settings.json");
+        var before = File.ReadAllBytes(settingsPath);
+        MouseClick.On(ComposedSession.Named<CheckBox>(window, "KeepBackups"));
+
+        log.Hold();
+        MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
+        DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
+
+        Assert.False(log.WritesOnUiThread[0]);
+        Assert.True(runtime.Input.IsBlocking);
+        Assert.Equal(before, File.ReadAllBytes(settingsPath));
+
+        log.Release();
+        DispatcherWait.Until(() => !window.IsRunning);
+        Assert.Contains("\"downgrader_keep_backups\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+        window.Close();
+        main.Close();
+    }
+
+    /// <summary>
+    /// The app on the machine, its Downgrader opened from the Overview and set to Next-Gen; its settings store logs to
+    /// <paramref name="settingsLogger"/> if given.
+    /// </summary>
+    private static (MainWindow Main, DowngraderWindow Window, AppRuntime Runtime) Open(
+        MaterializedScenario machine, HttpMessageHandler http, Microsoft.Extensions.Logging.ILogger? settingsLogger = null)
+    {
+        var (main, session) = DowngraderRunScenarioTests.Compose(machine, new CapturingLogger(), http, settingsLogger);
         MouseClick.On(ComposedSession.Named<Button>(main, "DowngradeManager"));
         DispatcherWait.Until(() => main.OwnedWindows.OfType<DowngraderWindow>().Any(w => w.Versions is not null && w.Content is not null));
         var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
