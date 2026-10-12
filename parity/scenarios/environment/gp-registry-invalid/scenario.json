@@ -22,5 +22,11 @@
     "knownFolders": {
       "Documents": "<ROOT>\\Documents"
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 80,
+      "reason": "With no registry path naming a Fallout 4 folder, the port asks for the location as it does when none is set (the replay declines)."
+    }
+  ]
 }

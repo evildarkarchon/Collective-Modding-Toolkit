@@ -28,5 +28,11 @@
     "knownFolders": {
       "Documents": "<ROOT>\\Documents"
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 80,
+      "reason": "The port skips the Steam path that isn't a Fallout 4 folder and finds the game at the valid GOG path."
+    }
+  ]
 }
