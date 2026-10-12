@@ -210,6 +210,15 @@ OVW-A6
 TOOL-1
 LOG-1
 T-13
+
+# Scanner: details pane (#57)
+SCN-R4
+SCN-R5
+SCN-R6
+SCN-R7
+SCN-R8
+# THR-3: #55 proved the About tab's copy buttons; #57, its last claimant, the Scanner's Copy Details (scanner-details goldens).
+THR-3
 # Scanner: data walk, mod file index and race subgraphs (#58)
 SCN-S4
 SCN-S5

@@ -90,8 +90,10 @@ public static class ScanWorker
     /// </summary>
     private static void CountRaceSubgraphs(ScanSettings settings, ILogger logger, List<Problem> problems)
     {
-        var modules = new List<FileListEntry>();
+        var modules = new List<(int Count, PythonPath File)>();
         var total = 0;
+        // Bug #90, reproduced: a module listed twice in modules_enabled (in Fallout4.ccc and plugins.txt, #33) is read,
+        // totalled and listed twice (scanner/details). The fix counts each path once, in first-seen order.
         foreach (var module in settings.ModulesEnabled)
         {
             int count;
@@ -107,7 +109,7 @@ public static class ScanWorker
 
             if (count > 0)
             {
-                modules.Add(new FileListEntry(count, module));
+                modules.Add((count, module));
                 total += count;
             }
         }

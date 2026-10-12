@@ -20,6 +20,11 @@
     "reason": "Replaced, not ported (#56): the Scanner panes are borderless windows owned by the main window (OwnedPaneDocker), and Win32 hides owned windows when their owner is minimised and re-shows them on restore, so CMChecker.on_minimize/on_restore has no counterpart. dotnet/eng/Test-ScannerPanes.ps1 checks the panes are hidden on minimise and back in place on restore."
   },
   {
+    "id": "SCN-R8",
+    "proof": "exempt",
+    "reason": "Not ported (#57): autofixes.AUTO_FIXES is empty, so the details pane's Auto-Fix button, its Fixing.../Fixed!/Fix Failed states and the Auto-Fix Results window can never appear in the reference. The port has no autofix registry; the buttons column holds Copy Details and File List only."
+  },
+  {
     "id": "B-2",
     "proof": "exempt",
     "reason": "Not reproduced (#58, ADR-0003): the worker clearing thread_scan before enqueuing its problems is a nondeterministic thread race. The port's worker returns its problems to the scan, which drains the progress queue and only then lists the results, so the data-scan results are never dropped; the scanner-scan driver runs the worker inline, where the race cannot happen either."

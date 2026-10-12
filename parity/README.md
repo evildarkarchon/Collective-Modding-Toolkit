@@ -253,6 +253,9 @@ presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets poste
 pane. `--scan-all` scans with every box still ticked instead: only Scan Game is pressed (the last `SCAN_CLICKS`
 point on the exe). `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
 black, so the capture shows them in place.
+`--select TEXT --select-at X,Y` then selects a result so the details pane opens: the reference selects the item with
+that text in-process once the scan has listed it (told by `CMT_SCREENSHOT_SELECT`), the exe gets a posted click at
+`X,Y` in its main window's client pixels (the first result row is at about 100,112; rows are 21 px apart).
 
 Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
 `CMT_PARITY_ROOT` (its copy of the tree) set, and then runs on `ScenarioHostEnvironment`

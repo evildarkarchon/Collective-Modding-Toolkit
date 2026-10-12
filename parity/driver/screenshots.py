@@ -8,6 +8,8 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
     uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
     uv run python parity/driver/screenshots.py downgrader/og-steam --slice downgrader/og-steam --modal Downgrader
     uv run python parity/driver/screenshots.py scanner/overview-issues --slice scanner/results --tab Scanner --scan --panes
+    uv run python parity/driver/screenshots.py scanner/details --slice scanner/details --tab Scanner --scan --panes \
+        --select version-1-10-163-0.bin --select-at 100,154
 
 It writes ``parity/screenshots/<slice>/tk.png`` and ``avalonia.png`` (each window's outer rectangle, title bar included),
 ``compare.png`` (the two side by side plus a 50/50 blend), and one ``compare-<name>.png`` per ``--crop`` (the three
@@ -66,6 +68,8 @@ MODAL_BUTTONS = {
 MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
 # Tells the reference child to run an Overview Issues scan once the Scanner tab is up (``--scan``).
 SCAN_VARIABLE = "CMT_SCREENSHOT_SCAN"
+# Tells the reference child which Scanner result to select once the scan has listed it (``--select``).
+SELECT_VARIABLE = "CMT_SCREENSHOT_SELECT"
 # The C# Scanner side pane's title (PaneWindow), and where ``--scan`` clicks in its client pixels: the six data boxes
 # (Errors .. Race Subgraphs) to untick them, then Scan Game. Measured from parity/screenshots/scanner/side-pane.
 SIDE_PANE_TITLE = "Collective Modding Toolkit pane (Side)"
@@ -243,6 +247,8 @@ def run_and_capture(
 	modal: str | None = None,
 	scan: bool = False,
 	panes: bool = False,
+	select: bool = False,
+	select_at: tuple[int, int] | None = None,
 	scan_all: bool = False,
 ) -> Image.Image:
 	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
@@ -252,7 +258,10 @@ def run_and_capture(
 	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
 	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself. With ``scan`` (on the Scanner tab), an
 	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes and Scan Game (``SCAN_CLICKS``),
-	otherwise the app runs it itself; with ``scan_all`` too, every box stays ticked and only Scan Game is clicked. With ``panes``, the app's other windows are pasted in place around the main one.
+	otherwise the app runs it itself; with ``scan_all`` too, every box stays ticked and only Scan Game is clicked.
+	With ``panes``, the app's other windows are pasted in place around the main one.
+	With ``select`` (after a scan), a result is selected so the details pane opens: ``click_tab`` clicks ``select_at``
+	in the main window's client pixels (a results row), otherwise the app selects it itself.
 	"""
 	process = subprocess.Popen(command, cwd=cwd, env=env)
 	try:
@@ -287,6 +296,11 @@ def run_and_capture(
 					time.sleep(0.2)
 			# Long enough for the reference's delayed scan and for either app to refresh the Overview and list results.
 			time.sleep(4)
+		if select:
+			if click_tab and select_at is not None:
+				click(hwnd, select_at)
+			# Long enough for the reference's polled selection and for either app to open the details pane.
+			time.sleep(2)
 		if modal is not None:
 			if click_tab:
 				click(hwnd, MODAL_BUTTONS[modal])
@@ -448,6 +462,18 @@ def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> 
 			self.root.after(3000, lambda: scan(self))
 
 		cm_checker.CMChecker.__init__ = init_then_scan  # type: ignore[method-assign]
+	select = os.environ.get(SELECT_VARIABLE)
+	if select:
+		import cm_checker  # noqa: PLC0415
+
+		before_select = cm_checker.CMChecker.__init__
+
+		def init_then_select_result(self: Any, *args: Any, **kwargs: Any) -> None:
+			before_select(self, *args, **kwargs)
+			# Polled from when the scan starts, since the results are listed only once it is done.
+			self.root.after(3000, lambda: _select_result(self, select))
+
+		cm_checker.CMChecker.__init__ = init_then_select_result  # type: ignore[method-assign]
 	runpy.run_path(str(SRC / "main.py"), run_name="__main__")
 
 
@@ -460,6 +486,21 @@ def _scan_overview_issues(checker: Any) -> None:
 	for check in frame.pack_slaves()[1:]:
 		check.invoke()
 	side.button_scan.invoke()
+
+
+def _select_result(checker: Any, text: str) -> None:
+	"""Selects the Scanner result whose item text is ``text`` (opening the details pane), polling every 100 ms until
+	the scan has listed it. Selecting in-process stands in for a click, which a posted message can't give Tk.
+	"""
+	from enums import Tab  # noqa: PLC0415
+
+	tree = checker.tabs[Tab.Scanner].tree_results
+	for group in tree.get_children():
+		for item in tree.get_children(group):
+			if str(tree.item(item, "text")) == text:
+				tree.selection_set(item)
+				return
+	checker.root.after(100, lambda: _select_result(checker, text))
 
 
 def _scan_every_box(checker: Any) -> None:
@@ -500,6 +541,13 @@ def main() -> int:
 	parser.add_argument("--scan", action="store_true", help="with --tab Scanner: run an Overview Issues scan first")
 	parser.add_argument("--scan-all", action="store_true", help="with --tab Scanner: run a scan with every box ticked first")
 	parser.add_argument("--panes", action="store_true", help="paste the app's other windows (the Scanner panes) in place")
+	parser.add_argument("--select", metavar="TEXT", help="with --scan: select the result with this item text (the reference)")
+	parser.add_argument(
+		"--select-at",
+		type=lambda s: tuple(int(v) for v in s.split(",")),
+		metavar="X,Y",
+		help="with --select: where the C# app gets a click to select that result, in main-window client pixels",
+	)
 	parser.add_argument("--timeout", type=float, default=60, help="seconds to wait for each window")
 	parser.add_argument("--allow-dpi", action="store_true", help="capture even when the window isn't at 100 %% scaling")
 	args = parser.parse_args()
@@ -520,6 +568,8 @@ def main() -> int:
 		env[MODAL_VARIABLE] = args.modal
 	if args.scan or args.scan_all:
 		env[SCAN_VARIABLE] = "all" if args.scan_all else "1"
+	if args.select:
+		env[SELECT_VARIABLE] = args.select
 
 	tk_machine = materialize(scenario)
 	try:
@@ -540,8 +590,9 @@ def main() -> int:
 			tab=args.tab,
 			modal=args.modal,
 			scan=args.scan or args.scan_all,
-			panes=args.panes,
 			scan_all=args.scan_all,
+			panes=args.panes,
+			select=bool(args.select),
 		)
 	finally:
 		tk_machine.cleanup()
@@ -566,8 +617,10 @@ def main() -> int:
 			click_tab=True,
 			modal=args.modal,
 			scan=args.scan or args.scan_all,
-			panes=args.panes,
 			scan_all=args.scan_all,
+			panes=args.panes,
+			select=bool(args.select),
+			select_at=args.select_at,
 		)
 	finally:
 		av_machine.cleanup()

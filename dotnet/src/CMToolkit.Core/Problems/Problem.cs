@@ -39,10 +39,10 @@ public sealed record Problem(
     public ModSource ModSource { get; init; }
 
     /// <summary>
-    /// A simple problem's <c>file_list</c>: the files behind it with a count each, which the details pane's File List
-    /// button lists (SCN-R7); null for none. Only the Race Subgraphs problem has one (SCN-S5).
+    /// <c>file_list</c>: the counted files a simple problem lists in the details pane's File List window (SCN-R7), each
+    /// count with its file, in the order found; null for none. Only the race subgraph count (SCN-S5) makes one.
     /// </summary>
-    public IReadOnlyList<FileListEntry>? FileList { get; init; }
+    public IReadOnlyList<(int Count, PythonPath File)>? FileList { get; init; }
 
     /// <summary>
     /// <c>ProblemInfo(problem, path, relative_path, mod, summary, solution)</c>: a problem about a file.
