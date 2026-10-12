@@ -18,8 +18,21 @@ namespace CMToolkit.App.Startup;
 /// <param name="dialogs">The game path dialogs.</param>
 public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, LogFile log, IStartupDialogs dialogs)
 {
-    /// <summary>The settings file; the CWD-relative <see cref="WorkingDirectoryFiles.Settings"/> by default.</summary>
-    public string SettingsPath { get; init; } = WorkingDirectoryFiles.Settings;
+    private readonly string? _settingsPath;
+
+    /// <summary>
+    /// The app's own folder (<see cref="global::CMToolkit.App.AppFolder"/>), which holds <c>settings.json</c> and the
+    /// Downgrader's patches (<see cref="AppSession.AppFolder"/>). The exe's folder by default; the reference used the
+    /// working directory (bug #36, fixed as a Deviation, ADR-0006).
+    /// </summary>
+    public string AppFolder { get; init; } = AppContext.BaseDirectory;
+
+    /// <summary>The settings file: <c>settings.json</c> in <see cref="AppFolder"/> unless set.</summary>
+    public string SettingsPath
+    {
+        get => _settingsPath ?? AppFolderFiles.Settings(AppFolder);
+        init => _settingsPath = value;
+    }
 
     /// <summary>
     /// The update check (UPD-1, SHELL-5): awaited after the main window is built and before it is shown, so a banner it
@@ -57,7 +70,7 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
             return null;
         }
 
-        var session = new AppSession(runtime, model, pc, game) { Host = host, DeltaPatchHttp = DeltaPatchHttp };
+        var session = new AppSession(runtime, model, pc, game) { Host = host, AppFolder = AppFolder, DeltaPatchHttp = DeltaPatchHttp };
         var window = new MainWindow(runtime, MainTabs.Compose(session)) { DataContext = model };
         session.MainWindow = window;
         await CheckForUpdatesAsync(window, session);

@@ -30,7 +30,7 @@ public static class AppStartup
     /// <summary>
     /// Opens the log and writes its three start lines, the first thing <c>main.py</c> did (SHELL-1).
     /// </summary>
-    /// <param name="path">The log file; the App passes the CWD-relative <see cref="WorkingDirectoryFiles.Log"/>.</param>
+    /// <param name="path">The log file; the App passes <see cref="AppFolderFiles.Log"/> of its own folder (bug #36, fixed).</param>
     /// <param name="now">The local time for the start lines.</param>
     /// <returns>The open log, filtering at INFO until settings load (SHELL-2).</returns>
     /// <exception cref="IOException">The log can't be opened.</exception>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using CMToolkit.Core;
 using CMToolkit.Core.Win32;
+using CMToolkit.Tests.Parity;
 
 namespace CMToolkit.Tests.Core.EnvironmentDetection;
 
@@ -90,15 +91,17 @@ public sealed class ProcessTreeTests
     }
 
     /// <summary>
-    /// Bug #79, reproduced: psutil's <c>Process(os.getppid())</c> raises <c>NoSuchProcess</c> for a parent that has
-    /// exited, and the reference doesn't catch it, so startup fails.
+    /// Bug #79, fixed (ADR-0006): psutil's <c>Process(os.getppid())</c> raises <c>NoSuchProcess</c> for a parent that
+    /// has exited, and the reference doesn't catch it, so its startup fails. The port treats the first step like every
+    /// later one, as psutil's <c>parent()</c> does: a parent that is gone ends the walk, here with no ancestors at all.
     /// </summary>
     [Fact]
-    public void A_parent_that_has_exited_fails_like_the_reference()
+    [Deviation(79, "A launching process that has already exited ends the ancestor walk with no ancestors instead of failing startup.")]
+    public void A_parent_that_has_exited_leaves_no_ancestors()
     {
         var processes = Snapshot(new ProcessEntry(10, 20, "cm-toolkit.exe"));
 
-        Assert.Throws<InvalidOperationException>(() => ProcessTree.Walk(processes, 10, 8, _ => null, ExeByPid));
+        Assert.Empty(ProcessTree.Walk(processes, 10, 8, _ => null, ExeByPid));
     }
 
     /// <summary>

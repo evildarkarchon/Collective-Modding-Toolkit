@@ -54,7 +54,7 @@ public static class SettingsFile
     /// unreadable or not a JSON object (SET-4: everything resets), or when any key was added, dropped or reset (SET-5).
     /// A valid value is kept; an invalid one keeps its default. Never throws.
     /// </summary>
-    /// <param name="path">The settings file; the App passes the CWD-relative <see cref="WorkingDirectoryFiles.Settings"/>.</param>
+    /// <param name="path">The settings file; the App passes <see cref="AppFolderFiles.Settings"/> of its own folder (bug #36, fixed).</param>
     /// <param name="downloadSource">The archive's Download Source, which seeds the default <c>update_source</c>.</param>
     /// <param name="logger">Receives the <c>Settings : …</c> lines, at the reference's levels.</param>
     /// <returns>The settings in effect.</returns>

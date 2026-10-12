@@ -29,7 +29,7 @@ public sealed class SettingsStore
     /// Loads <paramref name="path"/> (SET-1, SET-3..SET-6), which may resave it, and keeps it as the file
     /// <see cref="Save"/> writes. Never throws.
     /// </summary>
-    /// <param name="path">The settings file; startup passes the CWD-relative <see cref="WorkingDirectoryFiles.Settings"/>.</param>
+    /// <param name="path">The settings file; startup passes <see cref="AppFolderFiles.Settings"/> of the app folder (bug #36, fixed).</param>
     /// <param name="downloadSource">Seeds the default <c>update_source</c>.</param>
     /// <param name="logger">The app log.</param>
     public static SettingsStore Load(string path, DownloadSource downloadSource, ILogger logger)

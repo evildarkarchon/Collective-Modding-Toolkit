@@ -54,7 +54,7 @@ public sealed class DowngraderRun
     private volatile bool _inProgress;
 
     /// <param name="game">The installation whose game folder holds the six files.</param>
-    /// <param name="host">The machine: its working directory is where patches are saved and looked for.</param>
+    /// <param name="host">The machine: its working directory is where patches are saved and looked for unless <see cref="PatchFolder"/> is set.</param>
     /// <param name="http">
     /// Where patches are downloaded through: <see cref="DeltaPatches.CreateHandler"/> in the app, a fake in tests. Null
     /// makes every download fail, as a network error would.
@@ -74,6 +74,14 @@ public sealed class DowngraderRun
     /// click only adds to a queue nothing works through.
     /// </summary>
     public bool InProgress => _inProgress;
+
+    /// <summary>
+    /// The folder patches are saved to and looked for in (DG-6). The App sets the app's own folder
+    /// (<see cref="AppFolderFiles.DeltaPatch"/>): the reference used the working directory, which scattered patches
+    /// wherever the app was started from (bug #36, fixed as a Deviation, ADR-0006). Null keeps the reference's working
+    /// directory (<see cref="IHostEnvironment.CurrentDirectory"/>), which only tests rely on.
+    /// </summary>
+    public string? PatchFolder { get; init; }
 
     /// <summary>
     /// <c>patch_files</c>, one Patch All click, after the App has disabled the button, cleared the log pane and saved
@@ -266,7 +274,7 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// <c>check_download_queue</c>: works through the queue until it starts a download or empties. A patch already in
-    /// the working directory is applied at once, unvalidated (B-10); otherwise its download starts on a worker thread.
+    /// the patch folder (<see cref="PatchFolder"/>) is applied at once, unvalidated (B-10); otherwise its download starts on a worker thread.
     /// An empty queue runs the "finished" step.
     /// </summary>
     /// <returns>The download it started, which the caller polls; null when the queue emptied.</returns>
@@ -384,7 +392,7 @@ public sealed class DowngraderRun
     }
 
     /// <summary>
-    /// <c>_threaded_download</c>: streams the patch to the working directory in 1 KiB chunks, queueing each chunk's
+    /// <c>_threaded_download</c>: streams the patch to the patch folder in 1 KiB chunks, queueing each chunk's
     /// progress for the poll, then 100. Nothing is checked (B-10): an error page is saved as the patch, a failed request
     /// or read ends the download with what it wrote so far, and a response without a <c>Content-Length</c> fails on its
     /// first chunk, as Python's division by zero did, after writing it.
@@ -447,9 +455,14 @@ public sealed class DowngraderRun
         }
     }
 
-    /// <summary>Where a queued patch is saved and looked for: its URL's last segment, in the working directory.</summary>
+    /// <summary>
+    /// Where a queued patch is saved and looked for: its URL's last segment, in <see cref="PatchFolder"/>, or in the
+    /// host's working directory when that is null.
+    /// </summary>
     private string PatchFile(QueuedPatch patch)
-        => HostPaths.Resolve(_host, new PythonPath(WorkingDirectoryFiles.DeltaPatch(patch.Url)));
+        => PatchFolder is { } folder
+            ? AppFolderFiles.DeltaPatch(folder, patch.Url)
+            : HostPaths.Resolve(_host, new PythonPath(Path.GetFileName(patch.Url)));
 
     /// <summary><c>Path.unlink()</c>: unlike <see cref="File.Delete"/>, a missing file is an error.</summary>
     /// <exception cref="FileNotFoundException">The file doesn't exist.</exception>

@@ -49,7 +49,7 @@ public sealed partial class LogFile : ILogger, IDisposable
     /// <summary>
     /// Opens (or creates) the log for appending, as <c>logging.basicConfig</c> did at the top of <c>main.py</c>.
     /// </summary>
-    /// <param name="path">The log file; the App passes the CWD-relative <see cref="WorkingDirectoryFiles.Log"/>.</param>
+    /// <param name="path">The log file; the App passes <see cref="AppFolderFiles.Log"/> of its own folder (bug #36, fixed).</param>
     /// <exception cref="IOException">The file can't be opened, for example in a read-only folder.</exception>
     /// <exception cref="UnauthorizedAccessException">Access to the file or folder is denied.</exception>
     /// <remarks>

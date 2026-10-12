@@ -44,6 +44,14 @@ public sealed class ScenarioHostEnvironment : IHostEnvironment
     public string Root { get; }
 
     /// <summary>
+    /// Whether <see cref="ScenarioVariable"/> and <see cref="RootVariable"/> are both set, so the exe runs on a
+    /// scenario's machine. Reads only the variables, so it never throws.
+    /// </summary>
+    public static bool IsRequested
+        => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(ScenarioVariable))
+           && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(RootVariable));
+
+    /// <summary>
     /// The host named by <see cref="ScenarioVariable"/> and <see cref="RootVariable"/>, or null when they aren't both set.
     /// </summary>
     /// <exception cref="IOException">The scenario file can't be read.</exception>

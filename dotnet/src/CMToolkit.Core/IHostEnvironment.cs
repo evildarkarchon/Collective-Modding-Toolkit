@@ -45,12 +45,10 @@ public interface IHostEnvironment
     /// <summary>
     /// The running process's ancestors, nearest first: the parent, its parent, and so on, at most
     /// <paramref name="maxCount"/> of them (MM-1). The walk stops early where psutil's <c>parent()</c> would return
-    /// <see langword="None"/>: a parent that has exited, or a PID reused by a process younger than its child.
+    /// <see langword="None"/>: a parent that has exited, or a PID reused by a process younger than its child. A direct
+    /// parent that has exited gives no ancestors at all. The reference's <c>Process(os.getppid())</c> raised
+    /// <c>NoSuchProcess</c> then, uncaught, and startup failed (bug #79, fixed as a Deviation, ADR-0006).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The direct parent has exited. psutil's <c>Process(os.getppid())</c> raises <c>NoSuchProcess</c> then, which the
-    /// reference doesn't catch.
-    /// </exception>
     IReadOnlyList<AncestorProcess> GetAncestorProcesses(int maxCount);
 
     /// <summary>

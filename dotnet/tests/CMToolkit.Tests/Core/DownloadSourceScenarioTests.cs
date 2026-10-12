@@ -1,6 +1,8 @@
 using System.Text.Json.Nodes;
+using CMToolkit.App.Runtime;
 using CMToolkit.Core;
 using CMToolkit.Tests.Parity;
+using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core;
 
@@ -19,15 +21,31 @@ public sealed class DownloadSourceScenarioTests
         using var machine = scenario.Materialize();
 
         var lookup = DownloadSourceFile.Read(machine.Host.AppDirectory);
+        var logger = new RecordingLogger();
+        DownloadSourceFile.LogOutcome(lookup, logger);
 
-        // The log lines under "display" are the logging slice's to compare; Core returns the outcome they come from.
-        GoldenAssert.Matches(scenario.LoadGolden(), Project(lookup), GoldenCompareMode.Semantic);
+        // Full, so the log lines under "display" are compared too: Core writes them. The recorded lines are the
+        // reference's own; only where they end up differs (bug #77, fixed: the port's reach cm-toolkit.log).
+        GoldenAssert.Matches(scenario.LoadGolden(), Project(lookup, logger), GoldenCompareMode.Full);
     }
 
-    private static JsonObject Project(DownloadSourceLookup lookup) => new()
+    private static JsonObject Project(DownloadSourceLookup lookup, RecordingLogger logger) => new()
     {
         ["downloadSource"] = new JsonObject
         {
+            ["display"] = new JsonObject
+            {
+                ["log"] = new JsonArray([.. logger.Records.Select(record =>
+                {
+                    var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
+                    if (record.Exception is not null)
+                    {
+                        line["exception"] = true;
+                    }
+
+                    return (JsonNode)line;
+                })]),
+            },
             ["source"] = lookup.Source switch
             {
                 DownloadSource.Nexus => "nexus",

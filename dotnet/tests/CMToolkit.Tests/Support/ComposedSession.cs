@@ -27,7 +27,13 @@ public sealed class ComposedSession : IDisposable
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
         var runtime = new AppRuntime(Logger);
         var model = new MainWindowViewModel(new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null));
-        Session = new AppSession(runtime, model, PcInfo.Read(machine.Host, Logger), game) { Host = machine.Host };
+        // The app folder is the scenario's working directory, where its tree keeps the reference's files, so nothing a
+        // test does lands beside the test assembly (the default, the exe's folder, bug #36).
+        Session = new AppSession(runtime, model, PcInfo.Read(machine.Host, Logger), game)
+        {
+            Host = machine.Host,
+            AppFolder = machine.Host.Expand(machine.Host.Block.Cwd ?? MaterializedScenario.RootToken),
+        };
         Window = new MainWindow(runtime, MainTabs.Compose(Session)) { DataContext = model };
         Session.MainWindow = Window;
         Window.Show();

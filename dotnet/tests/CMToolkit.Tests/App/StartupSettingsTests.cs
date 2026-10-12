@@ -3,6 +3,7 @@ using CMToolkit.App.Runtime;
 using CMToolkit.App.ViewModels;
 using CMToolkit.Core;
 using CMToolkit.Core.Settings;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 using Microsoft.Extensions.Logging;
 
@@ -63,7 +64,8 @@ public sealed class StartupSettingsTests
         }
 
         // The DEBUG lines of the load itself ("is correct type", "Saving") were filtered at INFO; the ones after it
-        // pass at DEBUG. The SET-2 Download Source line is absent, as it was from the reference's log (issue #77).
+        // pass at DEBUG. The SET-2 Download Source line is a DEBUG line of the load too, so it is filtered at INFO with
+        // them (it reaches the log at all only since bug #77 was fixed, ADR-0006).
         Assert.Equal(
             "INFO : ----------------------------------------------\r\n"
             + "INFO : Starting Collective Modding Toolkit v0.6.2-dev\r\n"
@@ -102,7 +104,8 @@ public sealed class StartupSettingsTests
     [Fact]
     [Trait("Parity", "SET-2")]
     [Trait("Parity", "SHELL-1")]
-    public void An_invalid_download_source_leaves_no_line_in_the_log_as_in_the_reference()
+    [Deviation(77, "The Download Source lookup is logged to cm-toolkit.log after the start lines, filtered at INFO like the settings load.")]
+    public void An_invalid_download_source_is_logged_before_the_settings_load()
     {
         using var dir = new TempDirectory();
         dir.WriteBytes(Path.Combine("App", "assets", "download-source.txt"), "bogus"u8.ToArray());
@@ -116,10 +119,37 @@ public sealed class StartupSettingsTests
             Assert.Equal(UpdateSource.Nexus, vm.Settings.Current.UpdateSource);
         }
 
-        // Bug #77: the reference logged it before logging was configured, so it never reached the file.
-        var text = File.ReadAllText(logPath);
-        Assert.DoesNotContain("download source", text, StringComparison.OrdinalIgnoreCase);
-        Assert.EndsWith("INFO : Settings : settings.json not found; using defaults.\r\n", text, StringComparison.Ordinal);
+        // Bug #77, fixed (ADR-0006): the reference logged it before logging was configured, so it never reached the
+        // file. The port logs it once the log is open, in main.py's order: after the start lines, before the settings.
+        var lines = File.ReadAllLines(logPath);
+        Assert.Equal(
+            ["ERROR : Settings : Invalid download source: 'bogus'", "INFO : Settings : settings.json not found; using defaults."],
+            lines[3..]);
+    }
+
+    [Fact]
+    [Trait("Parity", "SET-2")]
+    [Trait("Parity", "SHELL-1")]
+    [Deviation(77, "The Download Source lookup is logged to cm-toolkit.log after the start lines, filtered at INFO like the settings load.")]
+    public void An_unreadable_download_source_is_logged_with_its_exception()
+    {
+        using var dir = new TempDirectory();
+        // No assets\download-source.txt at all: the read fails.
+        Directory.CreateDirectory(Path.Combine(dir.Path, "App"));
+        var settingsPath = Path.Combine(dir.Path, "settings.json");
+        var logPath = Path.Combine(dir.Path, "cm-toolkit.log");
+
+        using (var log = AppStartup.OpenLog(logPath, DateTime.Now))
+        {
+            var vm = MainWindowViewModel.Load(new AppDirectoryHost(Path.Combine(dir.Path, "App")), log, settingsPath);
+            Assert.Equal(DownloadSourceOutcome.ReadFailed, vm.DownloadSource.Outcome);
+        }
+
+        var lines = File.ReadAllLines(logPath);
+        Assert.Equal("ERROR : Settings : Failed to detect download source.", lines[3]);
+        // logger.exception: the exception's text follows the line.
+        Assert.Contains(nameof(DirectoryNotFoundException), lines[4], StringComparison.Ordinal);
+        Assert.Equal("INFO : Settings : settings.json not found; using defaults.", lines[^1]);
     }
 
     [Fact]

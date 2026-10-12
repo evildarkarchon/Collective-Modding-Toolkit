@@ -41,13 +41,13 @@ public static class ModManagerDetection
 
     /// <summary>
     /// The first of up to <see cref="MaxAncestors"/> ancestors whose image name is exactly <c>ModOrganizer.exe</c> or
-    /// <c>Vortex.exe</c> (case-sensitive, extension included), or null when none is. No manager is a valid state.
+    /// <c>Vortex.exe</c> (case-sensitive, extension included), or null when none is. No manager is a valid state, and is
+    /// also what a launching process that has already exited gives (bug #79, fixed: the reference failed startup).
     /// </summary>
     /// <exception cref="UnauthorizedAccessException">
     /// The matching process's exe path can't be read. The reference's <c>proc.exe()</c> raises <c>AccessDenied</c>
     /// there, uncaught, so startup fails (SHELL-13). Issue #35 measured it readable at both elevations.
     /// </exception>
-    /// <exception cref="InvalidOperationException">The parent process has exited (<see cref="IHostEnvironment.GetAncestorProcesses"/>).</exception>
     public static ModManager? Find(IHostEnvironment host)
     {
         foreach (var process in host.GetAncestorProcesses(MaxAncestors))

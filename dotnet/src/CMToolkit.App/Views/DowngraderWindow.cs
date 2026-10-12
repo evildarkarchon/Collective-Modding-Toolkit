@@ -74,6 +74,7 @@ public sealed class DowngraderWindow : ModalWindow
     private readonly SettingsStore _settings;
     private readonly Func<Task<bool>> _refreshOverview;
     private readonly HttpMessageHandler? _deltaPatchHttp;
+    private readonly string? _patchFolder;
     private readonly IProgress<OperationEvent> _events;
 
     /// <summary>The six version labels in table order (the game's three, then the Creation Kit's), and their colour bindings.</summary>
@@ -105,6 +106,10 @@ public sealed class DowngraderWindow : ModalWindow
     /// By default there is no Overview to refresh, and it succeeds.
     /// </param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
+    /// <param name="patchFolder">
+    /// Where patches are saved: the app's own folder (<see cref="AppSession.AppFolder"/>, bug #36, fixed). None keeps
+    /// the reference's working directory (<see cref="DowngraderRun.PatchFolder"/>).
+    /// </param>
     public DowngraderWindow(
         AppRuntime runtime,
         GameInstall game,
@@ -112,7 +117,8 @@ public sealed class DowngraderWindow : ModalWindow
         OverviewState overview,
         SettingsStore settings,
         Func<Task<bool>>? refreshOverview = null,
-        HttpMessageHandler? deltaPatchHttp = null)
+        HttpMessageHandler? deltaPatchHttp = null,
+        string? patchFolder = null)
         : base(runtime, "Downgrader", 600, 334)
     {
         _game = game;
@@ -121,6 +127,7 @@ public sealed class DowngraderWindow : ModalWindow
         _settings = settings;
         _refreshOverview = refreshOverview ?? (() => Task.FromResult(true));
         _deltaPatchHttp = deltaPatchHttp;
+        _patchFolder = patchFolder;
         _events = new UiThreadProgress<OperationEvent>(Apply);
     }
 
@@ -135,7 +142,8 @@ public sealed class DowngraderWindow : ModalWindow
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
             // click handler that called it has nothing left to do.
             _ = new DowngraderWindow(
-                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp)
+                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp,
+                session.AppFolder)
                 .OpenAsync(owner);
         }
     }
@@ -175,7 +183,7 @@ public sealed class DowngraderWindow : ModalWindow
             return;
         }
 
-        _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions);
+        _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions) { PatchFolder = _patchFolder };
         Content = Build(Versions);
     }
 

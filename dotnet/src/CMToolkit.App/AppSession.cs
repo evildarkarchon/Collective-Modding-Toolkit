@@ -23,6 +23,13 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     public IHostEnvironment Host { get; init; } = SystemHostEnvironment.Instance;
 
     /// <summary>
+    /// The app's own folder (<see cref="global::CMToolkit.App.AppFolder"/>), where the Downgrader saves and looks for
+    /// Delta Patches. The exe's folder by default; the reference used the working directory (bug #36, fixed as a
+    /// Deviation, ADR-0006).
+    /// </summary>
+    public string AppFolder { get; init; } = AppContext.BaseDirectory;
+
+    /// <summary>
     /// The current Overview report (the reference's <c>cmc.game</c> Overview state and <c>cmc.overview_problems</c>),
     /// which the Overview tab sets and the F4SE, Scanner and Downgrader read.
     /// </summary>

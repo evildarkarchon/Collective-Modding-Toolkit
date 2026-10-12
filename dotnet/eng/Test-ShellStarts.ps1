@@ -90,19 +90,26 @@ public static class CmtSmokeWin32 {
 '@
 
 $exePath = (Resolve-Path -LiteralPath $Exe).ProviderPath
-# Start from a scratch working directory: settings.json and cm-toolkit.log are CWD-relative, so a run from the
-# publish folder would leave files beside the exe, and the exe-folder lookup of download-source.txt must not depend
-# on the working directory anyway.
+# Start from a scratch working directory, which a scenario run keeps its tree in, and which proves the exe-folder
+# lookups (download-source.txt; settings.json, cm-toolkit.log and patches since bug #36 was fixed) don't depend on it.
 $workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cmt-smoke-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $workDir | Out-Null
 $startDir = $workDir
 # The real machine's own question when it has no Fallout 4; never accepted on a scenario's machine.
 $notFoundTitle = if ($Scenario) { $null } else { 'Fallout 4 Not Found' }
 if (-not $Scenario) {
+    # On the real machine the app keeps settings.json and its log beside the exe (bug #36, fixed), so run a copy of
+    # the publish folder: the run then never writes into the published output. Symbols are left behind (the native
+    # libraries' are over 100 MB) since nothing reads them at run time.
+    $appDir = Join-Path $workDir 'app'
+    New-Item -ItemType Directory -Path $appDir | Out-Null
+    Get-ChildItem -LiteralPath (Split-Path -Parent $exePath) -Exclude '*.pdb' | Copy-Item -Recurse -Destination $appDir
+    $exePath = Join-Path $appDir (Split-Path -Leaf $exePath)
     # The update check runs before the main window shows (UPD-1). A smoke test must not reach the network, so the
-    # real-machine run turns it off; the missing settings keys get their defaults. A scenario run serves its own
-    # canned http/ responses (ScenarioHttpHandler) and fails on any request it has none for.
-    Set-Content -LiteralPath (Join-Path $workDir 'settings.json') -Value '{"update_source": "none"}' -Encoding utf8NoBOM
+    # real-machine run turns it off; the missing settings keys get their defaults. A scenario run keeps its settings in
+    # its working directory and serves its own canned http/ responses (ScenarioHttpHandler), failing on any request it
+    # has none for.
+    Set-Content -LiteralPath (Join-Path $appDir 'settings.json') -Value '{"update_source": "none"}' -Encoding utf8NoBOM
 }
 
 if ($Scenario) {

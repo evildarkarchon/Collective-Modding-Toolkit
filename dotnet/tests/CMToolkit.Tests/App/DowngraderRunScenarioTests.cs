@@ -138,7 +138,7 @@ public sealed class DowngraderRunScenarioTests
                     ["thread"] = reports.Count(r => r.Contains(ErrorReporter.OperationHeader("Downgrader download"), StringComparison.Ordinal)),
                 },
                 ["files"] = Snapshot(machine, "Game", "Cwd"),
-                ["settings"] = FileText(Path.Combine(machine.Root, "Cwd", WorkingDirectoryFiles.Settings)),
+                ["settings"] = FileText(Path.Combine(machine.Root, "Cwd", AppFolderFiles.SettingsFileName)),
             },
         };
         if (http.Requests.Count > 0)
@@ -167,11 +167,19 @@ public sealed class DowngraderRunScenarioTests
         // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), WorkingDirectoryFiles.Settings);
+        var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var runtime = new AppRuntime(logger);
         var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, logger);
         var model = new MainWindowViewModel(new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null), settings);
-        var session = new AppSession(runtime, model, PcInfo.Read(machine.Host, logger), game) { Host = machine.Host, DeltaPatchHttp = http };
+        // The app folder is the scenario's working directory: its tree models a toolkit started from its own folder,
+        // where the reference kept settings.json and the patches. The port's folder-not-CWD fix (bug #36) is proved by
+        // DowngraderRunTests and AppFolderFilesTests, so these goldens stay the reference's.
+        var session = new AppSession(runtime, model, PcInfo.Read(machine.Host, logger), game)
+        {
+            Host = machine.Host,
+            AppFolder = machine.Host.Expand(machine.Host.Block.Cwd!),
+            DeltaPatchHttp = http,
+        };
         var main = new MainWindow(runtime, MainTabs.Compose(session)) { DataContext = model };
         session.MainWindow = main;
         main.Show();

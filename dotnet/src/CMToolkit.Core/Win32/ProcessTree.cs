@@ -17,24 +17,27 @@ public sealed record ProcessEntry(int ProcessId, int ParentProcessId, string Nam
 /// </summary>
 public static class ProcessTree
 {
-    /// <summary>The ancestors of this process, nearest first, at most <paramref name="maxCount"/>.</summary>
-    /// <exception cref="InvalidOperationException">This process's parent has exited (see <see cref="Walk"/>).</exception>
+    /// <summary>
+    /// The ancestors of this process, nearest first, at most <paramref name="maxCount"/>; none when its parent has
+    /// already exited (see <see cref="Walk"/>).
+    /// </summary>
     /// <exception cref="System.ComponentModel.Win32Exception">The process snapshot couldn't be taken.</exception>
     public static IReadOnlyList<AncestorProcess> Ancestors(int maxCount)
         => Walk(Snapshot(), Environment.ProcessId, maxCount, CreationTime, ExePath);
 
     /// <summary>
-    /// psutil's walk over a process snapshot. The first step, <c>Process(os.getppid())</c>, raises
-    /// <c>NoSuchProcess</c> when the parent has exited, and the reference doesn't catch it, so neither does this: the
-    /// caller fails as the reference's startup does (issue #79). Each later step is psutil's <c>parent()</c>, which
-    /// stops at PID 0, at a parent that has exited, and at a parent created after its child (the parent PID was reused).
+    /// psutil's walk over a process snapshot. The first step is <c>Process(os.getppid())</c>; each later step is
+    /// psutil's <c>parent()</c>, which stops at PID 0, at a parent that has exited, and at a parent created after its
+    /// child (the parent PID was reused). In the reference the first step raised <c>NoSuchProcess</c> when the parent
+    /// had exited, uncaught, so startup failed (bug #79); the port returns no ancestors instead (ADR-0006).
     /// </summary>
     /// <param name="processes">The snapshot, by PID.</param>
     /// <param name="selfId">The PID whose ancestors to walk.</param>
     /// <param name="maxCount">The most ancestors to return.</param>
     /// <param name="creationTime">A PID's creation time as a FILETIME, or null when it can't be read (then the reuse check passes).</param>
     /// <param name="exePath">A PID's exe path, or null when it can't be read.</param>
-    /// <exception cref="InvalidOperationException">The parent of <paramref name="selfId"/> isn't in the snapshot.</exception>
+    /// <returns>The ancestors, nearest first; empty when the parent of <paramref name="selfId"/> isn't in the snapshot.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="selfId"/> itself isn't in the snapshot.</exception>
     public static IReadOnlyList<AncestorProcess> Walk(
         IReadOnlyDictionary<int, ProcessEntry> processes,
         int selfId,
@@ -47,7 +50,9 @@ public static class ProcessTree
             : throw new InvalidOperationException($"Process {selfId} isn't in the process snapshot.");
         if (!processes.TryGetValue(parentId, out var current))
         {
-            throw new InvalidOperationException($"The parent process (pid={parentId}) has exited.");
+            // Bug #79, fixed (ADR-0006): the reference's Process(os.getppid()) raised NoSuchProcess here and startup
+            // died. A launcher that has already exited can't be a mod manager, so the walk just finds nothing.
+            return [];
         }
 
         var ancestors = new List<AncestorProcess>();
