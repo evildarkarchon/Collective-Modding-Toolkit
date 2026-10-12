@@ -220,18 +220,26 @@ public sealed record OverviewReport(
     /// f4se_steam_loader.dll; anything else is the wrong version.
     /// </summary>
     /// <remarks>
-    /// Deviation (bug #84, B-13): the reference matched <c>case self.cmc.game.install_type</c> first, so with no
-    /// Fallout4.exe (the game <c>Not Found</c>) every missing binary equalled the game and was green with no problem. A
-    /// <c>Not Found</c> binary never matches the game here, so each missing one is judged as missing.
+    /// Deviations (bugs #84 and #30, B-13): the reference matched <c>case self.cmc.game.install_type</c> first, so with
+    /// no Fallout4.exe (the game <c>Not Found</c>) every missing binary equalled the game and was green with no
+    /// problem, and with an <c>Unknown</c> Fallout4.exe every <c>Unknown</c> binary was green with no problem. Neither
+    /// type ever matches the game here: a missing binary is judged as missing, and an unknown one is the wrong version.
     /// </remarks>
     private static (BinaryStatus Status, Problem? Problem) Judge(BinaryFile file, InstallType game)
     {
         // file_info[name]["File"] or Path(name): a missing file's problem names it without a folder.
         var path = file.File ?? new PythonPath(file.Name);
         var relative = new PythonPath(path.Name);
-        if (file.InstallType == game && game != InstallType.NotFound)
+        if (file.InstallType == game && game is not (InstallType.NotFound or InstallType.Unknown))
         {
             return (BinaryStatus.Good, null);
+        }
+
+        // An unknown Fallout4.exe is already the Unknown Game Version problem; "does not match your installed game
+        // version" would say nothing about the game's own exe (bug #30).
+        if (file.Name == "Fallout4.exe" && file.InstallType == InstallType.Unknown)
+        {
+            return (BinaryStatus.Bad, null);
         }
 
         switch (file.InstallType)
