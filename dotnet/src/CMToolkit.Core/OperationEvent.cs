@@ -30,3 +30,10 @@ public abstract record OperationEvent;
 /// <param name="Text">The text after the emoji.</param>
 /// <param name="WriteToLogFile">False for the reference's <c>skip_logging=True</c>.</param>
 public sealed record LogLine(LogType Type, string Text, bool WriteToLogFile = true) : OperationEvent;
+
+/// <summary>
+/// Where the operation's progress bar now stands, out of 100: the Downgrader's <c>progress_var.set(value)</c>, set
+/// directly or from the download's progress queue at each 100 ms poll.
+/// </summary>
+/// <param name="Value">The bar's new value, 0 to 100 (a download's <c>downloaded / content-length * 100</c>).</param>
+public sealed record Percent(double Value) : OperationEvent;
