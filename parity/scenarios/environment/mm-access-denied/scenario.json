@@ -1,0 +1,20 @@
+{
+  "description": "ModOrganizer.exe whose exe path can't be read: psutil raises AccessDenied out of find_mod_manager, which is fatal at startup.",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

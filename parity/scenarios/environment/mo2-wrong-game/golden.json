@@ -1,0 +1,11 @@
+{
+  "error": {
+    "kind": "value",
+    "message": "Only Fallout 4 is supported.\ngameName is 'Skyrim Special Edition' in INI: \n<ROOT>\\MO2\\ModOrganizer.ini"
+  },
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  }
+}

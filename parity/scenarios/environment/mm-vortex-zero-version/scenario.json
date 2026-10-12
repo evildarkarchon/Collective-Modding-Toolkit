@@ -1,0 +1,21 @@
+{
+  "description": "An all-zero version resource gives 0.0.0, the same as no version resource (T-4).",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "Vortex.exe",
+        "exe": "<ROOT>/Vortex/Vortex.exe",
+        "fileVersion": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}

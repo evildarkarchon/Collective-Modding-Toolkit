@@ -1,0 +1,41 @@
+{
+  "description": "Names match exactly: modorganizer.exe and ModOrganizer (no .exe) are passed over, and Vortex.exe further up wins.",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "modorganizer.exe",
+        "exe": "<ROOT>/MO2/modorganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "ModOrganizer",
+        "exe": "<ROOT>/MO2/ModOrganizer",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "Vortex.exe",
+        "exe": "<ROOT>/Vortex/Vortex.exe",
+        "fileVersion": [
+          1,
+          12,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}

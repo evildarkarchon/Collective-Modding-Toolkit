@@ -1,0 +1,11 @@
+{
+  "error": {
+    "kind": "fileNotFound",
+    "message": "portable.txt found but no ModOrganizer.ini found in MO2 install path"
+  },
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "pc": {
+    "cpu": "Intel Genuine Quad 0000 @ 2.40GHz",
+    "display": {
+      "log": []
+    },
+    "gpu": "Intel(R) UHD Graphics 770",
+    "os": "Windows 11 ",
+    "ram": 4,
+    "usingWine": false,
+    "vram": 2
+  }
+}

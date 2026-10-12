@@ -1,0 +1,31 @@
+{
+  "description": "CurrentInstance is set but LOCALAPPDATA isn't, and there is no portable INI: the fallback's 'Unable to find' error.",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-2",
+    "MO2-3",
+    "MO2-8"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ],
+    "registry": {
+      "HKCU\\Software\\Mod Organizer Team\\Mod Organizer": {
+        "CurrentInstance": {
+          "type": "REG_SZ",
+          "value": "Fallout 4"
+        }
+      }
+    }
+  }
+}

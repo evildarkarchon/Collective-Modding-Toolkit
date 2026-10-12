@@ -1,0 +1,46 @@
+{
+  "description": "A build missing from the release table leaves a trailing space after the release (T-6). The CPU contains Intel but doesn't start with it, so it is rewritten; RAM and VRAM are exact .5 GiB midpoints that round to even upwards.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-2",
+    "PC-3",
+    "PC-4",
+    "PC-5",
+    "T-6",
+    "T-11"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "Genuine Intel(R) Quad-Core CPU 0000 @ 2.40GHz @ 3.0GHz"
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "Intel(R) UHD Graphics 770"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 1610612736
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 27000
+    },
+    "pc": {
+      "ramBytes": 3758096384
+    }
+  }
+}

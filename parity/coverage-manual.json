@@ -8,5 +8,10 @@
     "id": "LOG-3",
     "proof": "exempt",
     "reason": "Not ported, by design (#48): the Downgrader's progress chatter goes to print(), whose stdout is None in the windowed exe, so it was never visible or logged. The port writes no such lines."
+  },
+  {
+    "id": "MO2-10",
+    "proof": "exempt",
+    "reason": "Dead code (inventory section 14): read_mo2_ini collects [customExecutables] xEdit/BSArch paths into ModManagerInfo.executables, and nothing reads them. Environment (#49) skips the section's lines instead; the mo2-instance scenario shows a gamePath inside it is ignored."
   }
 ]

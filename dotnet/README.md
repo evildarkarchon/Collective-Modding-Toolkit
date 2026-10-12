@@ -65,3 +65,7 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   escapes them. A traceback is .NET's `Exception.ToString()`, not Python's (not part of Behaviour Parity).
 - `settings.json` nested more than 1000 arrays/objects deep is treated as unparseable (reset); Python's limit is its
   C-stack guard, which depends on the machine.
+- MO2's `skip_*` values are lowercased with `ToLowerInvariant`. Python's `str.lower()` differs for U+0130 (`İ` becomes
+  two characters) and a word-final capital sigma (`ς`); no scenario covers them.
+- `platform.release()` and the build come from `RtlGetVersion` (version and product type), where Python asks WMI. They
+  report the same numbers; a machine whose WMI is broken makes Python fall back to `ver`, which isn't reproduced.

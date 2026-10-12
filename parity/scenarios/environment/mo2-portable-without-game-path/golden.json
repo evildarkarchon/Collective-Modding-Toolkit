@@ -1,0 +1,91 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  },
+  "mo2": {
+    "gamePath": null,
+    "iniPath": "<ROOT>\\MO2\\ModOrganizer.ini",
+    "overwritePath": "X:\\MO2 Data\\overwrite",
+    "portable": true,
+    "portableTxtPath": "<ROOT>\\MO2\\portable.txt",
+    "profilesPath": "X:\\MO2 Data\\profiles",
+    "selectedProfile": "Survival",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "X:\\MO2 Data"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "X:\\MO2 Data\\webcache"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "X:\\MO2 Data\\downloads"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "X:\\MO2 Data\\mods"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "X:\\MO2 Data\\overwrite"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": false
+      },
+      {
+        "key": "profile_local_saves",
+        "value": false
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "X:\\MO2 Data\\profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": [
+          "('.mohidden'",
+          ")"
+        ]
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "set()"
+        ]
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": "Survival"
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        "set()"
+      ]
+    },
+    "skipFileSuffixes": [
+      "('.mohidden'",
+      ")"
+    ],
+    "stagePath": "X:\\MO2 Data\\mods"
+  }
+}

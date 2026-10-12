@@ -1,0 +1,44 @@
+{
+  "description": "Windows 11 24H2 with an Intel CPU whose name needs the Gen/(R)/(TM)/CPU/@ clean-up, and a GPU whose adapter string has trailing spaces.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-2",
+    "PC-3",
+    "PC-4",
+    "PC-5"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz"
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 3070  "
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 8589934592
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 68719476736
+    }
+  }
+}
