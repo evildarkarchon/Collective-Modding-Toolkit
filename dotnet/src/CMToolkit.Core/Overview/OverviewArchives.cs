@@ -55,7 +55,6 @@ internal sealed class ArchivesGathering(
     /// The INIs have no <c>[Archive]</c> section: <c>Archive section missing from INIs</c>, which fails the Overview
     /// (OVW-A2, B-15).
     /// </exception>
-    /// <exception cref="System.Text.DecoderFallbackException">An archive's format bytes aren't UTF-8 (OVW-A4, T-1, bug #86).</exception>
     public void Run()
     {
         logger.Write(LogLevel.Debug, "Gathering Info: Archives");
@@ -177,12 +176,13 @@ internal sealed class ArchivesGathering(
         }
         else
         {
-            // The reference adds it to the unreadable set before it formats the problem text, whose decode can raise.
+            // The reference decoded the format strictly, so bytes that aren't UTF-8 raised and failed the Overview
+            // (T-1). The port replaces them with U+FFFD, as errors="replace" would (deviation, bug #86).
             _unreadable.Add(archive);
             problems.Add(Problem.ForOverviewFile(
                 ProblemTypes.InvalidArchive,
                 archive,
-                $"Archive format ({HeaderFiles.StrictUtf8.GetString(format)}) is not valid for Fallout 4.",
+                $"Archive format ({HeaderFiles.LenientUtf8.GetString(format)}) is not valid for Fallout 4.",
                 null));
             return;
         }

@@ -10,7 +10,8 @@ namespace CMToolkit.Tests.Core.Overview;
 /// <summary>
 /// What the <c>overview-full</c> scenarios can't record: files another process holds open without sharing them, which
 /// Python's <c>open</c> reports as <c>PermissionError</c> (OVW-P10, OVW-P15); a refresh that dies part-way, which keeps
-/// the previous report's later parts; and the count colours on every limit's boundaries (OVW-C1).
+/// the previous report's later parts; and the count colours on every limit's boundaries (OVW-C1). Also the port's fixes
+/// for files that aren't UTF-8 (bug #86), which the reference failed on.
 /// </summary>
 public sealed class OverviewGatheringTests
 {
@@ -43,28 +44,79 @@ public sealed class OverviewGatheringTests
     }
 
     [Fact]
-    [Trait("Parity", "OVW-A4")]
-    public async Task A_refresh_that_dies_in_the_archives_carries_what_it_had_gathered()
+    [Trait("Parity", "OVW-A4"), Deviation(86, "Format bytes that aren't UTF-8 are shown with replacement characters in the Invalid Archive problem, and the refresh completes.")]
+    public async Task A_refresh_after_an_archive_format_stops_being_utf8_reports_it_as_invalid()
     {
         using var machine = Scenario("overview/modules-archives-mixed");
         var game = await Locate(machine);
         var loaded = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
 
-        // The format bytes of an enabled archive stop being UTF-8, so formatting its problem raises (T-1).
+        // The format bytes of an enabled archive stop being UTF-8. The reference's strict decode of them for the
+        // problem text raised (T-1, bug #86); the port replaces each bad byte, as errors="replace" would.
         var archive = machine.PathOf(@"Game\Data\Fo76 - Main.ba2");
         var bytes = File.ReadAllBytes(archive);
         bytes.AsSpan(8, 4).Fill(0xFF);
         File.WriteAllBytes(archive, bytes);
 
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger(), loaded);
+
+        Assert.Equal(loaded.Modules.Enabled.Count, report.Modules.Enabled.Count);
+        Assert.Contains(report.Archives.Unreadable, p => IsFo76(p.Name));
+        var problem = Assert.Single(report.Problems, p => IsFo76(p.ItemText));
+        Assert.Equal(ProblemTypes.InvalidArchive, problem.Kind);
+        Assert.Equal("Archive format (����) is not valid for Fallout 4.", problem.Summary);
+        // The archives step ran to the end: every enabled archive was checked again.
+        Assert.Equal(loaded.Archives.Enabled.Count, report.Archives.Enabled.Count);
+    }
+
+    [Fact]
+    [Trait("Parity", "OVW-M4"), Deviation(86, "A Fallout4.ccc or plugins.txt that isn't UTF-8 is reported as an Unexpected Format problem and its UTF-8 lines are still read, instead of failing the Overview.")]
+    public async Task A_cc_list_or_plugins_txt_that_isnt_utf8_is_reported_and_its_utf8_lines_still_read()
+    {
+        using var machine = Scenario("overview/modules-archives-mixed");
+        var game = await Locate(machine);
+        // An ANSI-saved file: é is 0xE9 in Windows-1252, which isn't valid UTF-8. The reference's strict
+        // read_text("utf-8") raised on either file and the Overview never loaded (T-1, bug #86).
+        File.WriteAllBytes(machine.PathOf(@"Game\Fallout4.ccc"), [.. "ccDup.esm\r\ncc"u8, 0xE9, .. ".esl\r\n"u8]);
+        File.WriteAllBytes(machine.PathOf(@"LocalAppData\Fallout4\plugins.txt"), [.. "*Unofficial.esp\r\n*"u8, 0xE9, .. "té.esp\r\n"u8]);
+
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+
+        // After the game masters: the CC list's one UTF-8 line, then plugins.txt's.
+        var names = report.Modules.Enabled.Select(p => p.Name).ToList();
+        Assert.Equal(["ccDup.esm", "Unofficial.esp"], names[^2..]);
+        Assert.All(names[..^2], n => Assert.EndsWith(".esm", n, StringComparison.OrdinalIgnoreCase));
+        var ccc = Assert.Single(report.Problems, p => p.ItemText == "Fallout4.ccc");
+        Assert.Equal("Unexpected Format", ccc.Kind);
+        Assert.StartsWith("Fallout4.ccc is not valid UTF-8.", ccc.Summary, StringComparison.Ordinal);
+        var plugins = Assert.Single(report.Problems, p => p.ItemText == "plugins.txt");
+        Assert.Equal("Unexpected Format", plugins.Kind);
+        Assert.StartsWith("plugins.txt is not valid UTF-8.", plugins.Summary, StringComparison.Ordinal);
+        // Not a missing file: neither warning box is raised.
+        Assert.Empty(report.Warnings);
+    }
+
+    [Fact]
+    [Trait("Parity", "OVW-8")]
+    public async Task A_refresh_that_dies_in_the_modules_carries_what_it_had_gathered()
+    {
+        using var machine = Scenario("overview/modules-archives-mixed");
+        var game = await Locate(machine);
+        var loaded = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+
+        // The local app data folder goes away, so finding plugins.txt raises mid-modules (as at startup, INI-1). This
+        // used to be shown by an archive format that isn't UTF-8, which the port now reports instead (bug #86).
+        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
+
         var failure = Assert.Throws<OverviewIncompleteException>(() => OverviewReport.Gather(game, machine.Host, new CapturingLogger(), loaded));
 
-        Assert.IsType<System.Text.DecoderFallbackException>(failure.InnerException);
+        Assert.IsType<FileNotFoundException>(failure.InnerException);
         var partial = failure.Partial;
         Assert.Equal(loaded.InstallType, partial.InstallType);
-        Assert.Equal(loaded.Modules.Enabled.Count, partial.Modules.Enabled.Count);
-        // Added to the unreadable set before the problem text was formatted, and the problem itself never added.
-        Assert.Contains(partial.Archives.Unreadable, p => IsFo76(p.Name));
-        Assert.DoesNotContain(partial.Problems, p => IsFo76(p.ItemText));
+        // The masters and the CC modules had been listed; plugins.txt's never were.
+        Assert.InRange(partial.Modules.Enabled.Count, 1, loaded.Modules.Enabled.Count - 1);
+        // The archives never started, so they are still the previous report's.
+        Assert.Same(loaded.Archives, partial.Archives);
         // The frames were never built, so neither were the problems they append.
         Assert.DoesNotContain(partial.Problems, p => p.Kind is ProblemTypes.WrongVersion or "Limit Exceeded");
     }

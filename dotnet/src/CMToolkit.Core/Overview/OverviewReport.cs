@@ -104,9 +104,9 @@ public sealed record OverviewReport(
     /// as the reference's shared state did.
     /// </param>
     /// <exception cref="OverviewIncompleteException">
-    /// A step raised: a binary, module or archive that exists but can't be read, no local app data folder, a
-    /// Fallout4.ccc, plugins.txt or archive format that isn't UTF-8 (T-1), or no <c>[Archive]</c> section (OVW-A2, B-15).
-    /// It carries what had been gathered.
+    /// A step raised: a binary, module or archive that exists but can't be read, no local app data folder, or no
+    /// <c>[Archive]</c> section (OVW-A2, B-15). It carries what had been gathered. (Text that isn't UTF-8 failed the
+    /// reference here too, T-1; the port reports it instead, bug #86.)
     /// </exception>
     public static OverviewReport Gather(GameInstall game, IHostEnvironment host, ILogger logger, OverviewReport? previous = null)
         => Gather(game, host, logger, previous, modulesAndArchives: true);

@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
+using CMToolkit.Core.Scanner;
 using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core.Overview;
@@ -98,7 +99,6 @@ internal sealed class ModulesGathering(
     /// on the first load only.
     /// </summary>
     /// <exception cref="FileNotFoundException">The local app data folder doesn't exist (as at startup, INI-1).</exception>
-    /// <exception cref="System.Text.DecoderFallbackException">Fallout4.ccc or plugins.txt isn't UTF-8 (T-1).</exception>
     public void Run()
     {
         logger.Write(LogLevel.Debug, "Gathering Info: Modules");
@@ -129,7 +129,13 @@ internal sealed class ModulesGathering(
         var ccc = game.GamePath.Join("Fallout4.ccc");
         if (HostPaths.IsFile(host, ccc))
         {
-            Enabled.AddRange(PythonText.SplitLines(HeaderFiles.ReadText(host, ccc))
+            var content = HeaderFiles.ReadTextLeniently(host, ccc, out var valid);
+            if (!valid)
+            {
+                AddNotUtf8(ccc.Name, "CC modules on lines that aren't UTF-8 can't be detected.", SolutionTypes.VerifyFiles);
+            }
+
+            Enabled.AddRange(PythonText.SplitLines(content)
                 .Select(data.Join)
                 .Where(path => HostPaths.IsFile(host, path)));
             return;
@@ -152,9 +158,10 @@ internal sealed class ModulesGathering(
     {
         var plugins = KnownFolders.Get(host, KnownFolder.LocalAppData).Join("Fallout4\\plugins.txt");
         string content;
+        bool valid;
         try
         {
-            content = HeaderFiles.ReadText(host, plugins);
+            content = HeaderFiles.ReadTextLeniently(host, plugins, out valid);
         }
         catch (Exception ex) when (HeaderFiles.IsPermissionOrNotFound(ex))
         {
@@ -181,11 +188,31 @@ internal sealed class ModulesGathering(
             return;
         }
 
+        if (!valid)
+        {
+            AddNotUtf8(
+                plugins.Name,
+                "Modules on lines that aren't UTF-8 can't be detected, so counts may be lower than your actual counts.",
+                "Save plugins.txt as UTF-8, or have your mod manager write it again.");
+        }
+
         Enabled.AddRange(PythonText.SplitLines(content)
             .Where(line => line.StartsWith('*'))
             .Select(line => data.Join(line[1..]))
             .Where(path => HostPaths.IsFile(host, path)));
     }
+
+    /// <summary>
+    /// The problem for a list file (Fallout4.ccc or plugins.txt) that isn't valid UTF-8. The reference's strict read
+    /// raised and failed the Overview (T-1); the port reads its UTF-8 lines and reports the file instead (deviation,
+    /// bug #86). No warning box is shown, unlike a missing file.
+    /// </summary>
+    /// <param name="name">The file's name, the problem's path text.</param>
+    /// <param name="consequence">The summary's second line: what can't be detected.</param>
+    /// <param name="solution">The solution text.</param>
+    private void AddNotUtf8(string name, string consequence, string solution)
+        => OverviewReport.AddSimple(logger, problems, Problem.Simple(
+            name, ScanProblemTypes.UnexpectedFormat, $"{name} is not valid UTF-8.\n{consequence}", solution));
 
     /// <summary>One module's first 34 bytes: readable, TES4, HEDR, its version (OVW-M6, OVW-M7) and type (OVW-M8).</summary>
     private void Check(PythonPath module)

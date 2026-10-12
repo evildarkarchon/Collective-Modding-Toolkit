@@ -106,7 +106,7 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
   gutters. The Binaries names column still sits ~2 px right of Tk's (a ttk label's internal padding around its text).
   The Downgrade Manager, Archive Patcher and refresh buttons' paddings were measured off the pairs rather than derived
   from sv_ttk.
-- If an Overview load or refresh fails part-way (a missing `[Archive]` section, B-15; text that isn't UTF-8, T-1), the
+- If an Overview load or refresh fails part-way (a missing `[Archive]` section, B-15; no local app data folder), the
   error is reported and the report becomes what had been gathered, as the reference's shared state was left; a step
   that never started keeps the previous report's part. The frames stay as they were. A failed load's warning boxes
   appear after the Error Window rather than before the failure (error surfacing is outside parity, #18).

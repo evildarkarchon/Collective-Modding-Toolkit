@@ -58,5 +58,11 @@
     "pc": {
       "ramBytes": 34359738368
     }
-  }
+  },
+  "deviations": [
+    {
+      "bug": 86,
+      "reason": "Format bytes that aren't UTF-8 are shown with replacement characters in the Invalid Archive problem, and the Overview loads."
+    }
+  ]
 }
