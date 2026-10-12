@@ -30,10 +30,11 @@ public static class ModFileIndex
     /// skipped.
     /// </summary>
     /// <remarks>
-    /// Bug #89, reproduced: <c>root is mod_path</c> is never true on Python 3.12+ (<c>Path.walk</c> yields a new root
-    /// object), so each mod's root is indexed as the folder <c>.</c> (the last mod walked wins it) and
-    /// <see cref="ModFiles.Modules"/> and <see cref="ModFiles.Archives"/> are never filled. The fix skips the root's
-    /// folder entry and indexes its modules and archives by file name.
+    /// Bug #89, fixed (ADR-0006): the reference's <c>root is mod_path</c> was never true on Python 3.12+
+    /// (<c>Path.walk</c> yields a new root object), so each mod's root was indexed as the folder <c>.</c> (the last mod
+    /// walked winning it) and <see cref="ModFiles.Modules"/> and <see cref="ModFiles.Archives"/> were never filled. The
+    /// port recognises the root as the walk's first step: it gets no folder entry, and its modules and archives are
+    /// indexed by file name.
     /// </remarks>
     /// <exception cref="MissingMo2SettingsException">MO2 has no selected profile (the only setting that can be empty).</exception>
     /// <exception cref="FileNotFoundException">The profile has no <c>modlist.txt</c>.</exception>
@@ -54,18 +55,39 @@ public static class ModFileIndex
             {
                 PruneSkipFolders(step.Folders, settings.SkipDirectories);
 
-                // Bug #89: the root is never recognised, so it gets a folder entry too, keyed ".".
-                index.Folders[step.Relative] = new ModFile(modName, step.Path);
+                // Bug #89, fixed (ADR-0006): the reference's `root is mod_path` was never true, so the mod's root got a
+                // folder entry keyed "." too. The root is the walk's first step, and it isn't a folder of the mod.
+                var isRoot = step.Depth == 0;
+                if (!isRoot)
+                {
+                    index.Folders[step.Relative] = new ModFile(modName, step.Path);
+                }
 
                 foreach (var file in step.Files)
                 {
-                    if (HasSuffix(file.ToLowerInvariant(), settings.SkipFileSuffixes))
+                    var lower = file.ToLowerInvariant();
+                    if (HasSuffix(lower, settings.SkipFileSuffixes))
                     {
                         continue;
                     }
 
                     // A dict update keeps the first key's spelling and replaces the value, as Dictionary's indexer does.
-                    index.Files[step.Relative.Join(file)] = new ModFile(modName, step.Path.Join(file));
+                    var entry = new ModFile(modName, step.Path.Join(file));
+                    index.Files[step.Relative.Join(file)] = entry;
+
+                    // The mod's own modules and archives, by file name (case-sensitive str keys), the later (higher
+                    // priority) mod winning; the bug left these empty.
+                    if (isRoot)
+                    {
+                        if (lower.EndsWith(".esp", StringComparison.Ordinal) || lower.EndsWith(".esl", StringComparison.Ordinal) || lower.EndsWith(".esm", StringComparison.Ordinal))
+                        {
+                            index.Modules[file] = entry;
+                        }
+                        else if (lower.EndsWith(".ba2", StringComparison.Ordinal))
+                        {
+                            index.Archives[file] = entry;
+                        }
+                    }
                 }
             }
         }

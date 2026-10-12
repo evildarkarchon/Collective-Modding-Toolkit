@@ -16,10 +16,10 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// The tab's side of the SCN-S4 queue protocol, which the scenarios can't show while the worker never sends the folder
-/// tuple (bug #89): updates the worker reports reach the scanning label and the progress bar in order while it runs,
-/// are drained before the results replace them, still land when the worker dies (B-3), and are dropped once the scan
-/// is over (no B-2 race: ADR-0003).
+/// The tab's side of the SCN-S4 queue protocol, timed as the scenarios can't time it (the reference's worker never sent
+/// the folder tuple, bug #89, which the port fixes): updates the worker reports reach the scanning label and the
+/// progress bar in order while it runs, are drained before the results replace them, still land when the worker dies
+/// (B-3), and are dropped once the scan is over (no B-2 race: ADR-0003).
 /// </summary>
 public sealed class ScannerTabProgressTests
 {

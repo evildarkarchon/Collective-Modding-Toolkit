@@ -537,75 +537,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }
@@ -701,75 +721,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }
@@ -1105,75 +1145,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }
@@ -1254,75 +1314,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }
@@ -1448,75 +1528,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }
@@ -1567,75 +1667,95 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "BodySlide",
+                "DLCCoast.esm",
+                "F4SE",
+                "fomod",
+                "Interface",
+                "Materials",
+                "Meshes",
+                "Music",
+                "Scripts",
+                "Sound",
+                "Textures",
+                "Vis"
+              ]
+            }
+          },
+          {
+            "progress": 8.333333333333332,
+            "scanningText": "Scanning... 1/12: DLCCoast.esm",
+            "update": {
               "folder": "DLCCoast.esm"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 16.666666666666664,
+            "scanningText": "Scanning... 2/12: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 25.0,
+            "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 33.33333333333333,
+            "scanningText": "Scanning... 4/12: Interface",
             "update": {
               "folder": "Interface"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 41.66666666666667,
+            "scanningText": "Scanning... 5/12: Materials",
             "update": {
               "folder": "Materials"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 50.0,
+            "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 58.333333333333336,
+            "scanningText": "Scanning... 7/12: Music",
             "update": {
               "folder": "Music"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 66.66666666666666,
+            "scanningText": "Scanning... 8/12: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 75.0,
+            "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 83.33333333333334,
+            "scanningText": "Scanning... 10/12: Textures",
             "update": {
               "folder": "Textures"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 91.66666666666666,
+            "scanningText": "Scanning... 11/12: Vis",
             "update": {
               "folder": "Vis"
             }

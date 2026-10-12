@@ -171,9 +171,15 @@ public static class ScanWorker
             {
                 var (modName, modPath) = index.Folders.TryGetValue(step.Relative, out var folder) ? (folder.Mod, folder.Path) : (string.Empty, step.Path);
 
-                // Bug #89, reproduced: the reference's `current_path is data_path` is never true on Python 3.12+, so the
-                // tuple of top-level folders is never queued and no folder name below is ever found in it. The fix
-                // reports new ScanUpdate.TopLevelFolders([.. step.Folders]) here when step.Depth is 0.
+                // Bug #89, fixed (ADR-0006): the reference's `current_path is data_path` was never true on Python 3.12+
+                // (Path.walk yields a new root object), so the tuple of top-level folders was never queued and no
+                // folder name below was ever found in it. The root is the walk's first step: queue every top-level
+                // folder (a copy, before any pruning below) so each one entered shows its place in the progress.
+                if (step.Depth == 0)
+                {
+                    progress?.Report(new ScanUpdate.TopLevelFolders([.. step.Folders]));
+                }
+
                 if (step.Depth == 1)
                 {
                     progress?.Report(new ScanUpdate.Folder(step.Path.Name));

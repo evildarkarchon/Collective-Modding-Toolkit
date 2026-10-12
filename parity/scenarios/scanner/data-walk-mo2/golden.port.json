@@ -13,7 +13,13 @@
           "Race Subgraphs"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -73,11 +79,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -108,7 +109,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [
@@ -378,26 +390,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
@@ -527,7 +552,13 @@
           "Errors"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -587,11 +618,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -622,7 +648,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [],
@@ -639,26 +676,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
@@ -672,7 +722,13 @@
           "Wrong File Formats"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -732,11 +788,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -767,7 +818,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [
@@ -842,26 +904,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
@@ -875,7 +950,13 @@
           "Loose Previs"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -935,11 +1016,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -970,7 +1046,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [
@@ -1011,26 +1098,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
@@ -1044,7 +1144,13 @@
           "Junk Files"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -1104,11 +1210,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -1139,7 +1240,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [
@@ -1180,26 +1292,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
@@ -1213,7 +1338,13 @@
           "Problem Overrides"
         ],
         "index": {
-          "archives": [],
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
           "files": [
             {
               "key": "BadMagic.esp",
@@ -1273,11 +1404,6 @@
           ],
           "folders": [
             {
-              "key": ".",
-              "mod": "overwrite",
-              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite"
-            },
-            {
               "key": "Meshes",
               "mod": "overwrite",
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
@@ -1308,7 +1434,18 @@
               "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
             }
           ],
-          "modules": []
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
         },
         "results": {
           "groups": [
@@ -1372,26 +1509,39 @@
             "progress": 1.0,
             "scanningText": "Building mod file index...",
             "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 1.0,
-            "scanningText": "Building mod file index...",
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
             }
