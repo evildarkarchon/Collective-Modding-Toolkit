@@ -1,0 +1,97 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  },
+  "mo2": {
+    "gamePath": "X:\\Games\\Fallout 4",
+    "iniPath": "<ROOT>\\MO2\\ModOrganizer.ini",
+    "overwritePath": "<ROOT>\\MO2\\overwrite",
+    "portable": true,
+    "portableTxtPath": null,
+    "profilesPath": "<ROOT>\\MO2\\profiles",
+    "selectedProfile": "Portable",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "<ROOT>\\MO2"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\webcache"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\downloads"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\mods"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\overwrite"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": false
+      },
+      {
+        "key": "profile_local_saves",
+        "value": false
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "<ROOT>\\MO2\\profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": [
+          "('.mohidden'",
+          ")"
+        ]
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "set()"
+        ]
+      },
+      {
+        "key": "gamePath",
+        "value": {
+          "path": "X:\\Games\\Fallout 4"
+        }
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": "Portable"
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        "set()"
+      ]
+    },
+    "skipFileSuffixes": [
+      "('.mohidden'",
+      ")"
+    ],
+    "stagePath": "<ROOT>\\MO2\\mods"
+  }
+}

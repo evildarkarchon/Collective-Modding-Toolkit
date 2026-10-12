@@ -1,0 +1,37 @@
+{
+  "description": "The video device key has a memory size but no adapter string: the lookup fails before the memory is used, so the GPU is Unknown GPU / 0 with a logged exception.",
+  "operation": "pc-info",
+  "parity": [
+    "PC-5"
+  ],
+  "host": {
+    "registry": {
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "  AMD   Ryzen 9 5950X 16-Core Processor\t "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{11111111-2222-3333-4444-555555555555}\\0000": {
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 17179869184
+        }
+      }
+    },
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26200
+    },
+    "pc": {
+      "ramBytes": 137438953472
+    }
+  }
+}

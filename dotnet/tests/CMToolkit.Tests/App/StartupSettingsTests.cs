@@ -18,6 +18,21 @@ public sealed class StartupSettingsTests
     private sealed class AppDirectoryHost(string appDirectory) : IHostEnvironment
     {
         public string AppDirectory => appDirectory;
+
+        // The settings load reads only the app folder; the Environment members (#49) are never reached from here.
+        public bool IsWine => throw new NotSupportedException();
+
+        public OperatingSystemInfo OsInfo => throw new NotSupportedException();
+
+        public long TotalPhysicalMemory => throw new NotSupportedException();
+
+        public RegistryData ReadRegistryValue(RegistryRoot root, string keyPath, string valueName) => throw new NotSupportedException();
+
+        public IReadOnlyList<AncestorProcess> GetAncestorProcesses(int maxCount) => throw new NotSupportedException();
+
+        public IReadOnlyList<int>? GetFileVersion(string path) => throw new NotSupportedException();
+
+        public string? GetEnvironmentVariable(string name) => throw new NotSupportedException();
     }
 
     [Fact]

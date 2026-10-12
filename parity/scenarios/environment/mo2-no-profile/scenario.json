@@ -1,0 +1,21 @@
+{
+  "description": "No selected_profile is fatal (MO2-8).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-8"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  }
+}

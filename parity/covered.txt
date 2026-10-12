@@ -34,6 +34,31 @@ LOG-3
 SHELL-1
 SHELL-2
 
+# Environment: PC info, mod manager and MO2 config (#49)
+PC-1
+PC-2
+PC-3
+PC-4
+PC-5
+MM-1
+MO2-1
+MO2-2
+MO2-3
+MO2-4
+MO2-5
+MO2-6
+MO2-7
+MO2-8
+MO2-9
+MO2-10
+MO2-11
+T-1
+T-6
+T-7
+T-11
+B-5
+B-6
+
 # Tools, Settings and About tabs (#55). TOOL-1, SET-7 and THR-3 are proven in part; their other slices add them.
 TOOL-2
 SETT-1

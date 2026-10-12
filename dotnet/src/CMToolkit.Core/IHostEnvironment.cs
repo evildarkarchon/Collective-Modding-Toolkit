@@ -1,3 +1,5 @@
+using CMToolkit.Core.Win32;
+
 namespace CMToolkit.Core;
 
 /// <summary>
@@ -17,6 +19,49 @@ public interface IHostEnvironment
     /// <c>sys._MEIPASS</c> (<c>utils.get_asset_path</c>).
     /// </summary>
     string AppDirectory { get; }
+
+    /// <summary>
+    /// One registry value (<c>winreg.OpenKey</c> + <c>QueryValueEx</c>), with <c>REG_EXPAND_SZ</c> left unexpanded.
+    /// Key paths and value names are case-insensitive. The 64-bit view is read; paths name <c>WOW6432Node</c>
+    /// explicitly where the reference does.
+    /// </summary>
+    /// <param name="root">The hive.</param>
+    /// <param name="keyPath">The key below the hive, such as <c>HARDWARE\DEVICEMAP\VIDEO</c>.</param>
+    /// <param name="valueName">The value's name; empty for the key's default value.</param>
+    /// <exception cref="FileNotFoundException">The key or the value doesn't exist (Python's <c>FileNotFoundError</c>).</exception>
+    /// <exception cref="IOException">Another registry failure (Python's <c>OSError</c>).</exception>
+    /// <exception cref="UnauthorizedAccessException">The key can't be opened for reading.</exception>
+    RegistryData ReadRegistryValue(RegistryRoot root, string keyPath, string valueName);
+
+    /// <summary>Whether <c>ntdll</c> exports <c>wine_get_version</c>, i.e. the app runs under Wine (PC-1).</summary>
+    bool IsWine { get; }
+
+    /// <summary>The OS name, Python release name and build (PC-2). Not read under Wine.</summary>
+    OperatingSystemInfo OsInfo { get; }
+
+    /// <summary>Total physical memory in bytes (PC-3; psutil's <c>virtual_memory().total</c>).</summary>
+    long TotalPhysicalMemory { get; }
+
+    /// <summary>
+    /// The running process's ancestors, nearest first: the parent, its parent, and so on, at most
+    /// <paramref name="maxCount"/> of them (MM-1). The walk stops early where psutil's <c>parent()</c> would return
+    /// <see langword="None"/>: a parent that has exited, or a PID reused by a process younger than its child.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The direct parent has exited. psutil's <c>Process(os.getppid())</c> raises <c>NoSuchProcess</c> then, which the
+    /// reference doesn't catch.
+    /// </exception>
+    IReadOnlyList<AncestorProcess> GetAncestorProcesses(int maxCount);
+
+    /// <summary>
+    /// The four parts of a file's version resource (<c>VS_FIXEDFILEINFO</c> file version; <c>utils.get_file_version</c>),
+    /// or null when it can't be read. A file without a version resource may report all zeros instead (T-4), so callers
+    /// treat <c>0.0.0.0</c> as missing too.
+    /// </summary>
+    IReadOnlyList<int>? GetFileVersion(string path);
+
+    /// <summary>An environment variable (<c>os.getenv</c>), or null if it isn't set.</summary>
+    string? GetEnvironmentVariable(string name);
 }
 
 /// <summary>The real machine.</summary>
@@ -31,4 +76,30 @@ public sealed class SystemHostEnvironment : IHostEnvironment
 
     /// <inheritdoc/>
     public string AppDirectory => AppContext.BaseDirectory;
+
+    /// <inheritdoc/>
+    public RegistryData ReadRegistryValue(RegistryRoot root, string keyPath, string valueName)
+        => WindowsHost.ReadRegistryValue(root, keyPath, valueName);
+
+    /// <inheritdoc/>
+    public bool IsWine => WindowsHost.IsWine();
+
+    /// <inheritdoc/>
+    public OperatingSystemInfo OsInfo => WindowsHost.OsInfo();
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// <see cref="GC.GetGCMemoryInfo()"/> reports the machine's physical memory when no container or GC heap limit
+    /// applies; issue #4's spike matched it to psutil's total to the byte.
+    /// </remarks>
+    public long TotalPhysicalMemory => GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+
+    /// <inheritdoc/>
+    public IReadOnlyList<AncestorProcess> GetAncestorProcesses(int maxCount) => ProcessTree.Ancestors(maxCount);
+
+    /// <inheritdoc/>
+    public IReadOnlyList<int>? GetFileVersion(string path) => FileVersionResource.Read(path);
+
+    /// <inheritdoc/>
+    public string? GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name);
 }

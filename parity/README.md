@@ -102,6 +102,9 @@ escapes, LF), with:
 - **`display` sub-objects**: the text the reference renders from those values (labels, log lines, message text). Core
   tests compare in `GoldenCompareMode.Semantic`, which skips every `display`. App presenter tests compare in `Full`.
 - **Paths as `<ROOT>` tokens**: `<ROOT>/Game/Data/a.esp`. Inside rendered text, the root is replaced in place.
+  Where the exact `str(path)` matters (MO2 paths, T-7), the `mod-manager` operation keeps the backslashed text with the
+  root replaced in place, and writes a path outside the root on the root's drive as `<DRIVE>\...` (B-6). Absolute
+  paths in tree files use drive `X:` so they never collide with the temp root's drive.
 - **Unordered arrays** as `{"$unordered": [...]}`, compared as multisets. Use them only for hash-ordered dimensions
   (T-15, B-4) and fields the reference genuinely doesn't order. Directory enumeration order is compared exactly.
 - `dialogs` and `httpRequests`: every dialog shown and every request made, when there are any.

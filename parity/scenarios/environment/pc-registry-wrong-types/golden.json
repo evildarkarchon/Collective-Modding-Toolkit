@@ -1,0 +1,13 @@
+{
+  "pc": {
+    "cpu": "Unknown",
+    "display": {
+      "log": []
+    },
+    "gpu": "Unknown GPU",
+    "os": "Windows 11 21H2",
+    "ram": 8,
+    "usingWine": false,
+    "vram": 0
+  }
+}

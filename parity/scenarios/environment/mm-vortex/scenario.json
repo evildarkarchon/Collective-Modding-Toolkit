@@ -1,0 +1,29 @@
+{
+  "description": "Vortex as the grandparent: it contributes only its name, exe path and the first three version parts; no configuration is read.",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1",
+    "MO2-11"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "conhost.exe"
+      },
+      {
+        "name": "Vortex.exe",
+        "exe": "<ROOT>/Vortex/Vortex.exe",
+        "fileVersion": [
+          1,
+          13,
+          7,
+          4
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ]
+  }
+}

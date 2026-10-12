@@ -1,0 +1,34 @@
+{
+  "description": "A portable MO2 (portable.txt beside the exe): @ByteArray values, a %BASE_DIR%/ value that lands on the drive root (B-6), a doubled slash collapsed by Path (T-7), CSV-split suffixes, and the default skip_directories corrupted by CSV-parsing 'set()' (B-5).",
+  "operation": "mod-manager",
+  "parity": [
+    "MM-1",
+    "MO2-1",
+    "MO2-4",
+    "MO2-5",
+    "MO2-6",
+    "MO2-7",
+    "MO2-9",
+    "B-5",
+    "B-6",
+    "T-7"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ]
+  }
+}

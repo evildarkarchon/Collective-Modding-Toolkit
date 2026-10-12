@@ -1,0 +1,25 @@
+{
+  "description": "No portable.txt, no CurrentInstance and no portable INI: 'Unable to find ModOrganizer.ini' (MO2-3).",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-3",
+    "MO2-8"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ],
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    }
+  }
+}

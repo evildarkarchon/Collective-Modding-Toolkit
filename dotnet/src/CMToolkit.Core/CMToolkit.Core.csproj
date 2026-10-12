@@ -6,6 +6,8 @@
   <PropertyGroup>
     <RootNamespace>CMToolkit.Core</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- The LibraryImport source generator emits unsafe marshalling code for Win32/NativeMethods.cs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
