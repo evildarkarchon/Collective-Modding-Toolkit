@@ -14,7 +14,7 @@
     },
     {
       "bug": 20,
-      "reason": "The side pane's boxes start as settings.json saves them (only Overview Issues ticked), on the first visit and on return, instead of all ticked; so the script's untick has no data box to click."
+      "reason": "The side pane's boxes start as settings.json saves them (only Overview Issues ticked), on the first visit and on return, instead of all ticked, so the script's untick has no data box to click; and each box change saves at once, so the Overview Issues untick and re-tick rewrite the compact file in the toolkit's own format before the scan."
     }
   ],
   "host": {

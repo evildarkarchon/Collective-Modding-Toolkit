@@ -22,10 +22,10 @@ namespace CMToolkit.Tests.App;
 /// The Scanner's data checks against the <c>scanner-scan</c> goldens: the real Overview and Scanner tabs in a main
 /// window, scanned once per driver run (every box, then each box alone), each run read back as the driver reads it:
 /// every progress update the worker reported with the scanning label and progress bar after the tab applied it, the
-/// worker's error and log lines, the mod file index it built, and the results tree. A worker that fails left the
-/// reference's scan stuck (B-3); the port ends the scan listing the seeded Overview problems only, the worker's results dying with it (bug #22, in
-/// the port goldens). Either
-/// way the script stops there. Compared in full.
+/// worker's error and log lines, the mod file index it built, and the results tree. A worker that raised left the
+/// reference's scan stuck (B-3), and the script stops there. The port's worker turns MO2's missing profile or
+/// <c>modlist.txt</c> into a problem row instead (bug #22, in the port goldens), so its scans complete and the script
+/// runs on. Compared in full.
 /// </summary>
 public sealed partial class ScannerScanScenarioTests
 {
@@ -130,6 +130,9 @@ public sealed partial class ScannerScanScenarioTests
                 }
             }
 
+            // Each click saved the boxes as a blocking write (bug #20); they land before the scan, so their log lines
+            // can't fall inside the worker's.
+            DispatcherWait.Until(() => !runtime.Input.IsBlocking);
             updates.Clear();
             watch.Reset();
             var scan = scanner.ScanAsync();

@@ -148,10 +148,6 @@
               "message": "Archives: Checking ccDup - main.ba2"
             }
           ]
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ],
       "rescan": {
@@ -1116,7 +1112,7 @@
     },
     "settingsAfterRescan": null,
     "settingsBefore": {
-      "text": "{\n\t\"log_level\": \"INFO\",\n\t\"update_source\": \"none\",\n\t\"scanner_OverviewIssues\": true,\n\t\"scanner_Errors\": true,\n\t\"scanner_WrongFormat\": true,\n\t\"scanner_LoosePrevis\": true,\n\t\"scanner_JunkFiles\": true,\n\t\"scanner_ProblemOverrides\": true,\n\t\"scanner_RaceSubgraphs\": true,\n\t\"downgrader_keep_backups\": true,\n\t\"downgrader_delete_deltas\": true\n}\n"
+      "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": false,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": false,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
     },
     "usingStage": false
   }

@@ -1,21 +1,8 @@
-using System.Runtime.CompilerServices;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
 
 namespace CMToolkit.Core.Scanner;
-
-/// <summary>
-/// MO2 is missing a setting the mod file index needs (<c>get_stage_paths</c>'s <c>ValueError</c>). Its message is the
-/// reference's dump of the manager and its paths, verbatim. The scan worker dies with it (B-3).
-/// </summary>
-public sealed class MissingMo2SettingsException : Exception
-{
-    /// <summary>An exception carrying the reference's message.</summary>
-    public MissingMo2SettingsException(string message)
-        : base(message)
-    {
-    }
-}
 
 /// <summary>
 /// <c>ScannerTab.build_mod_file_list</c> and <c>get_stage_paths</c> (SCN-S6): the mod file index of MO2's enabled mods
@@ -23,6 +10,21 @@ public sealed class MissingMo2SettingsException : Exception
 /// </summary>
 public static class ModFileIndex
 {
+    // The texts of the problem rows that replace get_stage_paths' exceptions (bug #22). The index is what tells the
+    // data checks which mod each file belongs to, so without it the worker stops and they are skipped.
+    private const string SkippedChecks = "so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.";
+
+    private const string NoProfileSummary =
+        "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), " + SkippedChecks;
+
+    private const string NoProfileSolution =
+        "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.";
+
+    private const string NoModlistSummary = "Mod Organizer 2's selected profile has no modlist.txt, " + SkippedChecks;
+
+    private const string NoModlistSolution =
+        "Open Mod Organizer 2 and select a working profile so it writes modlist.txt, then relaunch the toolkit from MO2 and scan again.";
+
     /// <summary>
     /// Builds the index, or returns null outside MO2 stage mode (the reference then hands the walk an empty
     /// <c>ModFiles</c> and keeps none). Mods are walked lowest priority first, so each path ends up with the
@@ -36,19 +38,32 @@ public static class ModFileIndex
     /// port recognises the root as the walk's first step: it gets no folder entry, and its modules and archives are
     /// indexed by file name.
     /// </remarks>
-    /// <exception cref="MissingMo2SettingsException">MO2 has no selected profile (the only setting that can be empty).</exception>
-    /// <exception cref="FileNotFoundException">The profile has no <c>modlist.txt</c>.</exception>
+    /// <param name="settings">The scan's settings snapshot.</param>
+    /// <param name="failure">
+    /// Set when MO2's configuration stops the index (bug #22, fixed): its selected profile is empty, or the profile has
+    /// no <c>modlist.txt</c>. The reference's <c>get_stage_paths</c> raised <c>ValueError</c> or
+    /// <c>FileNotFoundError</c> there, which killed its scan thread (B-3); the port returns the problem row for the
+    /// results instead, and no index. Null otherwise.
+    /// </param>
+    /// <returns>The index; null outside MO2 stage mode, or when <paramref name="failure"/> is set.</returns>
     /// <exception cref="System.Text.DecoderFallbackException"><c>modlist.txt</c> isn't UTF-8 (T-1).</exception>
-    public static ModFiles? Build(ScanSettings settings)
+    public static ModFiles? Build(ScanSettings settings, out Problem? failure)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        if (!settings.UsingStage || settings.Manager is not { Kind: ModManagerKind.ModOrganizer })
+        failure = null;
+        if (!settings.UsingStage || settings.Manager is not { Kind: ModManagerKind.ModOrganizer } || settings.Game.Mo2 is not { } mo2)
+        {
+            return null;
+        }
+
+        var stagePaths = StagePaths(settings, mo2, out failure);
+        if (stagePaths is null)
         {
             return null;
         }
 
         var index = new ModFiles();
-        foreach (var modPath in StagePaths(settings))
+        foreach (var modPath in stagePaths)
         {
             var modName = modPath.Name;
             foreach (var step in PythonWalk.TopDown(modPath, p => HostPaths.Resolve(settings.Host, p)))
@@ -98,24 +113,30 @@ public static class ModFileIndex
     /// <summary>
     /// <c>get_stage_paths</c>: the enabled mods' folders from the selected profile's <c>modlist.txt</c>, read bottom-up
     /// (lowest priority first), keeping <c>+name</c> lines whose folder exists under the staging folder, then the
-    /// overwrite folder if it exists.
+    /// overwrite folder if it exists. Null, with <paramref name="failure"/> set, when MO2 has no selected profile or
+    /// the profile has no <c>modlist.txt</c>.
     /// </summary>
-    private static List<PythonPath> StagePaths(ScanSettings settings)
+    private static List<PythonPath>? StagePaths(ScanSettings settings, Mo2Configuration mo2, out Problem? failure)
     {
-        var mo2 = settings.Game.Mo2;
-        var manager = settings.Manager;
-        // stage_path, profiles_path and overwrite_path are Path objects, always truthy; selected_profile is a str.
-        if (manager is null || mo2 is null || mo2.SelectedProfile.Length == 0)
+        failure = null;
+
+        // stage_path, profiles_path and overwrite_path are Path objects, always truthy; selected_profile is a str, the
+        // only setting get_stage_paths checked that can be empty here (without a manager or an MO2 configuration
+        // there is no stage mode, so Build never gets this far).
+        if (mo2.SelectedProfile.Length == 0)
         {
-            throw new MissingMo2SettingsException(manager is null
-                ? "Manager: None"
-                : $"Missing MO2 settings\nManager: {Repr(manager)}\nmods: {mo2?.StagePath}\nprofiles: {mo2?.ProfilesPath}\nprofile: {mo2?.SelectedProfile}\noverwrite: {mo2?.OverwritePath}");
+            // Not a file of any mod, so no <Unmanaged> in the mod column.
+            failure = Problem.ForFile(
+                ScanProblemTypes.MissingMo2Settings, mo2.IniPath, mo2.IniPath, null, NoProfileSummary, NoProfileSolution)
+                with { Mod = string.Empty };
+            return null;
         }
 
         var modlist = mo2.ProfilesPath.Join(mo2.SelectedProfile).Join("modlist.txt");
         if (!HostPaths.IsFile(settings.Host, modlist))
         {
-            throw new FileNotFoundException($"File doesn't exist: {modlist}");
+            failure = Problem.ForFile(ProblemTypes.FileNotFound, modlist, modlist, null, NoModlistSummary, NoModlistSolution);
+            return null;
         }
 
         var lines = PythonText.SplitLines(PythonText.ReadUtf8Strict(HostPaths.Resolve(settings.Host, modlist)));
@@ -135,13 +156,6 @@ public static class ModFileIndex
 
         return paths;
     }
-
-    /// <summary>
-    /// <c>str(manager)</c>: <c>ModManagerInfo</c> has no <c>__str__</c>, so Python prints its default repr with the
-    /// object's address. This object's identity hash stands in for the address (the goldens mask it).
-    /// </summary>
-    private static string Repr(ModManager manager)
-        => $"<mod_manager_info.ModManagerInfo object at 0x{RuntimeHelpers.GetHashCode(manager):X16}>";
 
     /// <summary>
     /// Deletes the folders whose lowercased name is a skip folder, iterating from the end as the reference does (which

@@ -82,6 +82,8 @@ public sealed class ScanDetailsPaneScenarioTests
             }
         }
 
+        // Each click saved the boxes as a blocking write (bug #20); let them land before the scan.
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         Scan(scanner);
 
         var items = scanner.Tree!.Items.OfType<TreeViewItem>().SelectMany(g => g.Items.OfType<TreeViewItem>())

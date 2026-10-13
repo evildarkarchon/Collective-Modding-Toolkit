@@ -169,7 +169,7 @@ nothing.
   the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
   problem types first appear, the same on every run (bug #23, a Deviation), so the scanner pairs list the groups in
   another order than Tk's. Their No Mod Manager result names `cm-toolkit.exe` where Tk's names `main.py`, the
-  program each was started as. The port's boxes start from the saved `scanner_*` settings (bug #20, a Deviation);
+  program each was started as. The port's boxes start from the saved `scanner_*` settings, and each box change is saved at once rather than at Scan Game (bug #20, a Deviation);
   `screenshots.py --scan` clicks only the boxes not already as wanted.
 - Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
   Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:

@@ -53,7 +53,7 @@ public sealed class ScannerTab : TabPage
     /// <param name="runtime">The app runtime: its log, error reporting and background operations.</param>
     /// <param name="game">The installation found at startup.</param>
     /// <param name="overview">The Overview state: its problems seed a scan, and it refreshes the Overview tab.</param>
-    /// <param name="settings">The settings the scan saves its boxes to (SET-7).</param>
+    /// <param name="settings">The settings the side pane's boxes start from (SET-8) and are saved to as they change (SET-7).</param>
     public ScannerTab(AppRuntime runtime, GameInstall game, OverviewState overview, SettingsStore settings)
         : base("Scanner", "ScannerTab")
     {
@@ -226,6 +226,8 @@ public sealed class ScannerTab : TabPage
         // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
         SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
         SidePane.ScanRequested += (_, _) => _ = RunScanAsync();
+        var created = SidePane;
+        created.BoxChanged += (_, _) => _ = SaveBoxesAsync(created);
         if (TopLevel.GetTopLevel(_tree) is not null)
         {
             Docker().Show(PaneSlot.Side, SidePane);
@@ -296,29 +298,30 @@ public sealed class ScannerTab : TabPage
         _scanningText!.IsVisible = true;
         _scanningText.Text = "Refreshing Overview...";
         _runtime.Logger.Write(LogLevel.Debug, "Refresh Tab : Overview");
-        if (!await _overview.RefreshAsync())
+        bool refreshed;
+        try
         {
-            // The refresh raised in the reference's start_threaded_scan: the scan stops with the button disabled.
+            refreshed = await _overview.RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            // The refresh raised past its own reporting (rebuilding the Overview's frames, say): reported here, as the
+            // Scan Game handler would have, so the scan can still end below.
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+            refreshed = false;
+        }
+
+        if (!refreshed)
+        {
+            // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
+            // left Scan Game disabled on Scanning... for good. The error is reported; the scan ends before its worker.
+            EndBeforeWorker(side);
             return;
         }
 
-        // SCN-S2: the snapshot, saving the boxes only when one differs from its stored value (SET-7). The reference saved
-        // on the Tk thread before it started the scan thread, so the write is a blocking operation, awaited before the
-        // worker starts (ADR-0003).
+        // SCN-S2: the snapshot. The reference saved the boxes here too when one differed from its stored value (SET-7);
+        // the port has saved each box as it changed (bug #20), so the settings already hold these and nothing is written.
         var settings = ScanSettings.Snapshot(side.Values, _game, _overview.Report, Host);
-        if (settings.ChangedSettings(_settings.Current) is { } changed)
-        {
-            try
-            {
-                await _settings.SaveAsync(_runtime.Operations, changed);
-            }
-            catch (OperationFailedException)
-            {
-                // Already reported by the runner. A save that raised ended start_threaded_scan in Tk: the scan stops
-                // here with the button disabled, as after a refresh that died.
-                return;
-            }
-        }
 
         // SCN-S3.
         var seeded = ScanResults.Seed(settings[ScanSetting.OverviewIssues], _overview.Report?.Problems ?? []);
@@ -338,9 +341,10 @@ public sealed class ScannerTab : TabPage
         catch (OperationFailedException)
         {
             // B-3, bug #22 fixed (ADR-0006): the reference's thread died without clearing thread_scan, so polling never
-            // ended and the scan stayed on Scanning... with the button disabled. The runner has already reported the
-            // error; the scan now ends as a finished one does, listing the results it has (the seeded Overview
-            // problems; the worker's died with it) and enabling Scan Game again.
+            // ended and the scan stayed on Scanning... with the button disabled. The failures the worker expects (MO2's
+            // missing profile or modlist.txt) come back as problem rows now; this is anything else. The runner has
+            // already reported the error; the scan ends as a finished one does, listing the results it has (the seeded
+            // Overview problems; the worker's died with it) and enabling Scan Game again.
             outcome = ScanOutcome.Empty;
         }
 
@@ -353,6 +357,22 @@ public sealed class ScannerTab : TabPage
 
         _progress.Value = 100;
         Populate(settings, [.. seeded, .. outcome.Problems], outcome.Index);
+    }
+
+    /// <summary>
+    /// Ends a scan that stopped before its worker started (its Overview refresh failed, already reported): the
+    /// scanning label hides and Scan Game is enabled again. Nothing is listed, since nothing was
+    /// scanned, and the tree stays cleared and unselectable.
+    /// </summary>
+    /// <param name="side">
+    /// The side pane the scan started from. The main window's input was blocked since, so the tab can't have been left
+    /// and it is still the open one.
+    /// </param>
+    private void EndBeforeWorker(ScanSidePane side)
+    {
+        _scanningText!.IsVisible = false;
+        _scanningText.Text = "";
+        side.SetScanning(false);
     }
 
     /// <summary>Collapse All / Expand All (<c>set_expanded</c>): opens or closes every group row.</summary>
@@ -422,6 +442,35 @@ public sealed class ScannerTab : TabPage
         }
 
         DetailsPane.Show(problem, UsingStage);
+    }
+
+    /// <summary>
+    /// Saves the side pane's boxes after one changed (SET-7; bug #20, fixed): the reference saved them only when a scan
+    /// started, and never read them back. Through <see cref="SettingsStore.SaveAsync"/>, so the settings in effect
+    /// change at once and the file is written off the UI thread under an input block, quick changes landing in order
+    /// with the last one winning. Nothing is written when the boxes already match the settings in effect.
+    /// </summary>
+    /// <param name="side">The pane whose box changed.</param>
+    private async Task SaveBoxesAsync(ScanSidePane side)
+    {
+        if (ScanSettings.ChangedSettings(_settings.Current, side.Values) is not { } changed)
+        {
+            return;
+        }
+
+        try
+        {
+            await _settings.SaveAsync(_runtime.Operations, changed);
+        }
+        catch (OperationFailedException)
+        {
+            // Already reported by the runner. The new boxes stay in effect for the session either way.
+        }
+        catch (Exception ex)
+        {
+            // Reported here, not left in the task, which the box's change handler discards (as in RunScanAsync).
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+        }
     }
 
     /// <summary>Runs a scan from the Scan Game button, reporting what it raises as a Tk callback's exception was.</summary>

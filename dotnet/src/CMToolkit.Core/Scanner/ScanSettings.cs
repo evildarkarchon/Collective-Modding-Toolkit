@@ -166,7 +166,7 @@ public sealed class ScanSettings
     /// <summary>The machine the scan reads: relative paths resolve against its working directory.</summary>
     public IHostEnvironment Host { get; }
 
-    /// <summary>Takes the snapshot: <c>ScanSettings(side_pane)</c>, without its save (see <see cref="ChangedSettings"/>).</summary>
+    /// <summary>Takes the snapshot: <c>ScanSettings(side_pane)</c>, without its save (see <see cref="ChangedSettings(AppSettings)"/>).</summary>
     /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
     /// <param name="game">The installation being scanned.</param>
     /// <exception cref="ArgumentException">A setting is missing from <paramref name="values"/>.</exception>
@@ -223,17 +223,29 @@ public sealed class ScanSettings
     /// at least one box differs from its stored value; null when none does, and then nothing is written.
     /// </summary>
     /// <param name="stored">The settings in effect.</param>
-    public AppSettings? ChangedSettings(AppSettings stored)
+    public AppSettings? ChangedSettings(AppSettings stored) => ChangedSettings(stored, _values);
+
+    /// <summary>
+    /// What saving <paramref name="boxes"/> writes (SET-7): <paramref name="stored"/> with every <c>scanner_*</c> value
+    /// set to its box, when at least one box differs from its stored value; null when none does. The side pane saves
+    /// this on each box change (bug #20).
+    /// </summary>
+    /// <param name="stored">The settings in effect.</param>
+    /// <param name="boxes">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
+    /// <exception cref="KeyNotFoundException">A setting is missing from <paramref name="boxes"/>.</exception>
+    public static AppSettings? ChangedSettings(AppSettings stored, IReadOnlyDictionary<ScanSetting, bool> boxes)
     {
+        ArgumentNullException.ThrowIfNull(stored);
+        ArgumentNullException.ThrowIfNull(boxes);
         var updated = stored with
         {
-            ScannerOverviewIssues = this[ScanSetting.OverviewIssues],
-            ScannerErrors = this[ScanSetting.Errors],
-            ScannerWrongFormat = this[ScanSetting.WrongFormat],
-            ScannerLoosePrevis = this[ScanSetting.LoosePrevis],
-            ScannerJunkFiles = this[ScanSetting.JunkFiles],
-            ScannerProblemOverrides = this[ScanSetting.ProblemOverrides],
-            ScannerRaceSubgraphs = this[ScanSetting.RaceSubgraphs],
+            ScannerOverviewIssues = boxes[ScanSetting.OverviewIssues],
+            ScannerErrors = boxes[ScanSetting.Errors],
+            ScannerWrongFormat = boxes[ScanSetting.WrongFormat],
+            ScannerLoosePrevis = boxes[ScanSetting.LoosePrevis],
+            ScannerJunkFiles = boxes[ScanSetting.JunkFiles],
+            ScannerProblemOverrides = boxes[ScanSetting.ProblemOverrides],
+            ScannerRaceSubgraphs = boxes[ScanSetting.RaceSubgraphs],
         };
         return updated == stored ? null : updated;
     }

@@ -12,7 +12,7 @@
     },
     {
       "bug": 22,
-      "reason": "A worker that raises is reported and the scan ends: the seeded Overview problems are listed, the progress reaches 100 and Scan Game is enabled again."
+      "reason": "The empty selected_profile is a Missing MO2 Settings problem row on ModOrganizer.ini listed after what the scan found before it, instead of an exception that stuck the scan, so every scripted run completes."
     }
   ],
   "host": {

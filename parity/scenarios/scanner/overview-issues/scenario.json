@@ -25,7 +25,7 @@
     },
     {
       "bug": 20,
-      "reason": "On return to the tab the side pane's boxes start as the first scan saved them (only Overview Issues ticked) instead of all ticked again."
+      "reason": "Each box change saves settings.json at once instead of at Scan Game, so the file holds the unticked boxes before the scan, whose log has no save line; and on return to the tab the boxes start as saved (only Overview Issues ticked) instead of all ticked again."
     },
     {
       "bug": 26,

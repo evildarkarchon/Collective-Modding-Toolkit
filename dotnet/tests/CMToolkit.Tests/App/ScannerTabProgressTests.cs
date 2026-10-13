@@ -73,7 +73,7 @@ public sealed class ScannerTabProgressTests
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
     [Trait("Parity", "B-3")]
-    [Deviation(22, "A worker that dies has its queued updates applied, and then the scan ends listing the seeded Overview problems only instead of staying stuck.")]
+    [Deviation(22, "A worker that dies unexpectedly has its queued updates applied, and then the scan ends listing the seeded Overview problems only instead of staying stuck.")]
     public void A_worker_that_dies_has_its_updates_applied_and_then_the_scan_ends()
     {
         var applied = new List<string>();

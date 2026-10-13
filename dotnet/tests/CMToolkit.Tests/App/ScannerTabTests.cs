@@ -64,48 +64,75 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void Scan_game_saves_the_changed_boxes_off_the_ui_thread_in_a_blocking_operation_before_the_worker()
+    [Trait("Parity", "SET-8"), Deviation(20, "Each side-pane box change saves the scanner_* settings at once, off the UI thread in a blocking operation, instead of only when a scan starts.")]
+    public void A_box_change_saves_at_once_off_the_ui_thread_in_a_blocking_operation()
     {
-        // start_threaded_scan saved the boxes on the Tk thread, after the refresh and before it started the scan thread,
-        // so the save froze input as the refresh did (ADR-0003).
+        // Bug #20, fixed (ADR-0006): the reference saved the boxes only in start_threaded_scan (and never read them
+        // back). The port saves each change as it is made, through the same blocking write the scan's save used.
         using var temp = new TempDirectory();
         var settingsPath = Path.Combine(temp.Path, "settings.json");
         var log = new HeldSaveLogger();
         var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
-        var workerStarted = false;
-        using var app = ScannerApp.Start(
-            worker: s =>
-            {
-                workerStarted = true;
-                return ScanWorker.Run(s);
-            },
-            settingsStore: store);
+        using var app = ScannerApp.Start(settingsStore: store);
         var before = File.ReadAllBytes(settingsPath);
-        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
 
         log.Hold();
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
         DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
 
         Assert.False(log.WritesOnUiThread[0]);
         Assert.True(app.Runtime.Input.IsBlocking);
         Assert.Equal(before, File.ReadAllBytes(settingsPath));
-        Assert.False(workerStarted);
+        // The settings in effect change at the click, so a change made before the write lands builds on this one.
+        Assert.False(store.Current.ScannerJunkFiles);
 
         log.Release();
-        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
-        Assert.True(workerStarted);
+        DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
         Assert.Contains("\"scanner_JunkFiles\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SET-7"), Deviation(20, "Quick box changes all save, in order, so the file ends as the last change left the boxes, and a scan saves nothing more.")]
+    public void Quick_box_changes_land_in_order_and_a_scan_saves_nothing_more()
+    {
+        using var temp = new TempDirectory();
+        var settingsPath = Path.Combine(temp.Path, "settings.json");
+        var log = new HeldSaveLogger();
+        var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
+        using var app = ScannerApp.Start(settingsStore: store);
+        var checks = app.Scanner.SidePane!.Checks;
+
+        // The first write is held, so the next changes are made while it is still pending.
+        log.Hold(1);
+        MouseClick.On(checks[ScanSetting.JunkFiles]);
+        DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
+        checks[ScanSetting.Errors].IsChecked = false;
+        checks[ScanSetting.JunkFiles].IsChecked = true;
+        log.Release();
+        DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
+
+        var text = File.ReadAllText(settingsPath);
+        Assert.Contains("\"scanner_Errors\": false", text, StringComparison.Ordinal);
+        Assert.Contains("\"scanner_JunkFiles\": true", text, StringComparison.Ordinal);
+        Assert.False(store.Current.ScannerErrors);
+        Assert.True(store.Current.ScannerJunkFiles);
+
+        var saves = log.Entries.Count(e => e.Message == HeldSaveLogger.SavingMessage);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
+        Assert.Equal(saves, log.Entries.Count(e => e.Message == HeldSaveLogger.SavingMessage));
     }
 
     [AvaloniaFact]
     [Trait("Parity", "B-3")]
     [Trait("Parity", "THR-1")]
-    [Deviation(22, "A worker that raises is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
-    public void A_worker_that_raises_is_reported_and_the_scan_ends_listing_the_overview_problems()
+    [Deviation(22, "A worker that raises unexpectedly is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
+    public void A_worker_that_raises_unexpectedly_is_reported_and_the_scan_ends_listing_the_overview_problems()
     {
-        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled.
-        using var app = ScannerApp.Start(worker: _ => throw new FileNotFoundException("File doesn't exist: modlist.txt"));
+        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
+        // failures the worker expects (MO2's missing profile or modlist.txt) are problem rows now (ScanWorkerFailureTests);
+        // anything else, such as a modlist.txt that isn't UTF-8, still raises.
+        using var app = ScannerApp.Start(worker: _ => throw new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8"));
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
@@ -163,8 +190,8 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S1")]
-    public void A_refresh_that_dies_stops_the_scan_on_refreshing_overview()
+    [Trait("Parity", "SCN-S1"), Deviation(22, "A scan whose Overview refresh dies ends with the error reported, nothing listed and Scan Game enabled again, instead of stuck on Refreshing Overview....")]
+    public void A_refresh_that_dies_ends_the_scan_with_scan_game_enabled_again()
     {
         var fail = false;
         var workerRan = false;
@@ -181,10 +208,33 @@ public sealed class ScannerTabTests
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Equal("Scanning...", (string?)app.Scanner.SidePane!.ScanButton.Content);
-        Assert.False(app.Scanner.SidePane.ScanButton.IsEnabled);
-        Assert.Equal("Refreshing Overview...", app.ScanningText.Text);
-        Assert.Equal(0, app.Progress.Value);
+        // Bug #22's loose end, fixed (ADR-0006): the reference's start_threaded_scan died with the refresh, leaving
+        // Scan Game disabled on Scanning... and the label on Refreshing Overview....
+        AssertEndedBeforeTheWorker(app);
+        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : " + ErrorReporter.OperationHeader("Overview refresh"), StringComparison.Ordinal));
+        Assert.False(workerRan);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SCN-S1"), Deviation(22, "A scan whose Overview refresh raises past its own reporting has the error reported and ends with nothing listed and Scan Game enabled again.")]
+    public void A_refresh_that_raises_is_reported_and_ends_the_scan_with_scan_game_enabled_again()
+    {
+        var workerRan = false;
+        using var app = ScannerApp.Start(worker: s =>
+        {
+            workerRan = true;
+            return ScanWorker.Run(s);
+        });
+        // The refresh itself raising, as rebuilding the Overview's frames could, rather than its gathering failing.
+        app.Overview.Refresher = () => throw new InvalidOperationException("The frames couldn't be rebuilt.");
+
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        AssertEndedBeforeTheWorker(app);
+        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal)
+            && e.Message.Contains("The frames couldn't be rebuilt.", StringComparison.Ordinal));
         Assert.False(workerRan);
     }
 
@@ -263,14 +313,31 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    /// <summary>
+    /// A scan that stopped before its worker has ended: Scan Game is back and enabled, the scanning label is hidden, and
+    /// nothing is listed or selectable (the progress bar never moved).
+    /// </summary>
+    private static void AssertEndedBeforeTheWorker(ScannerApp app)
+    {
+        var scan = app.Scanner.SidePane!.ScanButton;
+        Assert.Equal("Scan Game", (string?)scan.Content);
+        Assert.True(scan.IsEnabled);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(0, app.Progress.Value);
+        Assert.Empty(app.Scanner.Tree!.Items);
+        Assert.Equal("", app.ResultsInfo.Text ?? "");
+        Assert.False(app.Scanner.IsSelectable);
+    }
+
     /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>
     private sealed class ScannerApp : IDisposable
     {
         private readonly MaterializedScenario _machine;
         private readonly TabControl _tabs;
 
-        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner)
+        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner, OverviewState overview)
         {
+            Overview = overview;
             _machine = machine;
             Window = window;
             Runtime = runtime;
@@ -286,6 +353,9 @@ public sealed class ScannerTabTests
         public CapturingLogger Logger { get; }
 
         public ScannerTab Scanner { get; }
+
+        /// <summary>The Overview state the scan refreshes and seeds from.</summary>
+        public OverviewState Overview { get; }
 
         public TextBlock ScanningText => Named<TextBlock>("ScanningText");
 
@@ -316,7 +386,7 @@ public sealed class ScannerTabTests
             var window = new MainWindow(runtime, [overview, scanner]);
             window.Show();
             DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
-            var app = new ScannerApp(machine, window, runtime, logger, scanner);
+            var app = new ScannerApp(machine, window, runtime, logger, scanner, state);
             app.Select(1);
             return app;
         }

@@ -12,7 +12,7 @@
     },
     {
       "bug": 22,
-      "reason": "A worker that raises is reported and the scan ends: the seeded Overview problems are listed, the progress reaches 100 and Scan Game is enabled again."
+      "reason": "The missing modlist.txt is a File Not Found problem row listed after what the scan found before it, instead of an exception that stuck the scan, so every scripted run completes."
     }
   ],
   "host": {

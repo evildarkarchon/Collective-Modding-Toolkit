@@ -147,6 +147,12 @@ public static class ScanProblemTypes
 
     /// <summary>The Race Subgraphs problem's group (SCN-S5), a <c>SimpleProblemInfo</c>'s problem text.</summary>
     public const string RaceSubgraphRecordCount = "Race Subgraph Record Count";
+
+    /// <summary>
+    /// MO2 has no selected profile, so the mod file index can't be built (SCN-S6). The port's own group: the reference
+    /// raised <c>ValueError("Missing MO2 settings ...")</c> on its scan thread instead (B-3, bug #22).
+    /// </summary>
+    public const string MissingMo2Settings = "Missing MO2 Settings";
 }
 
 /// <summary>The <c>enums.SolutionType</c> texts the data walk uses.</summary>
