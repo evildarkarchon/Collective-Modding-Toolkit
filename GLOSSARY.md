@@ -43,8 +43,12 @@ The one change that removes the Reference Implementation from the repo and makes
 _Avoid_: migration, launch, go-live
 
 **Behaviour Parity**:
-The C# app producing the same observable results as the Reference Implementation at the Parity Baseline — including its known bugs, which are logged separately rather than fixed in the port. Failure Outcomes are part of it; how unhandled errors are surfaced is not.
+The C# app producing the same observable results as the Reference Implementation at the Parity Baseline, except where a Deviation fixes a known bug. Failure Outcomes are part of it; how unhandled errors are surfaced is not.
 _Avoid_: feature parity (too loose — parity here covers behaviour, not just features)
+
+**Deviation**:
+A deliberate, documented departure from Behaviour Parity where the port fixes one reference bug, named by its bug issue and a one-line reason. The reference's recorded behaviour is kept beside it; the Deviation only overrides what the port must do.
+_Avoid_: divergence, regression (both suggest an accident), exemption (that is a checklist ID left unported, not changed behaviour)
 
 **Parity Inventory**:
 The catalogue of the Reference Implementation's observable behaviours, each under a stable checklist ID. The port is at full Behaviour Parity when every ID is proven.
@@ -55,7 +59,7 @@ A fake game and mod-manager setup, together with the results the Reference Imple
 _Avoid_: test case (a scenario can back several tests), golden (that is the recorded result alone, not the setup)
 
 **Failure Outcome**:
-What the app is left doing after it fails on bad input — a tab stuck on its loading text, a scan that never finishes, a file deleted or left behind — and the input that triggers it. Part of Behaviour Parity even when the outcome is a bug; the error type and its wording are not, unless the Reference Implementation wrote that message for the user.
+What the app is left doing after it fails on bad input — a tab stuck on its loading text, a scan that never finishes, a file deleted or left behind — and the input that triggers it. Part of Behaviour Parity even when the outcome is a bug, until a Deviation fixes it; the error type and its wording are not, unless the Reference Implementation wrote that message for the user.
 _Avoid_: crash (the app usually keeps running), error (ambiguous with the message)
 
 **Error Window**:

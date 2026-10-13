@@ -1,0 +1,16 @@
+# This file is used by Fallout4 to keep track of your downloaded content.
+*ccDup.esm
+*Unofficial.esp
+Disabled.esp
+*Missing.esp
+*Folder.esp
+*Short.esp
+*BadMagic.esp
+*NoHedr.esp
+*Skyrim.esp
+*SkyrimSE.esp
+*Legacy170.esp
+*Fo76.esm
+*Zero.esp
+*Huge.esp
+*Unknown.esl

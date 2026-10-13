@@ -1,0 +1,43 @@
+{
+  "description": "MO2's gamePath is empty, which Path('') makes '.', a truthy path: the game path is the CWD, whatever it holds (GP-1, T-7).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1",
+    "GP-4",
+    "T-7"
+  ],
+  "emptyDirs": [
+    "Documents",
+    "Cwd/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "error": {
+    "kind": "decode"
+  },
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  }
+}

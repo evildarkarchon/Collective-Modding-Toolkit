@@ -5,6 +5,12 @@ Usage, from the repo root, after publishing the C# app (``dotnet publish dotnet/
 
     uv run python parity/driver/screenshots.py shell/main-window --slice shell
     uv run python parity/driver/screenshots.py shell/main-window --slice shell --crop tab-strip=0,0,-1,80
+    uv run python parity/driver/screenshots.py shell/main-window --slice tools --tab Tools
+    uv run python parity/driver/screenshots.py downgrader/og-steam --slice downgrader/og-steam --modal Downgrader
+    uv run python parity/driver/screenshots.py scanner/overview-issues --slice scanner/results --tab Scanner --scan --panes
+    uv run python parity/driver/screenshots.py downgrader/run-og-to-ng --slice downgrader-run/og-to-ng --modal Downgrader --patch Next-Gen
+    uv run python parity/driver/screenshots.py scanner/details --slice scanner/details --tab Scanner --scan --panes \
+        --select version-1-10-163-0.bin --select-at 100,154
 
 It writes ``parity/screenshots/<slice>/tk.png`` and ``avalonia.png`` (each window's outer rectangle, title bar included),
 ``compare.png`` (the two side by side plus a 50/50 blend), and one ``compare-<name>.png`` per ``--crop`` (the three
@@ -12,14 +18,16 @@ crops stacked, at 2x). A crop is ``x,y,width,height`` in window pixels; a width 
 A human approves the pair in the slice PR; nothing compares pixels automatically, and CI never runs this.
 
 The reference runs as ``src/main.py`` itself, unmodified, in a child process with the scenario's host fakes installed
-(``Session`` in show mode). The C# exe starts in the scenario's ``cwd``. Each app gets its own copy of the tree.
-The exe sees no other host fact, which holds only while nothing it renders reads one; see "Screenshots" in
-``parity/README.md`` before capturing a screen that does.
+(``Session`` in show mode). The C# exe starts in the scenario's ``cwd`` (which it then also uses as its own folder for
+``settings.json`` and ``cm-toolkit.log``) with ``CMT_PARITY_SCENARIO`` and
+``CMT_PARITY_ROOT`` set, so it runs on the same host block (its ``ScenarioHostEnvironment``). Each app gets its own copy
+of the tree. Scripted ``dialogs`` answer only the reference's; the exe shows real ones, so pick scenarios that ask none.
 """
 
 import argparse
 import contextlib
 import ctypes
+import json
 import os
 import runpy
 import subprocess
@@ -27,6 +35,7 @@ import sys
 import time
 from ctypes import wintypes
 from pathlib import Path
+from typing import Any
 
 import psutil
 from PIL import Image, ImageDraw
@@ -37,6 +46,53 @@ from harness.scenario import Machine, load, materialize
 TITLE = "Collective Modding Toolkit v0.6.2-dev"
 DEFAULT_EXE = REPO_ROOT / "dotnet" / "artifacts" / "publish" / "cm-toolkit.exe"
 WM_CLOSE = 0x0010
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP = 0x0202
+MK_LBUTTON = 0x0001
+CWP_SKIPINVISIBLE = 0x0001
+CWP_SKIPTRANSPARENT = 0x0004
+# Where the C# app's tab headers sit, in client pixels (the strip is fixed: the window can't be resized). Tk can't be
+# driven by posted clicks (it reads the real button state), so the reference selects its tab in-process instead.
+TAB_CENTRES = {
+	"Overview": (53, 25),
+	"F4SE": (139, 25),
+	"Scanner": (220, 25),
+	"Tools": (306, 25),
+	"Settings": (397, 25),
+	"About": (487, 25),
+}
+# The modals ``--modal`` can open: where the C# app's opening button sits on the Overview tab, in client pixels (posted
+# clicks again), and the reference's opener, called in-process on the CMChecker once the Overview has loaded.
+MODAL_BUTTONS = {
+	"Downgrader": (142, 420),  # Overview, Binaries frame: "Downgrade Manager..."
+	"Archive Patcher": (411, 420),  # Overview, Archives frame: "Archive Patcher..."
+}
+# Tells the reference child which modal to open, so its positional arguments stay as they were.
+MODAL_VARIABLE = "CMT_SCREENSHOT_MODAL"
+# Tells the reference child to run an Overview Issues scan once the Scanner tab is up (``--scan``).
+SCAN_VARIABLE = "CMT_SCREENSHOT_SCAN"
+# Tells the reference child which Scanner result to select once the scan has listed it (``--select``).
+SELECT_VARIABLE = "CMT_SCREENSHOT_SELECT"
+# The C# Scanner side pane's title (PaneWindow), and where ``--scan`` clicks in its client pixels: each box with the
+# setting it starts from, then Scan Game. Measured from parity/screenshots/scanner/side-pane (Overview Issues sits one
+# 28 px row above Errors).
+SIDE_PANE_TITLE = "Collective Modding Toolkit pane (Side)"
+SCAN_BOXES = [
+	("scanner_OverviewIssues", (26, 42)),
+	("scanner_Errors", (26, 70)),
+	("scanner_WrongFormat", (26, 98)),
+	("scanner_LoosePrevis", (26, 126)),
+	("scanner_JunkFiles", (26, 154)),
+	("scanner_ProblemOverrides", (26, 182)),
+	("scanner_RaceSubgraphs", (26, 210)),
+]
+SCAN_GAME = (100, 375)
+# Tells the reference child to run the Downgrader's Patch All once it is open (``--patch``), with this Desired Version.
+PATCH_VARIABLE = "CMT_SCREENSHOT_PATCH"
+# Where ``--patch`` clicks in the C# Downgrader's client pixels: each Desired Version radio, and Patch All. Measured from
+# parity/screenshots/downgrader/og-steam, whose six Old-Gen labels lay the window out as the run-og-to-ng scenario does.
+DOWNGRADER_RADIOS = {"Old-Gen": (326, 36), "Next-Gen": (326, 64)}
+DOWNGRADER_PATCH_ALL = (527, 49)
 PW_RENDERFULLCONTENT = 2
 DPI_100 = 96
 
@@ -55,6 +111,10 @@ user32.GetDC.restype = wintypes.HDC
 user32.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]
 user32.PrintWindow.argtypes = [wintypes.HWND, wintypes.HDC, wintypes.UINT]
 user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+user32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+user32.ScreenToClient.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+user32.ChildWindowFromPointEx.argtypes = [wintypes.HWND, wintypes.POINT, wintypes.UINT]
+user32.ChildWindowFromPointEx.restype = wintypes.HWND
 gdi32.CreateCompatibleDC.argtypes = [wintypes.HDC]
 gdi32.CreateCompatibleDC.restype = wintypes.HDC
 gdi32.CreateCompatibleBitmap.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int]
@@ -138,8 +198,109 @@ def capture(hwnd: int) -> Image.Image:
 		user32.ReleaseDC(None, screen_dc)
 
 
-def run_and_capture(command: list[str], cwd: Path, env: dict[str, str] | None, label: str, timeout: float, *, allow_dpi: bool) -> Image.Image:
-	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill)."""
+def visible_windows(pid: int) -> list[int]:
+	"""Every visible top-level window owned by ``pid`` or one of its descendants, in Z order (topmost first)."""
+	found: list[int] = []
+	pids = process_tree(pid)
+
+	def visit(hwnd: int, _: int) -> bool:
+		owner = wintypes.DWORD()
+		user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+		if owner.value in pids and user32.IsWindowVisible(hwnd):
+			found.append(hwnd)
+		return True
+
+	user32.EnumWindows(EnumWindowsProc(visit), 0)
+	return found
+
+
+def capture_with_panes(pid: int, main: int) -> Image.Image:
+	"""The main window with every other visible window of the app pasted where it sits on screen relative to it (the
+	Scanner's docked panes), on black. The canvas starts at the main window's outer top-left, so pairs align.
+	"""
+	rects: dict[int, wintypes.RECT] = {}
+	for hwnd in [main, *(h for h in reversed(visible_windows(pid)) if h != main)]:
+		rect = wintypes.RECT()
+		user32.GetWindowRect(hwnd, ctypes.byref(rect))
+		rects[hwnd] = rect
+	left, top = rects[main].left, rects[main].top
+	right = max(r.right for r in rects.values())
+	bottom = max(r.bottom for r in rects.values())
+	canvas = Image.new("RGB", (right - left, bottom - top))
+	for hwnd, rect in rects.items():
+		canvas.paste(capture(hwnd), (rect.left - left, rect.top - top))
+	return canvas
+
+
+def click(hwnd: int, point: tuple[int, int]) -> None:
+	"""Clicks at ``point`` in the window's client pixels without moving the real pointer: a posted left button down
+	and up, sent to the deepest visible child window under the point.
+	"""
+	screen = wintypes.POINT(*point)
+	user32.ClientToScreen(hwnd, ctypes.byref(screen))
+	target = hwnd
+	while True:
+		local = wintypes.POINT(screen.x, screen.y)
+		user32.ScreenToClient(target, ctypes.byref(local))
+		child = user32.ChildWindowFromPointEx(target, local, CWP_SKIPINVISIBLE | CWP_SKIPTRANSPARENT)
+		if not child or child == target:
+			break
+		target = child
+	local = wintypes.POINT(screen.x, screen.y)
+	user32.ScreenToClient(target, ctypes.byref(local))
+	position = (local.y << 16) | (local.x & 0xFFFF)
+	user32.PostMessageW(target, WM_LBUTTONDOWN, MK_LBUTTON, position)
+	user32.PostMessageW(target, WM_LBUTTONUP, 0, position)
+
+
+def saved_scan_boxes(folder: Path) -> list[bool]:
+	"""The C# Scanner boxes' starting states, in ``SCAN_BOXES`` order.
+
+	Since bug #20's fix the C# app ticks them from the ``scanner_*`` settings in its folder's ``settings.json`` (the
+	scenario's ``cwd`` here), where the reference always starts with every box ticked. A missing or unreadable file, or
+	a value that isn't a bool, means ticked, as ``SettingsFile.Load`` falls back to the default.
+	"""
+	try:
+		saved = json.loads((folder / "settings.json").read_text("utf-8"))
+	except (OSError, ValueError):
+		saved = {}
+	if not isinstance(saved, dict):
+		saved = {}
+	return [value if isinstance(value := saved.get(key), bool) else True for key, _ in SCAN_BOXES]
+
+
+def run_and_capture(
+	command: list[str],
+	cwd: Path,
+	env: dict[str, str] | None,
+	label: str,
+	timeout: float,
+	*,
+	allow_dpi: bool,
+	tab: str | None = None,
+	click_tab: bool = False,
+	modal: str | None = None,
+	scan: bool = False,
+	panes: bool = False,
+	patch: str | None = None,
+	select: bool = False,
+	select_at: tuple[int, int] | None = None,
+	scan_all: bool = False,
+	scan_boxes: list[bool] | None = None,
+) -> Image.Image:
+	"""Starts an app, waits for its main window, lets it render, captures it, and closes it (WM_CLOSE, then kill).
+
+	With ``tab``, the capture waits longer for that tab to be selected and built; ``click_tab`` makes this function
+	select it by clicking its header (the C# app), rather than the app selecting it itself (the reference child).
+	With ``modal``, the window captured is that modal instead of the main window; with ``click_tab`` it is opened by
+	clicking its button (``MODAL_BUTTONS``), otherwise the app opens it itself. With ``scan`` (on the Scanner tab), an
+	Overview Issues scan runs first: ``click_tab`` clicks the side pane's boxes that ``scan_boxes`` (their starting
+	states, ``saved_scan_boxes``; all ticked when None) shows aren't as wanted, then Scan Game (``SCAN_BOXES``,
+	``SCAN_GAME``), otherwise the app runs it itself; with ``scan_all`` too, every box is wanted ticked.
+	With ``panes``, the app's other windows are pasted in place around the main one.
+	With ``select`` (after a scan), a result is selected so the details pane opens: ``click_tab`` clicks ``select_at``
+	in the main window's client pixels (a results row), otherwise the app selects it itself.
+	"""
 	process = subprocess.Popen(command, cwd=cwd, env=env)
 	try:
 		deadline = time.monotonic() + timeout
@@ -157,11 +318,57 @@ def run_and_capture(command: list[str], cwd: Path, env: dict[str, str] | None, l
 
 		# Let the first frames render (the reference loads the Overview tab after the window appears).
 		time.sleep(2)
+		if tab is not None:
+			if click_tab:
+				click(hwnd, TAB_CENTRES[tab])
+			# Long enough for the reference's delayed select and for either app to build the tab.
+			time.sleep(3)
+		if scan:
+			if click_tab:
+				side = find_window(process.pid, SIDE_PANE_TITLE)
+				if side is None:
+					msg = f"{label} showed no Scanner side pane"
+					raise RuntimeError(msg)
+				# Click only the boxes not already as wanted: Overview Issues ticked, and the six data boxes ticked
+				# for --scan-all, unticked otherwise. A posted click toggles, so clicking a box already right would
+				# undo it.
+				starting = scan_boxes if scan_boxes is not None else [True] * len(SCAN_BOXES)
+				wanted = [True] + [scan_all] * (len(SCAN_BOXES) - 1)
+				for (_, point), ticked, want in zip(SCAN_BOXES, starting, wanted, strict=True):
+					if ticked != want:
+						click(side, point)
+						time.sleep(0.2)
+				click(side, SCAN_GAME)
+				time.sleep(0.2)
+			# Long enough for the reference's delayed scan and for either app to refresh the Overview and list results.
+			time.sleep(4)
+		if select:
+			if click_tab and select_at is not None:
+				click(hwnd, select_at)
+			# Long enough for the reference's polled selection and for either app to open the details pane.
+			time.sleep(2)
+		if modal is not None:
+			if click_tab:
+				click(hwnd, MODAL_BUTTONS[modal])
+			# Long enough for the reference's delayed open and for either app to detect and build the modal.
+			time.sleep(3)
+			hwnd = find_window(process.pid, modal)
+			if hwnd is None:
+				msg = f"{label} showed no window titled {modal!r}"
+				raise RuntimeError(msg)
+		if patch is not None:
+			if click_tab:
+				if patch in DOWNGRADER_RADIOS:
+					click(hwnd, DOWNGRADER_RADIOS[patch])
+					time.sleep(0.3)
+				click(hwnd, DOWNGRADER_PATCH_ALL)
+			# Long enough for either app's run: its downloads, decodes and Overview refresh.
+			time.sleep(5)
 		dpi = user32.GetDpiForWindow(hwnd)
 		if dpi != DPI_100 and not allow_dpi:
 			msg = f"{label}'s window is at {dpi * 100 // DPI_100} % scaling; screenshot pairs are taken at 100 % (or pass --allow-dpi)"
 			raise RuntimeError(msg)
-		return capture(hwnd)
+		return capture_with_panes(process.pid, hwnd) if panes else capture(hwnd)
 	finally:
 		if process.poll() is None:
 			hwnd = find_window(process.pid, TITLE)
@@ -262,20 +469,131 @@ def parse_crop(text: str) -> tuple[str, tuple[int, int, int, int]]:
 	return name, (parts[0], parts[1], parts[2], parts[3])
 
 
-def run_reference_child(scenario_id: str, root: str) -> None:
-	"""Child mode: runs the unmodified ``src/main.py`` inside an already materialized root, with the fakes installed."""
+def run_reference_child(scenario_id: str, root: str, tab: str | None = None) -> None:
+	"""Child mode: runs the unmodified ``src/main.py`` inside an already materialized root, with the fakes installed.
+
+	With ``tab``, ``CMChecker`` is wrapped so that, two seconds after it is built (once the window is up and the
+	Overview tab has loaded), the notebook selects that tab, just as a click on its header would.
+	"""
 	from harness.reference import Session  # noqa: PLC0415
 
 	machine = Machine(load(scenario_id), Path(root))
 	Session(machine, "show").start()
+	if tab is not None:
+		import cm_checker  # noqa: PLC0415
+		from enums import Tab  # noqa: PLC0415
+
+		original_init = cm_checker.CMChecker.__init__
+
+		def init_then_select(self: Any, *args: Any, **kwargs: Any) -> None:
+			original_init(self, *args, **kwargs)
+			page = self.tabs[Tab[tab]]
+			self.root.after(2000, lambda: page.master.select(page))
+
+		cm_checker.CMChecker.__init__ = init_then_select  # type: ignore[method-assign]
+	modal = os.environ.get(MODAL_VARIABLE)
+	if modal is not None:
+		import cm_checker  # noqa: PLC0415
+
+		openers = {"Downgrader": _open_downgrader, "Archive Patcher": _open_archive_patcher}
+		original = cm_checker.CMChecker.__init__
+
+		def init_then_open(self: Any, *args: Any, **kwargs: Any) -> None:
+			original(self, *args, **kwargs)
+			self.root.after(2000, lambda: openers[modal](self))
+
+		cm_checker.CMChecker.__init__ = init_then_open  # type: ignore[method-assign]
+	if os.environ.get(SCAN_VARIABLE):
+		import cm_checker  # noqa: PLC0415
+
+		before_scan = cm_checker.CMChecker.__init__
+
+		def init_then_scan(self: Any, *args: Any, **kwargs: Any) -> None:
+			before_scan(self, *args, **kwargs)
+			# A second after the tab is selected: untick the data boxes, then press Scan Game, as --scan's clicks do
+			# (--scan-all: just press Scan Game).
+			scan = _scan_every_box if os.environ[SCAN_VARIABLE] == "all" else _scan_overview_issues
+			self.root.after(3000, lambda: scan(self))
+
+		cm_checker.CMChecker.__init__ = init_then_scan  # type: ignore[method-assign]
+	select = os.environ.get(SELECT_VARIABLE)
+	if select:
+		import cm_checker  # noqa: PLC0415
+
+		before_select = cm_checker.CMChecker.__init__
+
+		def init_then_select_result(self: Any, *args: Any, **kwargs: Any) -> None:
+			before_select(self, *args, **kwargs)
+			# Polled from when the scan starts, since the results are listed only once it is done.
+			self.root.after(3000, lambda: _select_result(self, select))
+
+		cm_checker.CMChecker.__init__ = init_then_select_result  # type: ignore[method-assign]
 	runpy.run_path(str(SRC / "main.py"), run_name="__main__")
+
+
+def _scan_overview_issues(checker: Any) -> None:
+	"""Unticks every Scanner box but Overview Issues and presses Scan Game, on the open side pane."""
+	from enums import Tab  # noqa: PLC0415
+
+	side = checker.tabs[Tab.Scanner].side_pane
+	frame = next(c for c in side.winfo_children() if c.winfo_class() == "TLabelframe")
+	for check in frame.pack_slaves()[1:]:
+		check.invoke()
+	side.button_scan.invoke()
+
+
+def _select_result(checker: Any, text: str) -> None:
+	"""Selects the Scanner result whose item text is ``text`` (opening the details pane), polling every 100 ms until
+	the scan has listed it. Selecting in-process stands in for a click, which a posted message can't give Tk.
+	"""
+	from enums import Tab  # noqa: PLC0415
+
+	tree = checker.tabs[Tab.Scanner].tree_results
+	for group in tree.get_children():
+		for item in tree.get_children(group):
+			if str(tree.item(item, "text")) == text:
+				tree.selection_set(item)
+				return
+	checker.root.after(100, lambda: _select_result(checker, text))
+
+
+def _scan_every_box(checker: Any) -> None:
+	"""Presses Scan Game on the open side pane, every box still ticked as it starts (B-1)."""
+	from enums import Tab  # noqa: PLC0415
+
+	checker.tabs[Tab.Scanner].side_pane.button_scan.invoke()
+
+
+def _open_downgrader(checker: Any) -> None:
+	"""What the Overview's ``Downgrade Manager...`` button runs; with ``--patch``, a second later, the radio and Patch All."""
+	from downgrader import Downgrader  # noqa: PLC0415
+
+	window = Downgrader(checker.root, checker)
+	desired = os.environ.get(PATCH_VARIABLE)
+	if desired is not None:
+
+		def patch() -> None:
+			radios = [w for frame in window.grid_slaves(column=1) for w in frame.winfo_children() if w.winfo_class() == "TRadiobutton"]
+			for radio in radios:
+				if str(radio.cget("text")) == desired:
+					radio.invoke()
+			window.button_patch.invoke()
+
+		checker.root.after(1000, patch)
+
+
+def _open_archive_patcher(checker: Any) -> None:
+	"""What the Overview's ``Archive Patcher...`` button runs."""
+	from patcher import ArchivePatcher  # noqa: PLC0415
+
+	ArchivePatcher(checker.root, checker)
 
 
 def main() -> int:
 	"""Captures the pair and writes the images, or (``--reference-child``) runs the Tk reference. Returns the exit code."""
 	# The child mode has its own arguments, so it is handled before the user-facing parser requires --slice.
-	if len(sys.argv) == 4 and sys.argv[1] == "--reference-child":
-		run_reference_child(sys.argv[2], sys.argv[3])
+	if len(sys.argv) in {4, 5} and sys.argv[1] == "--reference-child":
+		run_reference_child(*sys.argv[2:])
 		return 0
 
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -283,6 +601,23 @@ def main() -> int:
 	parser.add_argument("--slice", required=True, help="the folder under parity/screenshots/ to write to")
 	parser.add_argument("--exe", type=Path, default=DEFAULT_EXE, help=f"the published C# exe (default: {DEFAULT_EXE})")
 	parser.add_argument("--crop", type=parse_crop, action="append", default=[], help="name=x,y,width,height (repeatable)")
+	parser.add_argument("--tab", choices=list(TAB_CENTRES), help="the tab to select before capturing (default: Overview)")
+	parser.add_argument("--modal", choices=list(MODAL_BUTTONS), help="capture this modal, opened from the Overview, instead")
+	parser.add_argument("--scan", action="store_true", help="with --tab Scanner: run an Overview Issues scan first")
+	parser.add_argument("--scan-all", action="store_true", help="with --tab Scanner: run a scan with every box ticked first")
+	parser.add_argument("--panes", action="store_true", help="paste the app's other windows (the Scanner panes) in place")
+	parser.add_argument(
+		"--patch",
+		choices=["default", *DOWNGRADER_RADIOS],
+		help="with --modal Downgrader: click this Desired Version (or keep the default), then Patch All, before capturing",
+	)
+	parser.add_argument("--select", metavar="TEXT", help="with --scan: select the result with this item text (the reference)")
+	parser.add_argument(
+		"--select-at",
+		type=lambda s: tuple(int(v) for v in s.split(",")),
+		metavar="X,Y",
+		help="with --select: where the C# app gets a click to select that result, in main-window client pixels",
+	)
 	parser.add_argument("--timeout", type=float, default=60, help="seconds to wait for each window")
 	parser.add_argument("--allow-dpi", action="store_true", help="capture even when the window isn't at 100 %% scaling")
 	args = parser.parse_args()
@@ -299,16 +634,38 @@ def main() -> int:
 	out_dir = PARITY / "screenshots" / args.slice
 	out_dir.mkdir(parents=True, exist_ok=True)
 	env = {**os.environ, "PYTHONHASHSEED": "0"}
+	if args.modal is not None:
+		env[MODAL_VARIABLE] = args.modal
+	if args.patch is not None:
+		env[PATCH_VARIABLE] = args.patch
+	if args.scan or args.scan_all:
+		env[SCAN_VARIABLE] = "all" if args.scan_all else "1"
+	if args.select:
+		env[SELECT_VARIABLE] = args.select
 
 	tk_machine = materialize(scenario)
 	try:
 		tk = run_and_capture(
-			[sys.executable, str(Path(__file__).resolve()), "--reference-child", scenario.id, str(tk_machine.root)],
+			[
+				sys.executable,
+				str(Path(__file__).resolve()),
+				"--reference-child",
+				scenario.id,
+				str(tk_machine.root),
+				*([args.tab] if args.tab else []),
+			],
 			REPO_ROOT,
 			env,
 			"The Tk reference",
 			args.timeout,
 			allow_dpi=args.allow_dpi,
+			tab=args.tab,
+			modal=args.modal,
+			scan=args.scan or args.scan_all,
+			scan_all=args.scan_all,
+			panes=args.panes,
+			patch=args.patch,
+			select=bool(args.select),
 		)
 	finally:
 		tk_machine.cleanup()
@@ -316,7 +673,30 @@ def main() -> int:
 	av_machine = materialize(scenario)
 	try:
 		cwd = Path(av_machine.expand(scenario.host["cwd"])) if "cwd" in scenario.host else av_machine.root
-		avalonia = run_and_capture([str(exe)], cwd, None, "cm-toolkit.exe", args.timeout, allow_dpi=args.allow_dpi)
+		# The exe's ScenarioHostEnvironment reads the same host block, so both apps run on the same fake machine.
+		av_env = {
+			**os.environ,
+			"CMT_PARITY_SCENARIO": str(scenario.directory / "scenario.json"),
+			"CMT_PARITY_ROOT": str(av_machine.root),
+		}
+		avalonia = run_and_capture(
+			[str(exe)],
+			cwd,
+			av_env,
+			"cm-toolkit.exe",
+			args.timeout,
+			allow_dpi=args.allow_dpi,
+			tab=args.tab,
+			click_tab=True,
+			modal=args.modal,
+			scan=args.scan or args.scan_all,
+			scan_all=args.scan_all,
+			scan_boxes=saved_scan_boxes(cwd),
+			panes=args.panes,
+			patch=args.patch,
+			select=bool(args.select),
+			select_at=args.select_at,
+		)
 	finally:
 		av_machine.cleanup()
 

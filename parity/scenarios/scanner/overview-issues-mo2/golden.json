@@ -1,0 +1,605 @@
+{
+  "scanner": {
+    "columns": [
+      "mod"
+    ],
+    "display": {
+      "during": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 1.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": false,
+          "text": "Scanning..."
+        },
+        "scanningLabel": "Refreshing Overview...",
+        "selectable": false,
+        "sidePane": true
+      },
+      "initial": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 0.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": false,
+        "sidePane": true
+      },
+      "left": {
+        "detailsPane": false,
+        "sidePane": false
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Refresh Tab : Overview"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: Fallout4 - TexturesPatch.ba2 | Problem: File Not Found"
+        },
+        {
+          "$unordered": [
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking BadMagic - main.ba2"
+            }
+          ]
+        }
+      ],
+      "rescan": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - TexturesPatch.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - TexturesPatch.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - TexturesPatch.ba2",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": [
+                        ""
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "f4se_loader.exe",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\f4se_loader.exe",
+                    "relativePath": "f4se_loader.exe",
+                    "solution": null,
+                    "summary": "The version of this binary does not match your installed game version.",
+                    "type": "Wrong Version"
+                  },
+                  "text": "f4se_loader.exe",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Wrong Version"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "4 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "sidePane": true
+      },
+      "rescanDuring": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": []
+        },
+        "progress": 1.0,
+        "resultsInfo": "",
+        "scan": {
+          "enabled": false,
+          "text": "Scanning..."
+        },
+        "scanningLabel": "Refreshing Overview...",
+        "selectable": false,
+        "sidePane": true
+      },
+      "results": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - TexturesPatch.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - TexturesPatch.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - TexturesPatch.ba2",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": [
+                        ""
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "f4se_loader.exe",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\f4se_loader.exe",
+                    "relativePath": "f4se_loader.exe",
+                    "solution": null,
+                    "summary": "The version of this binary does not match your installed game version.",
+                    "type": "Wrong Version"
+                  },
+                  "text": "f4se_loader.exe",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Wrong Version"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "4 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "sidePane": true
+      },
+      "returned": {
+        "detailsPane": false,
+        "groups": {
+          "$unordered": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "Fallout4 - TexturesPatch.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - TexturesPatch.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - TexturesPatch.ba2",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": [
+                        ""
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "itemText": "f4se_loader.exe",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\f4se_loader.exe",
+                    "relativePath": "f4se_loader.exe",
+                    "solution": null,
+                    "summary": "The version of this binary does not match your installed game version.",
+                    "type": "Wrong Version"
+                  },
+                  "text": "f4se_loader.exe",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Wrong Version"
+            }
+          ]
+        },
+        "progress": 100.0,
+        "resultsInfo": "4 Results ~ Select an item for details",
+        "scan": {
+          "enabled": true,
+          "text": "Scan Game"
+        },
+        "scanningLabel": null,
+        "selectable": true,
+        "selection": [],
+        "side": {
+          "checks": [
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Overview Issues",
+              "tooltip": "Report details of issues from Overview"
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Errors",
+              "tooltip": "Check for errors in mod configuration or files."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Wrong File Formats",
+              "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Loose Previs",
+              "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Junk Files",
+              "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Problem Overrides",
+              "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
+            },
+            {
+              "checked": true,
+              "enabled": true,
+              "text": "Race Subgraphs",
+              "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
+            }
+          ],
+          "scan": {
+            "enabled": true,
+            "style": "Accent.TButton",
+            "text": "Scan Game"
+          },
+          "title": "Scan Settings"
+        },
+        "sidePane": true
+      },
+      "selection": {
+        "group": false,
+        "item": true
+      },
+      "side": {
+        "checks": [
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Overview Issues",
+            "tooltip": "Report details of issues from Overview"
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Errors",
+            "tooltip": "Check for errors in mod configuration or files."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Wrong File Formats",
+            "tooltip": "Check file types against a whitelist per Data folder.\ne.g. MP3 instead of XWM/WAV in Data/Sound/."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Loose Previs",
+            "tooltip": "Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Junk Files",
+            "tooltip": "Report junk files such as desktop.ini, Thumbs.db,\nand leftover fomod folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Problem Overrides",
+            "tooltip": "Check for overrides that typically cause issues\nsuch as outdated F4SE script files or loose AnimTextData folders."
+          },
+          {
+            "checked": true,
+            "enabled": true,
+            "text": "Race Subgraphs",
+            "tooltip": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\n\nBase Game Count: 37\nWarning Threshold: 100"
+          }
+        ],
+        "scan": {
+          "enabled": true,
+          "style": "Accent.TButton",
+          "text": "Scan Game"
+        },
+        "title": "Scan Settings"
+      },
+      "toggles": [
+        {
+          "check": "Errors",
+          "scanEnabled": true
+        },
+        {
+          "check": "Wrong File Formats",
+          "scanEnabled": true
+        },
+        {
+          "check": "Loose Previs",
+          "scanEnabled": true
+        },
+        {
+          "check": "Junk Files",
+          "scanEnabled": true
+        },
+        {
+          "check": "Problem Overrides",
+          "scanEnabled": true
+        },
+        {
+          "check": "Race Subgraphs",
+          "scanEnabled": true
+        },
+        {
+          "check": "Overview Issues",
+          "scanEnabled": false
+        },
+        {
+          "check": "Overview Issues",
+          "scanEnabled": true
+        }
+      ]
+    },
+    "errors": 0,
+    "loaded": true,
+    "settingsAfter": {
+      "text": "{\"log_level\":\"INFO\",\"update_source\":\"none\",\"scanner_OverviewIssues\":true,\"scanner_Errors\":false,\"scanner_WrongFormat\":false,\"scanner_LoosePrevis\":false,\"scanner_JunkFiles\":false,\"scanner_ProblemOverrides\":false,\"scanner_RaceSubgraphs\":false,\"downgrader_keep_backups\":true,\"downgrader_delete_deltas\":true}\n"
+    },
+    "settingsAfterRescan": null,
+    "settingsBefore": {
+      "text": "{\"log_level\":\"INFO\",\"update_source\":\"none\",\"scanner_OverviewIssues\":true,\"scanner_Errors\":false,\"scanner_WrongFormat\":false,\"scanner_LoosePrevis\":false,\"scanner_JunkFiles\":false,\"scanner_ProblemOverrides\":false,\"scanner_RaceSubgraphs\":false,\"downgrader_keep_backups\":true,\"downgrader_delete_deltas\":true}\n"
+    },
+    "usingStage": true
+  }
+}

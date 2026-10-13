@@ -1,0 +1,32 @@
+{
+  "description": "'sLanguage = de' is untrimmed, so the key isn't 'slanguage' and the language stays English; the Custom INI's 'sLanguage= es' value isn't trimmed either and isn't a language (INI-3, INI-4, B-14). Port: fixed, see deviation #17.",
+  "operation": "game-info",
+  "parity": [
+    "INI-3",
+    "INI-4",
+    "B-14"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  },
+  "deviations": [
+    {
+      "bug": 17,
+      "reason": "The port reads game INIs with a UTF-8 BOM stripped, falls back to Windows-1252 for non-UTF-8 bytes, and trims lines, keys and values."
+    }
+  ]
+}

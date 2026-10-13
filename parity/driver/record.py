@@ -34,6 +34,14 @@ def _tokenize(value: Any, golden: GoldenContext) -> Any:
 	return value
 
 
+def _deviation_note(deviations: list[dict[str, Any]]) -> str:
+	"""A suffix for a deviating scenario's status line, so a reviewer sees which goldens the port overrides."""
+	if not deviations:
+		return ""
+	bugs = ", ".join(f"#{d['bug']}" for d in deviations)
+	return f"  (port deviates: {bugs}; golden.port.json not checked)"
+
+
 def run_child(scenario_id: str) -> str:
 	"""Runs one scenario in this (child) process and returns its golden text."""
 	if os.environ.get("PYTHONHASHSEED") != "0" or sys.flags.hash_randomization:
@@ -105,15 +113,18 @@ def main() -> int:
 			sys.stderr.write(f"FAILED  {scenario.id}\n{child.stderr}\n")
 			continue
 
+		# Only golden.json is the reference's: a deviating scenario's golden.port.json is the port's expected result
+		# (ADR-0006), written by whoever fixed the bug, and the driver neither compares nor touches it.
 		current = scenario.golden_path.read_text("utf-8") if scenario.golden_path.is_file() else None
+		note = _deviation_note(scenario.deviations)
 		if args.check:
 			changed = current != child.stdout
 			failed += changed
-			sys.stdout.write(f"{'CHANGED ' if changed else 'same    '}{scenario.id}\n")
+			sys.stdout.write(f"{'CHANGED ' if changed else 'same    '}{scenario.id}{note}\n")
 		else:
 			# newline="\n": goldens are written with LF whatever the platform, so re-recording is byte-stable.
 			scenario.golden_path.write_text(child.stdout, "utf-8", newline="\n")
-			sys.stdout.write(f"{'same    ' if current == child.stdout else 'written '}{scenario.id}\n")
+			sys.stdout.write(f"{'same    ' if current == child.stdout else 'written '}{scenario.id}{note}\n")
 
 	return 1 if failed else 0
 

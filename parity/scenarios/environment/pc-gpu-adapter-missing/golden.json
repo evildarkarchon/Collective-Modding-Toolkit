@@ -1,0 +1,19 @@
+{
+  "pc": {
+    "cpu": "AMD Ryzen 9 5950X",
+    "display": {
+      "log": [
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "get_gpu():"
+        }
+      ]
+    },
+    "gpu": "Unknown GPU",
+    "os": "Windows 11 25H2",
+    "ram": 128,
+    "usingWine": false,
+    "vram": 0
+  }
+}

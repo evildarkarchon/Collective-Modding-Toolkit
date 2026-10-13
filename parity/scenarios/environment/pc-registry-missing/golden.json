@@ -1,0 +1,24 @@
+{
+  "pc": {
+    "cpu": "Unknown CPU",
+    "display": {
+      "log": [
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "get_cpu():"
+        },
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "get_gpu():"
+        }
+      ]
+    },
+    "gpu": "Unknown GPU",
+    "os": "Windows 11 23H2",
+    "ram": 32,
+    "usingWine": false,
+    "vram": 0
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "f4se": {
+    "display": {
+      "loading": {
+        "color": "#AF5A66",
+        "text": "Data/F4SE/Plugins folder not found"
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : F4SETab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : F4SETab"
+        },
+        {
+          "level": "ERROR",
+          "message": "Load Tab : F4SETab : Failed : Data/F4SE/Plugins folder not found"
+        }
+      ]
+    },
+    "dlls": null,
+    "failure": null,
+    "installType": "Old-Gen",
+    "loaded": false,
+    "loadingError": "Data/F4SE/Plugins folder not found",
+    "verdicts": null
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "description": "Nexus Mods times out and GitHub is newer: the failure is only logged. Port: fixed, see deviation #32.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  },
+  "deviations": [
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
+}

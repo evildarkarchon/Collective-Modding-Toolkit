@@ -1,0 +1,17 @@
+{
+  "description": "Only GitHub is newer: the GitHub link takes column 1. Port: fixed, see deviation #32.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  },
+  "deviations": [
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
+}

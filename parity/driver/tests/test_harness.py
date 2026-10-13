@@ -82,6 +82,53 @@ class ScenarioTests(unittest.TestCase):
 		with self.assertRaises(ScenarioError):
 			load("m/b", self.root)
 
+	def test_deviations_are_loaded_and_leave_the_reference_golden_in_place(self) -> None:
+		"""A synthetic Deviation (ADR-0006): bug 1 exists only to exercise the mechanism."""
+		self.author("m/s", {"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 1, "reason": "Synthetic."}]})
+		self.author("m/plain", {"operation": "op", "parity": [], "host": {}})
+
+		scenario = load("m/s", self.root)
+
+		self.assertEqual(scenario.deviations, [{"bug": 1, "reason": "Synthetic."}])
+		# record.py writes and --check compares golden.json only; the port golden beside it is never the driver's.
+		self.assertEqual(scenario.golden_path.name, "golden.json")
+		self.assertEqual(scenario.port_golden_path.name, "golden.port.json")
+		self.assertEqual(load("m/plain", self.root).deviations, [])
+
+	def test_malformed_deviations_are_rejected_like_the_csharp_side(self) -> None:
+		cases = {
+			"m/zero": [{"bug": 0, "reason": "x"}],
+			"m/string": [{"bug": "#77", "reason": "x"}],
+			"m/bool": [{"bug": True, "reason": "x"}],
+			"m/blank": [{"bug": 77, "reason": " "}],
+			"m/missing": [{"bug": 77}],
+			"m/extra": [{"bug": 77, "reason": "x", "fixed": True}],
+			"m/twice": [{"bug": 77, "reason": "x"}, {"bug": 77, "reason": "y"}],
+			"m/empty": [],
+			"m/object": {"bug": 77, "reason": "x"},
+		}
+		for scenario_id, deviations in cases.items():
+			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}, "deviations": deviations})
+
+		for scenario_id in cases:
+			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "deviation"):
+				load(scenario_id, self.root)
+
+	def test_duplicate_keys_are_rejected_like_the_csharp_side(self) -> None:
+		"""A repeated key would replace the first silently, hiding a deviation or a parity ID from the checks."""
+		cases = {
+			"m/top": '{"operation": "op", "parity": [], "host": {}, "parity": ["SET-1"]}',
+			"m/nested": '{"operation": "op", "parity": [], "host": {}, "deviations": [{"bug": 77, "reason": "x", "bug": 78}]}',
+		}
+		for scenario_id, text in cases.items():
+			directory = self.root / scenario_id
+			directory.mkdir(parents=True)
+			(directory / "scenario.json").write_text(text, "utf-8")
+
+		for scenario_id in cases:
+			with self.subTest(scenario_id), self.assertRaisesRegex(ScenarioError, "duplicate key"):
+				load(scenario_id, self.root)
+
 	def test_discover_filters_by_glob_and_sorts_by_id(self) -> None:
 		for scenario_id in ("s/b", "s/a", "o/a"):
 			self.author(scenario_id, {"operation": "op", "parity": [], "host": {}})
@@ -307,6 +354,23 @@ class SessionTests(unittest.TestCase):
 		)
 
 
+class ScreenshotScanBoxTests(unittest.TestCase):
+	def test_the_port_s_scanner_boxes_start_from_the_saved_settings_or_ticked(self) -> None:
+		"""Bug #20's fix: the C# app's boxes start from settings.json, so --scan clicks only those not as wanted."""
+		from screenshots import saved_scan_boxes  # noqa: PLC0415 - imports PIL and user32, so only this test pays for it
+
+		folder = Path(tempfile.mkdtemp(prefix="cmt-driver-tests-"))
+		try:
+			self.assertEqual(saved_scan_boxes(folder), [True] * 7)
+			saved = {"scanner_OverviewIssues": True, "scanner_Errors": False, "scanner_JunkFiles": "no"}
+			(folder / "settings.json").write_text(json.dumps(saved), "utf-8")
+			self.assertEqual(saved_scan_boxes(folder), [True, False, True, True, True, True, True])
+			(folder / "settings.json").write_text("not json", "utf-8")
+			self.assertEqual(saved_scan_boxes(folder), [True] * 7)
+		finally:
+			shutil.rmtree(folder, ignore_errors=True)
+
+
 class ScreenshotShutdownTests(unittest.TestCase):
 	def test_kill_tree_takes_the_descendants_down_too(self) -> None:
 		"""A parent that starts a grandchild-style child (like a venv redirector) leaves no orphan behind."""
@@ -330,6 +394,68 @@ class ScreenshotShutdownTests(unittest.TestCase):
 			parent.kill()
 			parent.stdout.close()
 			parent.wait()
+
+
+class TextRunsTests(unittest.TestCase):
+	"""``_text_runs`` and ``_log_pane_runs`` against a real Tk ``Text``, tagged as ``logger.Logger.log_message`` tags it."""
+
+	def setUp(self) -> None:
+		import tkinter as tk  # noqa: PLC0415
+
+		self.root = tk.Tk()
+		self.root.withdraw()
+		self.text = tk.Text(self.root)
+		self.text.tag_configure("info", foreground="dodger blue")
+		self.text.tag_configure("good", foreground="#619267")
+
+	def tearDown(self) -> None:
+		self.root.destroy()
+
+	def log(self, tag: str, emoji: str, message: str) -> None:
+		"""``log_message``: insert the line, then tag ``len(emoji)`` Tk characters from where it started."""
+		start = self.text.index("insert")
+		self.text.insert("end", f"{emoji}{message}\n")
+		line, column = start.split(".")
+		self.text.tag_add(tag, start, f"{line}.{int(column) + len(emoji)}")
+
+	def test_offsets_after_a_non_bmp_emoji_stay_on_their_characters(self) -> None:
+		from harness.operations import _text_runs  # noqa: PLC0415, PLC2701 - the helper under test
+
+		self.log("info", "\U0001f4ad ", "one")
+		self.log("good", "✅ ", "two")
+		self.log("info", "\U0001f4ad ", "three")
+
+		# Tk tags only the surrogate pair of each 💭, and the whole "✅ " (two BMP characters).
+		self.assertEqual(
+			_text_runs(self.text),
+			[
+				{"text": "\U0001f4ad", "color": "dodger blue"},
+				{"text": " one\n", "color": None},
+				{"text": "✅ ", "color": "#619267"},
+				{"text": "two\n", "color": None},
+				{"text": "\U0001f4ad", "color": "dodger blue"},
+				{"text": " three\n", "color": None},
+			],
+		)
+
+	def test_the_log_pane_records_each_emoji_with_its_space(self) -> None:
+		from harness.operations import _log_pane_runs  # noqa: PLC0415, PLC2701 - the helper under test
+
+		self.log("info", "\U0001f4ad ", "one")
+		self.log("good", "✅ ", "two")
+		self.log("info", "\U0001f4ad ", "three")
+
+		self.assertEqual(
+			_log_pane_runs(self.text),
+			[
+				{"text": "\U0001f4ad ", "color": "dodger blue"},
+				{"text": "one\n", "color": None},
+				{"text": "✅ ", "color": "#619267"},
+				{"text": "two\n", "color": None},
+				{"text": "\U0001f4ad ", "color": "dodger blue"},
+				{"text": "three\n", "color": None},
+			],
+		)
 
 
 if __name__ == "__main__":

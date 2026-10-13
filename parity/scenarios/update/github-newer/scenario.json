@@ -1,0 +1,20 @@
+{
+  "description": "The GitHub latest release is newer: the banner shows one GitHub link. Port: fixed, see deviation #32.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1",
+    "UPD-2",
+    "NET-2",
+    "B-16",
+    "SHELL-7"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  },
+  "deviations": [
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
+}

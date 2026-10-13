@@ -1,0 +1,32 @@
+{
+  "description": "Parse quirks: untrimmed keys and values, a header with a trailing space switching tracking off, an @ByteArray( without its ')', an empty gamePath (Path('.')), empty and quoted/escaped CSV values, %BASE_DIR% with and without a separator, and a relative directory. Port: fixed, see deviation #25.",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-4",
+    "MO2-5",
+    "MO2-6",
+    "MO2-7",
+    "MO2-9",
+    "T-7"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  },
+  "deviations": [
+    {
+      "bug": 25,
+      "reason": "The port replaces %BASE_DIR% in a directory value with the base directory as MO2 does, so %BASE_DIR%/mods is <base>\\mods, not the drive root."
+    }
+  ]
+}

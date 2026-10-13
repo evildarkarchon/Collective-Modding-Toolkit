@@ -1,0 +1,16 @@
+{
+  "description": "No Content-Type and UTF-16 with a BOM: guessed as utf-16. Port: fixed, see deviation #32.",
+  "operation": "update-check",
+  "parity": [
+    "NET-2"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  },
+  "deviations": [
+    {
+      "bug": 32,
+      "reason": "The update check and the GitHub link both point at evildarkarchon/Collective-Modding-Toolkit, which publishes the C# releases."
+    }
+  ]
+}

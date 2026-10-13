@@ -1,0 +1,136 @@
+{
+  "overview": {
+    "archives": {
+      "enabled": {
+        "$unordered": [
+          "<ROOT>\\Game\\Data\\Fallout4 - Startup.ba2"
+        ]
+      },
+      "general": 0,
+      "nextGen": {
+        "$unordered": []
+      },
+      "oldGen": {
+        "$unordered": []
+      },
+      "texture": 0,
+      "unreadable": {
+        "$unordered": [
+          "<ROOT>\\Game\\Data\\Fallout4 - Startup.ba2"
+        ]
+      }
+    },
+    "display": {
+      "loadingLabel": {
+        "color": "",
+        "text": ""
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Archives"
+        },
+        {
+          "$unordered": [
+            {
+              "level": "DEBUG",
+              "message": "Archives: Checking Fallout4 - Startup.ba2"
+            }
+          ]
+        }
+      ]
+    },
+    "error": {
+      "kind": "decode"
+    },
+    "installType": "Old-Gen",
+    "loaded": false,
+    "modules": {
+      "enabled": [
+        "<ROOT>\\Game\\Data\\fallout4.esm"
+      ],
+      "full": 1,
+      "hedr100": 1,
+      "hedr95": {
+        "$unordered": []
+      },
+      "hedrUnknown": [],
+      "light": 0,
+      "unreadable": {
+        "$unordered": []
+      }
+    },
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "cm-toolkit.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "cm-toolkit.exe",
+        "solution": "Your mod manager must launch the app to be detected.",
+        "summary": "No Mod Manager Detected",
+        "type": "No Mod Manager"
+      }
+    ]
+  }
+}

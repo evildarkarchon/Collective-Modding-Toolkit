@@ -8,8 +8,9 @@ namespace CMToolkit.Core;
 public enum OperationPhase
 {
     /// <summary>
-    /// The reference ran this on the Tk UI thread, freezing the app. Input to the main window and any open modal is
-    /// discarded until it ends; Close and Escape are deferred, then honoured.
+    /// The reference ran this on the Tk UI thread, freezing the app. Input to the main window, any open modal and every
+    /// other window the app owns (the Scanner's panes, the Error Window; not a message box) is discarded until it ends;
+    /// Close and Escape are deferred, then honoured.
     /// </summary>
     Blocking,
 

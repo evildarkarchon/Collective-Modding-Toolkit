@@ -1,0 +1,77 @@
+{
+  "banner": {
+    "columnWeights": [
+      1,
+      1
+    ],
+    "labels": [
+      {
+        "background": "#98FB98",
+        "column": 0,
+        "cursor": null,
+        "font": {
+          "bold": false,
+          "family": "Cascadia Mono",
+          "size": 12,
+          "underline": false
+        },
+        "foreground": "#006400",
+        "image": "images/update-24.png",
+        "opens": null,
+        "padding": [
+          5
+        ],
+        "sticky": "e",
+        "text": "An update is available:",
+        "tooltip": null
+      },
+      {
+        "background": "#98FB98",
+        "column": 1,
+        "cursor": "hand2",
+        "font": {
+          "bold": true,
+          "family": "Cascadia Mono",
+          "size": 12,
+          "underline": true
+        },
+        "foreground": "#36648B",
+        "image": null,
+        "opens": "https://www.nexusmods.com/fallout4/mods/87907",
+        "padding": [
+          0
+        ],
+        "sticky": "w",
+        "text": "v0.7.0 (NexusMods)",
+        "tooltip": "Open Nexus Mods"
+      }
+    ],
+    "rowWeight": 1,
+    "style": "Update.TFrame"
+  },
+  "httpRequests": [
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 5
+      },
+      "resource": "nexus-page"
+    }
+  ],
+  "updateCheck": {
+    "display": {
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Update Check : Nexus Mods"
+        },
+        {
+          "level": "INFO",
+          "message": "Update Check : Nexus Mods : Update Available : v0.7.0"
+        }
+      ]
+    },
+    "githubVersion": null,
+    "nexusVersion": "0.7.0"
+  }
+}

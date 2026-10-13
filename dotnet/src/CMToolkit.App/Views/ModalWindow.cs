@@ -36,7 +36,7 @@ public abstract class ModalWindow : Window
         // Centred on the screen, not on the owner: (screen - size) // 2, like the main window.
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-        runtime.Input.Attach(this, onEscape: RequestClose, onCloseRequest: RequestClose);
+        runtime.Input.Attach(this, onEscape: Escape, onCloseRequest: RequestClose);
     }
 
     /// <summary>The app runtime this modal belongs to.</summary>
@@ -62,6 +62,13 @@ public abstract class ModalWindow : Window
             Close();
         }
     }
+
+    /// <summary>
+    /// The toplevel's <c>&lt;Escape&gt;</c> binding: <see cref="RequestClose"/>, wherever the focus is. In the reference
+    /// a focused log pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for Escape too, which stopped Tk from running
+    /// this binding at all (bug #88, fixed per ADR-0006).
+    /// </summary>
+    private void Escape() => RequestClose();
 
     /// <summary>
     /// Makes Space close the modal from anywhere in it, as the AboutWindow and TreeWindow <c>&lt;space&gt;</c> bindings do.

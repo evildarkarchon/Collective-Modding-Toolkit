@@ -1,0 +1,38 @@
+{
+  "description": "An invalid Steam path is still used over a valid GOG one, so the app exits with the registry error (GP-1, GP-3; bug #80). Port: fixed, see deviation #80.",
+  "operation": "game-info",
+  "parity": [
+    "GP-1",
+    "GP-3"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Missing"
+        }
+      },
+      "HKLM\\SOFTWARE\\WOW6432Node\\GOG.com\\Games\\1998527297": {
+        "path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\GOG Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  },
+  "deviations": [
+    {
+      "bug": 80,
+      "reason": "The port skips the Steam path that isn't a Fallout 4 folder and finds the game at the valid GOG path."
+    }
+  ]
+}

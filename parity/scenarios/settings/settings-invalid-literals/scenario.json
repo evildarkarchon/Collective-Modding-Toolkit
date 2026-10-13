@@ -1,0 +1,12 @@
+{
+  "description": "log_level and update_source with values outside their Literal sets keep the defaults.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5",
+    "LOG-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

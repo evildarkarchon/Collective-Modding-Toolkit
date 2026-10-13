@@ -1,0 +1,97 @@
+{
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  },
+  "mo2": {
+    "gamePath": ".",
+    "iniPath": "<ROOT>\\MO2\\ModOrganizer.ini",
+    "overwritePath": "relative\\overwrite",
+    "portable": true,
+    "portableTxtPath": "<ROOT>\\MO2\\portable.txt",
+    "profilesPath": "X:\\Modding\\MO2\\profiles",
+    "selectedProfile": " Spaced Profile ",
+    "settings": [
+      {
+        "key": "base_directory",
+        "value": {
+          "path": "X:\\Modding\\MO2"
+        }
+      },
+      {
+        "key": "cache_directory",
+        "value": {
+          "path": "X:\\Modding\\MO2"
+        }
+      },
+      {
+        "key": "download_directory",
+        "value": {
+          "path": "X:\\Modding\\MO2\\..\\downloads"
+        }
+      },
+      {
+        "key": "mod_directory",
+        "value": {
+          "path": "X:\\Modding\\MO2\\a=b"
+        }
+      },
+      {
+        "key": "overwrite_directory",
+        "value": {
+          "path": "relative\\overwrite"
+        }
+      },
+      {
+        "key": "profile_local_inis",
+        "value": false
+      },
+      {
+        "key": "profile_local_saves",
+        "value": false
+      },
+      {
+        "key": "profiles_directory",
+        "value": {
+          "path": "X:\\Modding\\MO2\\profiles"
+        }
+      },
+      {
+        "key": "skip_file_suffixes",
+        "value": []
+      },
+      {
+        "key": "skip_directories",
+        "value": [
+          "Quoted, Dir ",
+          "Escaped,Comma",
+          "Spaced ",
+          "open"
+        ]
+      },
+      {
+        "key": "gamePath",
+        "value": {
+          "path": "."
+        }
+      },
+      {
+        "key": "selected_profile",
+        "value": {
+          "text": " Spaced Profile "
+        }
+      }
+    ],
+    "skipDirectories": {
+      "$unordered": [
+        "spaced ",
+        "quoted, dir ",
+        "escaped,comma",
+        "open"
+      ]
+    },
+    "skipFileSuffixes": [],
+    "stagePath": "X:\\Modding\\MO2\\a=b"
+  }
+}

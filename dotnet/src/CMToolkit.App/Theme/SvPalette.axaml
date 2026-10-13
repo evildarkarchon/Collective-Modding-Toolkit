@@ -21,11 +21,12 @@
   <x:Double x:Key="CmtLineLarge">35</x:Double>
   <!-- GDI hinting snaps Cascadia's 1200/2048 em advance to whole pixels; Skia doesn't. LetterSpacing = rounded - exact
        restores Tk's line widths, and with them its wraplength wrap points:
-       16 px 9.375->9, 13 px 7.617->8, 11 px 6.445->6, 27 px 15.82->16. -->
-  <x:Double x:Key="CmtSpacingSmaller">-0.445</x:Double>
-  <x:Double x:Key="CmtSpacingSmall">0.383</x:Double>
+       16 px 9.375->9, 13 px 7.617->8, 11 px 6.445->6, 27 px 15.82->16. The values are exact (n * 1200 / 2048 is a
+       binary fraction): a rounded 0.383 left a line a hair over whole pixels, which layout rounding made 1 px wider. -->
+  <x:Double x:Key="CmtSpacingSmaller">-0.4453125</x:Double>
+  <x:Double x:Key="CmtSpacingSmall">0.3828125</x:Double>
   <x:Double x:Key="CmtSpacingNormal">-0.375</x:Double>
-  <x:Double x:Key="CmtSpacingLarge">0.18</x:Double>
+  <x:Double x:Key="CmtSpacingLarge">0.1796875</x:Double>
 
   <!-- src/globals.py COLOR_*; Tk named colours are resolved through the Tk 8.6 colour table. -->
   <SolidColorBrush x:Key="CmtDefault" Color="#CACACA" />
@@ -39,14 +40,39 @@
   <SolidColorBrush x:Key="CmtUpdateBanner" Color="#98FB98" />
   <SolidColorBrush x:Key="CmtUpdateText" Color="#006400" />
   <SolidColorBrush x:Key="CmtUpdateLink" Color="#36648B" />
+  <!-- downgrader.py COLOR_OG / COLOR_NG / COLOR_AE ("dodger blue", "SlateBlue1", "salmon"), the Downgrader's labels (DG-3). -->
+  <SolidColorBrush x:Key="CmtDowngraderOldGen" Color="#1E90FF" />
+  <SolidColorBrush x:Key="CmtDowngraderNextGen" Color="#836FFF" />
+  <SolidColorBrush x:Key="CmtDowngraderAnniversary" Color="#FA8072" />
+  <!-- COLOR_NOTE and COLOR_INDIE: the F4SE tab's tags. -->
+  <SolidColorBrush x:Key="CmtNote" Color="#C5C464" />
+  <SolidColorBrush x:Key="CmtIndie" Color="#4B92DA" />
 
   <!-- sv_ttk greys, measured from its sprites. -->
   <SolidColorBrush x:Key="SvBg" Color="#1C1C1C" />
   <SolidColorBrush x:Key="SvStrip" Color="#2F2F2F" />
   <SolidColorBrush x:Key="SvHover" Color="#292929" />
   <SolidColorBrush x:Key="SvSep" Color="#2F2F2F" />
+  <!-- sv_ttk radio sprites, sampled from the Settings tab: the unselected ring and fill, and the selected disc. -->
+  <SolidColorBrush x:Key="SvRadioBorder" Color="#929292" />
+  <SolidColorBrush x:Key="SvRadioFill" Color="#191919" />
+  <SolidColorBrush x:Key="SvAccent" Color="#3CD648" />
+  <!-- sv_ttk's -fg, which tk_setPalette gives classic Tk widgets such as the log pane's Text, and the Text's 1 px
+       sunken relief (dark top-left, light bottom-right), sampled from the Downgrader. -->
+  <SolidColorBrush x:Key="SvFg" Color="#FAFAFA" />
+  <SolidColorBrush x:Key="SvSunkenDark" Color="#555555" />
+  <SolidColorBrush x:Key="SvSunkenLight" Color="#8E8E8E" />
+  <!-- sv_ttk's heading-rest sprite (the Treeview heading cells): its lighter top edge and its fill, sampled from the F4SE tab. -->
+  <SolidColorBrush x:Key="SvHeadingEdge" Color="#313131" />
+  <SolidColorBrush x:Key="SvHeadingFill" Color="#2A2A2A" />
+  <!-- ttk.Entry at rest (sv_ttk entry-rest sprite), sampled from the Archive Patcher's Name Filter: its field and
+       its 1 px bottom line. -->
+  <SolidColorBrush x:Key="SvEntryUnderline" Color="#989898" />
 
   <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+  <!-- ttk.Button: sv_ttk's 4 px sprite border plus its (8, 4) padding round a FONT_SMALL line to text + 24 by
+       line + 13 px (measured on the Tools tab), less Fluent's 1 px border. -->
+  <Thickness x:Key="ButtonPadding">11,5,11,6</Thickness>
 
   <ResourceDictionary.ThemeDictionaries>
     <ResourceDictionary x:Key="Dark">
@@ -99,6 +125,18 @@
       <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="Transparent" />
       <SolidColorBrush x:Key="TableViewRowBackgroundSelected" Color="#292929" />
       <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="#292929" />
+
+      <!-- The Scanner's results ttk.Treeview: sv_ttk's grey #292929 selected row with bright text, no hover fill. -->
+      <x:Double x:Key="TreeViewItemMinHeight">21</x:Double>
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPressed" Color="#292929" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundPointerOver" Color="Transparent" />
+      <SolidColorBrush x:Key="TreeViewItemForeground" Color="#CACACA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundPointerOver" Color="#CACACA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelected" Color="#FAFAFA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPointerOver" Color="#FAFAFA" />
+      <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPressed" Color="#FAFAFA" />
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Core;
 
@@ -11,7 +12,8 @@ public enum DownloadSource
 
 /// <summary>
 /// How a <see cref="DownloadSourceFile.Read"/> went. Each outcome matches one log line in the Reference
-/// Implementation, which the logging slice writes from it.
+/// Implementation (<see cref="DownloadSourceFile.LogOutcome"/>). The reference logged them before logging was
+/// configured, so none of them ever reached <c>cm-toolkit.log</c> (bug #77); the port writes them there (ADR-0006).
 /// </summary>
 public enum DownloadSourceOutcome
 {
@@ -64,7 +66,7 @@ public static class DownloadSourceFile
         {
             // ReadAllBytes + GetString, not ReadAllText: ReadAllText silently drops a UTF-8 BOM, but the reference
             // decodes with "utf-8" (not "utf-8-sig"), so a BOM survives into the value and makes it invalid.
-            raw = PythonStrip(Utf8IgnoringErrors.GetString(File.ReadAllBytes(PathIn(appDirectory))));
+            raw = PythonSemantics.PythonText.Strip(Utf8IgnoringErrors.GetString(File.ReadAllBytes(PathIn(appDirectory))));
         }
         catch (Exception ex)
         {
@@ -81,25 +83,31 @@ public static class DownloadSourceFile
     }
 
     /// <summary>
-    /// Python's no-argument <c>str.strip()</c>. Its whitespace set is .NET's <see cref="char.IsWhiteSpace(char)"/> plus
-    /// U+001C..U+001F (the file, group, record and unit separators), which Python treats as whitespace and .NET doesn't.
+    /// Logs how <paramref name="lookup"/> went, with the reference's messages and levels (<c>app_settings.py:33-41</c>):
+    /// ERROR for an invalid value, ERROR with the exception for a failed read, DEBUG for a valid value.
     /// </summary>
-    private static string PythonStrip(string value)
+    /// <param name="lookup">The result of <see cref="Read"/>.</param>
+    /// <param name="logger">The log. The App passes <c>cm-toolkit.log</c> once it is open (bug #77, fixed).</param>
+    /// <remarks>
+    /// The reference logged these at import time, before <c>logging.basicConfig</c>, so they never reached
+    /// <c>cm-toolkit.log</c> (bug #77). The port logs them after the start lines instead (a Deviation, ADR-0006).
+    /// </remarks>
+    public static void LogOutcome(DownloadSourceLookup lookup, ILogger logger)
     {
-        static bool IsPythonWhiteSpace(char c) => char.IsWhiteSpace(c) || c is >= '\u001c' and <= '\u001f';
-
-        var start = 0;
-        var end = value.Length;
-        while (start < end && IsPythonWhiteSpace(value[start]))
+        // Python's '%s' of a str is the str itself, so the value goes in as is, quotes and all from the format.
+        switch (lookup.Outcome)
         {
-            start++;
+            case DownloadSourceOutcome.Valid:
+                logger.Write(LogLevel.Debug, $"Settings : Download source: '{lookup.RawValue}'");
+                break;
+            case DownloadSourceOutcome.Invalid:
+                logger.Write(LogLevel.Error, $"Settings : Invalid download source: '{lookup.RawValue}'");
+                break;
+            case DownloadSourceOutcome.ReadFailed:
+                logger.Write(LogLevel.Error, "Settings : Failed to detect download source.", lookup.Error);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(lookup), lookup.Outcome, null);
         }
-
-        while (end > start && IsPythonWhiteSpace(value[end - 1]))
-        {
-            end--;
-        }
-
-        return value[start..end];
     }
 }

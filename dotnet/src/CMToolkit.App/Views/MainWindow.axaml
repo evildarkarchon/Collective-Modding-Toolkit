@@ -16,9 +16,11 @@
     sits ~20 px lower and ~8 px further right. That difference is accepted rather than reproduced.
   -->
   <Grid RowDefinitions="Auto,*">
-    <!-- Row 0 holds the optional update banner, added by the update-check slice. -->
+    <!-- Row 0 holds the optional update banner (UpdateBanner, UPD-2), set through MainWindow.UpdateBanner. -->
+    <ContentControl x:Name="UpdateBannerHost" Grid.Row="0" />
 
-    <!-- The tabs come from the TabPages the window is built with (PlaceholderTab.Shell until each slice lands). -->
+    <!-- The tabs come from the TabPages the window is built with (MainTabs.Compose in the app; PlaceholderTab.Shell in
+         the shell's tests and the previewer). -->
     <TabControl x:Name="Tabs" Grid.Row="1" />
   </Grid>
 </Window>

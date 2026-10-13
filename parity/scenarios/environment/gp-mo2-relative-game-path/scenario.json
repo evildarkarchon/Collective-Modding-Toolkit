@@ -1,0 +1,35 @@
+{
+  "description": "MO2's gamePath is relative; the derived paths are checked against the CWD and stay relative (GP-4, T-7).",
+  "operation": "game-info",
+  "parity": [
+    "GP-1",
+    "GP-4",
+    "T-7"
+  ],
+  "emptyDirs": [
+    "Documents",
+    "Game/Data/F4SE/Plugins"
+  ],
+  "host": {
+    "cwd": "<ROOT>",
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

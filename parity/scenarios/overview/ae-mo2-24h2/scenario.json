@@ -1,0 +1,88 @@
+{
+  "description": "An MO2 2.5.2 instance on Windows 11 24H2 exactly: the OS warning icon shows (OVW-5). Anniversary binaries with the Address Library installed; the Creation Kit and f4se_steam_loader.dll are absent, which is expected, and an Old-Gen f4se_loader.exe is the Wrong Version because the game isn't Down-Grade. Port: fixed, see deviation #24.",
+  "operation": "overview-tab",
+  "parity": [
+    "OVW-2",
+    "OVW-3",
+    "OVW-4",
+    "OVW-5",
+    "OVW-B3",
+    "OVW-B5",
+    "OVW-B7",
+    "OVW-P5",
+    "T-9",
+    "B-8",
+    "PC-6"
+  ],
+  "host": {
+    "cwd": "<ROOT>",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKCU\\Software\\Mod Organizer Team\\Mod Organizer": {
+        "CurrentInstance": {
+          "type": "REG_SZ",
+          "value": "Fallout 4"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  },
+  "deviations": [
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    }
+  ]
+}

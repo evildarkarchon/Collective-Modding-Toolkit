@@ -1,0 +1,13 @@
+{
+  "pc": {
+    "cpu": "AMD Ryzen 7 7800X3D",
+    "display": {
+      "log": []
+    },
+    "gpu": "AMD Radeon RX 6600",
+    "os": "Windows 10 22H2",
+    "ram": 2,
+    "usingWine": false,
+    "vram": 4
+  }
+}

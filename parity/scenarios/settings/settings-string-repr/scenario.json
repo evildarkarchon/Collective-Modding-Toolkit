@@ -1,0 +1,11 @@
+{
+  "description": "Python's str() of strings and repr() inside containers: quote choice and escapes.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

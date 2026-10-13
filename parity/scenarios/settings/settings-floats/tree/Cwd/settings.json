@@ -1,0 +1,1 @@
+{"log_level": 1e16, "update_source": 0.0001, "scanner_OverviewIssues": 1e-05, "scanner_Errors": -0.0, "scanner_WrongFormat": 1E400, "scanner_LoosePrevis": -Infinity, "scanner_JunkFiles": 100.0, "scanner_ProblemOverrides": 3.14159, "scanner_RaceSubgraphs": 1e15, "downgrader_keep_backups": 2.5e-300, "downgrader_delete_deltas": NaN}

@@ -1,0 +1,88 @@
+{
+  "description": "A portable MO2 2.5.3 on Windows 11 24H2 (no OS warning: newer than 2.5.2) names a game folder without Fallout4.exe, which MO2's path never checks (GP-1). The game's Install Type is then Not Found, so every missing binary equals it and shows green, with no problems, and no Address Library is looked for (bug #84). Port: fixed, see deviations #84, #24.",
+  "operation": "overview-tab",
+  "parity": [
+    "OVW-5",
+    "OVW-B5",
+    "OVW-B7",
+    "B-13"
+  ],
+  "emptyDirs": [
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      },
+      "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0": {
+        "ProcessorNameString": {
+          "type": "REG_SZ",
+          "value": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+        }
+      },
+      "HKLM\\HARDWARE\\DEVICEMAP\\VIDEO": {
+        "\\Device\\Video0": {
+          "type": "REG_SZ",
+          "value": "\\Registry\\Machine\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000"
+        }
+      },
+      "HKLM\\System\\CurrentControlSet\\Control\\Video\\{00000000-0000-0000-0000-000000000000}\\0000": {
+        "HardwareInformation.AdapterString": {
+          "type": "REG_SZ",
+          "value": "NVIDIA GeForce RTX 4070"
+        },
+        "HardwareInformation.qwMemorySize": {
+          "type": "REG_QWORD",
+          "value": 12884901888
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          3,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26100
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  },
+  "deviations": [
+    {
+      "bug": 84,
+      "reason": "A missing Fallout4.exe no longer matches the other missing binaries: each missing binary is red with a File Not Found problem (CreationKit and Archive2 stay grey), and the Not Found game version is red."
+    },
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    }
+  ]
+}

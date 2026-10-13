@@ -1,0 +1,14 @@
+{
+  "description": "Only two keys, surrounded by whitespace: the rest are added in file order and the file resaved.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5",
+    "SET-6",
+    "T-10",
+    "LOG-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

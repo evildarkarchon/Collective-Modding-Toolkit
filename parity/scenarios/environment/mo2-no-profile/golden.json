@@ -1,0 +1,11 @@
+{
+  "error": {
+    "kind": "value",
+    "message": "Profile is not set in ModOrganizer.ini."
+  },
+  "manager": {
+    "exePath": "<ROOT>\\MO2\\ModOrganizer.exe",
+    "name": "Mod Organizer",
+    "version": "2.5.2"
+  }
+}

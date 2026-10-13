@@ -4,7 +4,7 @@
   <converters:BorderGapMaskConverter x:Key="GapMask" />
   <!--
     Our own ControlThemes, only where sv_ttk's *shape* differs from Fluent's: the notebook (TabControl/TabItem) and
-    the Labelframe gutter (GroupBox). Button, ScrollBar, ToolTip, CheckBox and TableView stay on Fluent's templates
+    the Labelframe gutter (GroupBox). Button, ScrollBar, ToolTip and TableView stay on Fluent's templates
     and are reached through the resource keys in SvPalette.axaml. Chosen over selector Styles into Fluent's
     template parts, which only win by copying Fluent's own pseudo-class selectors and break silently if Fluent
     renames a part (issue #9).
@@ -118,6 +118,136 @@
                               Foreground="{DynamicResource GroupBoxHeaderForeground}" />
           </Border>
           <ContentPresenter Name="PART_ContentPresenter" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Margin="{TemplateBinding Padding}" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!--
+    ttk.Labelframe(labelanchor=N): the Tools tab's columns and the Scanner's "Scan Settings" box (from the scanner-panes
+    prototype). Same outline and gutters as the GroupBox theme above, but the header sits centred. BorderGapMaskConverter
+    only cuts a gap at a fixed left offset, so the gap is made the old-fashioned way: the header paints SvBg over the
+    top border line. Applied with the "centred" class (AppStyles.axaml).
+  -->
+  <!--
+    ttk.Radiobutton: Fluent's template hard-codes a 32 px tall grid and draws a filled disc with a light dot, where
+    sv_ttk's is 28 px (padding 4 round a 20 px indicator) and draws a green disc with a black 12 px centre. Measured
+    from the Settings tab: indicator 20 px, 6 px to the label, 4 px padding all round, so text + 34 by 28.
+  -->
+  <ControlTheme x:Key="{x:Type RadioButton}" TargetType="RadioButton">
+    <Setter Property="Foreground" Value="{DynamicResource CmtDefault}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="6,0,0,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" Padding="4">
+          <DockPanel>
+            <Panel Width="20" Height="20" DockPanel.Dock="Left" VerticalAlignment="Center">
+              <Ellipse Name="Indicator"
+                       Fill="{DynamicResource SvRadioFill}"
+                       Stroke="{DynamicResource SvRadioBorder}"
+                       StrokeThickness="1" />
+              <Ellipse Name="CheckGlyph" Width="12" Height="12" Fill="Black" IsVisible="False" />
+            </Panel>
+            <ContentPresenter Name="PART_ContentPresenter"
+                              Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:checked /template/ Ellipse#Indicator">
+      <Setter Property="Fill" Value="{DynamicResource SvAccent}" />
+      <Setter Property="StrokeThickness" Value="0" />
+    </Style>
+    <Style Selector="^:checked /template/ Ellipse#CheckGlyph">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ControlTheme>
+
+  <!--
+    ttk.Checkbutton: Fluent's template hard-codes a 32 px tall grid, where sv_ttk's indicator element is a 20 px
+    rounded square in a 26 px wide slot (6 px to the label), inside the style's padding 4. Selected it is the green
+    accent with a black tick; unselected, a grey outline round the field colour (as the radio's). Measured from the
+    Downgrader's Options, which pass padding=0: so the control's Padding is the ttk padding, default 4.
+  -->
+  <ControlTheme x:Key="{x:Type CheckBox}" TargetType="CheckBox">
+    <Setter Property="Foreground" Value="{DynamicResource CmtDefault}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+          <DockPanel>
+            <Panel Width="20" Height="20" DockPanel.Dock="Left" VerticalAlignment="Center">
+              <Border Name="Indicator"
+                      CornerRadius="4"
+                      Background="{DynamicResource SvRadioFill}"
+                      BorderBrush="{DynamicResource SvRadioBorder}"
+                      BorderThickness="1" />
+              <Path Name="CheckGlyph"
+                    Data="M 5,10 L 8.5,13.5 L 15,7"
+                    Stroke="Black"
+                    StrokeThickness="1.5"
+                    StrokeLineCap="Round"
+                    StrokeJoin="Round"
+                    IsVisible="False" />
+            </Panel>
+            <ContentPresenter Name="PART_ContentPresenter"
+                              Margin="6,0,0,0"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:checked /template/ Border#Indicator">
+      <Setter Property="Background" Value="{DynamicResource SvAccent}" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="^:checked /template/ Path#CheckGlyph">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="CentredGroupBox" TargetType="GroupBox">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GroupBoxBorderBrush}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid UseLayoutRounding="True" ColumnDefinitions="4,*,4" RowDefinitions="Auto,Auto,*,4">
+          <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="3"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  Background="{TemplateBinding Background}" />
+          <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Padding="3,0"
+                  HorizontalAlignment="Center" Background="{DynamicResource SvBg}">
+            <ContentPresenter Name="PART_HeaderPresenter"
+                              Content="{TemplateBinding Header}"
+                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                              Foreground="{DynamicResource GroupBoxHeaderForeground}" />
+          </Border>
+          <ContentPresenter Name="PART_ContentPresenter" Grid.Row="2" Grid.Column="1"
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Margin="{TemplateBinding Padding}" />

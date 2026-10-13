@@ -13,7 +13,7 @@ and screenshot pairs it needs, and adds the IDs it proves to `covered.txt`.
 
 | Path | What it is |
 |---|---|
-| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, and the recorded `golden.json`. Kept after cutover as plain regression fixtures. |
+| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, the recorded `golden.json`, and a `golden.port.json` if the port deviates ([Deviations](#deviations-fixing-a-reference-bug)). Kept after cutover as plain regression fixtures. |
 | `driver/` | The Python recorder and screenshot script. **Deleted at cutover**, when the Reference Implementation goes. |
 | `assets/` | Sources and outputs for synthetic binaries (version stubs, F4SE DLLs, CRC32-forged files, deltas). Each toolchain lands with the first slice that needs it. |
 | `screenshots/<slice>/` | Screenshot pairs against the Tk reference, approved by a human in the slice PR. |
@@ -36,6 +36,16 @@ Both sides copy the tree to a fresh temp root named `cmt-parity-<guid>`, then ap
 must be on **NTFS**, because goldens compare directory enumeration order exactly. Set `CMT_PARITY_TEMP` to an NTFS
 folder if the system temp folder isn't on NTFS (a ReFS Dev Drive, for example).
 
+An operation whose scenarios change files behind the app's back (the `archive-patcher` operation, after the Overview
+has read the archives) applies the tree's `Changes/` overlay at that point: each file under `Changes/` replaces the
+file at the same root-relative path, and an empty `<name>.delete` deletes `<name>`. Until then `Changes/` is just
+another folder in the tree (`apply_changes` in `operations.py`, `ArchivePatcherGolden.ApplyChanges` in C#).
+
+An operation that clicks through a window before its run reads the clicks from the tree's `Script/<operation>.json`.
+The `downgrader-run` operation reads `Script/downgrader-run.json`: `desiredVersion` (the radio to click,
+`"Old-Gen"`/`"Next-Gen"`), `keepBackups` and `deletePatches` (the value to click each box to), each optional; unknown
+keys are errors. Nothing in the app reads `Script/`, and the golden echoes the script it ran.
+
 ### `scenario.json`
 
 ```jsonc
@@ -47,11 +57,15 @@ folder if the system temp folder isn't on NTFS (a ReFS Dev Drive, for example).
   "attributes": [                          // closed vocabulary: readonly, hidden, system
     {"path": "App/assets/download-source.txt", "set": ["readonly", "hidden"]}
   ],
-  "host": { ... }                          // the fake OS around the tree, below
+  "host": { ... },                         // the fake OS around the tree, below
+  "deviations": [                          // optional: reference bugs the port fixes here (see Deviations)
+    {"bug": 77, "reason": "The Download Source line reaches cm-toolkit.log."}
+  ]
 }
 ```
 
-Unknown keys are errors on both sides, so a typo fails instead of being ignored.
+Unknown keys are errors on both sides, so a typo fails instead of being ignored. So is a key repeated in any object,
+which JSON parsers otherwise resolve by keeping the last one.
 
 ### The `host` block
 
@@ -95,13 +109,17 @@ The C# side is `ParityHttpHandler`, an `HttpMessageHandler` for an injected `Htt
 
 ## Goldens
 
-`golden.json` is written by the driver, never by hand. It is a neutral JSON projection: canonical (sorted keys, ASCII
+`golden.json` is written by the driver, never by hand. (A deviating scenario's `golden.port.json` is the one exception;
+see [Deviations](#deviations-fixing-a-reference-bug).) It is a neutral JSON projection: canonical (sorted keys, ASCII
 escapes, LF), with:
 
 - **Semantic values**: what Core returns. Enums are camelCase strings, such as `"readFailed"`.
 - **`display` sub-objects**: the text the reference renders from those values (labels, log lines, message text). Core
   tests compare in `GoldenCompareMode.Semantic`, which skips every `display`. App presenter tests compare in `Full`.
 - **Paths as `<ROOT>` tokens**: `<ROOT>/Game/Data/a.esp`. Inside rendered text, the root is replaced in place.
+  Where the exact `str(path)` matters (MO2 paths, T-7), the `mod-manager` operation keeps the backslashed text with the
+  root replaced in place, and writes a path outside the root on the root's drive as `<DRIVE>\...` (B-6). Absolute
+  paths in tree files use drive `X:` so they never collide with the temp root's drive.
 - **Unordered arrays** as `{"$unordered": [...]}`, compared as multisets. Use them only for hash-ordered dimensions
   (T-15, B-4) and fields the reference genuinely doesn't order. Directory enumeration order is compared exactly.
 - `dialogs` and `httpRequests`: every dialog shown and every request made, when there are any.
@@ -155,6 +173,49 @@ public void Core_matches_the_reference(ParityScenario scenario)
 `CommittedScenarioTests` fails if a committed scenario is unrecorded, doesn't parse, or isn't picked up by any
 `[MemberData]` returning `TheoryData<ParityScenario>`. A scenario only proves its IDs if a test replays it.
 
+`LoadGolden()` returns `golden.port.json` for a scenario that declares `deviations`, and `golden.json` otherwise, so a
+replaying test never needs to know whether its scenario deviates. `LoadReferenceGolden()` always returns the recording.
+
+## Deviations (fixing a reference bug)
+
+The port fixes the Reference Implementation's `bug` issues instead of reproducing them
+([ADR-0006](../docs/adr/0006-port-fixes-reference-bugs-as-deviations.md)). Each fix is a **Deviation**: an explicit
+override of the recording, named by its bug issue number and a one-line reason. The recording is never edited.
+`golden.json` stays what the unmodified reference produced, and `record.py --check` keeps verifying it. The slices
+record parity faithfully first, so the scenarios and tests that prove a bug name its number (`#77`, `Bug #79`, ...);
+search for it to find what a fix flips.
+
+**Flipping a scenario** that recorded the bug:
+
+1. Add `"deviations": [{"bug": <n>, "reason": "<what the port does instead>"}]` to its `scenario.json`. The bug is a
+   positive integer and the reason isn't blank. List several entries if fixes to several bugs change this scenario,
+   one per bug.
+2. Copy `golden.json` to `golden.port.json` beside it, and change only the fields the fix changes. Keep the golden
+   format (sorted keys, two-space indent, LF). The port golden is the one golden written by hand, because no reference
+   produces it.
+3. Leave `golden.json`, `tree/`, `http/` and the `parity` list alone. The scenario still proves its IDs, now with the
+   fixed behaviour.
+4. Run the replaying test (red until the fix lands, then green), `record.py --check` (the scenario reads `same` and is
+   marked `port deviates: #<n>`), and the coverage check.
+
+If the fix needs a new input to show the corrected behaviour, add a **new** scenario as usual. It is recorded from the
+reference like any other, then flipped as above.
+
+**A hand-written test that asserted the buggy behaviour** (a `[Fact]`/`[Theory]` with `[Trait("Parity", ...)]`):
+
+- Change its assertions to the fixed behaviour, and rename it if its name described the bug.
+- Keep its `Trait("Parity", "<ID>")`, and add `Deviation(<n>, "<reason>")` from `CMToolkit.Tests.Parity` to the same
+  attribute list. Write the bug as an integer literal and the reason as a regular string literal, because the coverage
+  check reads it as text. It is also an xUnit trait, so `dotnet test --filter "Deviation=<n>"` runs every test the fix
+  touched.
+- Rewrite the comments that say "reproduced, not fixed" or cite ADR-0001, so they name the bug as fixed.
+
+The checks enforce the pairing. `LoadGolden()` (and therefore `CommittedScenarioTests`) and the coverage check both fail
+on a declared deviation with no `golden.port.json`, and on a `golden.port.json` with no declared deviation. The coverage
+check also fails on a malformed bug number, a missing or blank reason, the same bug listed twice, an empty `deviations`
+list, a port golden identical to the recording, and a `Deviation` attribute on a test with no `Trait("Parity", ...)` on
+its method or class. It lists every deviation on each run.
+
 ## Coverage check
 
 `dotnet run --project dotnet/tools/CMToolkit.ParityCoverage` runs in CI after the tests. It collects proofs from:
@@ -164,7 +225,9 @@ public void Core_matches_the_reference(ParityScenario scenario)
 - `coverage-manual.json` entries: `{"id": "...", "proof": "exempt" | "manual" | "screenshot", "reason": "..."}`.
 
 It **fails** when an ID in `covered.txt` has no proof, when a proof or `covered.txt` cites an ID that isn't in the
-inventory, or when a scenario has no golden. It reports the unproven IDs and the proven IDs not yet in `covered.txt`.
+inventory, when a scenario has no golden, or when a [deviation](#deviations-fixing-a-reference-bug) is malformed. It
+reports the unproven IDs and the proven IDs not yet in `covered.txt`, and lists every deviation from scenarios and from
+`Deviation` attributes in `dotnet/tests/`.
 With `--strict`, which the Verify full parity slice switches on, it also fails on every inventory ID that is unproven
 or missing from `covered.txt`.
 
@@ -183,8 +246,38 @@ The script runs the unmodified `src/main.py` with the scenario's host fakes, and
 `compare.png` (side by side plus a 50/50 blend) and a `compare-<name>.png` per crop to `screenshots/<slice>/`. A human
 approves the pair in the slice PR. There is no automated pixel diff, and no capture in CI.
 
-Only the Tk side sees the rest of the `host` block. The exe gets `cwd` and otherwise runs on `SystemHostEnvironment`,
-which is sound only while no screen it renders reads the host: today the shell reads `AppDirectory`, and only for the
-Download Source, which it doesn't display. The first slice whose screenshot depends on a host fact (registry, known
-folders, environment, processes, OS, or an `appDir` other than the exe's folder) must first give the exe a way to run on
-the scenario's host. Otherwise its pair compares two different machines.
+`--tab <Name>` captures another tab than the Overview. The reference selects it in-process, two seconds after
+`CMChecker` is built (Tk reads the real mouse-button state, so a posted click doesn't reach it); the exe gets a posted
+click on the tab's header, whose position is fixed in the script's `TAB_CENTRES`. The Tools, Settings and About pairs
+reuse `shell/main-window`, whose `settings.json` the Settings tab shows (`update_source` none, `log_level` INFO).
+
+`--modal <Name>` captures a modal opened from the Overview instead of the main window (today only `Downgrader`). The
+reference opens it in-process two seconds after `CMChecker` is built (told which by `CMT_SCREENSHOT_MODAL`); the exe
+gets a posted click on the opening button, fixed in `MODAL_BUTTONS`. The capture is the window with that title.
+
+`--tab Scanner --scan` runs an Overview Issues scan before capturing: the reference unticks the six data boxes and
+presses Scan Game in-process (told by `CMT_SCREENSHOT_SCAN`), the exe gets posted clicks in its side pane
+(`SCAN_BOXES`, `SCAN_GAME`). The exe's boxes start from the `scanner_*` settings in its folder's `settings.json` (bug
+#20, fixed), so only the boxes not already as wanted are clicked, then Scan Game. `--scan-all` scans with every box
+ticked instead. `--panes` pastes the app's other windows (the Scanner's docked panes) where they sit around the main window, on
+black, so the capture shows them in place.
+`--select TEXT --select-at X,Y` then selects a result so the details pane opens: the reference selects the item with
+that text in-process once the scan has listed it (told by `CMT_SCREENSHOT_SELECT`), the exe gets a posted click at
+`X,Y` in its main window's client pixels (the first result row is at about 100,112; rows are 21 px apart).
+
+Both sides see the whole `host` block. The exe starts in `cwd` with `CMT_PARITY_SCENARIO` (the `scenario.json`) and
+`CMT_PARITY_ROOT` (its copy of the tree) set, and then runs on `ScenarioHostEnvironment`
+(`dotnet/src/CMToolkit.App/Parity/`) instead of the real machine: the same rules as the tests' `FakeHostEnvironment`,
+which `ScenarioHostEnvironmentTests` checks on every committed scenario. Two differences: with no `appDir` the exe uses
+its own folder, and `dialogs` aren't scripted on the exe side (it shows real ones), so screenshot scenarios should find
+the game without asking. The smoke test (`dotnet/eng/Test-ShellStarts.ps1 -Scenario <folder>`) uses the same variables.
+The app keeps `settings.json`, `cm-toolkit.log` and Delta Patches in its own folder, not the working directory (bug
+[#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed). On a scenario's machine that
+folder is `cwd` (`AppFolder.ForThisRun`), where scenario trees keep the reference's files, so the exe runs on the
+scenario's settings and never writes beside the published exe.
+
+The scenario's `http/` folder reaches both sides too: the driver's `FakeRequests` serves the reference, and the exe's
+update check goes through `ScenarioHttpHandler` (same folder, same rules as the tests' `ParityHttpHandler`, checked by
+`ScenarioHttpHandlerTests`). A request the scenario has no response for fails startup rather than going online, so a
+screenshot scenario whose `settings.json` has an `update_source` other than `none` needs its responses
+(`update/banner-window` is the example).

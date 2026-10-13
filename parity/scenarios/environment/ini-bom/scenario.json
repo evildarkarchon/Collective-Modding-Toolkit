@@ -1,0 +1,33 @@
+{
+  "description": "Fallout4.ini starts with a UTF-8 BOM, which is kept as U+FEFF, so '[General]' isn't a header and sLanguage lands under NO-SECTION: the language is English (INI-3, INI-4, B-14, T-1). Port: fixed, see deviation #17.",
+  "operation": "game-info",
+  "parity": [
+    "INI-3",
+    "INI-4",
+    "B-14",
+    "T-1"
+  ],
+  "emptyDirs": [
+    "Cwd"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  },
+  "deviations": [
+    {
+      "bug": 17,
+      "reason": "The port reads game INIs with a UTF-8 BOM stripped, falls back to Windows-1252 for non-UTF-8 bytes, and trims lines, keys and values."
+    }
+  ]
+}

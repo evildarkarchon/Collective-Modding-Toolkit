@@ -1,0 +1,27 @@
+{
+  "description": "The user answers Yes, then cancels the file dialog: 'Game not found', then exit (GP-2).",
+  "operation": "game-info",
+  "parity": [
+    "GP-2"
+  ],
+  "emptyDirs": [
+    "Cwd",
+    "Documents"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd",
+    "dialogs": [
+      {
+        "function": "askyesno",
+        "answer": true
+      },
+      {
+        "function": "askopenfilename",
+        "answer": ""
+      }
+    ],
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents"
+    }
+  }
+}

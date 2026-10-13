@@ -1,0 +1,73 @@
+{
+  "description": "A portable MO2 2.5.2 on Windows 11 25H2: no OS warning, because only the exact string 'Windows 11 24H2' gets one (B-8). Its empty selected_profile shows as Unknown, and its settings render with Python str() in the details window (T-9). Next-Gen binaries: steam_api64's Next-Gen & Anniversary entry becomes Next-Gen, and the missing f4se_steam_loader.dll is expected there. No Address Library in Data, and no CPU or GPU in the registry. Port: fixed, see deviations #24, #27.",
+  "operation": "overview-tab",
+  "parity": [
+    "OVW-2",
+    "OVW-3",
+    "OVW-4",
+    "OVW-5",
+    "OVW-B3",
+    "OVW-B5",
+    "OVW-B7",
+    "OVW-P3",
+    "T-9",
+    "B-8",
+    "PC-6"
+  ],
+  "emptyDirs": [
+    "Game/Data"
+  ],
+  "host": {
+    "cwd": "<ROOT>",
+    "argv0": "cm-toolkit.exe",
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    },
+    "knownFolders": {
+      "Documents": "<ROOT>\\Documents",
+      "LocalAppData": "<ROOT>\\LocalAppData"
+    },
+    "registry": {
+      "HKLM\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Fallout4": {
+        "Installed Path": {
+          "type": "REG_SZ",
+          "value": "<ROOT>\\Game"
+        }
+      }
+    },
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "explorer.exe",
+        "exe": "C:\\Windows\\explorer.exe"
+      }
+    ],
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "build": 26200
+    },
+    "pc": {
+      "ramBytes": 34359738368
+    }
+  },
+  "deviations": [
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    },
+    {
+      "bug": 27,
+      "reason": "The port shows the MO2 2.5.2 OS warning on Windows 11 24H2 and every later build (build 26100+), so 25H2 gets it too."
+    }
+  ]
+}

@@ -14,8 +14,19 @@
     The screenshot uses PrintWindow with PW_RENDERFULLCONTENT, which captures GPU-composed windows like Avalonia's
     without bringing them to the front.
 
+    Startup reads the machine before the main window appears (SHELL-5): PC info, the mod manager, the game path and the
+    game INIs. With -Scenario the exe runs on that Parity Scenario's fake machine (its tree copied to a temp root, and
+    CMT_PARITY_SCENARIO / CMT_PARITY_ROOT set), so the main window must appear wherever this runs. Without it the exe
+    runs on the real machine, which proves the Win32 calls behind those reads survive AOT; on a machine where
+    Fallout 4 can't be found (a CI runner), reaching the 'Fallout 4 Not Found' question also passes, since every read
+    before it ran. That box is closed (which answers No) and nothing else is checked.
+
 .PARAMETER Exe
     The published cm-toolkit.exe.
+
+.PARAMETER Scenario
+    A Parity Scenario folder (holding scenario.json and tree/) to run the exe on, such as
+    ../parity/scenarios/shell/main-window.
 
 .PARAMETER Title
     The title the main window must have.
@@ -32,7 +43,8 @@ param(
     [string] $Exe,
     [string] $Title = 'Collective Modding Toolkit v0.6.2-dev',
     [int] $TimeoutSeconds = 30,
-    [string] $Screenshot
+    [string] $Screenshot,
+    [string] $Scenario
 )
 
 $ErrorActionPreference = 'Stop'
@@ -56,6 +68,7 @@ public static class CmtSmokeWin32 {
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr hwnd, out RECT rect);
     [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr hwnd);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
+    [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     public static List<IntPtr> VisibleWindowsOf(uint pid) {
         var found = new List<IntPtr>();
@@ -77,13 +90,56 @@ public static class CmtSmokeWin32 {
 '@
 
 $exePath = (Resolve-Path -LiteralPath $Exe).ProviderPath
-# Start from a scratch working directory: settings.json and cm-toolkit.log are CWD-relative, so a run from the
-# publish folder would leave files beside the exe, and the exe-folder lookup of download-source.txt must not depend
-# on the working directory anyway.
+# Start from a scratch working directory, which a scenario run keeps its tree in, and which proves the exe-folder
+# lookups (download-source.txt; settings.json, cm-toolkit.log and patches since bug #36 was fixed) don't depend on it.
 $workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cmt-smoke-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $workDir | Out-Null
+$startDir = $workDir
+# The real machine's own question when it has no Fallout 4; never accepted on a scenario's machine.
+$notFoundTitle = if ($Scenario) { $null } else { 'Fallout 4 Not Found' }
+if (-not $Scenario) {
+    # On the real machine the app keeps settings.json and its log beside the exe (bug #36, fixed), so run a copy of
+    # the publish folder: the run then never writes into the published output. Symbols are left behind (the native
+    # libraries' are over 100 MB) since nothing reads them at run time.
+    $appDir = Join-Path $workDir 'app'
+    New-Item -ItemType Directory -Path $appDir | Out-Null
+    Get-ChildItem -LiteralPath (Split-Path -Parent $exePath) -Exclude '*.pdb' | Copy-Item -Recurse -Destination $appDir
+    $exePath = Join-Path $appDir (Split-Path -Leaf $exePath)
+    # The update check runs before the main window shows (UPD-1). A smoke test must not reach the network, so the
+    # real-machine run turns it off; the missing settings keys get their defaults. A scenario run keeps its settings in
+    # its working directory and serves its own canned http/ responses (ScenarioHttpHandler), failing on any request it
+    # has none for.
+    Set-Content -LiteralPath (Join-Path $appDir 'settings.json') -Value '{"update_source": "none"}' -Encoding utf8NoBOM
+}
 
-$process = Start-Process -FilePath $exePath -WorkingDirectory $workDir -PassThru
+if ($Scenario) {
+    # Materialize the scenario as the parity harness does: the tree, then emptyDirs (attributes don't matter here).
+    $scenarioDir = (Resolve-Path -LiteralPath $Scenario).ProviderPath
+    $manifestPath = Join-Path $scenarioDir 'scenario.json'
+    $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+    $tree = Join-Path $scenarioDir 'tree'
+    if (Test-Path -LiteralPath $tree) {
+        Copy-Item -Recurse -Path (Join-Path $tree '*') -Destination $workDir
+    }
+    foreach ($dir in @($manifest.emptyDirs)) {
+        if ($dir) { New-Item -ItemType Directory -Force -Path (Join-Path $workDir $dir) | Out-Null }
+    }
+    $cwd = $manifest.host.cwd
+    if ($cwd) {
+        $startDir = if ($cwd.StartsWith('<ROOT>')) { $workDir + $cwd.Substring(6) } else { $cwd }
+        New-Item -ItemType Directory -Force -Path $startDir | Out-Null
+    }
+    # Inherited by the exe, which then runs on ScenarioHostEnvironment instead of the real machine.
+    $env:CMT_PARITY_SCENARIO = $manifestPath
+    $env:CMT_PARITY_ROOT = $workDir
+}
+
+try {
+    $process = Start-Process -FilePath $exePath -WorkingDirectory $startDir -PassThru
+}
+finally {
+    Remove-Item Env:CMT_PARITY_SCENARIO, Env:CMT_PARITY_ROOT -ErrorAction SilentlyContinue
+}
 try {
     $hwnd = [IntPtr]::Zero
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
@@ -91,10 +147,16 @@ try {
         if ($process.HasExited) {
             throw "cm-toolkit.exe exited with code $($process.ExitCode) before showing a window."
         }
-        $hwnd = [CmtSmokeWin32]::VisibleWindowsOf([uint32]$process.Id) |
-            Where-Object { [CmtSmokeWin32]::TitleOf($_) -eq $Title } |
-            Select-Object -First 1
+        $windows = [CmtSmokeWin32]::VisibleWindowsOf([uint32]$process.Id)
+        $hwnd = $windows | Where-Object { [CmtSmokeWin32]::TitleOf($_) -eq $Title } | Select-Object -First 1
         if ($hwnd) { break }
+        $question = if ($notFoundTitle) { $windows | Where-Object { [CmtSmokeWin32]::TitleOf($_) -eq $notFoundTitle } | Select-Object -First 1 }
+        if ($question) {
+            Write-Host "OK: startup read the machine and asked '$notFoundTitle' (no Fallout 4 here); not checking the shell."
+            # The box isn't the process's MainWindowHandle (it has no taskbar button), so close it directly: No, exit 0.
+            [void][CmtSmokeWin32]::PostMessage($question, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)
+            return
+        }
         Start-Sleep -Milliseconds 250
     }
     if (-not $hwnd) {

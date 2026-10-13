@@ -1,0 +1,10 @@
+{
+  "description": "The version isn't PEP 440: InvalidVersion, logged as a failure.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

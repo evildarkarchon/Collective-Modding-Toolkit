@@ -1,0 +1,283 @@
+{
+  "downgraderRun": {
+    "afterClick": {
+      "display": {
+        "creationKit": {
+          "values": [
+            {
+              "color": "salmon",
+              "text": "Anniversary"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "#AF5A66",
+              "text": "Unknown"
+            }
+          ]
+        },
+        "game": {
+          "values": [
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "#AF5A66",
+              "text": "Obsolete (OGNG)"
+            },
+            {
+              "color": "gray",
+              "text": "Not Found"
+            }
+          ]
+        },
+        "log": [
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Fallout4.exe: Already Old-Gen."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Fallout4Launcher.exe: Unsupported Version."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped steam_api64.dll: Not Found."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped CreationKit.exe: Unsupported Version."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Archive2.exe: Already Old-Gen."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Archive2Interop.dll: Unsupported Version."
+          }
+        ],
+        "logLines": [
+          {
+            "level": "INFO",
+            "message": "Skipped Fallout4.exe: Already Old-Gen."
+          },
+          {
+            "level": "INFO",
+            "message": "Skipped Fallout4Launcher.exe: Unsupported Version."
+          },
+          {
+            "level": "INFO",
+            "message": "Skipped steam_api64.dll: Not Found."
+          },
+          {
+            "level": "INFO",
+            "message": "Skipped CreationKit.exe: Unsupported Version."
+          },
+          {
+            "level": "INFO",
+            "message": "Skipped Archive2.exe: Already Old-Gen."
+          },
+          {
+            "level": "INFO",
+            "message": "Skipped Archive2Interop.dll: Unsupported Version."
+          }
+        ]
+      },
+      "patchEnabled": false,
+      "processingData": false,
+      "progress": 0.0,
+      "versions": [
+        {
+          "file": "Fallout4.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Fallout4Launcher.exe",
+          "installType": "Obsolete (OGNG)"
+        },
+        {
+          "file": "steam_api64.dll",
+          "installType": "Not Found"
+        },
+        {
+          "file": "CreationKit.exe",
+          "installType": "Anniversary"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2Interop.dll",
+          "installType": "Unknown"
+        }
+      ]
+    },
+    "errors": {
+      "callback": 0,
+      "thread": 0
+    },
+    "files": [
+      {
+        "path": "<ROOT>/Cwd/settings.json",
+        "readonly": false,
+        "sha256": "c25c39e73a9e15d173675c2faf2d8df12bfa9e69cdbc2334ec91c71213e6f998",
+        "size": 333
+      },
+      {
+        "path": "<ROOT>/Game/CreationKit.exe",
+        "readonly": false,
+        "sha256": "e1d0e61de6c01a3a829a7d5cd5f37d0146d8f2d87ed901b950cef81506c3fcfc",
+        "size": 102
+      },
+      {
+        "path": "<ROOT>/Game/Data/Fallout4 - Startup.ba2",
+        "readonly": false,
+        "sha256": "fc0d339949993f321c3765fe9ac0b31b8fc3ec6ceaffd3503a00d8727e7a4e60",
+        "size": 78
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4.ccc",
+        "readonly": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4Launcher.exe",
+        "readonly": false,
+        "sha256": "365108d413beb1918dc4cd4f832ee736cc1b93c6ee454bf77f494c9ed1eade51",
+        "size": 107
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2.exe",
+        "readonly": false,
+        "sha256": "6c4a88162de9e6e47b9b59923feaa8be98dab1d79b569f3b9c47465267ce3716",
+        "size": 1540
+      },
+      {
+        "path": "<ROOT>/Game/Tools/Archive2/Archive2Interop.dll",
+        "readonly": false,
+        "sha256": "1265835c846baaaa119a7f35d3d6ed93b1580f93af5c8d17df5f7876ac6f0292",
+        "size": 81
+      }
+    ],
+    "final": {
+      "display": {
+        "creationKit": {
+          "values": [
+            {
+              "color": "salmon",
+              "text": "Anniversary"
+            },
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "#AF5A66",
+              "text": "Unknown"
+            }
+          ]
+        },
+        "game": {
+          "values": [
+            {
+              "color": "dodger blue",
+              "text": "Old-Gen"
+            },
+            {
+              "color": "#AF5A66",
+              "text": "Obsolete (OGNG)"
+            },
+            {
+              "color": "gray",
+              "text": "Not Found"
+            }
+          ]
+        },
+        "log": [
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Fallout4.exe: Already Old-Gen."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Fallout4Launcher.exe: Unsupported Version."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped steam_api64.dll: Not Found."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped CreationKit.exe: Unsupported Version."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Archive2.exe: Already Old-Gen."
+          },
+          {
+            "color": "dodger blue",
+            "emoji": "\ud83d\udcad ",
+            "text": "Skipped Archive2Interop.dll: Unsupported Version."
+          }
+        ],
+        "logLines": []
+      },
+      "patchEnabled": false,
+      "processingData": false,
+      "progress": 0.0,
+      "versions": [
+        {
+          "file": "Fallout4.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Fallout4Launcher.exe",
+          "installType": "Obsolete (OGNG)"
+        },
+        {
+          "file": "steam_api64.dll",
+          "installType": "Not Found"
+        },
+        {
+          "file": "CreationKit.exe",
+          "installType": "Anniversary"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2.exe",
+          "installType": "Old-Gen"
+        },
+        {
+          "file": "Tools\\Archive2\\Archive2Interop.dll",
+          "installType": "Unknown"
+        }
+      ]
+    },
+    "script": {},
+    "settings": {
+      "text": "{\n\t\"log_level\": \"INFO\",\n\t\"update_source\": \"none\",\n\t\"scanner_OverviewIssues\": true,\n\t\"scanner_Errors\": true,\n\t\"scanner_WrongFormat\": true,\n\t\"scanner_LoosePrevis\": true,\n\t\"scanner_JunkFiles\": true,\n\t\"scanner_ProblemOverrides\": true,\n\t\"scanner_RaceSubgraphs\": true,\n\t\"downgrader_keep_backups\": true,\n\t\"downgrader_delete_deltas\": true\n}\n"
+    }
+  }
+}

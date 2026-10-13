@@ -1,0 +1,17 @@
+{
+  "description": "A version in PEP 440's alternative spellings (V prefix, padding, rc spelled pre). Port: fixed, see deviation #83.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-3",
+    "T-4"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  },
+  "deviations": [
+    {
+      "bug": 83,
+      "reason": "The port drops the surrounding whitespace and leading v that PEP 440 allows from a newer version before adding its own v, so the banner and log read v0.7.0, not vv0.7.0."
+    }
+  ]
+}

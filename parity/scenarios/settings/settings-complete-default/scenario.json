@@ -1,0 +1,13 @@
+{
+  "description": "The file exactly as the reference writes it (CRLF): every key valid, so nothing is resaved.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5",
+    "SET-6",
+    "T-10"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

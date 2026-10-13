@@ -1,0 +1,12 @@
+{
+  "description": "Bool keys require exactly true or false: ints, strings, null, floats and containers are reset.",
+  "operation": "settings-load",
+  "parity": [
+    "SET-5",
+    "LOG-2"
+  ],
+  "host": {
+    "appDir": "<ROOT>/App",
+    "cwd": "<ROOT>/Cwd"
+  }
+}

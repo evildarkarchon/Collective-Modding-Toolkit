@@ -17,13 +17,18 @@ namespace CMToolkit.Tests.Parity;
 /// <param name="Description">What the scenario sets up, for humans.</param>
 /// <param name="EmptyDirs">Tree-relative folders to create empty (git can't commit an empty folder).</param>
 /// <param name="Attributes">Tree-relative paths and the file attributes to set on them.</param>
+/// <param name="Deviations">
+/// The reference bugs the port fixes on this scenario (ADR-0006). When present, the C# replay compares against
+/// <c>golden.port.json</c> instead of the reference-recorded <c>golden.json</c>, which stays untouched.
+/// </param>
 public sealed record ScenarioManifest(
     string Operation,
     IReadOnlyList<string> Parity,
     HostBlock Host,
     string? Description = null,
     IReadOnlyList<string>? EmptyDirs = null,
-    IReadOnlyList<AttributeEntry>? Attributes = null)
+    IReadOnlyList<AttributeEntry>? Attributes = null,
+    IReadOnlyList<ScenarioDeviation>? Deviations = null)
 {
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -32,14 +37,70 @@ public sealed record ScenarioManifest(
         RespectNullableAnnotations = true,
         RespectRequiredConstructorParameters = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
+
+        // A repeated key would otherwise replace the first silently, hiding a deviation (or a parity ID) from the
+        // checks; the coverage check and the Python driver reject it too.
+        AllowDuplicateProperties = false,
     };
 
     /// <summary>Parses a <c>scenario.json</c>.</summary>
-    /// <exception cref="JsonException">The JSON doesn't fit the schema.</exception>
+    /// <exception cref="JsonException">
+    /// The JSON doesn't fit the schema, repeats a key in any object, or a deviation is malformed: a bug number that
+    /// isn't a positive integer, a blank reason, the same bug twice, or an empty <c>deviations</c> list.
+    /// </exception>
     public static ScenarioManifest Parse(string json)
-        => JsonSerializer.Deserialize<ScenarioManifest>(json, Options)
-           ?? throw new JsonException("scenario.json is null.");
+    {
+        var manifest = JsonSerializer.Deserialize<ScenarioManifest>(json, Options)
+                       ?? throw new JsonException("scenario.json is null.");
+        ValidateDeviations(manifest.Deviations);
+        return manifest;
+    }
+
+    /// <summary>
+    /// The deviation checks the JSON schema can't make. An empty list is rejected too: it would switch the replay to a
+    /// port golden that no bug issue justifies.
+    /// </summary>
+    /// <exception cref="JsonException">A deviation is malformed.</exception>
+    private static void ValidateDeviations(IReadOnlyList<ScenarioDeviation>? deviations)
+    {
+        if (deviations is null)
+        {
+            return;
+        }
+
+        if (deviations.Count == 0)
+        {
+            throw new JsonException("\"deviations\" is empty; remove it, or name the bug the port fixes.");
+        }
+
+        var seen = new HashSet<int>();
+        foreach (var deviation in deviations)
+        {
+            if (deviation.Bug <= 0)
+            {
+                throw new JsonException($"Deviation bug number {deviation.Bug} isn't a GitHub issue number.");
+            }
+
+            if (string.IsNullOrWhiteSpace(deviation.Reason))
+            {
+                throw new JsonException($"Deviation for bug #{deviation.Bug} needs a reason.");
+            }
+
+            if (!seen.Add(deviation.Bug))
+            {
+                throw new JsonException($"Deviation for bug #{deviation.Bug} is listed twice.");
+            }
+        }
+    }
 }
+
+/// <summary>
+/// A documented Deviation from Behaviour Parity (ADR-0006): the port fixes a reference bug, so on this scenario it is
+/// expected to produce <c>golden.port.json</c> rather than the reference-recorded <c>golden.json</c>.
+/// </summary>
+/// <param name="Bug">The <c>bug</c> issue number on the fork, for example <c>77</c> for #77.</param>
+/// <param name="Reason">What the port does instead of the reference, in one sentence.</param>
+public sealed record ScenarioDeviation(int Bug, string Reason);
 
 /// <summary>Attributes to set on one tree path, from the closed vocabulary <c>readonly</c>, <c>hidden</c>, <c>system</c>.</summary>
 public sealed record AttributeEntry(string Path, IReadOnlyList<string> Set);

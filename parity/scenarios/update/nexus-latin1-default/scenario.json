@@ -1,0 +1,10 @@
+{
+  "description": "text/html without a charset decodes as ISO-8859-1, so UTF-8 text in the version becomes mojibake (and isn't PEP 440).",
+  "operation": "update-check",
+  "parity": [
+    "NET-1"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

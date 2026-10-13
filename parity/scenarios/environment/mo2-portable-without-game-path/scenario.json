@@ -1,0 +1,29 @@
+{
+  "description": "A portable INI without gamePath is read, then read again by the fallback; the game path stays unset. Port: fixed, see deviation #24.",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-1",
+    "MO2-3",
+    "MO2-9"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ]
+  },
+  "deviations": [
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    }
+  ]
+}

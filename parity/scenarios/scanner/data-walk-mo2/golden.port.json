@@ -1,0 +1,1583 @@
+{
+  "scanner": {
+    "errors": 0,
+    "runs": [
+      {
+        "boxes": [
+          "Overview Issues",
+          "Errors",
+          "Wrong File Formats",
+          "Loose Previs",
+          "Junk Files",
+          "Problem Overrides",
+          "Race Subgraphs"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "LowMod",
+                    "path": "Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Fallout4 - TexturesPatch.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - TexturesPatch.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - TexturesPatch.ba2",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "fileList": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "HighMod",
+                        "path": "Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": [
+                        "HighMod"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "f4se_loader.exe",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\f4se_loader.exe",
+                    "relativePath": "f4se_loader.exe",
+                    "solution": null,
+                    "summary": "The version of this binary does not match your installed game version.",
+                    "type": "Wrong Version"
+                  },
+                  "text": "f4se_loader.exe",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Wrong Version"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "HighMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db",
+                    "relativePath": "Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": [
+                    "HighMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Junk File"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "precombined",
+                    "mod": "overwrite",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined",
+                    "relativePath": "Meshes\\precombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "precombined",
+                  "values": [
+                    "overwrite"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Loose Previs"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "AnimTextData",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData",
+                    "relativePath": "Meshes\\AnimTextData",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "The existence of unpacked AnimTextData may cause the game to crash.",
+                    "type": "Loose AnimTextData"
+                  },
+                  "text": "AnimTextData",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Loose AnimTextData"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Actor.pex",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex",
+                    "relativePath": "Scripts\\Actor.pex",
+                    "solution": "Check if this mod is supposed to override F4SE Scripts.\nIf this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\nOtherwise, this mod or file may need to be deleted.",
+                    "summary": "This is an override of an F4SE script. This could break F4SE if they aren't the same version or this mod isn't intended to override F4SE files.",
+                    "type": "F4SE Script Override"
+                  },
+                  "text": "Actor.pex",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "F4SE Script Override"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Unmanaged.png",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\Data\\Textures\\Unmanaged.png",
+                    "relativePath": "Textures\\Unmanaged.png",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "Unmanaged.png",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Shared.png",
+                    "mod": "HighMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png",
+                    "relativePath": "Textures\\shared.png",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "Shared.png",
+                  "values": [
+                    "HighMod"
+                  ]
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "tex.dds (2)",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)",
+                    "relativePath": "Textures\\tex.dds (2)",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for textures.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "tex.dds (2)",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Unexpected Format"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "11 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folder": "Race Subgraph Records"
+            }
+          },
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Overview Issues"
+        ],
+        "index": null,
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "BadMagic.esp",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic.esp",
+                    "relativePath": "BadMagic.esp",
+                    "solution": null,
+                    "summary": "Module is either corrupt or not in TES4 format.",
+                    "type": "Invalid Module"
+                  },
+                  "text": "BadMagic.esp",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Module"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Fallout4 - TexturesPatch.ba2",
+                    "mod": "",
+                    "path": null,
+                    "relativePath": "Fallout4 - TexturesPatch.ba2",
+                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                    "type": "File Not Found"
+                  },
+                  "text": "Fallout4 - TexturesPatch.ba2",
+                  "values": [
+                    ""
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "File Not Found"
+            },
+            {
+              "items": [
+                {
+                  "$unordered": [
+                    {
+                      "problem": {
+                        "extraData": null,
+                        "fileList": null,
+                        "itemText": "BadMagic - main.ba2",
+                        "mod": "",
+                        "path": "Game\\Data\\BadMagic - main.ba2",
+                        "relativePath": "BadMagic - main.ba2",
+                        "solution": null,
+                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                        "type": "Invalid Archive"
+                      },
+                      "text": "BadMagic - main.ba2",
+                      "values": [
+                        ""
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Invalid Archive"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "f4se_loader.exe",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\f4se_loader.exe",
+                    "relativePath": "f4se_loader.exe",
+                    "solution": null,
+                    "summary": "The version of this binary does not match your installed game version.",
+                    "type": "Wrong Version"
+                  },
+                  "text": "f4se_loader.exe",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Wrong Version"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "4 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Errors"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [],
+          "progress": 100.0,
+          "resultsInfo": "0 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Wrong File Formats"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Unmanaged.png",
+                    "mod": "<Unmanaged>",
+                    "path": "Game\\Data\\Textures\\Unmanaged.png",
+                    "relativePath": "Textures\\Unmanaged.png",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "Unmanaged.png",
+                  "values": [
+                    "<Unmanaged>"
+                  ]
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Shared.png",
+                    "mod": "HighMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png",
+                    "relativePath": "Textures\\shared.png",
+                    "solution": "This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+                    "summary": "Format not in whitelist for textures.\nA file with the expected format was NOT found (dds).",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "Shared.png",
+                  "values": [
+                    "HighMod"
+                  ]
+                },
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "tex.dds (2)",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)",
+                    "relativePath": "Textures\\tex.dds (2)",
+                    "solution": "If this file type is expected here, please report it.",
+                    "summary": "Format not in whitelist for textures.\nUnable to determine whether the game will use this file.",
+                    "type": "Unexpected Format"
+                  },
+                  "text": "tex.dds (2)",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Unexpected Format"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "3 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Loose Previs"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "precombined",
+                    "mod": "overwrite",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined",
+                    "relativePath": "Meshes\\precombined",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.",
+                    "type": "Loose Previs"
+                  },
+                  "text": "precombined",
+                  "values": [
+                    "overwrite"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Loose Previs"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "1 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Junk Files"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Thumbs.db",
+                    "mod": "HighMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db",
+                    "relativePath": "Thumbs.db",
+                    "solution": "It can either be deleted or ignored.",
+                    "summary": "This is a junk file not used by the game or mod managers.",
+                    "type": "Junk File"
+                  },
+                  "text": "Thumbs.db",
+                  "values": [
+                    "HighMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Junk File"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "1 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Problem Overrides"
+        ],
+        "index": {
+          "archives": [
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            }
+          ],
+          "files": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "Meshes\\AnimTextData\\a.txt",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData\\a.txt"
+            },
+            {
+              "key": "Scripts\\Actor.pex",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex"
+            },
+            {
+              "key": "Textures\\low.dds",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\low.dds"
+            },
+            {
+              "key": "Textures\\shared.png",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures\\Shared.png"
+            },
+            {
+              "key": "Textures\\tex.dds (2)",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Textures\\tex.dds (2)"
+            },
+            {
+              "key": "BadMagic - Main.ba2",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\BadMagic - Main.ba2"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            },
+            {
+              "key": "Thumbs.db",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Thumbs.db"
+            },
+            {
+              "key": "Scripts\\Sub\\Form.pex",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub\\Form.pex"
+            },
+            {
+              "key": "Meshes\\precombined\\p.nif",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined\\p.nif"
+            }
+          ],
+          "folders": [
+            {
+              "key": "Meshes",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes"
+            },
+            {
+              "key": "Meshes\\AnimTextData",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData"
+            },
+            {
+              "key": "Scripts",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts"
+            },
+            {
+              "key": "Textures",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Textures"
+            },
+            {
+              "key": "Scripts\\Sub",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\Scripts\\Sub"
+            },
+            {
+              "key": "Meshes\\precombined",
+              "mod": "overwrite",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\\Meshes\\precombined"
+            }
+          ],
+          "modules": [
+            {
+              "key": "BadMagic.esp",
+              "mod": "LowMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\BadMagic.esp"
+            },
+            {
+              "key": "HighMod.esp",
+              "mod": "HighMod",
+              "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\HighMod\\HighMod.esp"
+            }
+          ]
+        },
+        "results": {
+          "groups": [
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "AnimTextData",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Meshes\\AnimTextData",
+                    "relativePath": "Meshes\\AnimTextData",
+                    "solution": "These folders should be packed into BA2 archives.",
+                    "summary": "The existence of unpacked AnimTextData may cause the game to crash.",
+                    "type": "Loose AnimTextData"
+                  },
+                  "text": "AnimTextData",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "Loose AnimTextData"
+            },
+            {
+              "items": [
+                {
+                  "problem": {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "Actor.pex",
+                    "mod": "LowMod",
+                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\\LowMod\\Scripts\\Actor.pex",
+                    "relativePath": "Scripts\\Actor.pex",
+                    "solution": "Check if this mod is supposed to override F4SE Scripts.\nIf this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\nOtherwise, this mod or file may need to be deleted.",
+                    "summary": "This is an override of an F4SE script. This could break F4SE if they aren't the same version or this mod isn't intended to override F4SE files.",
+                    "type": "F4SE Script Override"
+                  },
+                  "text": "Actor.pex",
+                  "values": [
+                    "LowMod"
+                  ]
+                }
+              ],
+              "open": true,
+              "text": "F4SE Script Override"
+            }
+          ],
+          "progress": 100.0,
+          "resultsInfo": "2 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Building mod file index...",
+            "update": {
+              "folders": [
+                "Extra",
+                "F4SE",
+                "Meshes",
+                "Scripts",
+                "Textures"
+              ]
+            }
+          },
+          {
+            "progress": 20.0,
+            "scanningText": "Scanning... 1/5: F4SE",
+            "update": {
+              "folder": "F4SE"
+            }
+          },
+          {
+            "progress": 40.0,
+            "scanningText": "Scanning... 2/5: Meshes",
+            "update": {
+              "folder": "Meshes"
+            }
+          },
+          {
+            "progress": 60.0,
+            "scanningText": "Scanning... 3/5: Scripts",
+            "update": {
+              "folder": "Scripts"
+            }
+          },
+          {
+            "progress": 80.0,
+            "scanningText": "Scanning... 4/5: Textures",
+            "update": {
+              "folder": "Textures"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      },
+      {
+        "boxes": [
+          "Race Subgraphs"
+        ],
+        "index": null,
+        "results": {
+          "groups": [],
+          "progress": 100.0,
+          "resultsInfo": "0 Results ~ Select an item for details",
+          "scan": {
+            "enabled": true,
+            "text": "Scan Game"
+          },
+          "scanningLabel": null
+        },
+        "updates": [
+          {
+            "progress": 1.0,
+            "scanningText": "Refreshing Overview...",
+            "update": {
+              "folder": "Race Subgraph Records"
+            }
+          }
+        ],
+        "workerError": null,
+        "workerLog": []
+      }
+    ],
+    "usingStage": true
+  }
+}

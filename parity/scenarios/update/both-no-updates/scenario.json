@@ -1,0 +1,10 @@
+{
+  "description": "Neither source is newer: both are asked, no banner.",
+  "operation": "update-check",
+  "parity": [
+    "UPD-1"
+  ],
+  "host": {
+    "cwd": "<ROOT>/Cwd"
+  }
+}

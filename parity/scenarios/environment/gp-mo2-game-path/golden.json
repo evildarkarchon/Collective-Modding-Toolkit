@@ -1,0 +1,15 @@
+{
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "X:\\Games\\Fallout 4",
+    "language": "en",
+    "prefs": {},
+    "settings": {}
+  }
+}

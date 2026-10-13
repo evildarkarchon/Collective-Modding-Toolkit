@@ -1,0 +1,39 @@
+{
+  "description": "The instance INI has no gamePath, so the fallback reads the portable INI as well; only the second read's settings survive. Port: fixed, see deviation #24.",
+  "operation": "mod-manager",
+  "parity": [
+    "MO2-2",
+    "MO2-3"
+  ],
+  "host": {
+    "processes": [
+      {
+        "name": "ModOrganizer.exe",
+        "exe": "<ROOT>/MO2/ModOrganizer.exe",
+        "fileVersion": [
+          2,
+          5,
+          2,
+          0
+        ]
+      }
+    ],
+    "registry": {
+      "HKCU\\Software\\Mod Organizer Team\\Mod Organizer": {
+        "CurrentInstance": {
+          "type": "REG_SZ",
+          "value": "Fallout 4"
+        }
+      }
+    },
+    "env": {
+      "LOCALAPPDATA": "<ROOT>\\LocalAppData"
+    }
+  },
+  "deviations": [
+    {
+      "bug": 24,
+      "reason": "The port gives an unset skip_file_suffixes / skip_directories MO2's own defaults, .mohidden and .git, instead of CSV-parsing the str() of Python's defaults."
+    }
+  ]
+}
