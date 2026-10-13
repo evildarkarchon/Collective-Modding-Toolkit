@@ -257,7 +257,7 @@ public sealed class DowngraderRunTests
 
     [Fact]
     [Trait("Parity", "DG-6")]
-    [Deviation(36, "settings.json, cm-toolkit.log and downloaded Delta Patches are resolved against the exe's folder, not the working directory.")]
+    [Deviation(36, "settings.json, cm-toolkit.log and downloaded Delta Patches live in the exe's folder, or a CM-Toolkit folder in %LOCALAPPDATA% when it isn't writable, never the working directory, whose settings.json is copied over once when the app folder has none.")]
     public async Task A_patch_is_saved_in_the_patch_folder_and_not_the_working_directory()
     {
         using var machine = new Machine();

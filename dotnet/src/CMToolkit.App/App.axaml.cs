@@ -49,16 +49,21 @@ public partial class App : Application
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         // The exe's folder, not the working directory (bug #36, fixed): the log, settings.json and patches live there.
-        var appFolder = AppFolder.ForThisRun();
+        // If the exe's folder can't be written to (Program Files, say), they live in %LOCALAPPDATA%\CM-Toolkit instead.
+        var appFolder = AppContext.BaseDirectory;
         LogFile? log = null;
         Exception? logFailure = null;
         try
         {
+            var choice = AppFolder.ForThisRun();
+            appFolder = choice.Folder;
             // Kept open for the life of the process, as Python's FileHandler was, so never disposed.
             log = AppStartup.OpenLog(AppFolderFiles.Log(appFolder), DateTime.Now);
+            choice.Log(log);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            // Either the fallback folder or the log couldn't be created: no log, so the startup dialog reports it.
             logFailure = ex;
         }
 

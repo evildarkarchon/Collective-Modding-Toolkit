@@ -22,8 +22,11 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
 
     /// <summary>
     /// The app's own folder (<see cref="global::CMToolkit.App.AppFolder"/>), which holds <c>settings.json</c> and the
-    /// Downgrader's patches (<see cref="AppSession.AppFolder"/>). The exe's folder by default; the reference used the
-    /// working directory (bug #36, fixed as a Deviation, ADR-0006).
+    /// Downgrader's patches (<see cref="AppSession.AppFolder"/>). The exe's folder by default; the app passes
+    /// <see cref="global::CMToolkit.App.AppFolder.ForThisRun"/>, which falls back to <c>%LOCALAPPDATA%\CM-Toolkit</c>
+    /// when the exe's folder can't be written to. The reference used the working directory (bug #36, fixed as a
+    /// Deviation, ADR-0006); a <c>settings.json</c> still there is copied to <see cref="SettingsPath"/> before it
+    /// loads, if that file doesn't exist yet (<see cref="AppFolderFiles.MigrateSettings"/>).
     /// </summary>
     public string AppFolder { get; init; } = AppContext.BaseDirectory;
 
@@ -61,7 +64,13 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
     /// </remarks>
     public async Task<MainWindow?> BuildMainWindowAsync()
     {
-        var model = await Task.Run(() => MainWindowViewModel.Load(host, log, SettingsPath));
+        var model = await Task.Run(() =>
+        {
+            // Bug #36, fixed: a settings.json left in the working directory, where the reference kept it, moves into
+            // the app folder the first time, before it loads. Scenario runs, whose app folder is cwd, copy nothing.
+            AppFolderFiles.MigrateSettings(SettingsPath, host.CurrentDirectory, log);
+            return MainWindowViewModel.Load(host, log, SettingsPath);
+        });
         // CMChecker.__init__: self.pc = PCInfo() comes before GameInfo, whose constructor does the rest.
         var pc = await Task.Run(() => PcInfo.Read(host, log));
         var game = await GameInstallLocator.LocateAsync(host, dialogs);
