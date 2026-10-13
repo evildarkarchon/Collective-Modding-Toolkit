@@ -113,6 +113,9 @@ public sealed class ScannerTabScenarioTests
         MouseClick.On(overviewCheck);
         toggles.Add(Toggle(scanner, ScanSetting.OverviewIssues));
 
+        // Each toggle saved the boxes at once (bug #20, fixed: the reference saved them only at Scan Game), as a
+        // blocking write off the UI thread; the file is read once they have all landed.
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         var settingsBefore = FileSnapshot.Of(settingsPath);
         var (during, results, log) = Scan(machine, scanner, worker, logger);
         var settingsAfter = FileSnapshot.Of(settingsPath);
@@ -136,6 +139,7 @@ public sealed class ScannerTabScenarioTests
         returned["selection"] = scanner.Tree.SelectedItem is null ? new JsonArray() : new JsonArray("selected");
 
         UntickDataBoxes(scanner);
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         File.Delete(settingsPath);
         if (scanner.Tree.Items.Count > 0)
         {

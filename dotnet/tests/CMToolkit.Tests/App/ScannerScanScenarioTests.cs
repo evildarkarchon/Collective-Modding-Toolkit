@@ -130,6 +130,9 @@ public sealed partial class ScannerScanScenarioTests
                 }
             }
 
+            // Each click saved the boxes as a blocking write (bug #20); they land before the scan, so their log lines
+            // can't fall inside the worker's.
+            DispatcherWait.Until(() => !runtime.Input.IsBlocking);
             updates.Clear();
             watch.Reset();
             var scan = scanner.ScanAsync();

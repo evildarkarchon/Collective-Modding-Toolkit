@@ -558,11 +558,11 @@
     "errors": 0,
     "loaded": true,
     "settingsAfter": {
-      "text": "{\"log_level\":\"INFO\",\"update_source\":\"none\",\"scanner_OverviewIssues\":true,\"scanner_Errors\":false,\"scanner_WrongFormat\":false,\"scanner_LoosePrevis\":false,\"scanner_JunkFiles\":false,\"scanner_ProblemOverrides\":false,\"scanner_RaceSubgraphs\":false,\"downgrader_keep_backups\":true,\"downgrader_delete_deltas\":true}\n"
+      "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": false,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": false,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
     },
     "settingsAfterRescan": null,
     "settingsBefore": {
-      "text": "{\"log_level\":\"INFO\",\"update_source\":\"none\",\"scanner_OverviewIssues\":true,\"scanner_Errors\":false,\"scanner_WrongFormat\":false,\"scanner_LoosePrevis\":false,\"scanner_JunkFiles\":false,\"scanner_ProblemOverrides\":false,\"scanner_RaceSubgraphs\":false,\"downgrader_keep_backups\":true,\"downgrader_delete_deltas\":true}\n"
+      "text": "{\r\n\t\"log_level\": \"INFO\",\r\n\t\"update_source\": \"none\",\r\n\t\"scanner_OverviewIssues\": true,\r\n\t\"scanner_Errors\": false,\r\n\t\"scanner_WrongFormat\": false,\r\n\t\"scanner_LoosePrevis\": false,\r\n\t\"scanner_JunkFiles\": false,\r\n\t\"scanner_ProblemOverrides\": false,\r\n\t\"scanner_RaceSubgraphs\": false,\r\n\t\"downgrader_keep_backups\": true,\r\n\t\"downgrader_delete_deltas\": true\r\n}\r\n"
     },
     "usingStage": true
   }

@@ -31,8 +31,13 @@ public sealed class ScanSidePane : UserControl
             // stored scanner_* values, so every box was ticked again on each launch and each return to the tab.
             var check = new CheckBox { Name = "Check" + setting, Content = setting.Label(), IsChecked = initial[setting], HorizontalAlignment = HorizontalAlignment.Left };
             ToolTip.SetTip(check, setting.Tooltip());
-            // on_checkbox_toggle: Scan Game is disabled while every box is unticked.
-            check.IsCheckedChanged += (_, _) => ScanButton!.IsEnabled = _checks.Values.Any(c => c.IsChecked == true);
+            // on_checkbox_toggle: Scan Game is disabled while every box is unticked. The change is then announced so the
+            // tab can save it (bug #20).
+            check.IsCheckedChanged += (_, _) =>
+            {
+                ScanButton!.IsEnabled = _checks.Values.Any(c => c.IsChecked == true);
+                BoxChanged?.Invoke(this, setting);
+            };
             _checks[setting] = check;
             checks.Children.Add(check);
         }
@@ -74,6 +79,12 @@ public sealed class ScanSidePane : UserControl
 
     /// <summary>Raised when Scan Game is clicked.</summary>
     public event EventHandler? ScanRequested;
+
+    /// <summary>
+    /// Raised after a box is ticked or unticked, by the user or in code, with the setting it stands for; not for the
+    /// starting states the pane is built with.
+    /// </summary>
+    public event EventHandler<ScanSetting>? BoxChanged;
 
     /// <summary>The Scan Game button (<c>button_scan</c>).</summary>
     public Button ScanButton { get; }

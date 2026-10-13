@@ -64,38 +64,63 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void Scan_game_saves_the_changed_boxes_off_the_ui_thread_in_a_blocking_operation_before_the_worker()
+    [Trait("Parity", "SET-8"), Deviation(20, "Each side-pane box change saves the scanner_* settings at once, off the UI thread in a blocking operation, instead of only when a scan starts.")]
+    public void A_box_change_saves_at_once_off_the_ui_thread_in_a_blocking_operation()
     {
-        // start_threaded_scan saved the boxes on the Tk thread, after the refresh and before it started the scan thread,
-        // so the save froze input as the refresh did (ADR-0003).
+        // Bug #20, fixed (ADR-0006): the reference saved the boxes only in start_threaded_scan (and never read them
+        // back). The port saves each change as it is made, through the same blocking write the scan's save used.
         using var temp = new TempDirectory();
         var settingsPath = Path.Combine(temp.Path, "settings.json");
         var log = new HeldSaveLogger();
         var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
-        var workerStarted = false;
-        using var app = ScannerApp.Start(
-            worker: s =>
-            {
-                workerStarted = true;
-                return ScanWorker.Run(s);
-            },
-            settingsStore: store);
+        using var app = ScannerApp.Start(settingsStore: store);
         var before = File.ReadAllBytes(settingsPath);
-        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
 
         log.Hold();
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
         DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
 
         Assert.False(log.WritesOnUiThread[0]);
         Assert.True(app.Runtime.Input.IsBlocking);
         Assert.Equal(before, File.ReadAllBytes(settingsPath));
-        Assert.False(workerStarted);
+        // The settings in effect change at the click, so a change made before the write lands builds on this one.
+        Assert.False(store.Current.ScannerJunkFiles);
 
         log.Release();
-        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
-        Assert.True(workerStarted);
+        DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
         Assert.Contains("\"scanner_JunkFiles\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SET-7"), Deviation(20, "Quick box changes all save, in order, so the file ends as the last change left the boxes, and a scan saves nothing more.")]
+    public void Quick_box_changes_land_in_order_and_a_scan_saves_nothing_more()
+    {
+        using var temp = new TempDirectory();
+        var settingsPath = Path.Combine(temp.Path, "settings.json");
+        var log = new HeldSaveLogger();
+        var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, log);
+        using var app = ScannerApp.Start(settingsStore: store);
+        var checks = app.Scanner.SidePane!.Checks;
+
+        // The first write is held, so the next changes are made while it is still pending.
+        log.Hold(1);
+        MouseClick.On(checks[ScanSetting.JunkFiles]);
+        DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
+        checks[ScanSetting.Errors].IsChecked = false;
+        checks[ScanSetting.JunkFiles].IsChecked = true;
+        log.Release();
+        DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
+
+        var text = File.ReadAllText(settingsPath);
+        Assert.Contains("\"scanner_Errors\": false", text, StringComparison.Ordinal);
+        Assert.Contains("\"scanner_JunkFiles\": true", text, StringComparison.Ordinal);
+        Assert.False(store.Current.ScannerErrors);
+        Assert.True(store.Current.ScannerJunkFiles);
+
+        var saves = log.Entries.Count(e => e.Message == HeldSaveLogger.SavingMessage);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
+        Assert.Equal(saves, log.Entries.Count(e => e.Message == HeldSaveLogger.SavingMessage));
     }
 
     [AvaloniaFact]
