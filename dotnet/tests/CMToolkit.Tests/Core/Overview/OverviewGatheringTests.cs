@@ -2,6 +2,7 @@ using CMToolkit.App.Startup;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
+using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
@@ -11,7 +12,8 @@ namespace CMToolkit.Tests.Core.Overview;
 /// What the <c>overview-full</c> scenarios can't record: files another process holds open without sharing them, which
 /// Python's <c>open</c> reports as <c>PermissionError</c> (OVW-P10, OVW-P15); a refresh that dies part-way, which keeps
 /// the previous report's later parts; and the count colours on every limit's boundaries (OVW-C1). Also the port's fixes
-/// for files that aren't UTF-8 (bug #86), which the reference failed on.
+/// for files that aren't UTF-8 (bug #86) and for INIs without an <c>[Archive]</c> section (bug #31), which the
+/// reference failed on.
 /// </summary>
 public sealed class OverviewGatheringTests
 {
@@ -98,6 +100,54 @@ public sealed class OverviewGatheringTests
         Assert.DoesNotContain(report.Problems, p => p.ItemText is "Fallout4.ccc" or "plugins.txt");
         Assert.DoesNotContain(report.Problems, p => p.Kind == "Unexpected Format");
         Assert.Empty(report.Warnings);
+    }
+
+    [Fact]
+    [Trait("Parity", "OVW-A2"), Deviation(31, "INIs without an [Archive] section are reported as a Missing INI Section problem whose file list names the INIs read, which the Scanner's details pane opens as Files.")]
+    public async Task Inis_without_an_archive_section_are_listed_by_the_missing_section_problem()
+    {
+        using var machine = Scenario("overview/archive-section-missing");
+        // Fallout4.ini has [General] only. A Custom INI with two sections is searched for [Archive] too; the Prefs INI
+        // isn't, so it isn't listed.
+        var folder = machine.PathOf(@"Documents\My Games\Fallout4");
+        File.WriteAllText(Path.Combine(folder, "Fallout4Custom.ini"), "[Display]\r\niSize W=1920\r\n[Launcher]\r\nbEnableFileSelection=1\r\n");
+        File.WriteAllText(Path.Combine(folder, "Fallout4Prefs.ini"), "[NVFlex]\r\nbNVFlexEnable=0\r\n");
+        var game = await Locate(machine);
+
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+
+        var problem = Assert.Single(report.Problems, p => p.ItemText == "[Archive]");
+        Assert.Equal("Missing INI Section", problem.Kind);
+        Assert.Null(problem.OpenablePath);
+        // Each INI read, in read order, with the number of sections it has.
+        Assert.Equal(
+            [(1, Path.Combine(folder, "Fallout4.ini")), (2, Path.Combine(folder, "Fallout4Custom.ini"))],
+            problem.FileList!.Select(e => (e.Count, e.File.ToString())));
+
+        // The Scanner's Overview issues show it in its own group, with a File List button titled Files over INI
+        // headings rather than the race subgraph count's Records/Module.
+        var group = Assert.Single(ScanResults.Group(ScanResults.Seed(true, report.Problems), null), g => g.Kind == "Missing INI Section");
+        Assert.Equal(problem, Assert.Single(group.Items));
+        Assert.Equal(("Files", ""), ProblemDetails.FileListWindow(problem));
+        Assert.Equal(["Sections", " INI"], ProblemDetails.FileListHeadersOf(problem));
+    }
+
+    [Fact]
+    [Trait("Parity", "OVW-A2"), Deviation(31, "Without Fallout4.ini, the File Not Found problem is on Fallout4.ini's real path, which the Scanner's details pane opens at its folder.")]
+    public async Task Without_fallout4_ini_its_file_not_found_problem_opens_the_ini_folder()
+    {
+        using var machine = Scenario("overview/archive-ini-missing");
+        var game = await Locate(machine);
+
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+
+        var problem = Assert.Single(report.Problems, p => p.ItemText == "Fallout4.ini");
+        Assert.Equal(ProblemTypes.FileNotFound, problem.Kind);
+        var group = Assert.Single(ScanResults.Group(ScanResults.Seed(true, report.Problems), null), g => g.Kind == ProblemTypes.FileNotFound);
+        Assert.Contains(problem, group.Items);
+        Assert.Equal(ProblemDetails.NoMod, ProblemDetails.ModText(problem));
+        Assert.Equal(machine.PathOf(@"Documents\My Games\Fallout4"), ProblemDetails.Location(machine.Host, problem)?.ToString());
+        Assert.Null(ProblemDetails.FileListWindow(problem));
     }
 
     [Fact]

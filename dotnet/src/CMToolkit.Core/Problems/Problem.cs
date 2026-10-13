@@ -40,7 +40,8 @@ public sealed record Problem(
 
     /// <summary>
     /// <c>file_list</c>: the counted files a simple problem lists in the details pane's File List window (SCN-R7), each
-    /// count with its file, in the order found; null for none. Only the race subgraph count (SCN-S5) makes one.
+    /// count with its file, in the order found; null for none. The race subgraph count (SCN-S5) makes one, and so does
+    /// the port's Missing INI Section problem, with each INI's section count (bug #31).
     /// </summary>
     public IReadOnlyList<(int Count, PythonPath File)>? FileList { get; init; }
 
@@ -121,6 +122,12 @@ public static class ProblemTypes
 
     /// <summary><c>ProblemType.InvalidArchive</c>.</summary>
     public const string InvalidArchive = "Invalid Archive";
+
+    /// <summary>
+    /// The port's group for game INIs that were read but have no <c>[Archive]</c> section, which the reference raised on
+    /// instead of reporting (OVW-A2, B-15; deviation, bug #31). No <c>ProblemType</c> has it.
+    /// </summary>
+    public const string MissingIniSection = "Missing INI Section";
 }
 
 /// <summary>The <c>enums.SolutionType</c> texts the problems use.</summary>

@@ -1,0 +1,166 @@
+{
+  "dialogs": [
+    {
+      "args": [
+        "Warning",
+        "Fallout4.ccc not found.\nCC files may not be detected. Verifying Steam files or reinstalling should fix this."
+      ],
+      "function": "showwarning",
+      "kwargs": {},
+      "module": "messagebox"
+    }
+  ],
+  "overview": {
+    "archives": {
+      "enabled": {
+        "$unordered": []
+      },
+      "general": 0,
+      "nextGen": {
+        "$unordered": []
+      },
+      "oldGen": {
+        "$unordered": []
+      },
+      "texture": 0,
+      "unreadable": {
+        "$unordered": []
+      }
+    },
+    "display": {
+      "loadingLabel": {
+        "color": "",
+        "text": ""
+      },
+      "log": [
+        {
+          "level": "DEBUG",
+          "message": "Switch Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Load Tab : OverviewTab"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Binaries"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Modules"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Added SimpleProblemInfo: Path: Fallout4.ccc | Problem: File Not Found"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Gathering Info: Archives"
+        },
+        {
+          "level": "DEBUG",
+          "message": "Reset Info: Archives"
+        }
+      ]
+    },
+    "error": {
+      "kind": "value",
+      "message": "Archive section missing from INIs"
+    },
+    "installType": "Old-Gen",
+    "loaded": false,
+    "modules": {
+      "enabled": [
+        "<ROOT>\\Game\\Data\\fallout4.esm",
+        "<ROOT>\\Game\\Data\\Mod.esp"
+      ],
+      "full": 2,
+      "hedr100": 1,
+      "hedr95": {
+        "$unordered": []
+      },
+      "hedrUnknown": [
+        {
+          "module": "<ROOT>\\Game\\Data\\Mod.esp",
+          "version": 0.94
+        }
+      ],
+      "light": 0,
+      "unreadable": {
+        "$unordered": []
+      }
+    },
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "cm-toolkit.exe",
+        "mod": "",
+        "path": null,
+        "relativePath": "cm-toolkit.exe",
+        "solution": "Your mod manager must launch the app to be detected.",
+        "summary": "No Mod Manager Detected",
+        "type": "No Mod Manager"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4.ccc",
+        "mod": "",
+        "path": null,
+        "relativePath": "Fallout4.ccc",
+        "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+        "summary": "The CC list file was not found in your game install path.\nThis is used to detect which CC modules/archives may be enabled.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "Mod.esp",
+        "mod": "OVERVIEW",
+        "path": "<ROOT>\\Game\\Data\\Mod.esp",
+        "relativePath": "Mod.esp",
+        "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
+        "summary": "Module version (0.94) is not valid for Fallout 4.\nGames supporting v0.94: Skyrim LE, Skyrim VR, Skyrim SE, Fallout 3, Fallout NV",
+        "type": "Invalid Module"
+      }
+    ]
+  }
+}

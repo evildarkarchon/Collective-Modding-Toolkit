@@ -126,4 +126,18 @@ public static class ProblemDetails
         var at = text.IndexOf(". ", StringComparison.Ordinal);
         return ("Race Animation Subgraph Records", at < 0 ? text : string.Concat(text.AsSpan(0, at), ".\n", text.AsSpan(at + 2)));
     }
+
+    /// <summary>
+    /// The File List window's column headings for <paramref name="problem"/>: the reference's <see cref="FileListHeaders"/>
+    /// for every list it made, and <c>Sections</c> / <c> INI</c> for the port's Missing INI Section problem, whose
+    /// list is the game INIs read with each one's section count (deviation, bug #31).
+    /// </summary>
+    public static IReadOnlyList<string> FileListHeadersOf(Problem problem)
+    {
+        ArgumentNullException.ThrowIfNull(problem);
+        return problem.Kind == ProblemTypes.MissingIniSection ? IniFileListHeaders : FileListHeaders;
+    }
+
+    /// <summary>The Missing INI Section File List's headings, the second with a leading space like the reference's.</summary>
+    private static readonly IReadOnlyList<string> IniFileListHeaders = ["Sections", " INI"];
 }

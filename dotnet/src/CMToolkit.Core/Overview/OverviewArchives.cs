@@ -84,11 +84,7 @@ internal sealed class ArchivesGathering(
             // The reference raised ValueError("Archive section missing from INIs") here, which failed the Overview and
             // every Scanner run's refresh (OVW-A2, B-15). The port reports it and goes on without the INI lists
             // (deviation, bug #31).
-            OverviewReport.AddSimple(logger, problems, Problem.Simple(
-                "[Archive]",
-                ProblemTypes.FileNotFound,
-                "The [Archive] section was not found in your game INIs (Fallout4.ini may not have been generated yet).\nArchives listed only in the INIs can't be detected, so archive counts may be lower than your actual counts.",
-                "Launch the game once with its launcher to generate Fallout4.ini.\nOtherwise, verify files with Steam or reinstall the game."));
+            AddMissingArchiveSection();
         }
 
         // Each enabled module's "<stem> - <suffix>.ba2" beside it, for every language suffix (INI-4).
@@ -122,6 +118,36 @@ internal sealed class ArchivesGathering(
             logger.Write(LogLevel.Debug, $"Archives: Checking {archive.Name}");
             Check(archive);
         }
+    }
+
+    /// <summary>
+    /// The problem for INIs without an <c>[Archive]</c> section, by cause (deviation, bug #31): without
+    /// <c>Fallout4.ini</c>, File Not Found on its path, which the details pane can open; otherwise Missing INI Section,
+    /// whose file list names each INI read with its section count, so the details pane offers a File List.
+    /// </summary>
+    private void AddMissingArchiveSection()
+    {
+        var files = game.Inis.SettingsFiles;
+        // Fallout4.ini is the first INI looked for. When the INIs weren't read from a machine (no files recorded),
+        // the section problem stands in, with an empty list and so no File List button.
+        if (files is [{ Read: false } main, ..])
+        {
+            problems.Add(Problem.ForFile(
+                ProblemTypes.FileNotFound,
+                main.Path,
+                main.Path,
+                null,
+                "Fallout4.ini was not found, so the archives listed in its [Archive] section can't be detected.\nArchive counts may be lower than your actual counts.",
+                "Launch the game once with its launcher to generate Fallout4.ini.\nIf your mod manager keeps INIs per profile, run the launcher from your mod manager."));
+            return;
+        }
+
+        OverviewReport.AddSimple(logger, problems, Problem.Simple(
+            "[Archive]",
+            ProblemTypes.MissingIniSection,
+            "No [Archive] section was found in Fallout4.ini or Fallout4Custom.ini, so the archives it lists can't be detected.\nArchive counts may be lower than your actual counts.",
+            "Fallout4.ini may be damaged or incomplete. Restore it from a backup,\nor rename it and launch the game once with its launcher to generate a new one.")
+            with { FileList = [.. files.Where(f => f.Read).Select(f => (f.Sections, f.Path))] });
     }
 
     private void AddIfFile(PythonPath path)
