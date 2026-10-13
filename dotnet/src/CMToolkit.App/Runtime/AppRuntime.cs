@@ -16,8 +16,8 @@ public sealed class AppRuntime
     public AppRuntime(ILogger logger)
     {
         Logger = logger;
-        Errors = new ErrorReporter(logger);
         Input = new InputBlocker();
+        Errors = new ErrorReporter(logger, Input);
         Operations = new BackgroundOperations(Errors, Input);
     }
 
@@ -27,7 +27,10 @@ public sealed class AppRuntime
     /// <summary>Reports unhandled exceptions to the Error Window and the log.</summary>
     public ErrorReporter Errors { get; }
 
-    /// <summary>The input block that blocking operations hold over the main window and its modals.</summary>
+    /// <summary>
+    /// The input block that blocking operations hold over the main window, its modals, the Error Window and every window
+    /// they own.
+    /// </summary>
     public InputBlocker Input { get; }
 
     /// <summary>The runner every Core call goes through.</summary>

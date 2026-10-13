@@ -79,6 +79,8 @@ public sealed class ScanDetailsPaneScenarioTests
             if ((scanner.SidePane!.Checks[setting].IsChecked == true) != wanted)
             {
                 MouseClick.On(scanner.SidePane!.Checks[setting]);
+                // The click saved the boxes as a blocking write (bug #20); a click while it is pending is discarded (ADR-0003).
+                DispatcherWait.Until(() => !runtime.Input.IsBlocking);
             }
         }
 

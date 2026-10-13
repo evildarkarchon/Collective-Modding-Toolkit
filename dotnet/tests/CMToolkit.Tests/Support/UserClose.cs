@@ -25,8 +25,9 @@ public static class UserClose
         var cancelled = (bool)HandleClosing.Invoke(window, [WindowCloseReason.WindowClosing])!;
         if (!cancelled)
         {
-            // A real platform window destroys itself when the callback doesn't cancel; the headless one leaves it to us.
-            window.PlatformImpl!.Dispose();
+            // A real platform window destroys itself when the callback doesn't cancel; the headless one leaves it to us,
+            // unless closing already released it (an owned window, closed with no Closing handler cancelling it).
+            window.PlatformImpl?.Dispose();
         }
 
         return !cancelled;
