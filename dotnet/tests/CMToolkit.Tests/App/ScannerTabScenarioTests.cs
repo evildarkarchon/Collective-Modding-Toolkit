@@ -106,11 +106,11 @@ public sealed class ScannerTabScenarioTests
 
         var side = ReadSide(scanner);
         var initial = ReadTab(machine, scanner);
-        var toggles = UntickDataBoxes(scanner);
+        var toggles = UntickDataBoxes(scanner, runtime);
         var overviewCheck = scanner.SidePane!.Checks[ScanSetting.OverviewIssues];
-        MouseClick.On(overviewCheck);
+        ClickBox(overviewCheck, runtime);
         toggles.Add(Toggle(scanner, ScanSetting.OverviewIssues));
-        MouseClick.On(overviewCheck);
+        ClickBox(overviewCheck, runtime);
         toggles.Add(Toggle(scanner, ScanSetting.OverviewIssues));
 
         // Each toggle saved the boxes at once (bug #20, fixed: the reference saved them only at Scan Game), as a
@@ -138,7 +138,7 @@ public sealed class ScannerTabScenarioTests
         returned["side"] = ReadSide(scanner);
         returned["selection"] = scanner.Tree.SelectedItem is null ? new JsonArray() : new JsonArray("selected");
 
-        UntickDataBoxes(scanner);
+        UntickDataBoxes(scanner, runtime);
         DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         File.Delete(settingsPath);
         if (scanner.Tree.Items.Count > 0)
@@ -212,7 +212,7 @@ public sealed class ScannerTabScenarioTests
     private static int Errors(CapturingLogger logger)
         => logger.Entries.Count(e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
 
-    private static List<JsonNode> UntickDataBoxes(ScannerTab scanner)
+    private static List<JsonNode> UntickDataBoxes(ScannerTab scanner, AppRuntime runtime)
     {
         var toggles = new List<JsonNode>();
         foreach (var setting in ScanSettings.All.Skip(1))
@@ -224,11 +224,21 @@ public sealed class ScannerTabScenarioTests
                 continue;
             }
 
-            MouseClick.On(scanner.SidePane!.Checks[setting]);
+            ClickBox(scanner.SidePane!.Checks[setting], runtime);
             toggles.Add(Toggle(scanner, setting));
         }
 
         return toggles;
+    }
+
+    /// <summary>
+    /// Clicks a side-pane box, then waits for the blocking write that saves the boxes (bug #20) to land: a click while
+    /// it is pending would be discarded (ADR-0003).
+    /// </summary>
+    private static void ClickBox(CheckBox check, AppRuntime runtime)
+    {
+        MouseClick.On(check);
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
     }
 
     private static JsonObject Toggle(ScannerTab scanner, ScanSetting setting)

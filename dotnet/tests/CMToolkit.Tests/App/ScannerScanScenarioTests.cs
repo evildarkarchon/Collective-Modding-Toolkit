@@ -127,6 +127,8 @@ public sealed partial class ScannerScanScenarioTests
                 if ((check.IsChecked == true) != ticked.Contains(setting))
                 {
                     MouseClick.On(check);
+                    // The click saved the boxes as a blocking write (bug #20); a click while it is pending is discarded (ADR-0003).
+                    DispatcherWait.Until(() => !runtime.Input.IsBlocking);
                 }
             }
 

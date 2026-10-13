@@ -32,10 +32,11 @@ public enum MessageBoxKind
 /// <para>
 /// A message box is deliberately not under the <see cref="Runtime.InputBlocker"/>. In the reference, a box ran its
 /// own modal loop, so it took input even while the code that showed it was mid-callback; here the code that shows one
-/// awaits the answer, and blocking the box would deadlock that wait.
+/// awaits the answer, and blocking the box would deadlock that wait. <see cref="Runtime.IExemptFromInputBlock"/> keeps
+/// the blocker from attaching it as a window owned by the main window or a modal.
 /// </para>
 /// </remarks>
-public sealed class MessageBoxWindow : Window
+public sealed class MessageBoxWindow : Window, Runtime.IExemptFromInputBlock
 {
     private static readonly Uri WarningIcon = new("avares://cm-toolkit/Assets/Images/warning-16.png");
 

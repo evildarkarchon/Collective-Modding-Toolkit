@@ -92,8 +92,8 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SET-7"), Deviation(20, "Quick box changes all save, in order, so the file ends as the last change left the boxes, and a scan saves nothing more.")]
-    public void Quick_box_changes_land_in_order_and_a_scan_saves_nothing_more()
+    [Trait("Parity", "SET-7"), Deviation(20, "Box changes save one after another, so the file ends as the last change left the boxes, and a scan saves nothing more.")]
+    public void Box_changes_save_one_after_another_and_a_scan_saves_nothing_more()
     {
         using var temp = new TempDirectory();
         var settingsPath = Path.Combine(temp.Path, "settings.json");
@@ -102,14 +102,18 @@ public sealed class ScannerTabTests
         using var app = ScannerApp.Start(settingsStore: store);
         var checks = app.Scanner.SidePane!.Checks;
 
-        // The first write is held, so the next changes are made while it is still pending.
+        // The first write is held. A click while it is pending is discarded (ADR-0003: the pane froze with the Tk
+        // thread), so a change can't overtake the save before it; SettingsStoreTests covers saves that overlap in code.
         log.Hold(1);
         MouseClick.On(checks[ScanSetting.JunkFiles]);
         DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
-        checks[ScanSetting.Errors].IsChecked = false;
-        checks[ScanSetting.JunkFiles].IsChecked = true;
+        MouseClick.On(checks[ScanSetting.Errors]);
+        Assert.True(checks[ScanSetting.Errors].IsChecked);
         log.Release();
         DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
+
+        ClickBoxAndWaitForTheSave(app, ScanSetting.Errors);
+        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
 
         var text = File.ReadAllText(settingsPath);
         Assert.Contains("\"scanner_Errors\": false", text, StringComparison.Ordinal);
@@ -121,6 +125,60 @@ public sealed class ScannerTabTests
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
         Assert.Equal(saves, log.Entries.Count(e => e.Message == HeldSaveLogger.SavingMessage));
+    }
+
+    [AvaloniaFact]
+    public async Task A_side_pane_box_click_during_a_blocking_operation_is_discarded_and_input_returns_when_it_ends()
+    {
+        // ADR-0003: the panes are owned windows, Toplevels the frozen Tk thread froze with the main window.
+        using var app = ScannerApp.Start();
+        var junk = app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles];
+        var gate = new TaskCompletionSource();
+
+        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Blocking, () => gate.Task.Wait());
+        MouseClick.On(junk);
+        Assert.True(junk.IsChecked);
+
+        gate.SetResult();
+        await operation;
+        MouseClick.On(junk);
+        Assert.False(junk.IsChecked);
+    }
+
+    [AvaloniaFact]
+    public async Task A_details_pane_button_click_during_a_blocking_operation_is_discarded_and_input_returns_when_it_ends()
+    {
+        using var app = ScannerApp.Start();
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game" && app.Scanner.Tree!.Items.Count > 0);
+        app.Scanner.Tree!.SelectedItem = app.Scanner.Tree.Items.OfType<TreeViewItem>().First().Items.OfType<TreeViewItem>().First();
+        Dispatcher.UIThread.RunJobs();
+        var copy = app.Scanner.DetailsPane!.Buttons.Single(b => (string?)b.Content == "Copy Details");
+        var gate = new TaskCompletionSource();
+
+        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Blocking, () => gate.Task.Wait());
+        MouseClick.On(copy);
+        Assert.Equal("Copy Details", (string?)copy.Content);
+
+        gate.SetResult();
+        await operation;
+        MouseClick.On(copy);
+        DispatcherWait.Until(() => (string?)copy.Content == CopyTextButton.CopiedText);
+    }
+
+    [AvaloniaFact]
+    public async Task An_interactive_operation_leaves_the_panes_live()
+    {
+        using var app = ScannerApp.Start();
+        var junk = app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles];
+        var gate = new TaskCompletionSource();
+
+        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Interactive, () => gate.Task.Wait());
+        MouseClick.On(junk);
+        Assert.False(junk.IsChecked);
+
+        gate.SetResult();
+        await operation;
     }
 
     [AvaloniaFact]
@@ -265,11 +323,11 @@ public sealed class ScannerTabTests
         foreach (var setting in ScanSettings.All)
         {
             Assert.True(side.ScanButton.IsEnabled);
-            MouseClick.On(side.Checks[setting]);
+            ClickBoxAndWaitForTheSave(app, setting);
         }
 
         Assert.False(side.ScanButton.IsEnabled);
-        MouseClick.On(side.Checks[ScanSetting.RaceSubgraphs]);
+        ClickBoxAndWaitForTheSave(app, ScanSetting.RaceSubgraphs);
         Assert.True(side.ScanButton.IsEnabled);
     }
 
@@ -311,6 +369,16 @@ public sealed class ScannerTabTests
         Assert.False(side.ScanButton.IsEnabled);
         MouseClick.On(side.Checks[ScanSetting.OverviewIssues]);
         Assert.True(side.ScanButton.IsEnabled);
+    }
+
+    /// <summary>
+    /// Clicks the side pane's box for <paramref name="setting"/>, then waits for the blocking save the change starts to
+    /// land: a click while it is pending would be discarded (ADR-0003).
+    /// </summary>
+    private static void ClickBoxAndWaitForTheSave(ScannerApp app, ScanSetting setting)
+    {
+        MouseClick.On(app.Scanner.SidePane!.Checks[setting]);
+        DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
     }
 
     /// <summary>

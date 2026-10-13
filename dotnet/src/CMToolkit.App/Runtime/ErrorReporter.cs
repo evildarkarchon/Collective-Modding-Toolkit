@@ -30,12 +30,18 @@ public sealed class ErrorReporter
     private const string ProcessExitingHeader = "Unhandled exception; the process is exiting";
 
     private readonly ILogger _logger;
+    private readonly InputBlocker? _input;
     private ErrorWindow? _window;
 
     /// <param name="logger">The app log; must be safe to call from any thread, since reports come from workers.</param>
-    public ErrorReporter(ILogger logger)
+    /// <param name="input">
+    /// The input block each Error Window is put under, as the reference's <c>Toplevel(root)</c> froze with the Tk thread;
+    /// null leaves the window always live.
+    /// </param>
+    public ErrorReporter(ILogger logger, InputBlocker? input = null)
     {
         _logger = logger;
+        _input = input;
     }
 
     /// <summary>The open Error Window, or <see langword="null"/> if none is open.</summary>
@@ -104,6 +110,8 @@ public sealed class ErrorReporter
                 }
             };
             _window = window;
+            // Unowned, so no owner chain attaches it.
+            _input?.Attach(window);
             window.Show();
         }
 
