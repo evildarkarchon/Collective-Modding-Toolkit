@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text;
 using CMToolkit.Core.PythonSemantics;
 
 namespace CMToolkit.Core.EnvironmentDetection;
@@ -79,17 +78,10 @@ public static class GameIniReader
     private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
 
     /// <summary>
-    /// Windows-1252, for INIs that aren't UTF-8: the game reads its INIs through the ANSI profile API, so editors save
-    /// them in the ANSI code page. Fixed rather than the machine's code page, so a read never depends on the host's
-    /// locale; the settings the toolkit reads are ASCII either way.
-    /// </summary>
-    private static readonly Encoding Windows1252 = CodePagesEncodingProvider.Instance.GetEncoding(1252)
-        ?? throw new InvalidOperationException("Code page 1252 isn't available.");
-
-    /// <summary>
     /// Decodes one INI: a leading UTF-8 BOM is dropped, the rest is strict UTF-8, and bytes that aren't valid UTF-8 make
-    /// the whole file Windows-1252 instead. The reference read strict UTF-8 only, keeping a BOM as U+FEFF (which broke
-    /// the first header) and failing at startup on an ANSI file (B-14, bug #17, fixed).
+    /// the whole file Windows-1252 instead (<see cref="AnsiFallbackText.Decode"/>). The reference read strict UTF-8
+    /// only, keeping a BOM as U+FEFF (which broke the first header) and failing at startup on an ANSI file (B-14, bug
+    /// #17, fixed).
     /// </summary>
     /// <exception cref="IOException">The file can't be read.</exception>
     /// <exception cref="UnauthorizedAccessException">The file can't be read.</exception>
@@ -97,15 +89,7 @@ public static class GameIniReader
     {
         var bytes = File.ReadAllBytes(path);
         var body = bytes.AsSpan().StartsWith(Utf8Bom) ? bytes.AsSpan(Utf8Bom.Length) : bytes.AsSpan();
-        try
-        {
-            return PythonText.DecodeUtf8Strict(body);
-        }
-        catch (DecoderFallbackException)
-        {
-            // Not UTF-8: an ANSI file, read as the game would read it.
-            return Windows1252.GetString(body);
-        }
+        return AnsiFallbackText.Decode(body);
     }
 
     /// <summary>

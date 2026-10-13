@@ -106,7 +106,8 @@ public sealed record OverviewReport(
     /// <exception cref="OverviewIncompleteException">
     /// A step raised: a binary, module or archive that exists but can't be read, or no local app data folder. It
     /// carries what had been gathered. (Text that isn't UTF-8 and a missing <c>[Archive]</c> section failed the
-    /// reference here too, T-1 and OVW-A2; the port reports them instead, bugs #86 and #31.)
+    /// reference here too, T-1 and OVW-A2; the port reads such text with a Windows-1252 fallback and reports the
+    /// missing section instead, bugs #86 and #31.)
     /// </exception>
     public static OverviewReport Gather(GameInstall game, IHostEnvironment host, ILogger logger, OverviewReport? previous = null)
         => Gather(game, host, logger, previous, modulesAndArchives: true);

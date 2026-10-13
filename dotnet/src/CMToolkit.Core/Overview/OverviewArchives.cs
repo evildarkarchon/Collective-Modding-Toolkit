@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
@@ -184,13 +186,28 @@ internal sealed class ArchivesGathering(
         }
         else
         {
-            // The reference decoded the format strictly, so bytes that aren't UTF-8 raised and failed the Overview
-            // (T-1). The port replaces them with U+FFFD, as errors="replace" would (deviation, bug #86).
-            Unreadable(archive, $"Archive format ({HeaderFiles.LenientUtf8.GetString(format)}) is not valid for Fallout 4.");
+            Unreadable(archive, $"Archive format ({FormatText(format)}) is not valid for Fallout 4.");
             return;
         }
 
         (nextGen ? _nextGen : _oldGen).Add(archive);
+    }
+
+    /// <summary>
+    /// The format bytes as the Invalid Archive problem shows them: <c>head[8:].decode('utf-8')</c> when they are valid
+    /// UTF-8, as the reference shows them. The reference's strict decode raised on bytes that aren't, which failed the
+    /// Overview (T-1); the port shows those as hex bytes instead, such as <c>FF FE FD FC</c> (deviation, bug #86).
+    /// </summary>
+    private static string FormatText(ReadOnlySpan<byte> format)
+    {
+        try
+        {
+            return PythonText.DecodeUtf8Strict(format);
+        }
+        catch (DecoderFallbackException)
+        {
+            return string.Join(' ', format.ToArray().Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
+        }
     }
 
     /// <summary>Records <paramref name="archive"/> as unreadable and adds its Invalid Archive problem with <paramref name="summary"/>.</summary>
