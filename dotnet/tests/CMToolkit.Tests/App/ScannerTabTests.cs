@@ -101,11 +101,13 @@ public sealed class ScannerTabTests
     [AvaloniaFact]
     [Trait("Parity", "B-3")]
     [Trait("Parity", "THR-1")]
-    [Deviation(22, "A worker that raises is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
-    public void A_worker_that_raises_is_reported_and_the_scan_ends_listing_the_overview_problems()
+    [Deviation(22, "A worker that raises unexpectedly is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
+    public void A_worker_that_raises_unexpectedly_is_reported_and_the_scan_ends_listing_the_overview_problems()
     {
-        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled.
-        using var app = ScannerApp.Start(worker: _ => throw new FileNotFoundException("File doesn't exist: modlist.txt"));
+        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
+        // failures the worker expects (MO2's missing profile or modlist.txt) are problem rows now (ScanWorkerFailureTests);
+        // anything else, such as a modlist.txt that isn't UTF-8, still raises.
+        using var app = ScannerApp.Start(worker: _ => throw new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8"));
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);

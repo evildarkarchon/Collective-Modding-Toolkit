@@ -50,13 +50,14 @@ public static class ScanWorker
     /// <summary>
     /// Runs the scan's worker part: without a Data folder it finds nothing. Otherwise the Race Subgraphs count (SCN-S5)
     /// if ticked, then, unless no data check is ticked, the mod file index (SCN-S6) and the walk of Data (SCN-C1..C9),
-    /// reporting each top-level folder it enters (SCN-S4).
+    /// reporting each top-level folder it enters (SCN-S4). When MO2's configuration stops the index (no selected
+    /// profile, or no <c>modlist.txt</c>), its problem row follows what was found before and the walk is skipped
+    /// (bug #22).
     /// </summary>
     /// <param name="settings">The scan's settings snapshot.</param>
     /// <param name="progress">Where progress updates go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
-    /// <exception cref="MissingMo2SettingsException">The index needs an MO2 profile that isn't set (B-3).</exception>
-    /// <exception cref="FileNotFoundException">The MO2 profile has no <c>modlist.txt</c> (B-3).</exception>
+    /// <exception cref="System.Text.DecoderFallbackException">MO2's <c>modlist.txt</c> isn't UTF-8 (T-1).</exception>
     public static ScanOutcome Run(ScanSettings settings, IProgress<ScanUpdate>? progress, ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -79,7 +80,16 @@ public static class ScanWorker
             return new ScanOutcome(problems, null);
         }
 
-        var index = ModFileIndex.Build(settings);
+        var index = ModFileIndex.Build(settings, out var failure);
+        if (failure is not null)
+        {
+            // Bug #22, fixed (ADR-0006): the reference's get_stage_paths raised here and its thread died with the
+            // problems found so far (B-3). The port lists them, then the failure; the walk needs the index to tell
+            // which mod each file belongs to, so it doesn't run.
+            problems.Add(failure);
+            return new ScanOutcome(problems, null);
+        }
+
         new DataWalk(settings, index ?? new ModFiles(), progress, problems).Run(data);
         return new ScanOutcome(problems, index);
     }
