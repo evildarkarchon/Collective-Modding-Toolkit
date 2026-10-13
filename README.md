@@ -1,6 +1,6 @@
-# RowanSkie's Fork of CMT
+# Collective Modding Toolkit
 
-Custom CMT fork by RowanSkie to fix AE shenanigans + BA2 limits.
+Custom CMT fork by evuldarkarchon using RowanSkie's fork to implement a C# version, the below instructions will soon be invalidated once the cutover is complete.
 
 ## Building
 
