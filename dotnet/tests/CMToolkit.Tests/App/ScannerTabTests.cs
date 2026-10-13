@@ -165,8 +165,8 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S1")]
-    public void A_refresh_that_dies_stops_the_scan_on_refreshing_overview()
+    [Trait("Parity", "SCN-S1"), Deviation(22, "A scan whose Overview refresh dies ends with the error reported, nothing listed and Scan Game enabled again, instead of stuck on Refreshing Overview....")]
+    public void A_refresh_that_dies_ends_the_scan_with_scan_game_enabled_again()
     {
         var fail = false;
         var workerRan = false;
@@ -183,10 +183,33 @@ public sealed class ScannerTabTests
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Equal("Scanning...", (string?)app.Scanner.SidePane!.ScanButton.Content);
-        Assert.False(app.Scanner.SidePane.ScanButton.IsEnabled);
-        Assert.Equal("Refreshing Overview...", app.ScanningText.Text);
-        Assert.Equal(0, app.Progress.Value);
+        // Bug #22's loose end, fixed (ADR-0006): the reference's start_threaded_scan died with the refresh, leaving
+        // Scan Game disabled on Scanning... and the label on Refreshing Overview....
+        AssertEndedBeforeTheWorker(app);
+        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : " + ErrorReporter.OperationHeader("Overview refresh"), StringComparison.Ordinal));
+        Assert.False(workerRan);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "SCN-S1"), Deviation(22, "A scan whose Overview refresh raises past its own reporting has the error reported and ends with nothing listed and Scan Game enabled again.")]
+    public void A_refresh_that_raises_is_reported_and_ends_the_scan_with_scan_game_enabled_again()
+    {
+        var workerRan = false;
+        using var app = ScannerApp.Start(worker: s =>
+        {
+            workerRan = true;
+            return ScanWorker.Run(s);
+        });
+        // The refresh itself raising, as rebuilding the Overview's frames could, rather than its gathering failing.
+        app.Overview.Refresher = () => throw new InvalidOperationException("The frames couldn't be rebuilt.");
+
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        AssertEndedBeforeTheWorker(app);
+        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal)
+            && e.Message.Contains("The frames couldn't be rebuilt.", StringComparison.Ordinal));
         Assert.False(workerRan);
     }
 
@@ -265,14 +288,31 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    /// <summary>
+    /// A scan that stopped before its worker has ended: Scan Game is back and enabled, the scanning label is hidden, and
+    /// nothing is listed or selectable (the progress bar never moved).
+    /// </summary>
+    private static void AssertEndedBeforeTheWorker(ScannerApp app)
+    {
+        var scan = app.Scanner.SidePane!.ScanButton;
+        Assert.Equal("Scan Game", (string?)scan.Content);
+        Assert.True(scan.IsEnabled);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(0, app.Progress.Value);
+        Assert.Empty(app.Scanner.Tree!.Items);
+        Assert.Equal("", app.ResultsInfo.Text ?? "");
+        Assert.False(app.Scanner.IsSelectable);
+    }
+
     /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>
     private sealed class ScannerApp : IDisposable
     {
         private readonly MaterializedScenario _machine;
         private readonly TabControl _tabs;
 
-        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner)
+        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner, OverviewState overview)
         {
+            Overview = overview;
             _machine = machine;
             Window = window;
             Runtime = runtime;
@@ -288,6 +328,9 @@ public sealed class ScannerTabTests
         public CapturingLogger Logger { get; }
 
         public ScannerTab Scanner { get; }
+
+        /// <summary>The Overview state the scan refreshes and seeds from.</summary>
+        public OverviewState Overview { get; }
 
         public TextBlock ScanningText => Named<TextBlock>("ScanningText");
 
@@ -318,7 +361,7 @@ public sealed class ScannerTabTests
             var window = new MainWindow(runtime, [overview, scanner]);
             window.Show();
             DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
-            var app = new ScannerApp(machine, window, runtime, logger, scanner);
+            var app = new ScannerApp(machine, window, runtime, logger, scanner, state);
             app.Select(1);
             return app;
         }

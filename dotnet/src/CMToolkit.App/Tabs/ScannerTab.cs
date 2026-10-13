@@ -296,9 +296,24 @@ public sealed class ScannerTab : TabPage
         _scanningText!.IsVisible = true;
         _scanningText.Text = "Refreshing Overview...";
         _runtime.Logger.Write(LogLevel.Debug, "Refresh Tab : Overview");
-        if (!await _overview.RefreshAsync())
+        bool refreshed;
+        try
         {
-            // The refresh raised in the reference's start_threaded_scan: the scan stops with the button disabled.
+            refreshed = await _overview.RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            // The refresh raised past its own reporting (rebuilding the Overview's frames, say): reported here, as the
+            // Scan Game handler would have, so the scan can still end below.
+            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
+            refreshed = false;
+        }
+
+        if (!refreshed)
+        {
+            // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
+            // left Scan Game disabled on Scanning... for good. The error is reported; the scan ends before its worker.
+            EndBeforeWorker(side);
             return;
         }
 
@@ -314,8 +329,9 @@ public sealed class ScannerTab : TabPage
             }
             catch (OperationFailedException)
             {
-                // Already reported by the runner. A save that raised ended start_threaded_scan in Tk: the scan stops
-                // here with the button disabled, as after a refresh that died.
+                // Already reported by the runner. A save that raised ended start_threaded_scan in Tk and left the
+                // button disabled; as after a refresh that died, the scan now ends before its worker (bug #22).
+                EndBeforeWorker(side);
                 return;
             }
         }
@@ -354,6 +370,22 @@ public sealed class ScannerTab : TabPage
 
         _progress.Value = 100;
         Populate(settings, [.. seeded, .. outcome.Problems], outcome.Index);
+    }
+
+    /// <summary>
+    /// Ends a scan that stopped before its worker started (its Overview refresh or settings save failed, already
+    /// reported): the scanning label hides and Scan Game is enabled again. Nothing is listed, since nothing was
+    /// scanned, and the tree stays cleared and unselectable.
+    /// </summary>
+    /// <param name="side">
+    /// The side pane the scan started from. The main window's input was blocked since, so the tab can't have been left
+    /// and it is still the open one.
+    /// </param>
+    private void EndBeforeWorker(ScanSidePane side)
+    {
+        _scanningText!.IsVisible = false;
+        _scanningText.Text = "";
+        side.SetScanning(false);
     }
 
     /// <summary>Collapse All / Expand All (<c>set_expanded</c>): opens or closes every group row.</summary>
