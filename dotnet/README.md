@@ -62,9 +62,14 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
 At run time the app keeps `settings.json`, `cm-toolkit.log` and the Downgrader's downloaded `*.xdelta` patches in this
 same folder, beside the exe, whatever the working directory. The Reference Implementation resolved all three against
 the working directory, so a launch from a shortcut, a terminal or an MO2 entry with another "Start in" scattered them
-([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed as a Deviation, ADR-0006). The
-folder must be writable: an install under a protected folder such as `Program Files` fails at startup when the log
-can't be opened (SHELL-13).
+([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed as a Deviation, ADR-0006). At
+startup the app checks that it can write to this folder by creating and deleting a probe file. If it can't, as for an
+install under a protected folder such as `Program Files`, it keeps all three in `%LOCALAPPDATA%\CM-Toolkit` instead
+and logs a warning naming both folders. Startup fails (SHELL-13) only if that folder can't be created or the log
+can't be opened there. If the app folder has no `settings.json` but the working directory has one, where the
+Reference Implementation kept it, startup copies that file over once and logs the copy. Only the settings move: the
+log and patches are disposable. Scenario runs (`CMT_PARITY_SCENARIO`) use the scenario's working directory and copy
+nothing.
 
 ## Known residuals
 
