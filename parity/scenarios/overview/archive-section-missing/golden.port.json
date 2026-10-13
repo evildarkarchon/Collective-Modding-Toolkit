@@ -166,7 +166,7 @@
         },
         {
           "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: [Archive] | Problem: File Not Found"
+          "message": "Added SimpleProblemInfo: Path: [Archive] | Problem: Missing INI Section"
         }
       ],
       "modules": {
@@ -328,9 +328,9 @@
         "mod": "",
         "path": null,
         "relativePath": "[Archive]",
-        "solution": "Launch the game once with its launcher to generate Fallout4.ini.\nOtherwise, verify files with Steam or reinstall the game.",
-        "summary": "The [Archive] section was not found in your game INIs (Fallout4.ini may not have been generated yet).\nArchives listed only in the INIs can't be detected, so archive counts may be lower than your actual counts.",
-        "type": "File Not Found"
+        "solution": "Fallout4.ini may be damaged or incomplete. Restore it from a backup,\nor rename it and launch the game once with its launcher to generate a new one.",
+        "summary": "No [Archive] section was found in Fallout4.ini or Fallout4Custom.ini, so the archives it lists can't be detected.\nArchive counts may be lower than your actual counts.",
+        "type": "Missing INI Section"
       }
     ]
   },
@@ -482,7 +482,7 @@
         },
         {
           "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: [Archive] | Problem: File Not Found"
+          "message": "Added SimpleProblemInfo: Path: [Archive] | Problem: Missing INI Section"
         }
       ],
       "modules": {
@@ -644,9 +644,9 @@
         "mod": "",
         "path": null,
         "relativePath": "[Archive]",
-        "solution": "Launch the game once with its launcher to generate Fallout4.ini.\nOtherwise, verify files with Steam or reinstall the game.",
-        "summary": "The [Archive] section was not found in your game INIs (Fallout4.ini may not have been generated yet).\nArchives listed only in the INIs can't be detected, so archive counts may be lower than your actual counts.",
-        "type": "File Not Found"
+        "solution": "Fallout4.ini may be damaged or incomplete. Restore it from a backup,\nor rename it and launch the game once with its launcher to generate a new one.",
+        "summary": "No [Archive] section was found in Fallout4.ini or Fallout4Custom.ini, so the archives it lists can't be detected.\nArchive counts may be lower than your actual counts.",
+        "type": "Missing INI Section"
       }
     ]
   }

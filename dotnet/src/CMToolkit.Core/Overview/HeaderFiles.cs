@@ -1,4 +1,3 @@
-using System.Text;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.PythonSemantics;
 
@@ -14,12 +13,6 @@ internal static class HeaderFiles
     // UnauthorizedAccessException: another process holding the file without sharing it, or a locked byte range.
     private const int SharingViolation = unchecked((int)0x80070020);
     private const int LockViolation = unchecked((int)0x80070021);
-
-    /// <summary>
-    /// UTF-8 that replaces each maximal invalid subsequence with U+FFFD, as <c>bytes.decode("utf-8", "replace")</c>
-    /// does. The port decodes with it where the reference's strict decode failed the Overview (bug #86).
-    /// </summary>
-    public static readonly UTF8Encoding LenientUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
     /// <summary>
     /// Up to <paramref name="count"/> bytes from the start of the file, fewer if it is shorter, or null when opening it
@@ -44,25 +37,14 @@ internal static class HeaderFiles
     }
 
     /// <summary>
-    /// <c>path.read_text("utf-8")</c> (T-1): UTF-8, a BOM kept as U+FEFF, opened with read and write sharing. The
-    /// reference's strict decode raised on a file that isn't valid UTF-8 and failed the Overview; the port decodes it
-    /// with U+FFFD for each bad sequence instead (bug #86), and <paramref name="valid"/> says whether that happened.
+    /// <c>path.read_text("utf-8")</c> (T-1) for a list file (<c>Fallout4.ccc</c>, <c>plugins.txt</c>): UTF-8, a BOM
+    /// kept as U+FEFF, opened with read and write sharing. The reference's strict decode raised on a file that isn't
+    /// valid UTF-8 and failed the Overview; the port decodes each line that isn't UTF-8 as Windows-1252 instead, as the
+    /// game INIs are read (<see cref="AnsiFallbackText.DecodeLines"/>; deviation, bug #86).
     /// </summary>
-    /// <param name="valid">False when the file had bytes that aren't UTF-8.</param>
-    public static string ReadTextLeniently(IHostEnvironment host, PythonPath path, out bool valid)
-    {
-        var bytes = ReadAll(host, path);
-        try
-        {
-            valid = true;
-            return PythonText.DecodeUtf8Strict(bytes);
-        }
-        catch (DecoderFallbackException)
-        {
-            valid = false;
-            return LenientUtf8.GetString(bytes);
-        }
-    }
+    /// <exception cref="IOException">The file can't be read.</exception>
+    /// <exception cref="UnauthorizedAccessException">The file can't be read.</exception>
+    public static string ReadListText(IHostEnvironment host, PythonPath path) => AnsiFallbackText.DecodeLines(ReadAll(host, path));
 
     /// <summary>The whole file, opened with read and write sharing as Python's <c>open</c> shares it.</summary>
     private static byte[] ReadAll(IHostEnvironment host, PythonPath path)

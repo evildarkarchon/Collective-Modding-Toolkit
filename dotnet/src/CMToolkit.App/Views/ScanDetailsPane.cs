@@ -175,7 +175,7 @@ public sealed class ScanDetailsPane : UserControl
         if (ProblemDetails.FileListWindow(problem) is { } window && problem.FileList is { } fileList)
         {
             _files = PaneButton("File List");
-            _files.Click += (_, _) => OpenFileList(window.Title, window.Text, fileList);
+            _files.Click += (_, _) => OpenFileList(window.Title, window.Text, ProblemDetails.FileListHeadersOf(problem), fileList);
             _buttons.Children.Add(_files);
         }
     }
@@ -327,7 +327,12 @@ public sealed class ScanDetailsPane : UserControl
     }
 
     /// <summary>File List: the TreeWindow over the main window (the reference's parent was the root, not the pane).</summary>
-    private void OpenFileList(string title, string text, IReadOnlyList<(int Count, Core.PythonSemantics.PythonPath File)> fileList)
+    /// <param name="title">The window title.</param>
+    /// <param name="text">The text above the list.</param>
+    /// <param name="headers">The column headings (<see cref="ProblemDetails.FileListHeadersOf"/>).</param>
+    /// <param name="fileList">The counted files.</param>
+    private void OpenFileList(
+        string title, string text, IReadOnlyList<string> headers, IReadOnlyList<(int Count, Core.PythonSemantics.PythonPath File)> fileList)
     {
         var pane = TopLevel.GetTopLevel(this) as Window;
         if ((pane?.Owner as Window ?? pane) is not { } owner)
@@ -341,7 +346,7 @@ public sealed class ScanDetailsPane : UserControl
             ProblemDetails.FileListHeight,
             title,
             text,
-            ProblemDetails.FileListHeaders,
+            headers,
             [.. fileList.Select(f => (f.Count, f.File.ToString()))],
             count => count.ToString(CultureInfo.InvariantCulture));
         // Not awaited: like the reference's modal, it runs on while the click handler returns.

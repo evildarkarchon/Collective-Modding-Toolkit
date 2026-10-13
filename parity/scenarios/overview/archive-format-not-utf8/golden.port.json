@@ -278,7 +278,7 @@
             "path": "<ROOT>\\Game\\Data\\Fallout4 - Startup.ba2",
             "relativePath": "Fallout4 - Startup.ba2",
             "solution": null,
-            "summary": "Archive format (\ufffd\ufffd\ufffd\ufffd) is not valid for Fallout 4.",
+            "summary": "Archive format (FF FE FD FC) is not valid for Fallout 4.",
             "type": "Invalid Archive"
           }
         ]
@@ -556,7 +556,7 @@
             "path": "<ROOT>\\Game\\Data\\Fallout4 - Startup.ba2",
             "relativePath": "Fallout4 - Startup.ba2",
             "solution": null,
-            "summary": "Archive format (\ufffd\ufffd\ufffd\ufffd) is not valid for Fallout 4.",
+            "summary": "Archive format (FF FE FD FC) is not valid for Fallout 4.",
             "type": "Invalid Archive"
           }
         ]

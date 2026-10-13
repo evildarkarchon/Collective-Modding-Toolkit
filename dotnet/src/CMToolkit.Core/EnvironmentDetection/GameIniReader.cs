@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text;
 using CMToolkit.Core.PythonSemantics;
 
 namespace CMToolkit.Core.EnvironmentDetection;
@@ -26,7 +25,20 @@ public sealed record GameInis(
     public IReadOnlyList<string> Ba2Suffixes => Language == GameIniReader.English
         ? ["main", "textures", "voices_en"]
         : ["main", "textures", "voices_en", "voices_" + Language];
+
+    /// <summary>
+    /// The INIs merged into <see cref="Settings"/> that were looked for, <c>Fallout4.ini</c> then
+    /// <c>Fallout4Custom.ini</c>, read or not. The reference kept no record of them; the port names them in the
+    /// problems for a missing <c>[Archive]</c> section (deviation, bug #31). Empty when not read from a machine.
+    /// </summary>
+    public IReadOnlyList<GameIniFile> SettingsFiles { get; init; } = [];
 }
+
+/// <summary>One game INI that <see cref="GameIniReader.Read"/> looked for.</summary>
+/// <param name="Path">Where it was looked for, in <c>Documents\My Games\Fallout4</c>.</param>
+/// <param name="Read">Whether it was a file, and so read.</param>
+/// <param name="Sections">The named sections it set at least one key in (not <see cref="GameIniReader.NoSection"/>); 0 when not read.</param>
+public sealed record GameIniFile(PythonPath Path, bool Read, int Sections);
 
 /// <summary>Reads the game INIs from <c>Documents\My Games\Fallout4</c> (<c>GameInfo.load_game_inis</c>).</summary>
 public static class GameIniReader
@@ -55,15 +67,26 @@ public static class GameIniReader
         var folder = KnownFolders.Get(host, KnownFolder.Documents).Join(@"My Games\Fallout4");
         var settings = new OrderedDictionary<string, OrderedDictionary<string, string>>(StringComparer.Ordinal);
         var prefs = new OrderedDictionary<string, OrderedDictionary<string, string>>(StringComparer.Ordinal);
+        var settingsFiles = new List<GameIniFile>();
         foreach (var name in IniNames)
         {
             var path = folder.Join(name);
+            var isPrefs = name == "Fallout4Prefs.ini";
             if (!HostPaths.IsFile(host, path))
             {
+                if (!isPrefs)
+                {
+                    settingsFiles.Add(new GameIniFile(path, Read: false, Sections: 0));
+                }
+
                 continue;
             }
 
-            Parse(ReadIniText(HostPaths.Resolve(host, path)), name == "Fallout4Prefs.ini" ? prefs : settings);
+            var sections = Parse(ReadIniText(HostPaths.Resolve(host, path)), isPrefs ? prefs : settings);
+            if (!isPrefs)
+            {
+                settingsFiles.Add(new GameIniFile(path, Read: true, sections));
+            }
         }
 
         var language = Lower(Get(settings, "general", "slanguage") ?? English);
@@ -72,24 +95,17 @@ public static class GameIniReader
             language = English;
         }
 
-        return new GameInis(Freeze(settings), Freeze(prefs), language);
+        return new GameInis(Freeze(settings), Freeze(prefs), language) { SettingsFiles = settingsFiles };
     }
 
     /// <summary>The UTF-8 byte order mark, which Notepad and some INI tools write.</summary>
     private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
 
     /// <summary>
-    /// Windows-1252, for INIs that aren't UTF-8: the game reads its INIs through the ANSI profile API, so editors save
-    /// them in the ANSI code page. Fixed rather than the machine's code page, so a read never depends on the host's
-    /// locale; the settings the toolkit reads are ASCII either way.
-    /// </summary>
-    private static readonly Encoding Windows1252 = CodePagesEncodingProvider.Instance.GetEncoding(1252)
-        ?? throw new InvalidOperationException("Code page 1252 isn't available.");
-
-    /// <summary>
     /// Decodes one INI: a leading UTF-8 BOM is dropped, the rest is strict UTF-8, and bytes that aren't valid UTF-8 make
-    /// the whole file Windows-1252 instead. The reference read strict UTF-8 only, keeping a BOM as U+FEFF (which broke
-    /// the first header) and failing at startup on an ANSI file (B-14, bug #17, fixed).
+    /// the whole file Windows-1252 instead (<see cref="AnsiFallbackText.Decode"/>). The reference read strict UTF-8
+    /// only, keeping a BOM as U+FEFF (which broke the first header) and failing at startup on an ANSI file (B-14, bug
+    /// #17, fixed).
     /// </summary>
     /// <exception cref="IOException">The file can't be read.</exception>
     /// <exception cref="UnauthorizedAccessException">The file can't be read.</exception>
@@ -97,15 +113,7 @@ public static class GameIniReader
     {
         var bytes = File.ReadAllBytes(path);
         var body = bytes.AsSpan().StartsWith(Utf8Bom) ? bytes.AsSpan(Utf8Bom.Length) : bytes.AsSpan();
-        try
-        {
-            return PythonText.DecodeUtf8Strict(body);
-        }
-        catch (DecoderFallbackException)
-        {
-            // Not UTF-8: an ANSI file, read as the game would read it.
-            return Windows1252.GetString(body);
-        }
+        return AnsiFallbackText.Decode(body);
     }
 
     /// <summary>
@@ -115,9 +123,14 @@ public static class GameIniReader
     /// file starts under <see cref="NoSection"/>. The reference trimmed nothing, so <c>bNVFlexEnable = 1</c> was stored
     /// as <c>"bnvflexenable "</c> and missed, and <c>[Display] </c> wasn't a header (B-14, bug #17, fixed).
     /// </summary>
-    private static void Parse(string text, OrderedDictionary<string, OrderedDictionary<string, string>> into)
+    /// <returns>
+    /// How many named sections (not <see cref="NoSection"/>) this file set a key in, whether or not an earlier file had
+    /// them: the count <see cref="GameIniFile.Sections"/> reports.
+    /// </returns>
+    private static int Parse(string text, OrderedDictionary<string, OrderedDictionary<string, string>> into)
     {
         var section = NoSection;
+        var named = new HashSet<string>(StringComparer.Ordinal);
         foreach (var rawLine in PythonText.SplitLines(text))
         {
             var line = PythonText.Strip(rawLine);
@@ -143,7 +156,13 @@ public static class GameIniReader
 
             // A repeated key keeps its first position and takes the new value, as a dict assignment does.
             entries[Lower(PythonText.Strip(line[..equals]))] = PythonText.Strip(line[(equals + 1)..]);
+            if (section != NoSection)
+            {
+                named.Add(section);
+            }
         }
+
+        return named.Count;
     }
 
     /// <summary>Python's <c>str.lower()</c>; .NET's invariant lowering differs only for a few special-cased letters (see README residuals).</summary>

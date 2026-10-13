@@ -63,7 +63,7 @@
   "deviations": [
     {
       "bug": 31,
-      "reason": "A missing [Archive] section is reported as a File Not Found problem and the archives are gathered without the INI lists, so the Overview loads."
+      "reason": "INIs without an [Archive] section are reported as a Missing INI Section problem listing the INIs read, and the archives are gathered without the INI lists, so the Overview loads."
     }
   ]
 }
