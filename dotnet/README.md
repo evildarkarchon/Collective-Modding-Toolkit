@@ -91,6 +91,9 @@ nothing.
   sits 2 px right and 1 px lower, and anything anchored to the page's right or bottom edge 2 px further left or up.
   On the Tools tab the 4 px narrower page also leaves the columns 1-2 px narrower. See
   [`parity/screenshots/tools/`](../parity/screenshots/tools/), `settings/` and `about/`.
+- The About pair shows the port credit (#69, a deliberate Deviation): a seventh line, `C# port by evildarkarchon`,
+  under the credits. That makes the right-hand column 407 px, Tk's page height, so the gap under the text is 7 px
+  where Tk's is 10, and the column fills the 404 px page with the link rows 9 px lower than Tk's.
 - The About tab's 20 pt title measures 289 px where Tk's is 288, so it sits half a pixel off centre. The Settings
   tab's Log Level frame is 86 px wide where Tk's is 88: Tk keeps 8 px either side of a labelframe's title where the
   GroupBox theme keeps 7.

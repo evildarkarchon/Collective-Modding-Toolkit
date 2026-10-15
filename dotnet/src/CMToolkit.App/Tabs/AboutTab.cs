@@ -51,9 +51,12 @@ public sealed class AboutTab : TabPage
         }
     }
 
-    /// <summary>The version and credits, centred under one another.</summary>
+    /// <summary>
+    /// The version and credits, centred under one another. The last line credits this port, a deliberate change to
+    /// the reference's text (deviation #69); <see cref="BuildContent"/> trims the gap under it so the column still fits.
+    /// </summary>
     public static string Text =>
-        $"v{AppInfo.Version}\n\nCreated by wxMichael for the\nCollective Modding Community\n#cm-toolkit on Discord\nModified by RowanSkie";
+        $"v{AppInfo.Version}\n\nCreated by wxMichael for the\nCollective Modding Community\n#cm-toolkit on Discord\nModified by RowanSkie\nC# port by evildarkarchon";
 
     /// <inheritdoc/>
     protected internal override Control BuildContent()
@@ -84,12 +87,14 @@ public sealed class AboutTab : TabPage
             [Grid.RowProperty] = 1,
         };
 
+        // pady=10, except the gap under the text is 7: the credit's line (#69) made the frame 407 px, Tk's page height,
+        // and the port's page is 3 px shorter (dotnet/README.md), so without the trim the last link row would overhang.
         var text = new TextBlock
         {
             Text = Text,
             TextAlignment = TextAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 10),
+            Margin = new Thickness(0, 10, 0, 7),
         };
 
         // frame_about_text: not sticky, so centred in the two rows it spans; padx=(0, 20).

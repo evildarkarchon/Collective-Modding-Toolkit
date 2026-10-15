@@ -5,7 +5,8 @@ namespace CMToolkit.Tests.Parity;
 /// <summary>
 /// Marks a test that asserts the port's fix of a reference bug instead of the Reference Implementation's behaviour: a
 /// documented Deviation from Behaviour Parity (ADR-0006). Put it beside the test's <c>Trait("Parity", …)</c>, which
-/// stays, with the <c>bug</c> issue number and one sentence saying what the port does instead.
+/// stays, with the <c>bug</c> issue number and one sentence saying what the port does instead. A deliberate change
+/// that isn't a bug fix (#69) uses its own issue number, and its sentence says it is deliberate.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -22,7 +23,9 @@ namespace CMToolkit.Tests.Parity;
 public sealed class DeviationAttribute : Attribute, ITraitAttribute
 {
     /// <summary>Declares that the test asserts the fix for <paramref name="bug"/>.</summary>
-    /// <param name="bug">The <c>bug</c> issue number on the fork, for example <c>77</c> for #77.</param>
+    /// <param name="bug">
+    /// The <c>bug</c> issue number on the fork, for example <c>77</c> for #77, or a deliberate change's own issue number.
+    /// </param>
     /// <param name="reason">What the port does instead of the reference, in one sentence.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="bug"/> isn't positive.</exception>
     /// <exception cref="ArgumentException"><paramref name="reason"/> is blank.</exception>

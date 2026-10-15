@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Tabs;
 using CMToolkit.App.Views;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 using Microsoft.Extensions.Time.Testing;
 
@@ -47,17 +48,18 @@ public sealed class AboutTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "ABOUT-1")]
+    [Trait("Parity", "ABOUT-1"), Deviation(69, "Deliberate, not a bug fix: the credits gain a seventh line, C# port by evildarkarchon, under Modified by RowanSkie.")]
     public void The_rows_share_the_spare_height_as_tk_did()
     {
         var (_, page, _, _) = Show();
         var title = page.Children.OfType<TextBlock>().Single();
         var icon = page.Children.OfType<Border>().Single();
 
-        // Rows of 90 and 276 px, both weight 1, under a 386 px text frame spanning them: 100/286 after the span, then
-        // the spare height shared. On Tk's 407 px page that put the title at y 20 and the icon row at 110.
-        var spare = page.Bounds.Height - 386;
-        var row0 = 100 + Math.Truncate(spare / 2);
+        // Rows of 90 and 276 px, both weight 1, under a 404 px text frame spanning them: 109/295 after the span, then
+        // the spare height shared. The reference's six-line frame was 386 px (100/286), which on Tk's 407 px page put
+        // the title at y 20 and the icon row at 110; the credit's line (#69) takes up that spare height.
+        var spare = page.Bounds.Height - 404;
+        var row0 = 109 + Math.Truncate(spare / 2);
         Assert.Equal((row0 - 70) / 2, At(title, page).Y, 0.5);
         Assert.Equal(row0, At(icon, page).Y);
         Assert.Equal(page.Bounds.Height - row0 - 20, icon.Bounds.Height);
@@ -65,24 +67,56 @@ public sealed class AboutTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "ABOUT-1")]
+    [Trait("Parity", "ABOUT-1"), Deviation(69, "Deliberate, not a bug fix: the credits gain a seventh line, C# port by evildarkarchon, under Modified by RowanSkie.")]
     public void The_text_column_sits_20px_from_the_right_with_right_aligned_link_rows()
     {
         var (_, page, _, _) = Show();
         var about = page.Children.OfType<StackPanel>().Single();
         var rows = LinkRows(page);
 
-        // Tk: a 383x386 frame, centred vertically, 20 px in from the right edge.
-        Assert.Equal(new Size(383, 386), about.Bounds.Size);
+        // Tk: a 383x386 frame, centred vertically, 20 px in from the right edge. The credit's line (#69) adds 21 px and
+        // the gap under the text gives back 3, so the frame fills the port's 404 px page (dotnet/README.md).
+        // Desired as well as arranged: a taller frame would still be arranged at the page's height, overhanging it.
+        Assert.Equal(404, about.DesiredSize.Height);
+        Assert.Equal(new Size(383, 404), about.Bounds.Size);
         Assert.Equal(page.Bounds.Width - 20, At(about, page).X + about.Bounds.Width);
         Assert.Equal(["images/logo-nexusmods.png", "images/logo-discord.png", "images/logo-github.png"],
             rows.Select(r => r.Children.OfType<AssetImage>().Single().AssetPath));
         Assert.All(rows, r => Assert.Equal(70, r.Bounds.Height));
         Assert.All(rows, r => Assert.Equal(about.Bounds.Width, At(r, about).X + r.Bounds.Width));
-        // The 16 px text: six 21 px lines, 10 px from the frame's top.
+        // The 16 px text: seven 21 px lines, 10 px from the frame's top. The new line is shorter than the widest one,
+        // so the width is the reference's.
         var text = about.Children.OfType<TextBlock>().Single();
-        Assert.Equal(new Size(252, 126), text.Bounds.Size);
+        Assert.Equal(new Size(252, 147), text.Bounds.Size);
         Assert.Equal(10, At(text, about).Y);
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "ABOUT-1"), Deviation(69, "Deliberate, not a bug fix: the credits gain a seventh line, C# port by evildarkarchon, under Modified by RowanSkie.")]
+    public void The_credited_text_column_fits_the_page_beside_the_icon()
+    {
+        var (_, page, _, _) = Show();
+        var about = page.Children.OfType<StackPanel>().Single();
+        var icon = page.Children.OfType<Border>().Single();
+        var rows = LinkRows(page);
+
+        // The seventh line would make the frame as tall as Tk's 407 px page, 3 px more than the port's 404 px one at
+        // the shell's 760x450. Trimming the gap under the text to 7 px makes it fit exactly: the frame fills the page
+        // right of the icon, and the link rows keep Tk's 10 px spacing down to the page's bottom edge.
+        Assert.Equal(0, At(about, page).Y);
+        Assert.True(At(about, page).X >= At(icon, page).X + icon.Bounds.Width,
+            $"The text column (x {At(about, page).X}) overlaps the icon (right edge {At(icon, page).X + icon.Bounds.Width}).");
+        var text = about.Children.OfType<TextBlock>().Single();
+        Assert.Equal(10, At(text, page).Y);
+        var top = At(text, page).Y + text.Bounds.Height + 7;
+        foreach (var row in rows)
+        {
+            // pady=(10, 0), so each row starts 10 px below what is above it.
+            Assert.Equal(top + 10, At(row, page).Y);
+            top = At(row, page).Y + row.Bounds.Height;
+        }
+
+        Assert.Equal(page.Bounds.Height, top);
     }
 
     [AvaloniaFact]

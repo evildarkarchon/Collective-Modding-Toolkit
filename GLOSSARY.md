@@ -47,7 +47,7 @@ The C# app producing the same observable results as the Reference Implementation
 _Avoid_: feature parity (too loose — parity here covers behaviour, not just features)
 
 **Deviation**:
-A deliberate, documented departure from Behaviour Parity where the port fixes one reference bug, named by its bug issue and a one-line reason. The reference's recorded behaviour is kept beside it; the Deviation only overrides what the port must do.
+A deliberate, documented departure from Behaviour Parity where the port fixes one reference bug, named by its bug issue and a one-line reason. The reference's recorded behaviour is kept beside it; the Deviation only overrides what the port must do. A deliberate pre-release change that isn't a bug fix (the About tab's port credit, #69) is recorded the same way, under its own issue number.
 _Avoid_: divergence, regression (both suggest an accident), exemption (that is a checklist ID left unported, not changed behaviour)
 
 **Parity Inventory**:

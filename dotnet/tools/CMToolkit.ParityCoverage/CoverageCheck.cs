@@ -75,9 +75,9 @@ public sealed record Proof(string Id, ProofKind Kind, string Location)
 
 /// <summary>
 /// One documented Deviation from Behaviour Parity (ADR-0006): a place where the port fixes a reference bug instead of
-/// reproducing it.
+/// reproducing it, or makes a deliberate pre-release change (#69).
 /// </summary>
-/// <param name="Bug">The <c>bug</c> issue number on the fork.</param>
+/// <param name="Bug">The <c>bug</c> issue number on the fork, or the deliberate change's own issue number.</param>
 /// <param name="Reason">
 /// What the port does instead. For a test it is the string literal's text as written in the source, escapes included.
 /// </param>
