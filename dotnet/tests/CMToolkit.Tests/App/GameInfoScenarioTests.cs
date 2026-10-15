@@ -21,8 +21,8 @@ public sealed class GameInfoScenarioTests
 
     /// <summary>
     /// Answers for dialogs only the port asks, by scenario id. A Deviation can make the port ask where the reference
-    /// never did, and <c>host.dialogs</c> can't script that answer: <c>record.py</c> rejects answers the reference leaves
-    /// unused. They follow the scenario's own script.
+    /// never did, and <c>host.dialogs</c> couldn't script that answer: the driver's <c>record.py</c> rejected answers the
+    /// reference left unused. They follow the scenario's own script.
     /// </summary>
     private static readonly Dictionary<string, DialogAnswer[]> PortOnlyAnswers = new(StringComparer.Ordinal)
     {

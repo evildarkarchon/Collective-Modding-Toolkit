@@ -250,3 +250,6 @@ SCN-C9
 # (scanner/data-walk-mo2).
 SCN-R2
 B-2
+
+# Verify full parity (#62): the live MO2 check, recorded at the Cutover (#71)
+T-12

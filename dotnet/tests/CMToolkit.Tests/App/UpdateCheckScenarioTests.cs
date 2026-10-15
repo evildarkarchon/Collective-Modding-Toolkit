@@ -43,7 +43,8 @@ public sealed class UpdateCheckScenarioTests
         UpdateCheckResult? result = null;
         try
         {
-            result = await UpdateBanner.CheckAsync(window, runtime, settings.UpdateSource, http);
+            // As the reference ran when the goldens were recorded: which canned release is an update depends on it.
+            result = await UpdateBanner.CheckAsync(window, runtime, settings.UpdateSource, http, ParityScenario.RecordedAppVersion);
         }
         catch (UpdateCheckCrashException)
         {

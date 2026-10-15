@@ -72,13 +72,6 @@ public sealed partial class Pep440Version : IComparable<Pep440Version>
         return new Pep440Version(epoch, release, preKey, post ?? Segment.NegativeInfinity, dev ?? Segment.Infinity, local);
     }
 
-    /// <summary>
-    /// <c>Version(latest) &gt; Version(str(APP_VERSION))</c> (UPD-3): whether <paramref name="latest"/> is newer than
-    /// the running <see cref="AppInfo.Version"/>.
-    /// </summary>
-    /// <exception cref="InvalidVersionException"><paramref name="latest"/> isn't a PEP 440 version.</exception>
-    public static bool IsNewerThanRunning(string latest) => Parse(latest).CompareTo(Parse(AppInfo.Version)) > 0;
-
     /// <inheritdoc/>
     public int CompareTo(Pep440Version? other)
     {

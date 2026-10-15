@@ -10,8 +10,8 @@
     their tree/, and nothing on the test path builds them.
 
     /Brepro makes the link reproducible, so a rebuild with the same toolset gives the same bytes (and the same CRCs
-    in the goldens). A different MSVC version may emit different code, so after a rebuild re-record the overview
-    goldens only if `record.py --check` reports a change, via a "mirror this change" issue.
+    in the goldens). A different MSVC version may emit different code, and goldens can't be re-recorded since the
+    Cutover (#71), so don't commit a rebuild unless the Overview replays still pass with it.
 
     Needs the VS Build Tools' C++ workload and the Windows SDK (rc.exe), found through vswhere, and a python on PATH
     for the CRC forging.

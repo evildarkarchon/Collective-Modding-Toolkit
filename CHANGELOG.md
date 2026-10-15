@@ -1,14 +1,79 @@
 # Changelog
 
-## [0.6.2] - ####-##-##
+## [0.7.0] - ####-##-##
+
+_The first C# release. 0.6.2 was never published; its changes are folded in here._
+
+### Changed
+
+- **Rewritten in C# with Avalonia.** The toolkit is now a single native exe, with no Python and no installed .NET
+  runtime needed. It reads and writes the same `settings.json` and `cm-toolkit.log`, and the archive can be extracted
+  over a 0.6.x install.
+- Detect if the user is running 1.11.240 and updates the UI to support the updated ba2 limit.
 
 ### Added
 
 - Support for Anniversary Edition 1.11.221 and 1.11.240
 
-### Changed
+### Fixed
 
-- Detect if the user is running 1.11.240 and updates the UI to support the updated ba2 limit.
+- #### Startup and updates
+  - The update check and the GitHub link point at this fork, which publishes the C# releases, instead of repos that don't ([#32](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/32))
+  - An unexpected update-check response is logged as a failed check instead of failing startup ([#81](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/81))
+  - The Nexus Mods update check no longer fails when a line break falls between two reads ([#82](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/82))
+  - The update banner no longer shows `vv` for a `v`-prefixed release tag ([#83](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/83))
+  - Startup no longer fails when the process that launched the toolkit has already exited ([#79](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/79))
+  - A stale Steam registry path no longer hides a valid GOG install ([#80](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/80))
+  - The MO2 Windows 11 warning shows on 24H2 and every later build, not 24H2 only ([#27](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/27))
+  - MO2's default `skip_file_suffixes`/`skip_directories` are no longer corrupted ([#24](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/24)), and `%BASE_DIR%` paths no longer resolve to the drive root ([#25](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/25))
+  - Game INIs with a BOM or in an ANSI encoding are read correctly ([#17](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/17))
+  - The Download Source lookup reaches `cm-toolkit.log` ([#77](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/77))
+  - Escape on the main window goes through the close prompt instead of bypassing it ([#29](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/29))
+
+- #### Overview
+  - A missing `[Archive]` INI section or Fallout4.ini no longer fails the tab ([#31](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/31))
+  - An archive whose format bytes aren't UTF-8 no longer fails the tab; the format is shown in hex ([#86](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/86))
+  - CC modules listed in both Fallout4.ccc and plugins.txt are counted once ([#33](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/33))
+  - A game folder without Fallout4.exe no longer shows every missing binary green ([#84](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/84)), and Unknown binaries no longer show green on an Unknown game ([#30](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/30))
+  - HEDR v1.70 modules are matched to the games that support them ([#26](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/26))
+
+- #### F4SE
+  - One unloadable DLL no longer fails the whole tab ([#34](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/34))
+
+- #### Scanner
+  - The scan no longer hangs on `Scanning...` when it fails; a missing MO2 profile or modlist.txt is listed as a problem ([#22](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/22))
+  - Scan progress advances, and mod roots are indexed correctly ([#89](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/89))
+  - The checkboxes start from the saved settings, and each change is saved at once ([#20](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/20))
+  - Result groups are listed in the same order every run ([#23](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/23))
+  - Race Subgraphs counts a CC module listed in both Fallout4.ccc and plugins.txt once ([#90](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/90))
+  - Leaving a Scanner tab that failed to load no longer breaks every later tab change ([#87](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/87))
+
+- #### Downgrader
+  - A failed patch puts the backup back instead of deleting it ([#14](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/14))
+  - A network error during a Delta Patch download is logged and the queue finishes, instead of the progress loop hanging ([#15](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/15))
+  - Patch All is enabled exactly when nothing is queued or running, not by the last file alone ([#28](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/28))
+  - A long version label no longer pushes Patch All and About out of the window ([#85](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/85))
+  - The read-only attribute is cleared from a file that has no other attributes ([#91](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/91))
+
+- #### Log pane
+  - Ctrl+A and Ctrl+C work, and Escape closes the window while the pane has focus ([#88](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/88))
+
+- #### About
+  - The About tab credits the C# port, under the existing credits ([#69](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/69))
+
+### Differences from 0.6.x
+
+- Every unhandled error shows in the Error Window and the log the moment it happens. 0.6.x surfaced some late and
+  others never.
+- The app is per-monitor DPI-aware, so it's crisp on high-DPI displays instead of bitmap-scaled.
+- `settings.json`, `cm-toolkit.log` and downloaded Delta Patches are kept beside the exe, whatever the working
+  directory, or in `%LOCALAPPDATA%\CM-Toolkit` when the exe's folder can't be written to. On first run a
+  `settings.json` left in the working directory is copied over once ([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36)).
+- The Scanner's side and details panes are owned by the main window, so Windows hides them when it is minimised and
+  brings them back on restore.
+- The dark title bar comes from the app's dark theme rather than a separate Windows call.
+- A Scanner data scan can no longer lose its results to a thread race.
+- Scrollbars, tooltips and the Scanner's tree chevrons use Avalonia's Fluent look, where 0.6.x used Sun Valley's.
 
 ## [0.6.1] - 2025-12-26
 

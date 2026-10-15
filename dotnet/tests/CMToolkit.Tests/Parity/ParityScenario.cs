@@ -52,6 +52,13 @@ public sealed class ParityScenario : IXunitSerializable
     /// <summary>The port-expected golden's file name, present only beside a declared deviation (ADR-0006).</summary>
     public const string PortGoldenFileName = "golden.port.json";
 
+    /// <summary>
+    /// The app version the Reference Implementation ran as when every golden was recorded (<c>APP_VERSION</c> at the
+    /// Parity Baseline). The app has moved on since the Cutover, so a replay whose result depends on the running version,
+    /// such as which canned release is an update, runs as this one.
+    /// </summary>
+    public const string RecordedAppVersion = "0.6.2-dev";
+
     /// <summary>Whether the driver has recorded this scenario. A deviating scenario needs its reference recording too.</summary>
     public bool IsRecorded => File.Exists(GoldenPath);
 
@@ -103,7 +110,8 @@ public sealed class ParityScenario : IXunitSerializable
         if (!IsRecorded)
         {
             throw new InvalidOperationException(
-                $"Parity Scenario '{Id}' has no golden.json. Record it with: uv run python parity/driver/record.py {Id}");
+                $"Parity Scenario '{Id}' has no golden.json. Goldens can no longer be recorded: the Python driver was "
+                + "removed with the Reference Implementation at the Cutover. Cover new behaviour with a hand-written test.");
         }
 
         return JsonNode.Parse(File.ReadAllText(GoldenPath));

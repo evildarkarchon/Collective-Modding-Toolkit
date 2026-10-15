@@ -127,7 +127,9 @@ public static class CmtPanes {
 # Physical coordinates for every window whatever its monitor (PER_MONITOR_AWARE_V2); a no-op if pwsh already is.
 [void][CmtPanes]::SetProcessDpiAwarenessContext([IntPtr]-4)
 
-$title = 'Collective Modding Toolkit v0.6.2-dev'
+# The app's title carries the <Version> in Directory.Build.props, so a version bump needs no edit here.
+$version = (Select-Xml -Path (Join-Path $PSScriptRoot '..\Directory.Build.props') -XPath '/Project/PropertyGroup/Version' | Select-Object -First 1).Node.InnerText
+$title = "Collective Modding Toolkit v$version"
 $sideTitle = 'Collective Modding Toolkit pane (Side)'
 $detailsTitle = 'Collective Modding Toolkit pane (Details)'
 # Client points in the 760x450 main window and the 200x405 side pane (DIPs; scaled by the DPI before posting).

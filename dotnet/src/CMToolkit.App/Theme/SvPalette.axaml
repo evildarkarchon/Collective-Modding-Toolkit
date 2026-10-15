@@ -2,9 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!--
     Fluent resource-key overrides that tune Fluent Dark to sv_ttk's dark palette. Values were measured from the
-    Reference Implementation (Tk 8.6, sv_ttk dark) in the main-window-shell prototype, or taken from src/globals.py.
-    App-level resources win over the keys FluentTheme defines, and Fluent's control themes read them through
-    DynamicResource, so this layer recolours and resizes without touching any template.
+    Reference Implementation (Tk 8.6, sv_ttk dark) in the main-window-shell prototype, or taken from its globals.py
+    (python-reference tag). App-level resources win over the keys FluentTheme defines, and Fluent's control themes
+    read them through DynamicResource, so this layer recolours and resizes without touching any template.
   -->
 
   <!-- Fonts. Tk rounds 8/10/12/20 pt to 11/13/16/27 px (issue #13); FontSize is in DIPs, 1:1 with Tk pixels. -->
@@ -28,7 +28,7 @@
   <x:Double x:Key="CmtSpacingNormal">-0.375</x:Double>
   <x:Double x:Key="CmtSpacingLarge">0.1796875</x:Double>
 
-  <!-- src/globals.py COLOR_*; Tk named colours are resolved through the Tk 8.6 colour table. -->
+  <!-- The reference's globals.py COLOR_*; Tk named colours are resolved through the Tk 8.6 colour table. -->
   <SolidColorBrush x:Key="CmtDefault" Color="#CACACA" />
   <SolidColorBrush x:Key="CmtGood" Color="#619267" />
   <SolidColorBrush x:Key="CmtBad" Color="#AF5A66" />

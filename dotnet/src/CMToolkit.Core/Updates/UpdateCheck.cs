@@ -58,17 +58,25 @@ public sealed class UpdateCheck
 
     private readonly HttpClient _client;
     private readonly ILogger _logger;
+    private readonly Pep440Version _running;
 
     /// <param name="handler">
     /// The HTTP stack: <see cref="CreateHandler"/> for the real network, or a canned one in tests and on a Parity
     /// Scenario's machine. Not disposed by the check.
     /// </param>
     /// <param name="logger">The app log.</param>
-    public UpdateCheck(HttpMessageHandler handler, ILogger logger)
+    /// <param name="runningVersion">
+    /// The version a source's release must be newer than; the app's own <see cref="AppInfo.Version"/> when null. The
+    /// <c>update/*</c> Parity Scenario replays pass the version their goldens were recorded at, so that bumping the
+    /// app's version doesn't change which canned releases count as updates.
+    /// </param>
+    /// <exception cref="InvalidVersionException"><paramref name="runningVersion"/> isn't a PEP 440 version.</exception>
+    public UpdateCheck(HttpMessageHandler handler, ILogger logger, string? runningVersion = null)
     {
         // No total timeout: the handler's per-read timeout is the only one (T-14).
         _client = new HttpClient(handler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
         _logger = logger;
+        _running = Pep440Version.Parse(runningVersion ?? AppInfo.Version);
     }
 
     /// <summary>
@@ -179,7 +187,7 @@ public sealed class UpdateCheck
                 }
 
                 var latest = versionLine[1];
-                if (Pep440Version.IsNewerThanRunning(latest))
+                if (IsNewerThanRunning(latest))
                 {
                     var shown = WithoutPrefix(latest);
                     _logger.Write(LogLevel.Information, $"Update Check : Nexus Mods : Update Available : v{shown}");
@@ -248,7 +256,7 @@ public sealed class UpdateCheck
                 {
                     var release = RequestsText.Json(content, RequestsText.EncodingFromHeaders(response));
                     var latest = TagName(release).Str();
-                    if (Pep440Version.IsNewerThanRunning(latest))
+                    if (IsNewerThanRunning(latest))
                     {
                         var shown = WithoutPrefix(latest);
                         _logger.Write(LogLevel.Information, $"Update Check : GitHub : Update Available : v{shown}");
@@ -268,6 +276,12 @@ public sealed class UpdateCheck
         _logger.Write(LogLevel.Debug, "Update Check : GitHub : No Updates");
         return null;
     }
+
+    /// <summary>
+    /// <c>Version(latest) &gt; Version(str(APP_VERSION))</c> (UPD-3), against the running version this check was given.
+    /// </summary>
+    /// <exception cref="InvalidVersionException"><paramref name="latest"/> isn't a PEP 440 version.</exception>
+    private bool IsNewerThanRunning(string latest) => Pep440Version.Parse(latest).CompareTo(_running) > 0;
 
     /// <summary><c>release_data["tag_name"]</c>.</summary>
     private static PythonValue TagName(PythonValue release)

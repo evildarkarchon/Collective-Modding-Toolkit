@@ -29,7 +29,8 @@
     ../parity/scenarios/shell/main-window.
 
 .PARAMETER Title
-    The title the main window must have.
+    The title the main window must have. Defaults to the app name and the <Version> in dotnet/Directory.Build.props,
+    so a version bump doesn't need an edit here.
 
 .PARAMETER TimeoutSeconds
     How long to wait for the window.
@@ -41,7 +42,7 @@
 param(
     [Parameter(Mandatory)]
     [string] $Exe,
-    [string] $Title = 'Collective Modding Toolkit v0.6.2-dev',
+    [string] $Title = ('Collective Modding Toolkit v' + (Select-Xml -Path (Join-Path $PSScriptRoot '..\Directory.Build.props') -XPath '/Project/PropertyGroup/Version' | Select-Object -First 1).Node.InnerText),
     [int] $TimeoutSeconds = 30,
     [string] $Screenshot,
     [string] $Scenario

@@ -1,14 +1,3 @@
-# Python
-__pycache__/
-.mypy_cache/
-.ruff_cache/
-.venv
-*.lock
-*.py[cod]
-*$py.class
-poetry.toml
-venv/
-
 # VSCode
 .vscode/*
 !.vscode/extensions.json
@@ -20,13 +9,10 @@ lcov.info
 
 # exe Build Files
 *.exe
-*.spec
 build/
 dist/
 
 # Test/Dev Files
-.coverage
-.pytest_cache/
 test.*
 
 # Runtime-Created Files

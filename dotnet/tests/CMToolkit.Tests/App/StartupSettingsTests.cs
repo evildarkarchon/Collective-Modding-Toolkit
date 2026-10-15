@@ -44,7 +44,7 @@ public sealed class StartupSettingsTests
 
     [Fact]
     [Trait("Parity", "SHELL-2")]
-    [Trait("Parity", "LOG-2")]
+    [Trait("Parity", "LOG-2"), Deviation(71, "A deliberate change at the Cutover, not a reference bug: the version is 0.7.0, the first C# release, where the reference ran as 0.6.2-dev.")]
     public void Settings_load_logs_at_info_and_then_log_level_applies()
     {
         using var dir = new TempDirectory();
@@ -67,8 +67,8 @@ public sealed class StartupSettingsTests
         // pass at DEBUG. The SET-2 Download Source line is a DEBUG line of the load too, so it is filtered at INFO with
         // them (it reaches the log at all only since bug #77 was fixed, ADR-0006).
         Assert.Equal(
-            "INFO : ----------------------------------------------\r\n"
-            + "INFO : Starting Collective Modding Toolkit v0.6.2-dev\r\n"
+            "INFO : ------------------------------------------\r\n"
+            + "INFO : Starting Collective Modding Toolkit v0.7.0\r\n"
             + "INFO : 2026-10-12 09:30\r\n"
             + "INFO : Settings : Adding new settings to JSON: update_source, scanner_OverviewIssues, scanner_WrongFormat, "
             + "scanner_LoosePrevis, scanner_JunkFiles, scanner_ProblemOverrides, scanner_RaceSubgraphs, "

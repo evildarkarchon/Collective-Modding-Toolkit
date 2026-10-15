@@ -102,13 +102,4 @@ public sealed class Pep440VersionTests
         Assert.IsNotType<InvalidVersionException>(ex);
         Assert.Equal(1, Pep440Version.Parse("1." + new string('9', 4300)).CompareTo(Pep440Version.Parse("1")));
     }
-
-    [Fact]
-    [Trait("Parity", "UPD-3")]
-    public void Newer_than_the_running_version_compares_against_the_app_version()
-    {
-        // utils.py: Version(latest) > Version(str(APP_VERSION)), and APP_VERSION is 0.6.2-dev at the baseline.
-        Assert.True(Pep440Version.IsNewerThanRunning("0.6.2"));
-        Assert.False(Pep440Version.IsNewerThanRunning("0.6.2.dev0"));
-    }
 }

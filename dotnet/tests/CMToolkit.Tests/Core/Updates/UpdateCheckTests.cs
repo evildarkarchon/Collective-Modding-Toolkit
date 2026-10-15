@@ -20,6 +20,12 @@ public sealed class UpdateCheckTests
         "<html>\n<head>\n    <meta property=\"twitter:label1\" content=\"Version\" />\n"
         + "    <meta property=\"twitter:data1\" content=\"0.7.0\" />\n";
 
+    /// <summary>
+    /// A running version the canned 0.7.0 release is an update for, so these tests don't hinge on the app's own
+    /// version, which is 0.7.0 itself since the Cutover.
+    /// </summary>
+    private const string OlderThanTheCannedRelease = "0.6.2";
+
     [Fact]
     [Trait("Parity", "NET-1")]
     public async Task The_nexus_check_gets_the_mod_page_and_stops_reading_at_the_version_line()
@@ -28,7 +34,7 @@ public sealed class UpdateCheckTests
         var body = new CountingStream(Encoding.UTF8.GetBytes(NexusPage + new string('x', 1 << 20)));
         var handler = new StubHandler(_ => Ok(new StreamContent(body), "text/html; charset=utf-8"));
 
-        var version = await new UpdateCheck(handler, new RecordingLogger()).CheckNexusAsync(TestContext.Current.CancellationToken);
+        var version = await new UpdateCheck(handler, new RecordingLogger(), OlderThanTheCannedRelease).CheckNexusAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("0.7.0", version);
         var request = Assert.Single(handler.Requests);
@@ -45,7 +51,7 @@ public sealed class UpdateCheckTests
     {
         var handler = new StubHandler(_ => Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
 
-        var version = await new UpdateCheck(handler, new RecordingLogger()).CheckGitHubAsync(TestContext.Current.CancellationToken);
+        var version = await new UpdateCheck(handler, new RecordingLogger(), OlderThanTheCannedRelease).CheckGitHubAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("0.7.0", version);
         var request = Assert.Single(handler.Requests);
@@ -97,10 +103,42 @@ public sealed class UpdateCheckTests
             : Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
         var logger = new RecordingLogger();
 
-        var result = await new UpdateCheck(handler, logger).RunAsync(UpdateSource.Both, TestContext.Current.CancellationToken);
+        var result = await new UpdateCheck(handler, logger, OlderThanTheCannedRelease).RunAsync(UpdateSource.Both, TestContext.Current.CancellationToken);
 
         Assert.Equal(new UpdateCheckResult(null, "0.7.0"), result);
         Assert.Contains(logger.Records, r => r.Message == "Update Check : Nexus Mods : Failed" && r.Exception is not null);
+    }
+
+    [Fact]
+    [Trait("Parity", "UPD-3")]
+    public async Task The_check_compares_against_the_running_version_it_is_given_else_the_apps_own()
+    {
+        var handler = new StubHandler(_ => Ok(new StringContent("{\"tag_name\": \"0.7.0\"}"), "application/json; charset=utf-8"));
+
+        // The update/* goldens were recorded with the reference running 0.6.2-dev, so their replays pass that version.
+        var asBaseline = await new UpdateCheck(handler, new RecordingLogger(), ParityScenario.RecordedAppVersion)
+            .CheckGitHubAsync(TestContext.Current.CancellationToken);
+        var asApp = await new UpdateCheck(handler, new RecordingLogger())
+            .CheckGitHubAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("0.7.0", asBaseline);
+        // The app runs 0.7.0, so a 0.7.0 release is not an update.
+        Assert.Null(asApp);
+    }
+
+    [Theory]
+    [Trait("Parity", "UPD-3"), Deviation(71, "A deliberate change at the Cutover, not a reference bug: the version is 0.7.0, the first C# release, where the reference ran as 0.6.2-dev.")]
+    [InlineData("0.7.1", "0.7.1")]
+    [InlineData("0.7.0", null)]
+    [InlineData("0.6.2", null)]
+    public async Task Against_the_apps_own_version_only_a_release_past_0_7_0_is_an_update(string tag, string? expected)
+    {
+        // utils.py: Version(latest) > Version(str(APP_VERSION)). The app runs 0.7.0 since the Cutover (#71).
+        var handler = new StubHandler(_ => Ok(new StringContent($"{{\"tag_name\": \"{tag}\"}}"), "application/json; charset=utf-8"));
+
+        var version = await new UpdateCheck(handler, new RecordingLogger()).CheckGitHubAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(expected, version);
     }
 
     [Fact]

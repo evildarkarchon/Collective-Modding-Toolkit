@@ -9,6 +9,7 @@ using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.App;
@@ -30,12 +31,12 @@ public sealed class MainWindowTests
     private static TabControl Tabs(Window window) => window.GetLogicalDescendants().OfType<TabControl>().Single();
 
     [AvaloniaFact]
-    [Trait("Parity", "SHELL-6")]
-    public void The_window_has_the_reference_title_and_icon()
+    [Trait("Parity", "SHELL-6"), Deviation(71, "A deliberate change at the Cutover, not a reference bug: the version is 0.7.0, the first C# release, where the reference ran as 0.6.2-dev.")]
+    public void The_window_has_the_first_csharp_release_title_and_the_icon()
     {
         var window = ShowShell();
 
-        Assert.Equal("Collective Modding Toolkit v0.6.2-dev", window.Title);
+        Assert.Equal("Collective Modding Toolkit v0.7.0", window.Title);
         Assert.NotNull(window.Icon);
     }
 

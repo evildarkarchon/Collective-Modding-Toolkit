@@ -31,8 +31,11 @@ public static class UpdateBanner
     /// loaded settings' <c>update_source</c> and the runtime from the session.
     /// </summary>
     /// <param name="http">The HTTP stack; the app's lives as long as the process, so it is never disposed.</param>
-    public static Func<MainWindow, AppSession, Task> StartupHook(HttpMessageHandler http) =>
-        (window, session) => CheckAsync(window, session.Runtime, session.Settings.Current.UpdateSource, http);
+    /// <param name="runningVersion">
+    /// The version a release must be newer than; the app's own when null (see <see cref="UpdateCheck"/>'s constructor).
+    /// </param>
+    public static Func<MainWindow, AppSession, Task> StartupHook(HttpMessageHandler http, string? runningVersion = null) =>
+        (window, session) => CheckAsync(window, session.Runtime, session.Settings.Current.UpdateSource, http, runningVersion);
 
     /// <summary>
     /// The startup hook (UPD-1, SHELL-5): runs the update check for <paramref name="source"/> and, if either source
@@ -43,14 +46,18 @@ public static class UpdateBanner
     /// <param name="runtime">The app runtime: the log the check writes to and the browser the links open in.</param>
     /// <param name="source">The <c>update_source</c> setting.</param>
     /// <param name="http">The HTTP stack: the real network, or a Parity Scenario's canned responses.</param>
+    /// <param name="runningVersion">
+    /// The version a release must be newer than; the app's own when null (see <see cref="UpdateCheck"/>'s constructor).
+    /// </param>
     /// <returns>What the check found.</returns>
     /// <remarks>
     /// Start on the UI thread; the check itself runs on the thread pool. A failed check is logged and is no update,
     /// including a response the reference didn't survive and failed startup on (bug #81, fixed per ADR-0006).
     /// </remarks>
-    public static async Task<UpdateCheckResult> CheckAsync(MainWindow window, AppRuntime runtime, UpdateSource source, HttpMessageHandler http)
+    public static async Task<UpdateCheckResult> CheckAsync(
+        MainWindow window, AppRuntime runtime, UpdateSource source, HttpMessageHandler http, string? runningVersion = null)
     {
-        var check = new UpdateCheck(http, runtime.Logger);
+        var check = new UpdateCheck(http, runtime.Logger, runningVersion);
         var result = await Task.Run(() => check.RunAsync(source));
         window.UpdateBanner = Build(result, runtime.Browser);
         return result;

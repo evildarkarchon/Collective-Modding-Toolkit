@@ -1,9 +1,15 @@
 {
-  "description": "A Steam install found through the registry, no mod manager, update checks off. Drives the shell screenshot pair and the window facts read off the real CMChecker.",
+  "description": "A Steam install found through the registry, no mod manager, update checks off. Drives the shell screenshot pair and the window facts read off the real CMChecker. Port: the title carries the first C# release's version, see deviation #71.",
   "operation": "main-window",
   "parity": [
     "SHELL-6",
     "SHELL-7"
+  ],
+  "deviations": [
+    {
+      "bug": 71,
+      "reason": "A deliberate change at the Cutover, not a reference bug: the version is 0.7.0, the first C# release, where the reference ran as 0.6.2-dev."
+    }
   ],
   "emptyDirs": [
     "Game/Data"

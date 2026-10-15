@@ -31,7 +31,7 @@ _Avoid_: Download Source (that is fixed per archive; this is the user's choice)
 ## The port
 
 **Reference Implementation**:
-The Python/tkinter app in `src/`, whose behaviour at the Parity Baseline defines what the C# app must do.
+The Python/tkinter app whose behaviour at the Parity Baseline defined what the C# app must do. It lived in `src/` until the Cutover removed it; it is preserved at the `python-reference` tag.
 _Avoid_: old app, legacy version
 
 **Parity Baseline**:
@@ -47,7 +47,7 @@ The C# app producing the same observable results as the Reference Implementation
 _Avoid_: feature parity (too loose — parity here covers behaviour, not just features)
 
 **Deviation**:
-A deliberate, documented departure from Behaviour Parity where the port fixes one reference bug, named by its bug issue and a one-line reason. The reference's recorded behaviour is kept beside it; the Deviation only overrides what the port must do. A deliberate pre-release change that isn't a bug fix (the About tab's port credit, #69) is recorded the same way, under its own issue number.
+A deliberate, documented departure from Behaviour Parity where the port fixes one reference bug, named by its bug issue and a one-line reason. The reference's recorded behaviour is kept beside it; the Deviation only overrides what the port must do. A deliberate change that isn't a bug fix (the About tab's port credit, #69; the Cutover's version bump, #71) is recorded the same way, under its own issue number. Since the Cutover, any change to what a Parity Scenario must produce is recorded this way.
 _Avoid_: divergence, regression (both suggest an accident), exemption (that is a checklist ID left unported, not changed behaviour)
 
 **Parity Inventory**:
