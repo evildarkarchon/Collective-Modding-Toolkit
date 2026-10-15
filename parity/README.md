@@ -198,6 +198,10 @@ search for it to find what a fix flips.
 4. Run the replaying test (red until the fix lands, then green), `record.py --check` (the scenario reads `same` and is
    marked `port deviates: #<n>`), and the coverage check.
 
+A deliberate pre-release change that isn't a bug fix (the About tab's port credit,
+[#69](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/69)) is a Deviation too. Its `bug` is the
+change's own issue number, and its reason says it is deliberate.
+
 If the fix needs a new input to show the corrected behaviour, add a **new** scenario as usual. It is recorded from the
 reference like any other, then flipped as above.
 

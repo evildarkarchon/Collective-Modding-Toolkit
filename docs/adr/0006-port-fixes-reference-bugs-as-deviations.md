@@ -20,3 +20,4 @@ ADR-0004's proof model is unchanged. The reference recording stays the source of
 - Behaviour Parity now means parity except where a Deviation says otherwise. A scenario with a Deviation still proves its Parity Inventory IDs, and those IDs (the `B-` ones included) now prove the fixed behaviour.
 - After Cutover the driver is gone, so `golden.json` and `golden.port.json` both become plain regression fixtures. The pair still records what the reference did and what the port does instead.
 - Failure Outcomes that come from a bug are no longer automatically part of parity. Once a Deviation fixes one, the port's outcome is the one in the port golden.
+- A deliberate pre-release change that isn't a bug fix goes through the same mechanism, under its own issue number in place of a bug's, with a reason that says it is deliberate. The cutover plan (#64) decided one: the About tab's port credit (#69).
