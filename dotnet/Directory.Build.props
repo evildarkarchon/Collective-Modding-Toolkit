@@ -11,10 +11,11 @@
 
     <!--
       The single version source. The title, the log's start line and the update check all read it back through
-      AssemblyInformationalVersion, so it uses the Reference Implementation's PEP 440-style form. The title keeps
-      0.6.2-dev until the cutover decides the first C# version, which only has to compare greater than 0.6.2.
+      AssemblyInformationalVersion, and the update check compares release tags against it with PEP 440, so it must
+      stay a PEP 440 version. 0.7.0 is the first C# release (the Cutover, #71); the 0.6.x line was the Python app.
+      The Parity Scenario goldens were recorded at 0.6.2-dev, and the tests that replay them pin that version.
     -->
-    <Version>0.6.2-dev</Version>
+    <Version>0.7.0</Version>
     <!-- Without this the SDK appends "+<commit sha>" to the informational version, and the title would show it. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 

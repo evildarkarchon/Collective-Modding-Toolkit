@@ -86,7 +86,8 @@ public sealed class UpdateStartupTests
             Sequence = new StartupSequence(Runtime, host, _log, new WindowStartupDialogs())
             {
                 SettingsPath = settingsPath,
-                CheckForUpdatesAsync = UpdateBanner.StartupHook(Http),
+                // As the reference ran when the update/* goldens were recorded: which canned release is newer hinges on it.
+                CheckForUpdatesAsync = UpdateBanner.StartupHook(Http, ParityScenario.RecordedAppVersion),
             };
         }
 

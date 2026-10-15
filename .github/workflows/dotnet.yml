@@ -1,6 +1,6 @@
 # Build, test and NativeAOT-publish the C# port (dotnet/), then check the published exe.
-# Also callable as a reusable workflow: the release workflow gates on it (issue #63), so a tag can never ship a build
-# that this workflow would reject.
+# Also callable as a reusable workflow (workflow_call). Releases are built and published by hand, so nothing calls it
+# yet; the tag-triggered release workflow (#68) was dropped.
 name: .NET
 
 on:
@@ -56,10 +56,10 @@ jobs:
       - name: Test
         run: dotnet test CMToolkit.slnx --configuration Release --no-build
 
-      # Ratchet mode: fails if an ID in parity/covered.txt has lost its proof, or a proof cites an unknown ID. The
-      # Verify full parity slice adds --strict, which also fails on every ID not yet proven.
+      # Strict mode: fails if any Parity Inventory ID is unproven or missing from parity/covered.txt, as well as on a
+      # proof that cites an unknown ID or a malformed Deviation. Full Behaviour Parity was declared at the Cutover (#71).
       - name: Parity coverage check
-        run: dotnet run --project tools/CMToolkit.ParityCoverage --configuration Release --no-build
+        run: dotnet run --project tools/CMToolkit.ParityCoverage --configuration Release --no-build -- --strict
 
       # ILLink and ILC warnings are errors too (IlcTreatWarningsAsErrors), so a successful publish has zero warnings.
       - name: Publish (NativeAOT, win-x64)

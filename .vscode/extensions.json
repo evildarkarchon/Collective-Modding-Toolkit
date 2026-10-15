@@ -1,10 +1,7 @@
 {
 	"recommendations": [
-		"ms-python.python",
-		"ms-python.debugpy",
-		"ms-python.vscode-pylance",
-		"ms-python.mypy-type-checker",
-		"charliermarsh.ruff",
+		"ms-dotnettools.csdevkit",
+		"AvaloniaTeam.vscode-avalonia",
 		"ryanluker.vscode-coverage-gutters",
 		"GitHub.vscode-pull-request-github",
 		"Gruntfuggly.todo-tree",

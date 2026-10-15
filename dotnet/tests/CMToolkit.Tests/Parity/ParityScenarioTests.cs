@@ -254,13 +254,16 @@ public sealed class ParityScenarioTests : IDisposable
     }
 
     [Fact]
-    public void An_unrecorded_scenario_points_at_the_recording_command()
+    public void An_unrecorded_scenario_says_goldens_can_no_longer_be_recorded()
     {
         var scenario = Author("m/s", MinimalManifest);
 
         Assert.False(scenario.IsRecorded);
         var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
-        Assert.Contains("parity/driver/record.py m/s", ex.Message);
+        // The driver went with the Reference Implementation at the Cutover, so there's no command left to point at.
+        Assert.Contains("'m/s' has no golden.json", ex.Message);
+        Assert.Contains("hand-written test", ex.Message);
+        Assert.DoesNotContain("record.py", ex.Message);
     }
 
     [Fact]

@@ -24,8 +24,9 @@
   <Application.Styles>
     <FluentTheme>
       <FluentTheme.Palettes>
-        <!-- sv_ttk dark (src/sv_ttk/theme/dark.tcl and spritesheet samples). Fluent derives most brushes from alpha
-             overlays of BaseX/AltX, so the opaque sv_ttk greys still need the per-key overrides in SvPalette. -->
+        <!-- sv_ttk dark (the reference's sv_ttk/theme/dark.tcl and spritesheet samples, python-reference tag).
+             Fluent derives most brushes from alpha overlays of BaseX/AltX, so the opaque sv_ttk greys still need the
+             per-key overrides in SvPalette. -->
         <ColorPaletteResources x:Key="Dark"
                                Accent="#3CD648"
                                RegionColor="#1C1C1C"

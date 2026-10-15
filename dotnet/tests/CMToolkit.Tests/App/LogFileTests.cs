@@ -2,6 +2,7 @@ using System.Text;
 using CMToolkit.App;
 using CMToolkit.App.Runtime;
 using CMToolkit.Core;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +19,7 @@ public sealed class LogFileTests
     private const int Utf8 = 65001;
 
     [Fact]
-    [Trait("Parity", "SHELL-1")]
+    [Trait("Parity", "SHELL-1"), Deviation(71, "A deliberate change at the Cutover, not a reference bug: the version is 0.7.0, the first C# release, where the reference ran as 0.6.2-dev.")]
     public void Startup_appends_the_three_start_lines_at_info_with_crlf()
     {
         using var dir = new TempDirectory();
@@ -31,8 +32,8 @@ public sealed class LogFileTests
 
         Assert.Equal(
             "INFO : earlier run\r\n"
-            + "INFO : ----------------------------------------------\r\n"
-            + "INFO : Starting Collective Modding Toolkit v0.6.2-dev\r\n"
+            + "INFO : ------------------------------------------\r\n"
+            + "INFO : Starting Collective Modding Toolkit v0.7.0\r\n"
             + "INFO : 2026-03-04 05:06\r\n",
             File.ReadAllText(path));
     }

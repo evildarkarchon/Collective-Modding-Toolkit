@@ -15,7 +15,8 @@ Usage (stdlib only, any Python 3), from anywhere:
 Writes ``out/downgrader/<set>/<file name>`` (``Archive2.exe`` and ``Archive2Interop.dll`` too, without their
 ``Tools\\Archive2`` folder; scenarios place them), plus ``out/downgrader/all/<file name>/<CRC>``, a text stand-in for
 every CRC in the tables. The output is deterministic, so rebuilding changes nothing unless a
-version stub was rebuilt; then re-record the Downgrader goldens only if ``record.py --check`` reports a change.
+version stub was rebuilt. Goldens can't be re-recorded since the Cutover (#71), so a rebuild whose outputs differ
+must not be committed unless the Downgrader replays still pass with it.
 """
 
 import sys

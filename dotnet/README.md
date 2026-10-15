@@ -1,8 +1,9 @@
 # Collective Modding Toolkit: C# / Avalonia port
 
-The C# port of the app, built as a sibling tree next to the Python **Reference Implementation** in `src/`
-([ADR-0001](../docs/adr/0001-port-to-csharp-avalonia.md)). It targets Behaviour Parity with the Parity Baseline and
-ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-upstream-archive-layout.md)).
+The app, a C# port of the Python **Reference Implementation**
+([ADR-0001](../docs/adr/0001-port-to-csharp-avalonia.md)). It was built beside the Python app, reached Behaviour Parity
+with the Parity Baseline, and replaced it at the Cutover (0.7.0); the Python app is preserved at the `python-reference`
+tag. It ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-upstream-archive-layout.md)).
 
 ## Layout
 
@@ -26,7 +27,7 @@ dotnet publish src/CMToolkit.App -c Release -r win-x64 -o artifacts/publish
 pwsh eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Scenario ../parity/scenarios/shell/main-window
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe
-dotnet run --project tools/CMToolkit.ParityCoverage
+dotnet run --project tools/CMToolkit.ParityCoverage -- --strict
 ```
 
 Startup reads the machine before the main window appears (PC info, mod manager, game path, game INIs; SHELL-5). The
@@ -56,7 +57,7 @@ A NativeAOT publish (Avalonia 12.1.3, SkiaSharp and HarfBuzzSharp from its depen
 | `libHarfBuzzSharp.pdb`, `libSkiaSharp.pdb` | no | Symbols for the native libraries, over 100 MB together. |
 
 These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.dll`, `libHarfBuzzSharp.dll` and
-`libSkiaSharp.dll`. The release slice packages them with `LICENSE.md` and `THIRD-PARTY-NOTICES.txt` under
+`libSkiaSharp.dll`. A release (built and published by hand) packages them with `LICENSE.md` and `THIRD-PARTY-NOTICES.txt` under
 `Tools\CM-Toolkit\`.
 
 At run time the app keeps `settings.json`, `cm-toolkit.log` and the Downgrader's downloaded `*.xdelta` patches in this
@@ -173,7 +174,7 @@ nothing.
   problem types first appear, the same on every run (bug #23, a Deviation), so the scanner pairs list the groups in
   another order than Tk's. Their No Mod Manager result names `cm-toolkit.exe` where Tk's names `main.py`, the
   program each was started as. The port's boxes start from the saved `scanner_*` settings, and each box change is saved at once rather than at Scan Game (bug #20, a Deviation);
-  `screenshots.py --scan` clicks only the boxes not already as wanted.
+  the screenshot script clicked only the boxes not already as wanted.
 - Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
   Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
   cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves

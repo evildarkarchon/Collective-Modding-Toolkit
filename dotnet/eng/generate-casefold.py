@@ -1,8 +1,9 @@
 """Writes ``src/CMToolkit.Core/PythonSemantics/PythonCaseFold.Table.cs``: every code point whose ``str.casefold()`` is
 not itself, with what it folds to, from the Python that runs this script.
 
-Run it with the Reference Implementation's interpreter (the parity driver's python.org 3.14, ``unicodedata`` 16.0.0)
-when that interpreter's Unicode version changes:
+The committed table came from the Reference Implementation's interpreter (the parity driver's python.org 3.14,
+``unicodedata`` 16.0.0). Both are gone since the Cutover; rerun it with a Python whose ``unicodedata`` has the
+Unicode version the table should follow:
 
     python dotnet/eng/generate-casefold.py
 

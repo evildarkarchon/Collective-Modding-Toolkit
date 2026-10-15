@@ -2,6 +2,8 @@
 
 The checklist the port spec and its build slices are measured against. It records what the **Reference Implementation** in `src/` does at the **Parity Baseline** `f95a07c` (`wip-files/` excluded). Glossary: `GLOSSARY.md`; port decision: `docs/adr/0001-port-to-csharp-avalonia.md`.
 
+> The Cutover ([#71](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/71)) removed `src/` and `wip-files/` from the tree. The source citations below (`game_info.py:83-101`, …) refer to the Python app as preserved at the `python-reference` tag.
+
 Answers [Inventory the Python app's features and behaviours](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/6) on the [Port CMT to C# / Avalonia](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/2) map. The parity harness promoted it from the research branch to `main` ([ADR-0004](adr/0004-parity-proved-by-recorded-scenarios.md)). The coverage check in `parity/` reads the IDs from the tables below, so a new ID must go in the first column of a table whose first header is `ID`.
 
 ## How to read this
