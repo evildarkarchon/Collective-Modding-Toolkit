@@ -1,8 +1,8 @@
 namespace CMToolkit.Tests.Parity;
 
 /// <summary>
-/// The test-side marker for a Deviation from Behaviour Parity (ADR-0006). It is built with <c>new</c> here rather than
-/// applied, because the coverage check lists every applied one as a real deviation.
+/// The test-side marker for a Deviation recorded during the port (ADR-0006). It is built with <c>new</c> here rather
+/// than applied, so this synthetic one isn't mistaken for a real deviation when filtering on the trait.
 /// </summary>
 public sealed class DeviationAttributeTests
 {

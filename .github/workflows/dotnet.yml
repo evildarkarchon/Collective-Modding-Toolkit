@@ -51,15 +51,10 @@ jobs:
       - name: Build
         run: dotnet build CMToolkit.slnx --configuration Release --no-restore
 
-      # The tests include the Parity Scenario replays against goldens the Python driver recorded; CI never runs Python
-      # (ADR-0004).
+      # The tests include the Parity Scenario replays against their committed goldens, which are plain regression
+      # fixtures now (ADR-0007); CI never runs Python.
       - name: Test
         run: dotnet test CMToolkit.slnx --configuration Release --no-build
-
-      # Strict mode: fails if any Parity Inventory ID is unproven or missing from parity/covered.txt, as well as on a
-      # proof that cites an unknown ID or a malformed Deviation. Full Behaviour Parity was declared at the Cutover (#71).
-      - name: Parity coverage check
-        run: dotnet run --project tools/CMToolkit.ParityCoverage --configuration Release --no-build -- --strict
 
       # ILLink and ILC warnings are errors too (IlcTreatWarningsAsErrors), so a successful publish has zero warnings.
       - name: Publish (NativeAOT, win-x64)

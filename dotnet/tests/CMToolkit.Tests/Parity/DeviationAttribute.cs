@@ -4,15 +4,13 @@ namespace CMToolkit.Tests.Parity;
 
 /// <summary>
 /// Marks a test that asserts the port's fix of a reference bug instead of the Reference Implementation's behaviour: a
-/// documented Deviation from Behaviour Parity (ADR-0006). Put it beside the test's <c>Trait("Parity", …)</c>, which
-/// stays, with the <c>bug</c> issue number and one sentence saying what the port does instead. A deliberate change
-/// that isn't a bug fix (#69) uses its own issue number, and its sentence says it is deliberate.
+/// Deviation recorded during the port (ADR-0006), with the <c>bug</c> issue number and one sentence saying what the
+/// port does instead. A deliberate change that isn't a bug fix (#69) uses its own issue number.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The coverage check reads these as text, like the parity traits, and lists them on every run. So write the bug as an
-/// integer literal and the reason as a regular (not verbatim or raw) string literal, and never spell an applied
-/// attribute inside a string or a doc comment: it would be listed as a real deviation.
+/// Since ADR-0007 retired the parity process, this is historical metadata: the existing marks stay so they can still be
+/// filtered on, and new tests don't need one.
 /// </para>
 /// <para>
 /// It is also an xUnit trait, <c>Deviation=&lt;bug&gt;</c>, so <c>dotnet test --filter "Deviation=77"</c> runs the tests

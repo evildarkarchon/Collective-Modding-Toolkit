@@ -4,6 +4,8 @@ The app is being rewritten from Python/tkinter to C# (.NET 10) with Avalonia, in
 
 > **Superseded in part (2026-10-12):** the clause that bugs are "logged as separate issues instead of fixed" is superseded by [ADR-0006](0006-port-fixes-reference-bugs-as-deviations.md). The port now fixes each open `bug` issue as a documented Deviation, in a fix phase after the slices merge. The rest of this decision stands.
 
+> **Amended (2026-10-29):** the port is done and [ADR-0007](0007-parity-process-retired.md) retired the parity process. Behaviour Parity no longer constrains changes; the drop-in compatibility stays as a product decision.
+
 ## Considered Options
 
 - **Pixel-faithful UI** (recreating sv_ttk's sprite-based rendering) — rejected as costly for little user-visible gain; the UI is structurally faithful on Fluent dark tuned to the sv_ttk palette instead.
