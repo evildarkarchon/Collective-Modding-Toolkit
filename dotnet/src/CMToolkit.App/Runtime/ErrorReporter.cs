@@ -73,7 +73,7 @@ public sealed class ErrorReporter
     /// Starts a UI Action and handles its failure, the one place that does: the action stops at its first failure,
     /// which goes to the Error Window, and whatever it skipped is its Failure Outcome. Start every async UI Action
     /// through <c>Handle</c>; never <c>_ = XAsync()</c> on an event, because a discarded task bypasses the global
-    /// handlers and its fault surfaces only if the garbage collector raises it as unobserved, maybe never.
+    /// handlers and its fault surfaces only if the garbage collector raises it as unobserved, maybe never (ADR-0003).
     /// </summary>
     /// <remarks>
     /// <para>An <see cref="OperationFailedException"/> is swallowed: the runner already reported it, under the

@@ -302,7 +302,7 @@ public sealed class ScannerTabTests
         // The write raises on its worker, past SettingsFile.Save's own logging, so the runner reports it under its
         // operation's name. The box change's UI Action must not report it a second time under the UI thread's header.
         using var temp = new TempDirectory();
-        var log = new FailingSaveLogger();
+        var log = ThrowingLogger.OnSave();
         var store = SettingsStore.Load(Path.Combine(temp.Path, "settings.json"), DownloadSource.GitHub, log);
         using var app = ScannerApp.Start(settingsStore: store);
 
@@ -444,34 +444,6 @@ public sealed class ScannerTabTests
         Assert.Empty(app.Scanner.Tree!.Items);
         Assert.Equal("", app.ResultsInfo.Text ?? "");
         Assert.False(app.Scanner.IsSelectable);
-    }
-
-    /// <summary>
-    /// A settings store's logger that, once <see cref="Arm"/> is called, throws on <c>SettingsFile.Save</c>'s opening
-    /// <see cref="HeldSaveLogger.SavingMessage"/> line, so the write raises on its worker past the save's own catch:
-    /// the only way to make <see cref="SettingsStore.SaveAsync"/>'s operation fail, since a failed write is logged and
-    /// swallowed. Lines before then (the load's) go through, so the store loads normally.
-    /// </summary>
-    private sealed class FailingSaveLogger : ILogger
-    {
-        private volatile bool _armed;
-
-        /// <summary>Makes every later save's write raise.</summary>
-        public void Arm() => _armed = true;
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            if (_armed && formatter(state, exception) == HeldSaveLogger.SavingMessage)
-            {
-                throw new IOException("the log is gone");
-            }
-        }
     }
 
     /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>

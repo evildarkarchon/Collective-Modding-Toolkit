@@ -124,7 +124,8 @@ public sealed class ArchivePatcherWindowTests
     {
         using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
         var (_, game, overview) = Parts(machine);
-        var logger = new FailingRunLogger();
+        // Throws on the Core run's opening "Files:" line, so the patch run itself raises on its worker.
+        var logger = new ThrowingLogger(m => m.StartsWith("Files: ", StringComparison.Ordinal));
         var runtime = new AppRuntime(logger);
         var refreshed = false;
         var patcher = Show(runtime, game, machine, overview, () =>
@@ -133,11 +134,12 @@ public sealed class ArchivePatcherWindowTests
             return Task.CompletedTask;
         });
 
+        logger.Arm();
         MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
         DispatcherWait.Until(() => runtime.Errors.Window is not null);
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Single(logger.Inner.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.Single(logger.Messages,m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
         Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
         Assert.False(refreshed);
         Assert.True(patcher.ProcessingData);
@@ -235,36 +237,5 @@ public sealed class ArchivePatcherWindowTests
     {
         DispatcherWait.Until(() => task.IsCompleted);
         task.GetAwaiter().GetResult();
-    }
-
-    /// <summary>
-    /// Captures every entry, but throws on the Core run's opening <c>Files:</c> line, so the patch run itself raises on
-    /// its worker: <see cref="CMToolkit.Core.ArchivePatcher.ArchivePatching.Patch"/> turns every per-file I/O error into a
-    /// pane line, so there is no file a test could break to make it fail.
-    /// </summary>
-    private sealed class FailingRunLogger : Microsoft.Extensions.Logging.ILogger
-    {
-        public CapturingLogger Inner { get; } = new();
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull => null;
-
-        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            Microsoft.Extensions.Logging.LogLevel logLevel,
-            Microsoft.Extensions.Logging.EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            var message = formatter(state, exception);
-            if (message.StartsWith("Files: ", StringComparison.Ordinal))
-            {
-                throw new IOException("the log is gone");
-            }
-
-            Inner.Log(logLevel, eventId, state, exception, formatter);
-        }
     }
 }
