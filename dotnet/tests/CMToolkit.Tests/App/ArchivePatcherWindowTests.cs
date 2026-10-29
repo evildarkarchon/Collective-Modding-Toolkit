@@ -139,7 +139,7 @@ public sealed class ArchivePatcherWindowTests
         DispatcherWait.Until(() => runtime.Errors.Window is not null);
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Single(logger.Messages,m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.Single(logger.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
         Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
         Assert.False(refreshed);
         Assert.True(patcher.ProcessingData);
