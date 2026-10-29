@@ -39,7 +39,7 @@ public sealed record ScenarioManifest(
         ReadCommentHandling = JsonCommentHandling.Skip,
 
         // A repeated key would otherwise replace the first silently, hiding a deviation (or a parity ID) from the
-        // checks; the coverage check and the Python driver reject it too.
+        // checks; the Python driver rejected it too.
         AllowDuplicateProperties = false,
     };
 

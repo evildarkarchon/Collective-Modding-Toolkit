@@ -1,9 +1,8 @@
-# Collective Modding Toolkit: C# / Avalonia port
+# Collective Modding Toolkit: C# / Avalonia app
 
-The app, a C# port of the Python **Reference Implementation**
-([ADR-0001](../docs/adr/0001-port-to-csharp-avalonia.md)). It was built beside the Python app, reached Behaviour Parity
-with the Parity Baseline, and replaced it at the Cutover (0.7.0); the Python app is preserved at the `python-reference`
-tag. It ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeaot-in-upstream-archive-layout.md)).
+The app. It started as a C# port of the Python app ([ADR-0001](../docs/adr/0001-port-to-csharp-avalonia.md)), which
+it replaced at 0.7.0; the Python app is preserved at the `python-reference` tag. It ships as a NativeAOT `win-x64` exe
+([ADR-0002](../docs/adr/0002-nativeaot-in-upstream-archive-layout.md)).
 
 ## Layout
 
@@ -12,10 +11,9 @@ tag. It ships as a NativeAOT `win-x64` exe ([ADR-0002](../docs/adr/0002-nativeao
 | `CMToolkit.slnx` | The solution. |
 | `Directory.Build.props` | Shared settings: .NET 10, the single `<Version>`, warnings-as-errors (trim/AOT included), `<CETCompat>false</CETCompat>`. |
 | `src/CMToolkit.Core` | The app's logic. No Avalonia reference; trim/AOT analyzers on (`IsAotCompatible`). |
-| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's machine (screenshots, smoke test): `ScenarioHostEnvironment` and `ScenarioHttpHandler`, the exe's own copies of the test harness's fake host and HTTP handler. Start every async **UI Action** through `ErrorReporter.Handle`; never `_ = XAsync()` on an event. |
-| `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. Tests that prove a Parity Inventory ID carry `[Trait("Parity", "<ID>")]`. `Parity/` holds the harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer. |
-| `tools/CMToolkit.ParityCoverage` | The Parity Inventory coverage check, run in CI (see [`parity/README.md`](../parity/README.md)). |
-| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). `generate-casefold.py` regenerates `PythonCaseFold.Table.cs` from the reference's Python (run by hand when its Unicode version changes). |
+| `src/CMToolkit.App` | The Avalonia 12.1 app (`cm-toolkit.exe`), with CommunityToolkit.Mvvm. `Startup/` is the startup sequence, `Tabs/MainTabs.cs` composes the tabs, and `Parity/` lets the exe run on a Parity Scenario's fake machine (screenshots, smoke test): `ScenarioHostEnvironment` and `ScenarioHttpHandler`, the exe's own copies of the test harness's fake host and HTTP handler. Start every async **UI Action** through `ErrorReporter.Handle`; never `_ = XAsync()` on an event. |
+| `tests/CMToolkit.Tests` | xUnit v3 and Avalonia.Headless tests. `Parity/` holds the scenario harness: the Parity Scenario source, the fake host and HTTP handler, and the golden comparer (see [`parity/README.md`](../parity/README.md)). |
+| `eng/` | CI scripts: the PE-not-CET-compatible check and the published-exe smoke test. `Test-ScannerPanes.ps1` is a manual desktop check of the Scanner's docked panes (not run in CI). `generate-casefold.py` regenerates `PythonCaseFold.Table.cs` from Python's Unicode tables (run by hand when its Unicode version changes). |
 
 ## Build, test and publish
 
@@ -27,11 +25,10 @@ dotnet publish src/CMToolkit.App -c Release -r win-x64 -o artifacts/publish
 pwsh eng/Assert-NotCetCompatible.ps1 artifacts/publish/cm-toolkit.exe
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe -Scenario ../parity/scenarios/shell/main-window
 pwsh eng/Test-ShellStarts.ps1 -Exe artifacts/publish/cm-toolkit.exe
-dotnet run --project tools/CMToolkit.ParityCoverage -- --strict
 ```
 
-Startup reads the machine before the main window appears (PC info, mod manager, game path, game INIs; SHELL-5). The
-first smoke run uses a Parity Scenario's fake machine, so the window appears anywhere. The second uses the real one: it
+Startup reads the machine before the main window appears (PC info, mod manager, game path, game INIs). The first
+smoke run uses a Parity Scenario's fake machine, so the window appears anywhere. The second uses the real one: it
 passes with the main window where Fallout 4 is installed, or with the `Fallout 4 Not Found` question where it isn't.
 It runs a copy of the publish folder, because the app writes `settings.json` and `cm-toolkit.log` beside its exe.
 
@@ -40,6 +37,11 @@ which must be on `PATH`. It lives in `%ProgramFiles(x86)%\Microsoft Visual Studi
 `PATH` by default.
 
 CI (`.github/workflows/dotnet.yml`) runs all of the above on Windows for pull requests and pushes to `main`.
+
+The Scanner's side and details panes are borderless windows owned by the main window (`Views/OwnedPaneDocker`).
+`pwsh eng/Test-ScannerPanes.ps1 -Exe artifacts/publish/cm-toolkit.exe [-Drag]` walks them through moves, a second
+monitor, minimise/restore, tab switches and a rescan on a real desktop (`-Drag` drags the title bar with the real
+mouse). It has passed at 100 % on two 100 % monitors, but not yet at 150 % or with monitors at different scales.
 
 ## Published output
 
@@ -61,135 +63,12 @@ These are the **Avalonia native DLLs the release archive needs**: `av_libglesv2.
 `Tools\CM-Toolkit\`.
 
 At run time the app keeps `settings.json`, `cm-toolkit.log` and the Downgrader's downloaded `*.xdelta` patches in this
-same folder, beside the exe, whatever the working directory. The Reference Implementation resolved all three against
-the working directory, so a launch from a shortcut, a terminal or an MO2 entry with another "Start in" scattered them
-([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36), fixed as a Deviation, ADR-0006). At
-startup the app checks that it can write to this folder by creating and deleting a probe file. If it can't, as for an
-install under a protected folder such as `Program Files`, it keeps all three in `%LOCALAPPDATA%\CM-Toolkit` instead
-and logs a warning naming both folders. Startup fails (SHELL-13) only if that folder can't be created or the log
-can't be opened there. If the app folder has no `settings.json` but the working directory has one, where the
-Reference Implementation kept it, startup copies that file over once and logs the copy. Only the settings move: the
-log and patches are disposable. Scenario runs (`CMT_PARITY_SCENARIO`) use the scenario's working directory and copy
-nothing.
-
-## Known residuals
-
-- The window opens with Avalonia's `CenterScreen`, which centres the outer frame in the work area. The Reference
-  Implementation offsets the client size from the full screen, so it sits ~20 px lower and ~8 px further right (at
-  100 %, 1440p). Accepted rather than reproduced.
-- The tab strip renders 1 px taller than Tk's, and tab text sits 1 px higher (see [`parity/screenshots/shell/`](../parity/screenshots/shell/)). The
-  main-window-shell prototype has the same offset, so it predates this tree. Horizontal positions match exactly.
-- `cm-toolkit.log` is written in the ANSI code page with `backslashreplace`, as Python wrote it, but through Windows'
-  code-page tables: under cp1252, U+0081, U+008D, U+008F, U+0090 and U+009D are written as bytes where Python's codec
-  escapes them. A traceback is .NET's `Exception.ToString()`, not Python's (not part of Behaviour Parity).
-- `settings.json` nested more than 1000 arrays/objects deep is treated as unparseable (reset); Python's limit is its
-  C-stack guard, which depends on the machine.
-- MO2's `skip_*` values are lowercased with `ToLowerInvariant`. Python's `str.lower()` differs for U+0130 (`İ` becomes
-  two characters) and a word-final capital sigma (`ς`); no scenario covers them.
-- `platform.release()` and the build come from `RtlGetVersion` (version and product type), where Python asks WMI. They
-  report the same numbers; a machine whose WMI is broken makes Python fall back to `ver`, which isn't reproduced.
-- A tab page is 754x404 at (3, 43), where Tk's is 758x407 at (1, 42) (the notebook theme's frame), so tab content
-  sits 2 px right and 1 px lower, and anything anchored to the page's right or bottom edge 2 px further left or up.
-  On the Tools tab the 4 px narrower page also leaves the columns 1-2 px narrower. See
-  [`parity/screenshots/tools/`](../parity/screenshots/tools/), `settings/` and `about/`.
-- The About pair shows the port credit (#69, a deliberate Deviation): a seventh line, `C# port by evildarkarchon`,
-  under the credits. That makes the right-hand column 407 px, Tk's page height, so the gap under the text is 7 px
-  where Tk's is 10, and the column fills the 404 px page with the link rows 9 px lower than Tk's.
-- The About tab's 20 pt title measures 289 px where Tk's is 288, so it sits half a pixel off centre. The Settings
-  tab's Log Level frame is 86 px wide where Tk's is 88: Tk keeps 8 px either side of a labelframe's title where the
-  GroupBox theme keeps 7.
-- A link that the shell can't open (no handler for its scheme) does nothing. Python's `webbrowser.open` would then
-  try the browsers it found on PATH and Edge's install folder; the reference's links are all `https://`, which
-  Windows always has a handler for.
-- The startup file picker (GP-2) is the native one Avalonia opens, owned by a window that is created but never shown,
-  where Tk's was owned by its withdrawn root. The yes/no and error boxes are the app's sv-styled message boxes (issue
-  #9), centred on the screen, since no main window exists yet.
-- Game INI section names and keys are lowercased with `ToLowerInvariant`, with the same `str.lower()` differences as
-  MO2's `skip_*` values above. A game INI that isn't valid UTF-8 is read as Windows-1252 (the fix for bug #17), not in
-  the machine's ANSI code page, so a non-Western ANSI INI's non-ASCII values decode differently from what the game sees;
-  the settings the toolkit reads are ASCII. The same goes for each line of `Fallout4.ccc` and `plugins.txt` that isn't
-  valid UTF-8 (the fix for bug #86): a module named in another ANSI code page isn't found in Data.
-- The update check (#53) sends `User-Agent: cm-toolkit/<version>` and `Accept: */*`, where requests sent
-  `python-requests/2.32.5` plus its other session defaults; GitHub needs some User-Agent. urllib3's own DEBUG lines
-  ("Starting new HTTPS connection ...") that reached `cm-toolkit.log` at `log_level` DEBUG are not written.
-  Response charsets other than the UTF-8/16/32, Latin-1 and ASCII codecs count as unknown (Python's `LookupError`,
-  which the port logs as a failed check where the reference failed startup, bug #81), and a GitHub body with no usable encoding is decoded as UTF-8 where requests asks
-  chardet. Real chunk boundaries also differ:
-  the port always reads the Nexus page in 512-byte chunks (as the parity harness does), while urllib3 follows the
-  server's chunked encoding. That no longer changes the result, since the port joins a CRLF split across two reads
-  (bug #82, which struck the reference on some pages only). HttpClient does not follow an https-to-http
-  redirect, which requests did.
-- The update banner matches Tk to the pixel at 100 % (see [`parity/screenshots/update-banner/`](../parity/screenshots/update-banner/));
-  its link tooltips are Avalonia's, not tktooltip's. The pair shows the fix for bug #83 (a Deviation): the port's
-  GitHub link reads `v0.7.1 (GitHub)` where Tk's reads `vv0.7.1 (GitHub)`.
-- Overview (see [`parity/screenshots/overview/`](../parity/screenshots/overview/), rechecked with all three frames
-  built): the frames now match Tk's widths, and the Archives and Modules content lines up to the pixel. Tk grids an
-  unpadded labelframe's content from its border line, so the Overview's GroupBoxes give back the theme's 4 px side
-  gutters. The Binaries names column still sits ~2 px right of Tk's (a ttk label's internal padding around its text).
-  The Downgrade Manager, Archive Patcher and refresh buttons' paddings were measured off the pairs rather than derived
-  from sv_ttk. The `modules-archives-mixed` pair shows the fix for bug #33 (a Deviation): the port counts the CC
-  module listed in both Fallout4.ccc and plugins.txt once, so its Modules frame reads 10 Full and 13 Total where Tk's
-  reads 11 and 14.
-- If an Overview load or refresh fails part-way (no local app data folder, or a binary, module or archive that can't
-  be read for a reason other than permissions), the error is reported and the report becomes what had been gathered,
-  as the reference's shared state was left; a step that never started keeps the previous report's part. The frames stay as they were. A failed load's warning boxes
-  appear after the Error Window rather than before the failure (error surfacing is outside parity, #18).
-- The Overview's enabled archives, like every Python set it keeps, are checked in insertion order, where Python's
-  order is the string hash's; only the order of the Invalid Archive problems and `Archives: Checking` log lines
-  depends on it (T-15), and the goldens compare those as unordered.
-- Downgrader (see [`parity/screenshots/downgrader/`](../parity/screenshots/downgrader/)): the frames, radios, checkboxes,
-  buttons and the log pane's box line up with Tk's. The `dg-game` pair shows the fix for bug #85 (a Deviation): its
-  `Next-Gen & Anniversary` label widens the port's window, so Patch All and About stay visible where Tk's lost them. The log pane's emoji is Segoe UI Symbol's filled glyph in the
-  tag colour, where Tk's GDI fallback draws Segoe UI Emoji's outline, so the message starts ~4 px further left; its
-  scrollbar is Fluent's, which hides its thumb with nothing to scroll where sv_ttk's shows a full-height one. The
-  progress bar is below the fixed 334 px window in both (clipped, as in Tk), so its look isn't compared. The log
-  pane lets Ctrl+A/C through whatever the lock keys and lets Escape close the window while it has focus, where the
-  reference's filter blocked all three (T-13, bug #88, a Deviation).
-- Archive Patcher (see [`parity/screenshots/archive-patcher/`](../parity/screenshots/archive-patcher/)): the top row,
-  the Name Filter and the list line up with Tk's to within 1-2 px (Patch All and About sit 2 px higher). The list is
-  plain rows, not a Treeview: no row selection or hover, and its scrollbar and the log pane's are Fluent's, as in the
-  Downgrader. The Name Filter is a Fluent TextBox restyled to the ttk.Entry's rest look; its hover and focus looks
-  are Fluent's. Neither the list nor the log pane shows Tk's blinking insertion cursor. The name filter case-folds with
-  a table generated from the reference's Python (`dotnet/eng/generate-casefold.py`, Unicode 16.0.0), but the list's
-  path order lowercases with `ToLowerInvariant`, as the Overview's sets do.
-- F4SE tab (see [`parity/screenshots/f4se/`](../parity/screenshots/f4se/)): the tree, its headings and rows, the
-  scrollbar column and the legend line up with Tk's to within a pixel. The glyphs fall back to Segoe UI Symbol, so
-  they take the row's colour as Tk's do, but in Symbol's shapes rather than the Segoe UI Emoji ones GDI draws. The
-  scrollbar's thumb is the app's Fluent one, filling the 12 px trough where sv_ttk's is a 6 px bar with arrows, and
-  with no rows to scroll it shows no thumb where sv_ttk's fills the trough. The legend wraps at words, not characters
-  (`wrap=CHAR`); no line of it is wide enough to wrap. Each plugin is unmapped once inspected; the reference never
-  freed its `WinDLL`s, so every plugin stayed locked against deletion until exit.
-- The Scanner's side and details panes are borderless windows owned by the main window (`Views/OwnedPaneDocker`),
-  placed by the reference's formulas from the client origin (see [`parity/screenshots/scanner/`](../parity/screenshots/scanner/)).
-  `pwsh eng/Test-ScannerPanes.ps1 -Exe artifacts/publish/cm-toolkit.exe [-Drag]` walks them through moves, a second
-  monitor, minimise/restore, tab switches and a rescan on a real desktop (`-Drag` drags the title bar with the real
-  mouse); it passed at 100 % on two 100 % monitors. It still needs a run at 150 % and with monitors at different
-  scales, which this machine's setup didn't allow. Win32 ownership replaces the reference's minimise/restore and
-  raise handling (SHELL-11). Clicking a pane activates it, so the main window's title bar goes inactive; a probe of
-  the reference was inconclusive (after a real click on its pane neither Tk window was in the foreground), so this is
-  open for a follow-up.
-- The results tree's open groups keep Fluent's down chevron, where sv_ttk draws the right-pointing indicator for
-  open and closed groups alike. The results scrollbar is Fluent's, which hides its thumb with nothing to scroll, as
-  the log pane's does. Result group order is random in the reference (B-4); the port lists groups in the order their
-  problem types first appear, the same on every run (bug #23, a Deviation), so the scanner pairs list the groups in
-  another order than Tk's. Their No Mod Manager result names `cm-toolkit.exe` where Tk's names `main.py`, the
-  program each was started as. The port's boxes start from the saved `scanner_*` settings, and each box change is saved at once rather than at Scan Game (bug #20, a Deviation);
-  the screenshot script clicked only the boxes not already as wanted.
-- Downgrader Patch All (see [`parity/screenshots/downgrader-run/`](../parity/screenshots/downgrader-run/)): Delta
-  Patches come from this fork's mirror (`DeltaPatches.UrlBase`, issue #16). Downloads send `User-Agent:
-  cm-toolkit/<version>` and ask for no compression, where requests asked for gzip and decoded it itself (GitHub serves
-  the patches unencoded); like the update check, HttpClient doesn't follow an https-to-http redirect. The progress bar
-  shows the last value each 100 ms poll drained, which is all Tk drew. A download that fails (an error status, the
-  network, a body cut off) is logged in the pane, saves nothing, and puts its file back from the backup, and the
-  queue moves on, where the reference's poll went on waiting forever; a response without a Content-Length downloads
-  in full; a patch that fails to decode is deleted so the next run downloads it again (B-10, bug #15, a Deviation). Decoding
-  is VCDiff's, which writes a window before checking it, so the port holds each window back until the decoder moves
-  on, to leave exactly the windows xdelta3 would on a failed decode. A failed decode then deletes those windows and
-  puts the backup back as the live file (bug #14, a Deviation); a backup that can't be put back is logged and the
-  queue still finishes. Patch All is enabled exactly when nothing is queued or running, not by whether the loop's last
-  file needed a patch (B-11, bug #28, a Deviation). The window widens past its fixed 600 px to fit the long
-  `Next-Gen & Anniversary` label, so Patch All and About stay visible (bug #85, a Deviation). A file whose only
-  attribute is read-only is left writable, so its backup isn't read-only (bug #91, a Deviation).
-- The Scanner's details pane (see [`parity/screenshots/scanner/details/`](../parity/screenshots/scanner/details/)):
-  a path that can't be opened shows Avalonia's "unavailable" cursor where Tk shows its `X_cursor` glyph, which has
-  no standard Windows cursor. Its tooltips are Avalonia's, as everywhere else.
+same folder, beside the exe, whatever the working directory. The Python app resolved all three against the working
+directory, so a launch from a shortcut, a terminal or an MO2 entry with another "Start in" scattered them
+([#36](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/36)). At startup the app checks that it can
+write to this folder by creating and deleting a probe file. If it can't, as for an install under a protected folder
+such as `Program Files`, it keeps all three in `%LOCALAPPDATA%\CM-Toolkit` instead and logs a warning naming both
+folders. Startup fails only if that folder can't be created or the log can't be opened there. If the app folder has
+no `settings.json` but the working directory has one, where the Python app kept it, startup copies that file over
+once and logs the copy. Only the settings move: the log and patches are disposable. Scenario runs
+(`CMT_PARITY_SCENARIO`) use the scenario's working directory and copy nothing.

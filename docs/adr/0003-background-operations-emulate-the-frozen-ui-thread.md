@@ -17,4 +17,4 @@ Core stays synchronous and never knows about threads, except for the network-bou
 ## Consequences
 
 - Known deviations, not parity items: input during a blocking phase is dropped rather than replayed. The process exits as soon as the window closes, where the reference's non-daemon threads kept it alive until a scan or download finished. Nondeterministic races (B-2, the scan results dropped by the completion flag) are not reproduced.
-- Any new operation must be classified as blocking or interactive, using the reference's behaviour at the Parity Baseline.
+- Any new operation must be classified as blocking or interactive, using the reference's behaviour at the Parity Baseline. (Amended by [ADR-0007](0007-parity-process-retired.md): a new operation is classified by whether input arriving mid-operation could make it wrong, not by the reference.)

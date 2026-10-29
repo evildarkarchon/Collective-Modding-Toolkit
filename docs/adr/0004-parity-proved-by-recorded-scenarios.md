@@ -1,5 +1,8 @@
 # Behaviour Parity is proved by recorded Parity Scenarios against an untouched reference
 
+> **Superseded (2026-10-29):** [ADR-0007](0007-parity-process-retired.md) retired the parity process. The Parity
+> Inventory and its coverage check are gone; the scenarios and goldens stay as plain regression fixtures.
+
 C# Core proves Behaviour Parity by reproducing **Parity Scenarios**. Each scenario is a fake machine: a game tree, Documents, LocalAppData, MO2 and CWD, plus a host description covering registry values, the parent-process chain, known folders, OS strings, dialog answers and canned HTTP responses. Each also carries golden results that the Reference Implementation produced for it at the Parity Baseline.
 
 **Recording**

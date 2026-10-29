@@ -1,28 +1,25 @@
-# Parity harness
+# Scenario fixtures
 
-How the C# port proved **Behaviour Parity** with the Reference Implementation
-([ADR-0004](../docs/adr/0004-parity-proved-by-recorded-scenarios.md)). Each **Parity Scenario** is a fake machine. A
-Python driver recorded once what the Reference Implementation did on it (the *golden*), and C# tests replay the
-scenario against Core or the App and compare. The checklist proved is the [Parity Inventory](../docs/parity-inventory.md).
+Each **Parity Scenario** is a fake machine: a game tree plus the OS around it. During the port, a Python driver
+recorded once what the Python app did on each one (the *golden*), and C# tests replay the scenario against Core or the
+App and compare. That proved the port matched the Python app
+([ADR-0004](../docs/adr/0004-parity-proved-by-recorded-scenarios.md)); the port is done, and the parity process is
+retired ([ADR-0007](../docs/adr/0007-parity-process-retired.md)).
 
-**Since the Cutover** ([#71](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/71)) the Reference
-Implementation and the driver are gone from the tree; both are preserved at the `python-reference` tag. The scenarios
-and goldens stay as **regression fixtures**: every test below still replays them, and CI runs the coverage check in
-`--strict` mode. Goldens can't be re-recorded any more. New behaviour is covered by hand-written tests, and a change
-to what an existing scenario must produce is a [Deviation](#deviations-changing-a-recorded-result).
+The scenarios and goldens stay as **regression fixtures**: the tests below still replay them on every run. The
+driver is gone (preserved at the `python-reference` tag), so a golden can't be re-recorded. Cover new behaviour with
+ordinary hand-written tests, and when a fix or feature changes what a scenario must produce, edit its golden
+([below](#changing-a-scenarios-expected-result)).
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, the recorded `golden.json`, and a `golden.port.json` if the port deviates ([Deviations](#deviations-changing-a-recorded-result)). Plain regression fixtures since the Cutover. |
+| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, `golden.json`, and a `golden.port.json` where the port's fix of a Python bug changed the result ([below](#changing-a-scenarios-expected-result)). |
 | `assets/` | Sources and outputs for synthetic binaries (version stubs, F4SE DLLs, CRC32-forged files, deltas). |
-| `screenshots/<slice>/` | Screenshot pairs against the Tk reference, approved by a human in each slice PR during the port. |
-| `covered.txt` | The ratchet: IDs proven so far. |
-| `coverage-manual.json` | Proofs that are neither a scenario nor a test: exemptions, manual checks, screenshot approvals. |
+| `screenshots/<slice>/` | Screenshot pairs against the Tk app, captured during the port. The README's screenshots come from here. |
 
-The C# side lives in `dotnet/tests/CMToolkit.Tests/Parity/` (scenario source, fakes, comparer) and
-`dotnet/tools/CMToolkit.ParityCoverage/` (the coverage check).
+The C# side lives in `dotnet/tests/CMToolkit.Tests/Parity/` (scenario source, fakes, comparer).
 
 ## Scenarios
 
@@ -53,13 +50,13 @@ keys are errors. Nothing in the app reads `Script/`, and the golden echoes the s
 {
   "description": "What the scenario sets up.",
   "operation": "download-source",          // what the driver ran, and what the C# test calls
-  "parity": ["SET-2"],                     // Parity Inventory IDs this scenario proves
+  "parity": ["SET-2"],                     // the port-era checklist IDs it was recorded for (historical labels)
   "emptyDirs": ["App/assets"],             // tree-relative folders to create (git can't hold empty ones)
   "attributes": [                          // closed vocabulary: readonly, hidden, system
     {"path": "App/assets/download-source.txt", "set": ["readonly", "hidden"]}
   ],
   "host": { ... },                         // the fake OS around the tree, below
-  "deviations": [                          // optional: where the port departs from the recording (see Deviations)
+  "deviations": [                          // optional: where the port departs from the recording (golden.port.json)
     {"bug": 77, "reason": "The Download Source line reaches cm-toolkit.log."}
   ]
 }
@@ -114,9 +111,9 @@ own version, so a version bump doesn't change them.
 
 ## Goldens
 
-`golden.json` was written by the driver, never by hand, and is never edited. (A deviating scenario's
-`golden.port.json` is the one golden written by hand; see [Deviations](#deviations-changing-a-recorded-result).) It is
-a neutral JSON projection: canonical (sorted keys, ASCII escapes, LF), with:
+`golden.json` was written by the driver; a `golden.port.json` was written by hand during the port. Both are now
+fixtures that can be edited ([below](#changing-a-scenarios-expected-result)). A golden is a neutral JSON projection:
+canonical (sorted keys, ASCII escapes, LF), with:
 
 - **Semantic values**: what Core returns. Enums are camelCase strings, such as `"readFailed"`.
 - **`display` sub-objects**: the text the reference renders from those values (labels, log lines, message text). Core
@@ -141,8 +138,8 @@ Each scenario ran in a fresh child process with `PYTHONHASHSEED=0`. The driver i
 (the .NET exemption) whatever the recording machine's Windows build. Results the reference only computed while building
 widgets were read back off the widgets.
 
-Goldens were recorded once, at the Parity Baseline, and re-recorded only through "mirror this change" issues. The
-Cutover retired the Parity Baseline along with the driver, so no golden can be recorded or re-recorded now.
+Goldens were recorded once, during the port. The driver was removed with the Python app at 0.7.0, so no golden can be
+recorded or re-recorded now.
 
 ## Replaying in C#
 
@@ -160,75 +157,22 @@ public void Core_matches_the_reference(ParityScenario scenario)
 ```
 
 `CommittedScenarioTests` fails if a committed scenario is unrecorded, doesn't parse, or isn't picked up by any
-`[MemberData]` returning `TheoryData<ParityScenario>`. A scenario only proves its IDs if a test replays it.
+`[MemberData]` returning `TheoryData<ParityScenario>`. A scenario no test replays protects nothing.
 
 `LoadGolden()` returns `golden.port.json` for a scenario that declares `deviations`, and `golden.json` otherwise, so a
 replaying test never needs to know whether its scenario deviates. `LoadReferenceGolden()` always returns the recording.
 
-## Deviations (changing a recorded result)
+## Changing a scenario's expected result
 
-The port fixes the Reference Implementation's `bug` issues instead of reproducing them
-([ADR-0006](../docs/adr/0006-port-fixes-reference-bugs-as-deviations.md)). Each fix is a **Deviation**: an explicit
-override of the recording, named by its bug issue number and a one-line reason. The recording is never edited:
-`golden.json` stays what the unmodified reference produced. The slices recorded parity faithfully first, so the
-scenarios and tests that prove a bug name its number (`#77`, `Bug #79`, ...); search for it to find what a fix flips.
+When a bug fix or a feature changes what a scenario must produce, edit the golden its replay reads, in the same
+change as the code: `golden.port.json` if the scenario has one, otherwise `golden.json`. Change only the fields the
+change affects, and keep the golden format (sorted keys, two-space indent, LF). Leave `tree/`, `http/` and the
+`parity` list alone unless the change needs a different input; if it does, a hand-written test is usually simpler
+than reshaping a scenario.
 
-Since the Cutover this is also how any later change alters what a scenario must produce, under that change's issue
-number. The first was the Cutover's own version bump: `shell/main-window` and `about/about-tab` show `0.7.0` where the
-reference showed `0.6.2-dev` ([#71](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/71)).
-
-**Flipping a scenario** that recorded the bug:
-
-1. Add `"deviations": [{"bug": <n>, "reason": "<what the port does instead>"}]` to its `scenario.json`. The bug is a
-   positive integer and the reason isn't blank. List several entries if fixes to several bugs change this scenario,
-   one per bug.
-2. Copy `golden.json` to `golden.port.json` beside it, and change only the fields the fix changes. Keep the golden
-   format (sorted keys, two-space indent, LF). The port golden is the one golden written by hand, because no reference
-   produces it.
-3. Leave `golden.json`, `tree/`, `http/` and the `parity` list alone. The scenario still proves its IDs, now with the
-   fixed behaviour.
-4. Run the replaying test (red until the fix lands, then green) and the coverage check.
-
-A deliberate change that isn't a bug fix (the About tab's port credit,
-[#69](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/69)) is a Deviation too. Its `bug` is the
-change's own issue number, and its reason says it is deliberate.
-
-If the fix needs a new input to show the corrected behaviour, write a hand-written test for it. A new scenario can't
-be recorded since the Cutover.
-
-**A hand-written test that asserted the buggy behaviour** (a `[Fact]`/`[Theory]` with `[Trait("Parity", ...)]`):
-
-- Change its assertions to the fixed behaviour, and rename it if its name described the bug.
-- Keep its `Trait("Parity", "<ID>")`, and add `Deviation(<n>, "<reason>")` from `CMToolkit.Tests.Parity` to the same
-  attribute list. Write the bug as an integer literal and the reason as a regular string literal, because the coverage
-  check reads it as text. It is also an xUnit trait, so `dotnet test --filter "Deviation=<n>"` runs every test the fix
-  touched.
-- Rewrite the comments that say "reproduced, not fixed" or cite ADR-0001, so they name the bug as fixed.
-
-The checks enforce the pairing. `LoadGolden()` (and therefore `CommittedScenarioTests`) and the coverage check both fail
-on a declared deviation with no `golden.port.json`, and on a `golden.port.json` with no declared deviation. The coverage
-check also fails on a malformed bug number, a missing or blank reason, the same bug listed twice, an empty `deviations`
-list, a port golden identical to the recording, and a `Deviation` attribute on a test with no `Trait("Parity", ...)` on
-its method or class. It lists every deviation on each run.
-
-## Coverage check
-
-`dotnet run --project dotnet/tools/CMToolkit.ParityCoverage -- --strict` runs in CI after the tests. It collects
-proofs from:
-
-- each recorded scenario's `parity` list;
-- every `[Trait("Parity", "<ID>")]` in `dotnet/tests/` (found as text, so don't write one inside a string literal);
-- `coverage-manual.json` entries: `{"id": "...", "proof": "exempt" | "manual" | "screenshot", "reason": "..."}`.
-
-It **fails** when an ID in `covered.txt` has no proof, when a proof or `covered.txt` cites an ID that isn't in the
-inventory, when a scenario has no golden, or when a [deviation](#deviations-changing-a-recorded-result) is malformed. It
-reports the unproven IDs and the proven IDs not yet in `covered.txt`, and lists every deviation from scenarios and from
-`Deviation` attributes in `dotnet/tests/`.
-With `--strict`, which CI has used since the Cutover, it also fails on every inventory ID that is unproven or missing
-from `covered.txt`. Every ID is now proven and ratcheted, so a change that drops an ID's last proof fails CI.
-
-During the port, each slice added the IDs it proved to `covered.txt` when it merged, and an ID that several slices
-proved in part went in when the last of them merged.
+`LoadGolden()` checks that `golden.port.json` and `deviations` come together: either one without the other fails
+`CommittedScenarioTests`. So don't add or remove either one on its own. The existing `deviations` entries and `Deviation` test attributes are the port's
+record of the Python bugs it fixed (ADR-0006); keep them, but new changes don't need new ones.
 
 ## Screenshots
 

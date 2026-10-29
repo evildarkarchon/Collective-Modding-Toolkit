@@ -18,8 +18,9 @@
 *.md     text
 * text=auto
 
-# Parity Scenario trees and canned HTTP bodies must reach both the Python driver and the C# tests byte for byte
-# (a CRLF, a BOM or an invalid UTF-8 byte is often the point of the scenario), so git must never convert them.
+# Parity Scenario trees and canned HTTP bodies must reach the C# tests byte for byte, as they reached the Python
+# driver that recorded them (a CRLF, a BOM or an invalid UTF-8 byte is often the point of the scenario), so git must
+# never convert them.
 parity/scenarios/**/tree/** -text
 parity/scenarios/**/http/** -text
 # The asset toolchains' outputs are the bytes scenarios copy; some are forged to a CRC32, so one changed byte breaks them.

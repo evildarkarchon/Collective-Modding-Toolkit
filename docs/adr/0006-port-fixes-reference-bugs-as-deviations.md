@@ -1,9 +1,12 @@
 ---
-status: accepted
+status: superseded by ADR-0007
 supersedes: the bug clause of ADR-0001
 ---
 
 # The port fixes reference bugs, each as a documented Deviation
+
+> **Superseded (2026-10-29):** [ADR-0007](0007-parity-process-retired.md) retired the parity process. Changes no
+> longer need to be recorded as Deviations; the existing ones stay as the port's record of what it fixed.
 
 ADR-0001 had the port reproduce the Reference Implementation's bugs and log them for later, so that parity stayed checkable. The user decided on 2026-10-12 that the C# app should fix every open `bug` issue instead of shipping it again. So each fix lands as a **Deviation**: an explicit, reviewable override of Behaviour Parity, tied to its `bug` issue by number, with a one-line reason. Everything a Deviation doesn't name stays at parity with the Parity Baseline.
 
