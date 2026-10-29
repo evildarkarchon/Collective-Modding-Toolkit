@@ -65,3 +65,9 @@ _Avoid_: crash (the app usually keeps running), error (ambiguous with the messag
 **Error Window**:
 The "An Error Occurred" window that reports unhandled errors while the app runs. The port shows every unhandled error in it, and in the log, the moment it happens, where the Reference Implementation surfaced some late and others never.
 _Avoid_: StdErr window (names the Python mechanism, not the thing), error dialog (ambiguous with the message boxes)
+
+## Running the app
+
+**UI Action**:
+Something set going in the window with nobody waiting on its result: a click, a box change, a tab switch, or a step the app schedules for itself, such as the Downgrader's next download. It stops at its first failure. The failure goes to the Error Window, and whatever the action skipped is its Failure Outcome.
+_Avoid_: Tk callback (no Tk runs in the app), event handler (names the code that starts one, not the action)
