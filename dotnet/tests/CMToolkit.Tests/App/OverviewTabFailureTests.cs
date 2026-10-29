@@ -46,6 +46,50 @@ public sealed class OverviewTabFailureTests
         Assert.Empty(warnings);
     }
 
+    /// <summary>
+    /// A refresh whose gathering dies signals it by propagating the runner's <see cref="OperationFailedException"/>, so a
+    /// caller's rest (the Archive Patcher's repopulate, the Scanner's worker) is skipped as the exception skipped it in
+    /// Tk. It still shares what the gathering had got to first, and the runner's report is the only one.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_refresh_whose_gathering_dies_propagates_the_failure_after_sharing_what_it_had_gathered()
+    {
+        using var machine = ParityScenarios.All().Single(s => s.Id == "overview/modules-archives-mixed").Materialize();
+        var (_, state, runtime, _) = Show(machine);
+        var loaded = state.Report!;
+        var logger = (CapturingLogger)runtime.Logger;
+        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
+
+        Task refresh = state.RefreshAsync();
+        DispatcherWait.Until(() => refresh.IsCompleted);
+
+        Assert.IsType<OperationFailedException>(refresh.Exception?.InnerException);
+        Assert.NotSame(loaded, state.Report);
+        Assert.Same(loaded.Archives, state.Report!.Archives);
+        Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The refresh button is a UI Action started through <see cref="ErrorReporter.Handle"/>: a gathering that dies is
+    /// reported once, by the runner under the refresh's name, and not a second time by the click.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_refresh_click_whose_gathering_dies_is_reported_once()
+    {
+        using var machine = ParityScenarios.All().Single(s => s.Id == "overview/modules-archives-mixed").Materialize();
+        var (window, state, runtime, _) = Show(machine);
+        var loaded = state.Report;
+        var logger = (CapturingLogger)runtime.Logger;
+        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
+
+        MouseClick.On(Named<Button>(window, "Refresh"));
+        DispatcherWait.Until(() => !ReferenceEquals(state.Report, loaded) && !runtime.Input.IsBlocking);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Overview refresh")}", report.Message, StringComparison.Ordinal);
+    }
+
     [AvaloniaFact]
     [Trait("Parity", "OVW-M5")]
     public void The_warnings_are_shown_by_the_load_only()
@@ -67,8 +111,8 @@ public sealed class OverviewTabFailureTests
     public void A_refresh_click_that_fails_after_its_gathering_is_reported_in_the_error_window()
     {
         // A report the frames can't be built from: the gathering succeeded, so the runner had nothing to report, and the
-        // failure comes from rebuilding the frames on the UI thread. The click discards RefreshAsync's task, so the
-        // tab must report the error itself, as a Tk callback's exception reached report_callback_exception.
+        // failure comes from rebuilding the frames on the UI thread. The click starts RefreshAsync through
+        // ErrorReporter.Handle, which reports it, as a Tk callback's exception reached report_callback_exception.
         using var machine = ParityScenarios.All().Single(s => s.Id == "overview/modules-archives-mixed").Materialize();
         var gathered = 0;
         var (window, state, runtime, _) = Show(machine, (game, host, logger, previous) =>

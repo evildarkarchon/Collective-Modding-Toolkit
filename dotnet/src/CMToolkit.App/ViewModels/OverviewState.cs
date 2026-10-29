@@ -21,13 +21,14 @@ public sealed partial class OverviewState : ObservableObject
 
     /// <summary>
     /// Refreshes the Overview tab (<c>cmc.refresh_tab(Tab.Overview)</c>), as the Scanner does before each scan. Set by
-    /// the Overview tab when it is built; it returns whether the refresh completed.
+    /// the Overview tab when it is built; a failed refresh propagates its <see cref="Runtime.OperationFailedException"/>.
     /// </summary>
-    public Func<Task<bool>>? Refresher { get; set; }
+    public Func<Task>? Refresher { get; set; }
 
     /// <summary>Runs <see cref="Refresher"/>.</summary>
-    /// <returns>Whether the refresh completed; a failed one has already been reported.</returns>
+    /// <returns>A task that completes when the refresh is done.</returns>
     /// <exception cref="InvalidOperationException">No Overview tab was built over this state.</exception>
-    public Task<bool> RefreshAsync()
+    /// <exception cref="Runtime.OperationFailedException">The refresh failed; the runner has reported it.</exception>
+    public Task RefreshAsync()
         => Refresher?.Invoke() ?? throw new InvalidOperationException("No Overview tab refreshes this state.");
 }

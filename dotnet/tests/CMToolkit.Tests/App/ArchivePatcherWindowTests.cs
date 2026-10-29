@@ -77,7 +77,7 @@ public sealed class ArchivePatcherWindowTests
         var patcher = Show(runtime, game, machine, overview, () =>
         {
             blockedDuringRefresh = runtime.Input.IsBlocking;
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         });
 
         Run(patcher.PatchAllAsync());
@@ -97,9 +97,11 @@ public sealed class ArchivePatcherWindowTests
     {
         using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
         var (runtime, game, overview) = Parts(machine);
-        var patcher = Show(runtime, game, machine, overview, () => Task.FromResult(false));
+        var patcher = Show(runtime, game, machine, overview,
+            () => Task.FromException(new OperationFailedException("Overview refresh", new IOException("The Overview couldn't be gathered."))));
 
-        Run(patcher.PatchAllAsync());
+        // Started as the button starts it: the refresh's failure propagates out of Patch All, and Handle swallows it.
+        Run(runtime.Errors.Handle(patcher.PatchAllAsync));
 
         Assert.True(patcher.ProcessingData);
         // The "Showing" line of the open, then the run's, and no second "Showing" line.
@@ -128,7 +130,7 @@ public sealed class ArchivePatcherWindowTests
         var patcher = Show(runtime, game, machine, overview, () =>
         {
             refreshed = true;
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         });
 
         MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
@@ -172,7 +174,7 @@ public sealed class ArchivePatcherWindowTests
         Assert.Null(game.DataPath);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.FromResult(true));
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
 
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
@@ -194,7 +196,7 @@ public sealed class ArchivePatcherWindowTests
         var (runtime, game, overview) = Parts(machine);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.FromResult(true));
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
         MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
@@ -220,7 +222,7 @@ public sealed class ArchivePatcherWindowTests
     }
 
     private static ArchivePatcherWindow Show(
-        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<Task<bool>> refresh)
+        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<Task> refresh)
     {
         var owner = new Window();
         owner.Show();

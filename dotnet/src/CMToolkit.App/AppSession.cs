@@ -50,14 +50,20 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
     /// <see cref="Overview"/> when it is built. The Scanner (#56) calls <see cref="ViewModels.OverviewState.RefreshAsync"/>
     /// itself and logs the DEBUG line there; both paths end in <see cref="Tabs.OverviewTab.RefreshAsync"/>.
     /// </remarks>
-    /// <returns>
-    /// False when the refresh failed (already reported), which in the reference raised out of the caller and skipped the
-    /// rest of it; true otherwise, including when there is no Overview tab to refresh.
-    /// </returns>
-    public async Task<bool> RefreshOverviewAsync()
+    /// <returns>A task that completes when the refresh is done, at once when there is no Overview tab to refresh.</returns>
+    /// <exception cref="OperationFailedException">
+    /// The refresh failed; the runner has reported it. In the reference it raised out of the caller and skipped the rest
+    /// of it, as propagating does here.
+    /// </exception>
+    public async Task RefreshOverviewAsync()
     {
         Runtime.Logger.Write(Microsoft.Extensions.Logging.LogLevel.Debug, "Refresh Tab : Overview");
-        return Overview.Refresher is null || await Overview.RefreshAsync();
+        if (Overview.Refresher is null)
+        {
+            return;
+        }
+
+        await Overview.RefreshAsync();
     }
 
     /// <summary>

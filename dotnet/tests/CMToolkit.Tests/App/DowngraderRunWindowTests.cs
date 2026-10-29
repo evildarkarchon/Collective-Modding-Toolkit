@@ -100,6 +100,41 @@ public sealed class DowngraderRunWindowTests
     }
 
     /// <summary>
+    /// The Overview refresh that runs once the queue empties fails: the runner reports it once, and the window tells the
+    /// run as false at the Core seam, so the poll isn't failed and reported a second time. The rest of the "finished" step
+    /// is skipped, leaving the close guard set and Patch All disabled, as the exception left them in Tk.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_failed_overview_refresh_when_the_queue_empties_is_reported_once_and_skips_the_finish()
+    {
+        using var machine = Machine.Materialize();
+        var logger = new CapturingLogger();
+        var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
+        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, http);
+        MouseClick.On(ComposedSession.Named<Button>(main, "DowngradeManager"));
+        DispatcherWait.Until(() => main.OwnedWindows.OfType<DowngraderWindow>().Any(w => w.Versions is not null && w.Content is not null));
+        var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
+        window.UpdateLayout();
+        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+        session.Overview.Refresher = () => session.Runtime.Operations.RunAsync(
+            "Overview refresh", OperationPhase.Blocking, () => throw new IOException("The Overview couldn't be gathered."));
+
+        MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
+        DispatcherWait.Until(() => !session.Runtime.Input.IsBlocking);
+        http.Release();
+        DispatcherWait.Until(() => !window.IsRunning);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Overview refresh")}", report.Message, StringComparison.Ordinal);
+        Assert.True(window.ProcessingData);
+        Assert.False(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
+        window.ProcessingData = false;
+        window.Close();
+        main.Close();
+    }
+
+    /// <summary>
     /// The app on the machine, its Downgrader opened from the Overview and set to Next-Gen; its settings store logs to
     /// <paramref name="settingsLogger"/> if given.
     /// </summary>
