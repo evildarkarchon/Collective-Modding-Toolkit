@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using CMToolkit.App.Runtime;
@@ -25,11 +26,11 @@ public sealed class SettingsTabTests
     private static RadioButton Radio(MainWindow window, string text) => Radios(window).Single(r => (string)r.Content! == text);
 
     /// <summary>The tab over unsaved default settings, shown.</summary>
-    private static MainWindow ShowDefaults()
-    {
-        var runtime = new AppRuntime(new CapturingLogger());
-        return TabHost.Show(runtime, new SettingsTab(runtime, SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub))));
-    }
+    private static MainWindow ShowDefaults() => ShowDefaults(new AppRuntime(new CapturingLogger()));
+
+    /// <summary>The tab over unsaved default settings, shown with <paramref name="runtime"/>.</summary>
+    private static MainWindow ShowDefaults(AppRuntime runtime)
+        => TabHost.Show(runtime, new SettingsTab(runtime, SettingsStore.Unsaved(AppSettings.Defaults(DownloadSource.GitHub))));
 
     /// <summary>
     /// Clicks <paramref name="radio"/> and waits for the blocking operation that writes its save to end. A click made
@@ -88,6 +89,40 @@ public sealed class SettingsTabTests
         log.Release();
         DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         Assert.Contains("\"log_level\": \"DEBUG\"", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    public void A_click_is_marked_handled_before_its_save_completes()
+    {
+        // Routing has moved on by the time the save's await resumes, so Handled must be set before the action starts.
+        var runtime = new AppRuntime(new CapturingLogger());
+        var window = ShowDefaults(runtime);
+        bool? handledWhileRouting = null;
+        window.AddHandler(Button.ClickEvent, (_, e) => handledWhileRouting = e.Handled, RoutingStrategies.Bubble, handledEventsToo: true);
+
+        ClickAndWaitForTheSave(runtime, Radio(window, "Debug"));
+
+        Assert.True(handledWhileRouting);
+    }
+
+    [AvaloniaFact]
+    public void A_save_that_fails_reaches_the_error_window_once()
+    {
+        // The runner reports the failed write under its own name; the click adds no second report.
+        using var temp = new TempDirectory();
+        var storeLog = new FailingSaveLogger();
+        var store = SettingsStore.Load(Path.Combine(temp.Path, "settings.json"), DownloadSource.GitHub, storeLog);
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
+
+        storeLog.Armed = true;
+        ClickAndWaitForTheSave(runtime, Radio(window, "Debug"));
+        DispatcherWait.Until(() => runtime.Errors.Window is not null);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        var entry = Assert.Single(logger.Entries, e => e.Level == LogLevel.Error);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader(SettingsStore.SaveOperationName)}\n", entry.Message, StringComparison.Ordinal);
     }
 
     [AvaloniaFact]
@@ -156,5 +191,28 @@ public sealed class SettingsTabTests
         Assert.Equal(new Size(12, 12), glyph.Bounds.Size);
         Assert.Equal(Avalonia.Media.Color.Parse("#3CD648"), ((Avalonia.Media.ISolidColorBrush)indicator.Fill!).Color);
         Assert.False(Radio(window, "Debug").GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().Single(e => e.Name == "CheckGlyph").IsVisible);
+    }
+
+    /// <summary>
+    /// The settings store's log, which once <see cref="Armed"/> throws on <c>SettingsFile.Save</c>'s first line, so the
+    /// write raises past its own logging and the runner reports the operation as failed. Unarmed, so the load's own
+    /// resave goes through.
+    /// </summary>
+    private sealed class FailingSaveLogger : ILogger
+    {
+        public volatile bool Armed;
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (Armed && formatter(state, exception) == HeldSaveLogger.SavingMessage)
+            {
+                throw new IOException("the log is gone");
+            }
+        }
     }
 }
