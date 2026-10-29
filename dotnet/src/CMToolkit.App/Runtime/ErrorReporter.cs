@@ -70,6 +70,49 @@ public sealed class ErrorReporter
     }
 
     /// <summary>
+    /// Starts a UI Action and handles its failure, the one place that does: the action stops at its first failure,
+    /// which goes to the Error Window, and whatever it skipped is its Failure Outcome. Start every async UI Action
+    /// through <c>Handle</c>; never <c>_ = XAsync()</c> on an event, because a discarded task bypasses the global
+    /// handlers and its fault surfaces only if the garbage collector raises it as unobserved, maybe never.
+    /// </summary>
+    /// <remarks>
+    /// <para>An <see cref="OperationFailedException"/> is swallowed: the runner already reported it, under the
+    /// operation's own header, and propagating it is what skipped the rest of the action. Any other exception is
+    /// reported under <see cref="UiThreadHeader"/>, synchronously, before the returned task completes. The Error Window
+    /// must be up before deferred input (a queued Close or Escape) replays from its posted job, which is also why
+    /// handlers don't rely on <c>async void</c> and the global hook: an <c>async void</c> rethrow arrives as a posted
+    /// job, queued behind the replay.</para>
+    /// <para>No name parameter: an operation that fails inside the action is still reported by the runner under its own
+    /// name. No input block either: callers that need one hold their own, since theirs deliberately start after earlier
+    /// steps. UI thread only.</para>
+    /// </remarks>
+    /// <param name="action">
+    /// The action. A <see cref="Func{TResult}"/>, not a <see cref="Task"/>, so it is started here and a synchronous throw
+    /// before its first await is caught too.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the action has finished or failed, and never faults, so callers may discard it and
+    /// tests may await it. A faulting task would be reported a second time, through
+    /// <see cref="TaskScheduler.UnobservedTaskException"/>, once discarded.
+    /// </returns>
+    public async Task Handle(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (OperationFailedException)
+        {
+            // The runner reported it when the operation died; propagating it is what skipped the rest of the action.
+        }
+        catch (Exception ex)
+        {
+            // Report, not Post: on the UI thread it shows the window now, ahead of any deferred input's posted replay.
+            Report(UiThreadHeader, ex);
+        }
+    }
+
+    /// <summary>
     /// Logs the exception without opening the Error Window, for errors that have somewhere else to go (the startup
     /// failure dialog) or nowhere at all (the process is exiting). Thread-safe.
     /// </summary>

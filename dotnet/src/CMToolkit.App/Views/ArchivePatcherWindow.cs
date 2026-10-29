@@ -151,13 +151,15 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <summary>
     /// Patch All (<c>_patch_wrapper</c>): patches <see cref="FilesToPatch"/> to the Desired Version as a blocking
     /// operation, its log lines going to the pane as they come, then refreshes the Overview and lists the archives
-    /// again. The close guard is set throughout.
+    /// again. The close guard is set throughout. A UI Action: the button starts it through
+    /// <see cref="ErrorReporter.Handle"/>.
     /// </summary>
     /// <returns>
     /// A task that completes when the run is over. If the patching or the refresh fails, the error is reported and the
     /// rest is skipped, leaving the close guard set, as the exception left <c>processing_data</c> in Tk.
     /// </returns>
     /// <exception cref="InvalidOperationException">The game has no Data folder (the reference's assert).</exception>
+    /// <exception cref="OperationFailedException">The patching failed; the runner has reported it.</exception>
     public async Task PatchAllAsync()
     {
         AssertDataPath();
@@ -177,16 +179,10 @@ public sealed class ArchivePatcherWindow : ModalWindow
                 Log.Log(line);
             }
         });
-        try
-        {
-            await Runtime.Operations.RunAsync(
-                "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
-        }
-        catch (OperationFailedException)
-        {
-            // Already reported by the runner. The rest of the wrapper is skipped, as the exception skipped it in Tk.
-            return;
-        }
+        // A failure propagates as OperationFailedException, already reported by the runner. The rest of the wrapper is
+        // skipped, as the exception skipped it in Tk.
+        await Runtime.Operations.RunAsync(
+            "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
 
         Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
         if (!await _refreshOverview())
@@ -273,7 +269,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
 
         var patch = TopButton("PatchAll", "Patch All");
         patch.Margin = new Thickness(5);
-        patch.Click += (_, _) => _ = PatchAllAsync();
+        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
         DockPanel.SetDock(patch, Dock.Right);
 
         var oldGen = Radio("OldGen", "v1 (OG)", ArchiveVersion.OldGen, isChecked: true);
