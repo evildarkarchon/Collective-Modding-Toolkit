@@ -209,6 +209,64 @@ public sealed class LazyTabTests
     }
 
     [AvaloniaFact]
+    public void A_failed_load_reaches_the_error_window_once_before_a_close_deferred_during_it_replays()
+    {
+        Shell? shell = null;
+        bool? upAtClose = null;
+        shell = ShowShell(pages => pages[1].Load = async _ =>
+        {
+            // On a posted continuation, as a real load is, and under the tab's input block, so the close is deferred.
+            await Task.Yield();
+            UserClose.Request(shell!.Window);
+            throw new InvalidOperationException("no DLLs");
+        });
+        shell.Window.Closed += (_, _) => upAtClose = shell.Runtime.Errors.Window is not null;
+
+        shell.Select(1);
+
+        Assert.True(upAtClose);
+        Assert.Equal("Scanning DLLs...", Assert.IsType<TextBlock>(shell.Tab(1).Content).Text);
+        var report = Assert.Single(shell.Logger.Entries, entry => entry.Level == LogLevel.Error);
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: no DLLs", report.Message);
+    }
+
+    [AvaloniaFact]
+    public void A_load_whose_operation_fails_is_reported_only_by_the_runner()
+    {
+        Shell? shell = null;
+        shell = ShowShell(pages => pages[1].Load = async _ =>
+        {
+            await shell!.Runtime.Operations.RunAsync(
+                "Load F4SETab", OperationPhase.Blocking, () => throw new InvalidOperationException("no DLLs"));
+            return true;
+        });
+
+        shell.Select(1);
+        DispatcherWait.Until(() => shell.Runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(shell.Logger.Entries, entry => entry.Level == LogLevel.Error);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Load F4SETab")}\n", report.Message);
+    }
+
+    [AvaloniaFact]
+    public async Task Selecting_a_tab_directly_leaves_a_failed_load_to_the_caller()
+    {
+        // The main window starts the selection through ErrorReporter.Handle, which does the reporting; the tab itself
+        // only lets the failure through.
+        var runtime = new AppRuntime(new CapturingLogger());
+        var page = new ProbeTab("F4SE", "F4SETab") { Load = _ => throw new InvalidOperationException("no DLLs") };
+        var tab = new LazyTab(page, runtime);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(tab.SelectAsync);
+
+        Assert.Equal("no DLLs", ex.Message);
+        Assert.Null(runtime.Errors.Window);
+        Assert.False(runtime.Input.IsBlocking);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "SHELL-8")]
     public void Switching_and_loading_are_logged_at_debug()
     {
