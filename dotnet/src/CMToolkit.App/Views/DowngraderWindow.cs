@@ -75,7 +75,7 @@ public sealed class DowngraderWindow : ModalWindow
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
     private readonly SettingsStore _settings;
-    private readonly Func<Task<bool>> _refreshOverview;
+    private readonly Func<Task> _refreshOverview;
     private readonly HttpMessageHandler? _deltaPatchHttp;
     private readonly string? _patchFolder;
     private readonly IProgress<OperationEvent> _events;
@@ -105,8 +105,9 @@ public sealed class DowngraderWindow : ModalWindow
     /// <param name="overview">The Overview's state, whose Install Type decides how a shared Next-Gen &amp; Anniversary file reads (DG-3).</param>
     /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them (SET-7).</param>
     /// <param name="refreshOverview">
-    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run when the patch queue empties; false when it failed (already reported).
-    /// By default there is no Overview to refresh, and it succeeds.
+    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run when the patch queue empties. A failed refresh propagates its
+    /// <see cref="OperationFailedException"/> (already reported), which the window tells the run as false. By default
+    /// there is no Overview to refresh, and it succeeds.
     /// </param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
     /// <param name="patchFolder">
@@ -119,7 +120,7 @@ public sealed class DowngraderWindow : ModalWindow
         IHostEnvironment host,
         OverviewState overview,
         SettingsStore settings,
-        Func<Task<bool>>? refreshOverview = null,
+        Func<Task>? refreshOverview = null,
         HttpMessageHandler? deltaPatchHttp = null,
         string? patchFolder = null)
         : base(runtime, "Downgrader", DefaultWidth, 334)
@@ -128,7 +129,7 @@ public sealed class DowngraderWindow : ModalWindow
         _host = host;
         _overview = overview;
         _settings = settings;
-        _refreshOverview = refreshOverview ?? (() => Task.FromResult(true));
+        _refreshOverview = refreshOverview ?? (() => Task.CompletedTask);
         _deltaPatchHttp = deltaPatchHttp;
         _patchFolder = patchFolder;
         _events = new UiThreadProgress<OperationEvent>(Apply);
@@ -353,7 +354,24 @@ public sealed class DowngraderWindow : ModalWindow
 
         public bool DeletePatches => window._deletePatchesNow;
 
-        public Task<bool> RefreshOverviewAsync() => Dispatcher.UIThread.InvokeAsync(window._refreshOverview);
+        /// <summary>
+        /// Runs the window's Overview refresh on the UI thread, turning its failure into false at the Core seam.
+        /// </summary>
+        /// <returns>False when the refresh failed; the runner has already reported it.</returns>
+        public async Task<bool> RefreshOverviewAsync()
+        {
+            try
+            {
+                await Dispatcher.UIThread.InvokeAsync(window._refreshOverview).ConfigureAwait(false);
+                return true;
+            }
+            catch (OperationFailedException)
+            {
+                // Translated, not propagated: IDowngraderHost is a Core seam and Core doesn't know the runner's exception
+                // (ADR-0003). Left to propagate, it would also fail the download poll, and be reported a second time.
+                return false;
+            }
+        }
 
         public void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll) => window.SchedulePoll(poll);
     }

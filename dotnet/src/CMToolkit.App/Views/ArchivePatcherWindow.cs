@@ -61,7 +61,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     private readonly GameInstall _game;
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
-    private readonly Func<Task<bool>> _refreshOverview;
+    private readonly Func<Task> _refreshOverview;
     private readonly TextBlock _caption;
     private readonly StackPanel _rows = new() { Name = "Files" };
     private readonly TextBox _nameFilterBox;
@@ -71,10 +71,11 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <param name="host">The machine the archives are patched on.</param>
     /// <param name="overview">The Overview's state, whose current report's archives are the candidates.</param>
     /// <param name="refreshOverview">
-    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run after each Patch All; false when the refresh failed (already reported).
+    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run after each Patch All. A failed refresh propagates its
+    /// <see cref="OperationFailedException"/> (already reported), which ends the Patch All.
     /// </param>
     public ArchivePatcherWindow(
-        AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview, Func<Task<bool>> refreshOverview)
+        AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview, Func<Task> refreshOverview)
         : base(runtime, "Archive Patcher", 700, 600)
     {
         _game = game;
@@ -159,7 +160,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// rest is skipped, leaving the close guard set, as the exception left <c>processing_data</c> in Tk.
     /// </returns>
     /// <exception cref="InvalidOperationException">The game has no Data folder (the reference's assert).</exception>
-    /// <exception cref="OperationFailedException">The patching failed; the runner has reported it.</exception>
+    /// <exception cref="OperationFailedException">The patching or the refresh failed; the runner has reported it.</exception>
     public async Task PatchAllAsync()
     {
         AssertDataPath();
@@ -185,11 +186,8 @@ public sealed class ArchivePatcherWindow : ModalWindow
             "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
 
         Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
-        if (!await _refreshOverview())
-        {
-            // The refresh's failure was reported; in Tk it raised out of the wrapper here.
-            return;
-        }
+        // A failed refresh propagates too, already reported; in Tk it raised out of the wrapper here.
+        await _refreshOverview();
 
         PopulateTree();
         ProcessingData = false;

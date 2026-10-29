@@ -300,23 +300,23 @@ public sealed class ScannerTab : TabPage
         _scanningText!.IsVisible = true;
         _scanningText.Text = "Refreshing Overview...";
         _runtime.Logger.Write(LogLevel.Debug, "Refresh Tab : Overview");
-        bool refreshed;
         try
         {
-            refreshed = await _overview.RefreshAsync();
+            await _overview.RefreshAsync();
+        }
+        catch (OperationFailedException)
+        {
+            // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
+            // left Scan Game disabled on Scanning... for good. The runner has reported the error; the scan ends before
+            // its worker.
+            EndBeforeWorker(side);
+            return;
         }
         catch (Exception ex)
         {
             // The refresh raised past its own reporting (rebuilding the Overview's frames, say): reported here, as the
-            // Scan Game handler would have, so the scan can still end below.
+            // Scan Game handler would have, so the scan can still end before its worker, as above.
             _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-            refreshed = false;
-        }
-
-        if (!refreshed)
-        {
-            // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
-            // left Scan Game disabled on Scanning... for good. The error is reported; the scan ends before its worker.
             EndBeforeWorker(side);
             return;
         }
