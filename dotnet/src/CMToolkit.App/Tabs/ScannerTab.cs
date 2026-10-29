@@ -225,9 +225,11 @@ public sealed class ScannerTab : TabPage
 
         // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
         SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
-        SidePane.ScanRequested += (_, _) => _ = RunScanAsync();
+        // Both UI Actions start through Handle: what they raise is reported once, at once (a failed operation already by
+        // the runner), and the task they return never faults, so discarding it is safe.
+        SidePane.ScanRequested += (_, _) => _ = _runtime.Errors.Handle(ScanAsync);
         var created = SidePane;
-        created.BoxChanged += (_, _) => _ = SaveBoxesAsync(created);
+        created.BoxChanged += (_, _) => _ = _runtime.Errors.Handle(() => SaveBoxesAsync(created));
         if (TopLevel.GetTopLevel(_tree) is not null)
         {
             Docker().Show(PaneSlot.Side, SidePane);
@@ -451,42 +453,14 @@ public sealed class ScannerTab : TabPage
     /// with the last one winning. Nothing is written when the boxes already match the settings in effect.
     /// </summary>
     /// <param name="side">The pane whose box changed.</param>
-    private async Task SaveBoxesAsync(ScanSidePane side)
-    {
-        if (ScanSettings.ChangedSettings(_settings.Current, side.Values) is not { } changed)
-        {
-            return;
-        }
-
-        try
-        {
-            await _settings.SaveAsync(_runtime.Operations, changed);
-        }
-        catch (OperationFailedException)
-        {
-            // Already reported by the runner. The new boxes stay in effect for the session either way.
-        }
-        catch (Exception ex)
-        {
-            // Reported here, not left in the task, which the box's change handler discards (as in RunScanAsync).
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
-    }
-
-    /// <summary>Runs a scan from the Scan Game button, reporting what it raises as a Tk callback's exception was.</summary>
-    private async Task RunScanAsync()
-    {
-        try
-        {
-            await ScanAsync();
-        }
-        catch (Exception ex)
-        {
-            // Reported here, not left in the task: the click handler discards it, so a fault would only surface if the
-            // garbage collector raised it as unobserved, maybe never.
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
-    }
+    /// <returns>A task that completes once the file is written, or at once when nothing changed.</returns>
+    /// <exception cref="OperationFailedException">
+    /// The write failed; the runner has reported it. The new boxes stay in effect for the session either way.
+    /// </exception>
+    private Task SaveBoxesAsync(ScanSidePane side)
+        => ScanSettings.ChangedSettings(_settings.Current, side.Values) is { } changed
+            ? _settings.SaveAsync(_runtime.Operations, changed)
+            : Task.CompletedTask;
 
     /// <summary>Closes the details pane if one is open (<c>details_pane.destroy()</c>), so the next selection makes a new one.</summary>
     private void CloseDetails()
