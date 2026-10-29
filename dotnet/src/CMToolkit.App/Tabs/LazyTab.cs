@@ -36,35 +36,16 @@ public sealed class LazyTab : ContentControl
     public TabPage Page { get; }
 
     /// <summary>
-    /// Handles this tab becoming the selected one: switches to it if it is loaded, or loads it the first time.
-    /// Exceptions, from the load or from a later switch, are reported to the Error Window rather than thrown, so the
-    /// returned task never faults and callers may discard it.
+    /// Handles this tab becoming the selected one (<c>CMCTabFrame.load</c>): switches to it if it is loaded, or loads it
+    /// the first time. A UI Action: start it through <see cref="ErrorReporter.Handle"/>, which reports its failure.
     /// </summary>
-    /// <returns>A task that completes when the load, if any, has finished or failed.</returns>
+    /// <remarks>
+    /// An exception leaves the flags where it found them, as in the reference: one thrown mid-load never clears
+    /// <c>_loading</c>, which is what stops every later selection from retrying, so the tab stays on its loading text.
+    /// </remarks>
+    /// <returns>A task that completes when the load, if any, has finished.</returns>
+    /// <exception cref="OperationFailedException">An operation in the load failed; the runner already reported it.</exception>
     public async Task SelectAsync()
-    {
-        try
-        {
-            await SwitchToOrLoadAsync();
-        }
-        catch (OperationFailedException)
-        {
-            // The runner reported it when the operation died. A load stays on its loading text with _loading set.
-        }
-        catch (Exception ex)
-        {
-            // Reported here, not left in the task: the caller discards the task, so a fault would only surface if the
-            // garbage collector raised it as unobserved, maybe never. The input block is already released, but
-            // deferred input replays from a posted job, so the Error Window is up first.
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
-    }
-
-    /// <summary>
-    /// <c>CMCTabFrame.load</c>. An exception leaves the flags where it found them, as in the reference: one thrown
-    /// mid-load never clears <c>_loading</c>, which is what stops every later selection from retrying.
-    /// </summary>
-    private async Task SwitchToOrLoadAsync()
     {
         _runtime.Logger.LogDebug("Switch Tab : {Tab}", Page.LogName);
         if (_loaded)

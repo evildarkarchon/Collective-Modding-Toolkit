@@ -105,6 +105,26 @@ public sealed class DowngraderWindowTests
     }
 
     /// <summary>
+    /// Showing the Downgrader over a main window that has closed throws before its detection starts, so no runner reports
+    /// it. It reaches the Error Window the moment Open is called, not whenever (if ever) the garbage collector finds the
+    /// task unobserved.
+    /// </summary>
+    [AvaloniaFact]
+    public void Opening_over_a_closed_main_window_reports_the_error_at_once()
+    {
+        using var machine = ParityScenarios.All().Single(s => s.Id == "downgrader/og-steam").Materialize();
+        var logger = new CapturingLogger();
+        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, new DowngraderRunScenarioTests.HeldHandler(null));
+        main.Close();
+
+        DowngraderWindow.Open(session);
+
+        Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: ", session.Runtime.Errors.Window?.Text);
+        Assert.Empty(main.OwnedWindows);
+    }
+
+    /// <summary>
     /// The app as startup composes it (the real <see cref="StartupSequence"/>, so the session's main window and the
     /// tabs' openers are the production wiring) on a scenario's machine, shown with its Overview loaded.
     /// </summary>

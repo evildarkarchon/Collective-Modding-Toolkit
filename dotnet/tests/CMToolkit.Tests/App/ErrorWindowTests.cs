@@ -248,6 +248,107 @@ public sealed class ErrorWindowTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task A_ui_action_that_throws_is_reported_once_under_the_ui_thread_header()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+
+        await runtime.Errors.Handle(async () =>
+        {
+            await Task.Yield();
+            throw new InvalidOperationException("from a UI Action");
+        });
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: from a UI Action", entry.Message);
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: from a UI Action", runtime.Errors.Window!.Text);
+    }
+
+    [AvaloniaFact]
+    public async Task A_ui_action_whose_operation_fails_is_not_reported_a_second_time()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var skipped = true;
+
+        await runtime.Errors.Handle(async () =>
+        {
+            await runtime.Operations.RunAsync("Refresh", OperationPhase.Blocking, () => throw new InvalidOperationException("boom"));
+            skipped = false;
+        });
+
+        // Only the runner's report, under the operation's own header; the rest of the action was skipped.
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Refresh")}\n", entry.Message);
+        Assert.True(skipped);
+    }
+
+    [AvaloniaFact]
+    public void A_ui_action_that_throws_before_its_first_await_is_reported_before_handle_returns()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+
+        var handled = runtime.Errors.Handle(() => throw new InvalidOperationException("before any await"));
+
+        Assert.True(handled.IsCompletedSuccessfully);
+        Assert.Single(logger.Entries);
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: before any await", runtime.Errors.Window!.Text);
+    }
+
+    [AvaloniaFact]
+    public void The_task_handle_returns_never_faults()
+    {
+        var runtime = new AppRuntime(new CapturingLogger());
+
+        var operationFailed = runtime.Errors.Handle(
+            () => runtime.Operations.RunAsync("Refresh", OperationPhase.Blocking, () => throw new InvalidOperationException()));
+        var actionThrew = runtime.Errors.Handle(async () =>
+        {
+            await Task.Yield();
+            throw new InvalidOperationException();
+        });
+        DispatcherWait.Until(() => operationFailed.IsCompleted && actionThrew.IsCompleted);
+
+        Assert.Equal(TaskStatus.RanToCompletion, operationFailed.Status);
+        Assert.Equal(TaskStatus.RanToCompletion, actionThrew.Status);
+    }
+
+    /// <summary>
+    /// The action releases its input block and throws in the same step. The block's release posts the deferred Close's
+    /// replay, so the report must not wait for a posted job of its own (as an <c>async void</c> rethrow would) or the
+    /// window would close with no Error Window up.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task The_error_window_is_up_before_a_deferred_close_replays()
+    {
+        var runtime = new AppRuntime(new CapturingLogger());
+        var window = new Window { Width = 300, Height = 200 };
+        bool? errorWindowUpAtReplay = null;
+        runtime.Input.Attach(window, onEscape: () => { }, onCloseRequest: () => errorWindowUpAtReplay = runtime.Errors.Window is not null);
+        window.Show();
+
+        await runtime.Errors.Handle(async () =>
+        {
+            using (runtime.Input.Block())
+            {
+                await Task.Yield();
+                UserClose.Request(window);
+            }
+
+            throw new InvalidOperationException("after the block");
+        });
+        Assert.Null(errorWindowUpAtReplay);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(errorWindowUpAtReplay);
+        window.Close();
+    }
+
     /// <summary>Faults a task nobody awaits. Not inlined, so nothing on this stack keeps the task alive for the GC.</summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void AbandonFaultedTask(string message)

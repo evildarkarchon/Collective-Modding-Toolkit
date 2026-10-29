@@ -77,7 +77,7 @@ public sealed class ArchivePatcherWindowTests
         var patcher = Show(runtime, game, machine, overview, () =>
         {
             blockedDuringRefresh = runtime.Input.IsBlocking;
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         });
 
         Run(patcher.PatchAllAsync());
@@ -97,9 +97,11 @@ public sealed class ArchivePatcherWindowTests
     {
         using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
         var (runtime, game, overview) = Parts(machine);
-        var patcher = Show(runtime, game, machine, overview, () => Task.FromResult(false));
+        var patcher = Show(runtime, game, machine, overview,
+            () => Task.FromException(new OperationFailedException("Overview refresh", new IOException("The Overview couldn't be gathered."))));
 
-        Run(patcher.PatchAllAsync());
+        // Started as the button starts it: the refresh's failure propagates out of Patch All, and Handle swallows it.
+        Run(runtime.Errors.Handle(patcher.PatchAllAsync));
 
         Assert.True(patcher.ProcessingData);
         // The "Showing" line of the open, then the run's, and no second "Showing" line.
@@ -108,6 +110,39 @@ public sealed class ArchivePatcherWindowTests
             patcher.Log.Runs.Where((_, i) => i % 2 == 1).Select(r => r.Text));
         patcher.RequestClose();
         Assert.True(patcher.IsVisible);
+        patcher.ProcessingData = false;
+        patcher.Close();
+    }
+
+    /// <summary>
+    /// A patch run that raised skipped the rest of <c>_patch_wrapper</c> in the reference: no refresh, no repopulate,
+    /// and <c>processing_data</c> left set. Here the runner reports it once, under the operation's name.
+    /// </summary>
+    [AvaloniaFact]
+    [Trait("Parity", "AP-3")]
+    public void A_failed_patch_is_reported_once_and_leaves_the_close_guard_set()
+    {
+        using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
+        var (_, game, overview) = Parts(machine);
+        // Throws on the Core run's opening "Files:" line, so the patch run itself raises on its worker.
+        var logger = new ThrowingLogger(m => m.StartsWith("Files: ", StringComparison.Ordinal));
+        var runtime = new AppRuntime(logger);
+        var refreshed = false;
+        var patcher = Show(runtime, game, machine, overview, () =>
+        {
+            refreshed = true;
+            return Task.CompletedTask;
+        });
+
+        logger.Arm();
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+        DispatcherWait.Until(() => runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Single(logger.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
+        Assert.False(refreshed);
+        Assert.True(patcher.ProcessingData);
         patcher.ProcessingData = false;
         patcher.Close();
     }
@@ -141,13 +176,38 @@ public sealed class ArchivePatcherWindowTests
         Assert.Null(game.DataPath);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.FromResult(true));
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
 
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
         Assert.True(patcher.IsVisible);
         Assert.Empty(patcher.Rows);
         Assert.Empty(patcher.Log.Runs);
+        patcher.Close();
+        owner.Close();
+    }
+
+    /// <summary>
+    /// The assert throws before Patch All's first operation, so no runner reports it. It reaches the Error Window the
+    /// moment the button is clicked, not whenever (if ever) the garbage collector finds the task unobserved.
+    /// </summary>
+    [AvaloniaFact]
+    public void Without_a_data_folder_patch_all_reports_the_assert_at_once()
+    {
+        using var machine = Scenario("overview/no-data").Materialize();
+        var (runtime, game, overview) = Parts(machine);
+        var owner = new Window();
+        owner.Show();
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
+        Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
+
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: assert self.cmc.game.data_path is not None",
+            runtime.Errors.Window?.Text);
+        // The assert came before the guard, as in the reference, so the window can still close.
+        Assert.False(patcher.ProcessingData);
         patcher.Close();
         owner.Close();
     }
@@ -164,7 +224,7 @@ public sealed class ArchivePatcherWindowTests
     }
 
     private static ArchivePatcherWindow Show(
-        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<Task<bool>> refresh)
+        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<Task> refresh)
     {
         var owner = new Window();
         owner.Show();

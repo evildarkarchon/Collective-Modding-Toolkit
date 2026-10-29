@@ -168,7 +168,7 @@ public sealed class ScanDetailsPane : UserControl
         if (_copy is null)
         {
             _copy = PaneButton("Copy Details");
-            _copy.Click += async (_, _) => await CopyDetailsAsync();
+            _copy.Click += (_, _) => _ = _runtime.Errors.Handle(CopyDetailsAsync);
             _buttons.Children.Add(_copy);
         }
 
@@ -253,6 +253,10 @@ public sealed class ScanDetailsPane : UserControl
     /// A left click on the path while it can be opened opens its folder (<c>os.startfile</c>); a failure is reported
     /// in the Error Window, as the Tk callback's exception was.
     /// </summary>
+    /// <remarks>
+    /// No catch: the handler is synchronous, so a throw reaches <c>Dispatcher.UnhandledException</c> during dispatch
+    /// and <see cref="ErrorReporter"/>'s global hook reports it at once.
+    /// </remarks>
     private void OnPathPressed(object? sender, PointerPressedEventArgs e)
     {
         // <Button-1> is bound only while the path can be opened.
@@ -261,14 +265,7 @@ public sealed class ScanDetailsPane : UserControl
             return;
         }
 
-        try
-        {
-            OpenFolder(location);
-        }
-        catch (Exception ex)
-        {
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
+        OpenFolder(location);
     }
 
     /// <summary>On a solution that is a URL: a left click opens it in the browser, a right click copies it.</summary>
@@ -288,43 +285,30 @@ public sealed class ScanDetailsPane : UserControl
         else if (point.IsRightButtonPressed)
         {
             // <Button-3>: copy_text(url), the clipboard alone, with no Copied! anywhere.
-            _ = CopyUrlAsync(url);
+            _ = _runtime.Errors.Handle(() => CopyUrlAsync(url));
         }
     }
 
     /// <summary>
-    /// Puts <paramref name="url"/> on the clipboard; a failure is reported in the Error Window rather than left in the
-    /// task, which the click handler discards.
+    /// Puts <paramref name="url"/> on the clipboard. A UI Action: the right click starts it through
+    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The pane is not in a window, so there is no clipboard.</exception>
     private async Task CopyUrlAsync(string url)
     {
-        try
-        {
-            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard
-                ?? throw new InvalidOperationException("The details pane is not in a window with a clipboard.");
-            await clipboard.SetTextAsync(url);
-        }
-        catch (Exception ex)
-        {
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard
+            ?? throw new InvalidOperationException("The details pane is not in a window with a clipboard.");
+        await clipboard.SetTextAsync(url);
     }
 
     /// <summary>
     /// <c>copy_details</c>: the shown rows to the clipboard, and <c>Copied!</c> for 3 s (THR-3). The text is read at click
-    /// time, since Copy Details is the one button that outlives a selection. A failure reaches the Error Window.
+    /// time, since Copy Details is the one button that outlives a selection. A UI Action: the click starts it through
+    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
     /// </summary>
-    private async Task CopyDetailsAsync()
-    {
-        try
-        {
-            await CopyTextButton.CopyAsync(_copy!, ProblemDetails.CopyText(Problem!, UsingStage), _runtime.Time);
-        }
-        catch (Exception ex)
-        {
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
-    }
+    /// <exception cref="InvalidOperationException">The pane is not in a window, so there is no clipboard.</exception>
+    private Task CopyDetailsAsync()
+        => CopyTextButton.CopyAsync(_copy!, ProblemDetails.CopyText(Problem!, UsingStage), _runtime.Time);
 
     /// <summary>File List: the TreeWindow over the main window (the reference's parent was the root, not the pane).</summary>
     /// <param name="title">The window title.</param>
