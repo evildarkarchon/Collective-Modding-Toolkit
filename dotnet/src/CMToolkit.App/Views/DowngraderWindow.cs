@@ -143,11 +143,11 @@ public sealed class DowngraderWindow : ModalWindow
         if (session.MainWindow is { } owner)
         {
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
-            // click handler that called it has nothing left to do.
-            _ = new DowngraderWindow(
+            // click handler that called it has nothing left to do. Handle's task never faults, so it can be discarded.
+            var window = new DowngraderWindow(
                 session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp,
-                session.AppFolder)
-                .OpenAsync(owner);
+                session.AppFolder);
+            _ = session.Runtime.Errors.Handle(() => window.OpenAsync(owner));
         }
     }
 
@@ -167,24 +167,17 @@ public sealed class DowngraderWindow : ModalWindow
     /// Shows the window over <paramref name="owner"/>, detects the versions as a blocking operation, then builds the
     /// window's content.
     /// </summary>
-    /// <returns>
-    /// A task that completes once the window is built, or once a failed detection has been reported (the window then
-    /// stays up, empty). It never faults for a detection failure.
-    /// </returns>
+    /// <returns>A task that completes once the window is built.</returns>
+    /// <exception cref="OperationFailedException">
+    /// The detection failed and the runner has reported it. The rest of the constructor is skipped, as the exception
+    /// skipped it in Tk, and the window stays up, empty. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// </exception>
     public async Task OpenAsync(Window owner)
     {
         // Not awaited: the returned task completes only when the modal closes.
         _ = ShowModalAsync(owner);
-        try
-        {
-            Versions = await Runtime.Operations.RunAsync(
-                "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
-        }
-        catch (OperationFailedException)
-        {
-            // Already reported by the runner. The rest of the constructor is skipped, as the exception skipped it in Tk.
-            return;
-        }
+        Versions = await Runtime.Operations.RunAsync(
+            "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
 
         _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions) { PatchFolder = _patchFolder };
         Content = Build(Versions);
@@ -223,11 +216,12 @@ public sealed class DowngraderWindow : ModalWindow
     /// operation for the Desired Version the radios show now, which first saves Keep Backups and Delete Patches if either
     /// differs from the settings (SET-7).
     /// </summary>
-    /// <returns>
-    /// A task that completes when the click is done; a download it started goes on in the poll. If the click fails, the
-    /// error is reported and the rest is skipped, the button staying disabled, as the exception left it in Tk.
-    /// </returns>
+    /// <returns>A task that completes when the click is done; a download it started goes on in the poll.</returns>
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
+    /// <exception cref="OperationFailedException">
+    /// The click's run failed and the runner has reported it. The rest of <c>patch_files</c> is skipped, the button
+    /// staying disabled, as the exception left it in Tk. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// </exception>
     public async Task PatchAllAsync()
     {
         var run = _run ?? throw new InvalidOperationException("The Downgrader isn't built.");
@@ -258,10 +252,6 @@ public sealed class DowngraderWindow : ModalWindow
                     await run.PatchAllAsync(desired, new WindowHost(this), _events).ConfigureAwait(false);
                     return true;
                 });
-        }
-        catch (OperationFailedException)
-        {
-            // Already reported by the runner; the rest of patch_files was skipped, as the exception skipped it in Tk.
         }
         finally
         {
@@ -322,28 +312,34 @@ public sealed class DowngraderWindow : ModalWindow
     {
         // Counted now, on the run's thread, so the window never looks idle between the click and its poll.
         Interlocked.Increment(ref _operations);
-        Dispatcher.UIThread.Post(async () =>
+        // Handle's task never faults, so the posted job can discard it.
+        Dispatcher.UIThread.Post(() => _ = Runtime.Errors.Handle(() => PollAsync(poll)));
+    }
+
+    /// <summary>
+    /// Runs the download poll as its own operation, interactive until the run says a patch is being applied (THR-2).
+    /// </summary>
+    /// <exception cref="OperationFailedException">
+    /// The poll failed and the runner has reported it. A failed download, or a backup that can't be put back after it,
+    /// no longer gets here (bug #15, fixed: the run logs it and moves on); an unexpected error does, and leaves the queue
+    /// stuck, as the exception left the reference's poll.
+    /// </exception>
+    private async Task PollAsync(Func<IProgress<OperationPhase>, Task> poll)
+    {
+        try
         {
-            try
-            {
-                await Runtime.Operations.RunPhasedAsync(
-                    "Downgrader download", OperationPhase.Interactive, async phases =>
-                    {
-                        await poll(phases).ConfigureAwait(false);
-                        return true;
-                    });
-            }
-            catch (OperationFailedException)
-            {
-                // Already reported by the runner. A failed download, or a backup that can't be put back after it, no
-                // longer gets here (bug #15, fixed: the run logs it and moves on); an unexpected error does, and leaves
-                // the queue stuck, as the exception left the reference's poll.
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _operations);
-            }
-        });
+            await Runtime.Operations.RunPhasedAsync(
+                "Downgrader download", OperationPhase.Interactive, async phases =>
+                {
+                    await poll(phases).ConfigureAwait(false);
+                    return true;
+                });
+        }
+        finally
+        {
+            // Counted down even when the poll failed, so the window doesn't look busy for good.
+            Interlocked.Decrement(ref _operations);
+        }
     }
 
     /// <summary>The window as the run sees it: live reads of the boxes, the Overview refresh and the poll.</summary>
@@ -418,7 +414,7 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
         };
-        patch.Click += (_, _) => _ = PatchAllAsync();
+        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
         grid.Children.Add(Place(patch, 0, 2, rowSpan: 2, margin: new Thickness(5, 10, 10, 0)));
 
         var about = new Button
