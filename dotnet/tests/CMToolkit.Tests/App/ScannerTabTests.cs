@@ -297,6 +297,55 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
+    public void A_box_change_whose_save_fails_is_reported_once_by_the_runner_and_the_new_box_stays_in_effect()
+    {
+        // The write raises on its worker, past SettingsFile.Save's own logging, so the runner reports it under its
+        // operation's name. The box change's UI Action must not report it a second time under the UI thread's header.
+        using var temp = new TempDirectory();
+        var log = new FailingSaveLogger();
+        var store = SettingsStore.Load(Path.Combine(temp.Path, "settings.json"), DownloadSource.GitHub, log);
+        using var app = ScannerApp.Start(settingsStore: store);
+
+        log.Arm();
+        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
+        Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader(SettingsStore.SaveOperationName)}\n", report.Message);
+        Assert.StartsWith(ErrorReporter.OperationHeader(SettingsStore.SaveOperationName), app.Runtime.Errors.Window!.Text);
+        // The new box value stays in effect for the session either way.
+        Assert.False(store.Current.ScannerJunkFiles);
+    }
+
+    [AvaloniaFact]
+    public void A_scan_that_raises_is_reported_once_under_the_ui_thread_header()
+    {
+        // Leaving the tab mid-scan makes the populate raise (populate_results' ValueError): an exception no runner
+        // reported, so the Scan Game UI Action reports it, once, under the UI thread's header.
+        var work = new ManualResetEventSlim();
+        var entered = false;
+        using var app = ScannerApp.Start(worker: s =>
+        {
+            entered = true;
+            work.Wait(TimeSpan.FromSeconds(30));
+            return ScanWorker.Run(s);
+        });
+
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => entered);
+        app.Select(0);
+        work.Set();
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: populate_results: the side pane is gone.",
+            report.Message);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "SCN-2")]
     public void Collapse_all_and_expand_all_close_and_open_every_group()
     {
@@ -395,6 +444,34 @@ public sealed class ScannerTabTests
         Assert.Empty(app.Scanner.Tree!.Items);
         Assert.Equal("", app.ResultsInfo.Text ?? "");
         Assert.False(app.Scanner.IsSelectable);
+    }
+
+    /// <summary>
+    /// A settings store's logger that, once <see cref="Arm"/> is called, throws on <c>SettingsFile.Save</c>'s opening
+    /// <see cref="HeldSaveLogger.SavingMessage"/> line, so the write raises on its worker past the save's own catch:
+    /// the only way to make <see cref="SettingsStore.SaveAsync"/>'s operation fail, since a failed write is logged and
+    /// swallowed. Lines before then (the load's) go through, so the store loads normally.
+    /// </summary>
+    private sealed class FailingSaveLogger : ILogger
+    {
+        private volatile bool _armed;
+
+        /// <summary>Makes every later save's write raise.</summary>
+        public void Arm() => _armed = true;
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (_armed && formatter(state, exception) == HeldSaveLogger.SavingMessage)
+            {
+                throw new IOException("the log is gone");
+            }
+        }
     }
 
     /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>
