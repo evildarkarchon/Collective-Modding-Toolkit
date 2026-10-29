@@ -12,7 +12,8 @@ namespace CMToolkit.App.Runtime;
 /// An exception in the work is reported to the Error Window and the log, then the returned task fails with
 /// <see cref="OperationFailedException"/>. That kills only this operation: the rest of the caller's UI code is skipped,
 /// as an exception skipped the rest of a Tk callback, so its Failure Outcome (a tab stuck on its loading text, a
-/// button left disabled) happens as in the reference. The global handlers know the exception was already reported.
+/// button left disabled) happens as in the reference. <see cref="ErrorReporter.Handle"/>, which starts every UI Action,
+/// and the global handlers know the exception was already reported.
 /// </remarks>
 public sealed class BackgroundOperations
 {

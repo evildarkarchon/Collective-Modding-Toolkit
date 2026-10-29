@@ -195,14 +195,15 @@ public sealed class OverviewTab : TabPage
     /// The refresh button (OVW-8): gathers a new report as a blocking operation, then rebuilds the frames. The top block
     /// isn't rebuilt; its Version label follows the Install Type. No warning is shown. If the gathering fails, the error
     /// is reported, what it had gathered becomes the current report (the reference's shared state), and the frames are
-    /// left as they were.
+    /// left as they were. A UI Action: the button starts it through <see cref="ErrorReporter.Handle"/>.
     /// </summary>
-    /// <returns>
-    /// Whether the refresh completed; false when its gathering failed and was reported. The callers refreshing through
-    /// <c>cmc.refresh_tab</c> (the Scanner's scan, the Archive Patcher's Patch All) stop on false, as the exception
+    /// <returns>A task that completes when the frames are rebuilt.</returns>
+    /// <exception cref="OperationFailedException">
+    /// The gathering failed; the runner has reported it. It propagates so the callers refreshing through
+    /// <c>cmc.refresh_tab</c> (the Scanner's scan, the Archive Patcher's Patch All) skip their rest, as the exception
     /// ended their Tk callback too.
-    /// </returns>
-    public async Task<bool> RefreshAsync()
+    /// </exception>
+    public async Task RefreshAsync()
     {
         OverviewReport report;
         try
@@ -210,38 +211,16 @@ public sealed class OverviewTab : TabPage
             var previous = _state.Report;
             report = await _runtime.Operations.RunAsync("Overview refresh", OperationPhase.Blocking, () => Gather(previous));
         }
-        catch (OperationFailedException ex)
+        catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
         {
-            // Already reported by the runner; the rest of the refresh is skipped, as the exception skipped it in Tk.
-            if (ex.InnerException is OverviewIncompleteException incomplete)
-            {
-                _state.Report = incomplete.Partial;
-            }
-
-            return false;
+            // Already reported by the runner. What it had gathered is shared, then the rest of the refresh is skipped, as
+            // the exception skipped it in Tk.
+            _state.Report = incomplete.Partial;
+            throw;
         }
 
         _state.Report = report;
         BuildFrames();
-        return true;
-    }
-
-    /// <summary>
-    /// Runs <see cref="RefreshAsync"/> from the refresh button, reporting what it raises (rebuilding the frames, say) as a
-    /// Tk callback's exception was, as <c>ScannerTab.RunScanAsync</c> does for the Scan Game button.
-    /// </summary>
-    private async Task RefreshFromButtonAsync()
-    {
-        try
-        {
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            // Reported here, not left in the task: the click handler discards it, so a fault would only surface if the
-            // garbage collector raised it as unobserved, maybe never (ADR-0003).
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
-        }
     }
 
     private OverviewReport Gather(OverviewReport? previous) => Gatherer(_game, _host, _runtime.Logger, previous);
@@ -380,7 +359,7 @@ public sealed class OverviewTab : TabPage
             Margin = new Thickness(10, 0),
         };
         ToolTip.SetTip(refresh, RefreshTooltip);
-        refresh.Click += (_, _) => _ = RefreshFromButtonAsync();
+        refresh.Click += (_, _) => _ = _runtime.Errors.Handle(RefreshAsync);
         Place(refresh, 0, 3);
         Grid.SetRowSpan(refresh, 2);
         grid.Children.Add(refresh);

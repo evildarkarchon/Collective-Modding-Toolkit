@@ -297,6 +297,55 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
+    public void A_box_change_whose_save_fails_is_reported_once_by_the_runner_and_the_new_box_stays_in_effect()
+    {
+        // The write raises on its worker, past SettingsFile.Save's own logging, so the runner reports it under its
+        // operation's name. The box change's UI Action must not report it a second time under the UI thread's header.
+        using var temp = new TempDirectory();
+        var log = ThrowingLogger.OnSave();
+        var store = SettingsStore.Load(Path.Combine(temp.Path, "settings.json"), DownloadSource.GitHub, log);
+        using var app = ScannerApp.Start(settingsStore: store);
+
+        log.Arm();
+        MouseClick.On(app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles]);
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
+        Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader(SettingsStore.SaveOperationName)}\n", report.Message);
+        Assert.StartsWith(ErrorReporter.OperationHeader(SettingsStore.SaveOperationName), app.Runtime.Errors.Window!.Text);
+        // The new box value stays in effect for the session either way.
+        Assert.False(store.Current.ScannerJunkFiles);
+    }
+
+    [AvaloniaFact]
+    public void A_scan_that_raises_is_reported_once_under_the_ui_thread_header()
+    {
+        // Leaving the tab mid-scan makes the populate raise (populate_results' ValueError): an exception no runner
+        // reported, so the Scan Game UI Action reports it, once, under the UI thread's header.
+        var work = new ManualResetEventSlim();
+        var entered = false;
+        using var app = ScannerApp.Start(worker: s =>
+        {
+            entered = true;
+            work.Wait(TimeSpan.FromSeconds(30));
+            return ScanWorker.Run(s);
+        });
+
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => entered);
+        app.Select(0);
+        work.Set();
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: populate_results: the side pane is gone.",
+            report.Message);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "SCN-2")]
     public void Collapse_all_and_expand_all_close_and_open_every_group()
     {
