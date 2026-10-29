@@ -113,6 +113,37 @@ public sealed class ArchivePatcherWindowTests
     }
 
     /// <summary>
+    /// A patch run that raised skipped the rest of <c>_patch_wrapper</c> in the reference: no refresh, no repopulate,
+    /// and <c>processing_data</c> left set. Here the runner reports it once, under the operation's name.
+    /// </summary>
+    [AvaloniaFact]
+    [Trait("Parity", "AP-3")]
+    public void A_failed_patch_is_reported_once_and_leaves_the_close_guard_set()
+    {
+        using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
+        var (_, game, overview) = Parts(machine);
+        var logger = new FailingRunLogger();
+        var runtime = new AppRuntime(logger);
+        var refreshed = false;
+        var patcher = Show(runtime, game, machine, overview, () =>
+        {
+            refreshed = true;
+            return Task.FromResult(true);
+        });
+
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+        DispatcherWait.Until(() => runtime.Errors.Window is not null);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Single(logger.Inner.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
+        Assert.False(refreshed);
+        Assert.True(patcher.ProcessingData);
+        patcher.ProcessingData = false;
+        patcher.Close();
+    }
+
+    /// <summary>
     /// Bug #88, fixed (ADR-0006): Escape closes the patcher while the log pane has keyboard focus. In the reference the
     /// pane's <c>&lt;Key&gt;</c> binding returned <c>break</c> for Escape too, so the window's Escape binding never ran.
     /// </summary>
@@ -152,6 +183,31 @@ public sealed class ArchivePatcherWindowTests
         owner.Close();
     }
 
+    /// <summary>
+    /// The assert throws before Patch All's first operation, so no runner reports it. It reaches the Error Window the
+    /// moment the button is clicked, not whenever (if ever) the garbage collector finds the task unobserved.
+    /// </summary>
+    [AvaloniaFact]
+    public void Without_a_data_folder_patch_all_reports_the_assert_at_once()
+    {
+        using var machine = Scenario("overview/no-data").Materialize();
+        var (runtime, game, overview) = Parts(machine);
+        var owner = new Window();
+        owner.Show();
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.FromResult(true));
+        Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
+
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: assert self.cmc.game.data_path is not None",
+            runtime.Errors.Window?.Text);
+        // The assert came before the guard, as in the reference, so the window can still close.
+        Assert.False(patcher.ProcessingData);
+        patcher.Close();
+        owner.Close();
+    }
+
     private static ParityScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id);
 
     /// <summary>The runtime, game and a loaded Overview state for a patcher built by hand.</summary>
@@ -177,5 +233,36 @@ public sealed class ArchivePatcherWindowTests
     {
         DispatcherWait.Until(() => task.IsCompleted);
         task.GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Captures every entry, but throws on the Core run's opening <c>Files:</c> line, so the patch run itself raises on
+    /// its worker: <see cref="CMToolkit.Core.ArchivePatcher.ArchivePatching.Patch"/> turns every per-file I/O error into a
+    /// pane line, so there is no file a test could break to make it fail.
+    /// </summary>
+    private sealed class FailingRunLogger : Microsoft.Extensions.Logging.ILogger
+    {
+        public CapturingLogger Inner { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            Microsoft.Extensions.Logging.LogLevel logLevel,
+            Microsoft.Extensions.Logging.EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            var message = formatter(state, exception);
+            if (message.StartsWith("Files: ", StringComparison.Ordinal))
+            {
+                throw new IOException("the log is gone");
+            }
+
+            Inner.Log(logLevel, eventId, state, exception, formatter);
+        }
     }
 }
