@@ -277,7 +277,8 @@ public sealed class ScannerTab : TabPage
 
     /// <summary>
     /// Scan Game (<c>start_threaded_scan</c>, then <c>check_scan_progress</c> and <c>populate_results</c> once the worker
-    /// is done): SCN-S1..SCN-S3, SCN-R1..SCN-R3.
+    /// is done): SCN-S1..SCN-S3, SCN-R1..SCN-R3. A UI Action: the Scan Game button starts it through
+    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <returns>A task that completes when the results are listed, or when the scan stopped short.</returns>
     /// <exception cref="InvalidOperationException">
@@ -450,7 +451,8 @@ public sealed class ScannerTab : TabPage
     /// Saves the side pane's boxes after one changed (SET-7; bug #20, fixed): the reference saved them only when a scan
     /// started, and never read them back. Through <see cref="SettingsStore.SaveAsync"/>, so the settings in effect
     /// change at once and the file is written off the UI thread under an input block, quick changes landing in order
-    /// with the last one winning. Nothing is written when the boxes already match the settings in effect.
+    /// with the last one winning. Nothing is written when the boxes already match the settings in effect. A UI Action:
+    /// each box change starts it through <see cref="ErrorReporter.Handle"/>.
     /// </summary>
     /// <param name="side">The pane whose box changed.</param>
     /// <returns>A task that completes once the file is written, or at once when nothing changed.</returns>

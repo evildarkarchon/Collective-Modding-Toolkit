@@ -106,7 +106,8 @@ public sealed class DowngraderWindow : ModalWindow
     /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them (SET-7).</param>
     /// <param name="refreshOverview">
     /// <c>cmc.refresh_tab(Tab.Overview)</c>, run when the patch queue empties. A failed refresh propagates its
-    /// <see cref="OperationFailedException"/> (already reported), which the window tells the run as false. By default
+    /// <see cref="OperationFailedException"/> (already reported), and <see cref="WindowHost"/> turns that failure into
+    /// <see langword="false"/> for the run. By default
     /// there is no Overview to refresh, and it succeeds.
     /// </param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>

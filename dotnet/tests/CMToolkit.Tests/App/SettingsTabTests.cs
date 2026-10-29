@@ -110,13 +110,13 @@ public sealed class SettingsTabTests
     {
         // The runner reports the failed write under its own name; the click adds no second report.
         using var temp = new TempDirectory();
-        var storeLog = new FailingSaveLogger();
+        var storeLog = ThrowingLogger.OnSave();
         var store = SettingsStore.Load(Path.Combine(temp.Path, "settings.json"), DownloadSource.GitHub, storeLog);
         var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
         var window = TabHost.Show(runtime, new SettingsTab(runtime, store));
 
-        storeLog.Armed = true;
+        storeLog.Arm();
         ClickAndWaitForTheSave(runtime, Radio(window, "Debug"));
         DispatcherWait.Until(() => runtime.Errors.Window is not null);
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
@@ -191,28 +191,5 @@ public sealed class SettingsTabTests
         Assert.Equal(new Size(12, 12), glyph.Bounds.Size);
         Assert.Equal(Avalonia.Media.Color.Parse("#3CD648"), ((Avalonia.Media.ISolidColorBrush)indicator.Fill!).Color);
         Assert.False(Radio(window, "Debug").GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().Single(e => e.Name == "CheckGlyph").IsVisible);
-    }
-
-    /// <summary>
-    /// The settings store's log, which once <see cref="Armed"/> throws on <c>SettingsFile.Save</c>'s first line, so the
-    /// write raises past its own logging and the runner reports the operation as failed. Unarmed, so the load's own
-    /// resave goes through.
-    /// </summary>
-    private sealed class FailingSaveLogger : ILogger
-    {
-        public volatile bool Armed;
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            if (Armed && formatter(state, exception) == HeldSaveLogger.SavingMessage)
-            {
-                throw new IOException("the log is gone");
-            }
-        }
     }
 }
