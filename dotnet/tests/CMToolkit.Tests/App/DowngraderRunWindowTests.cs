@@ -101,11 +101,11 @@ public sealed class DowngraderRunWindowTests
 
     /// <summary>
     /// The Overview refresh that runs once the queue empties fails: the runner reports it once, and the window tells the
-    /// run as false at the Core seam, so the poll isn't failed and reported a second time. The rest of the "finished" step
-    /// is skipped, leaving the close guard set and Patch All disabled, as the exception left them in Tk.
+    /// run as false at the Core seam, so the poll isn't failed and reported a second time. The window still recovers: the
+    /// version labels are redrawn from the files as they are now, Patch All comes back and the window can be closed.
     /// </summary>
     [AvaloniaFact]
-    public void A_failed_overview_refresh_when_the_queue_empties_is_reported_once_and_skips_the_finish()
+    public void A_failed_overview_refresh_when_the_queue_empties_is_reported_once_and_the_window_recovers()
     {
         using var machine = Machine.Materialize();
         var logger = new CapturingLogger();
@@ -116,6 +116,7 @@ public sealed class DowngraderRunWindowTests
         var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
         window.UpdateLayout();
         MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+        Assert.Equal("Old-Gen", ComposedSession.Named<TextBlock>(window, "Game0").Text);
         // Since the load: the local app data folder went away, which kills the Overview gathering's modules step.
         Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
 
@@ -127,10 +128,11 @@ public sealed class DowngraderRunWindowTests
 
         var report = Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
         Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Overview refresh")}", report.Message, StringComparison.Ordinal);
-        Assert.True(window.ProcessingData);
-        Assert.False(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
-        window.ProcessingData = false;
-        window.Close();
+        Assert.Equal("Next-Gen", ComposedSession.Named<TextBlock>(window, "Game0").Text);
+        Assert.True(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
+        Assert.False(window.ProcessingData);
+        UserClose.Request(window);
+        DispatcherWait.Until(() => !window.IsVisible);
         main.Close();
     }
 
