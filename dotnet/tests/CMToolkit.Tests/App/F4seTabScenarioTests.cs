@@ -73,7 +73,7 @@ public sealed class F4seTabScenarioTests
         var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
         // The Overview loads first, as the initially selected tab.
-        var state = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
+        var state = FixedOverview.Load(runtime, OverviewReport.Gather(game, machine.Host, new CapturingLogger()));
         var tab = new F4seTab(runtime, machine.Host, game, state);
 
         var window = new MainWindow(runtime, [tab]);

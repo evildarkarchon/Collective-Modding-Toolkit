@@ -192,9 +192,8 @@ public sealed class DowngraderRunScenarioTests
         // The app folder is the scenario's working directory: its tree models a toolkit started from its own folder,
         // where the reference kept settings.json and the patches. The port's folder-not-CWD fix (bug #36) is proved by
         // DowngraderRunTests and AppFolderFilesTests, so these goldens stay the reference's.
-        var session = new AppSession(runtime, model, PcInfo.Read(machine.Host, logger), game)
+        var session = new AppSession(runtime, model, PcInfo.Read(machine.Host, logger), game, machine.Host)
         {
-            Host = machine.Host,
             AppFolder = machine.Host.Expand(machine.Host.Block.Cwd!),
             DeltaPatchHttp = http,
         };

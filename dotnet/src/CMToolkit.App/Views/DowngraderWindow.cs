@@ -75,7 +75,6 @@ public sealed class DowngraderWindow : ModalWindow
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
     private readonly SettingsStore _settings;
-    private readonly Func<Task> _refreshOverview;
     private readonly HttpMessageHandler? _deltaPatchHttp;
     private readonly string? _patchFolder;
     private readonly IProgress<OperationEvent> _events;
@@ -102,13 +101,11 @@ public sealed class DowngraderWindow : ModalWindow
     /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
     /// <param name="game">The installation whose game folder holds the six files.</param>
     /// <param name="host">The machine the files are read on.</param>
-    /// <param name="overview">The Overview's state, whose Install Type decides how a shared Next-Gen &amp; Anniversary file reads (DG-3).</param>
-    /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them (SET-7).</param>
-    /// <param name="refreshOverview">
-    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run when the patch queue empties. A failed refresh propagates its
-    /// <see cref="OperationFailedException"/> (already reported), and <see cref="WindowHost"/> turns that failure into
-    /// <see langword="false"/> for the run. By default there is no Overview to refresh, and it succeeds.
+    /// <param name="overview">
+    /// The Overview Report module. Its Install Type decides how a shared Next-Gen &amp; Anniversary file reads, and it is
+    /// refreshed when the patch queue empties (see <see cref="WindowHost.RefreshOverviewAsync"/>).
     /// </param>
+    /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them.</param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
     /// <param name="patchFolder">
     /// Where patches are saved: the app's own folder (<see cref="AppSession.AppFolder"/>, bug #36, fixed). None keeps
@@ -120,7 +117,6 @@ public sealed class DowngraderWindow : ModalWindow
         IHostEnvironment host,
         OverviewState overview,
         SettingsStore settings,
-        Func<Task>? refreshOverview = null,
         HttpMessageHandler? deltaPatchHttp = null,
         string? patchFolder = null)
         : base(runtime, "Downgrader", DefaultWidth, 334)
@@ -129,7 +125,6 @@ public sealed class DowngraderWindow : ModalWindow
         _host = host;
         _overview = overview;
         _settings = settings;
-        _refreshOverview = refreshOverview ?? (() => Task.CompletedTask);
         _deltaPatchHttp = deltaPatchHttp;
         _patchFolder = patchFolder;
         _events = new UiThreadProgress<OperationEvent>(Apply);
@@ -146,8 +141,7 @@ public sealed class DowngraderWindow : ModalWindow
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
             // click handler that called it has nothing left to do. Handle's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
-                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp,
-                session.AppFolder);
+                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
             _ = session.Runtime.Errors.Handle(() => window.OpenAsync(owner));
         }
     }
@@ -351,14 +345,22 @@ public sealed class DowngraderWindow : ModalWindow
         public bool DeletePatches => window._deletePatchesNow;
 
         /// <summary>
-        /// Runs the window's Overview refresh on the UI thread, turning its failure into false at the Core seam.
+        /// Refreshes the Overview Report through the window's module, turning the refresh's failure into false at the
+        /// Core seam. The run calls it from a worker thread, so it hops to the UI thread, where the module's operations
+        /// must start.
         /// </summary>
-        /// <returns>False when the refresh failed; the runner has already reported it.</returns>
+        /// <returns>
+        /// True once the new report is current; false when the gathering failed, which the runner has already reported.
+        /// </returns>
+        /// <remarks>
+        /// The runner's failure is the only way the module's refresh fails: a <see cref="OverviewState.Refreshed"/>
+        /// handler that throws is reported by the module and doesn't reach the run.
+        /// </remarks>
         public async Task<bool> RefreshOverviewAsync()
         {
             try
             {
-                await Dispatcher.UIThread.InvokeAsync(window._refreshOverview).ConfigureAwait(false);
+                await Dispatcher.UIThread.InvokeAsync(window._overview.RefreshAsync).ConfigureAwait(false);
                 return true;
             }
             catch (OperationFailedException)

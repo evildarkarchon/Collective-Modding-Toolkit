@@ -661,23 +661,55 @@ public sealed class DowngraderRunTests
     }
 
     [Fact]
-    [Trait("Parity", "DG-6")]
-    public async Task A_failed_overview_refresh_ends_the_click_where_it_failed()
+    public async Task A_failed_overview_refresh_still_finishes_a_queue_emptied_by_the_click()
     {
-        // The refresh raised out of check_download_queue, so out of patch_files: nothing after it in the loop runs, and
-        // the run's state stays "in progress".
+        // The host has already reported the failed refresh, so the finished step carries on: the files are detected
+        // again and redrawn, Patch All comes back and the window can close. The loop then goes on to the other files.
         using var machine = new Machine();
         machine.Place("Fallout4.exe", "C5965A2E");
         machine.Place("Fallout4_upgradeBackup.exe", "C6053902", from: "Fallout4.exe");
-        machine.Place("Fallout4Launcher.exe", "F6A06FF5");
         var host = new ScriptedHost { RefreshSucceeds = false };
         var run = machine.Run();
 
         await run.PatchAllAsync(InstallType.OldGen, host, host.Events);
 
-        Assert.Equal(["Good: Patched Fallout4.exe", "running", "refresh"], host.Script);
-        Assert.True(run.InProgress);
-        Assert.True(File.Exists(machine.GamePath("Fallout4Launcher.exe")));
+        Assert.Equal(
+            [
+                "Good: Patched Fallout4.exe",
+                "running",
+                "refresh",
+                "versions: Old-Gen, Not Found, Not Found, Not Found, Not Found, Not Found",
+                "button on",
+                "idle",
+                "Info: Skipped Fallout4Launcher.exe: Not Found.",
+                "Info: Skipped steam_api64.dll: Not Found.",
+                "Info: Skipped CreationKit.exe: Not Found.",
+                "Info: Skipped Archive2.exe: Not Found.",
+                "Info: Skipped Archive2Interop.dll: Not Found.",
+                "button on",
+            ],
+            host.Script);
+        Assert.False(run.InProgress);
+    }
+
+    [Fact]
+    public async Task A_failed_overview_refresh_still_finishes_a_queue_emptied_by_the_download_poll()
+    {
+        // The same finished step, reached from the poll once the last download is applied.
+        using var machine = new Machine();
+        machine.Place("Fallout4.exe", "C6053902");
+        var server = new PatchServer();
+        var host = new ScriptedHost { KeepBackups = true, RefreshSucceeds = false };
+        var run = machine.Run(server);
+
+        await run.PatchAllAsync(InstallType.NextGen, host, host.Events);
+        server.Release();
+        await host.RunPollsAsync();
+
+        Assert.Equal(
+            ["% 100", "Good: Patched Fallout4.exe", "refresh", "versions: Next-Gen, Not Found, Not Found, Not Found, Not Found, Not Found", "button on", "idle"],
+            host.Script.SkipWhile(s => s != "% 100"));
+        Assert.False(run.InProgress);
     }
 
     [Fact]

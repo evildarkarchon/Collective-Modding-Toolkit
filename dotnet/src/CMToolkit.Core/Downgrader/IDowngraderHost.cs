@@ -18,11 +18,11 @@ public interface IDowngraderHost
     bool DeletePatches { get; }
 
     /// <summary>
-    /// <c>cmc.refresh_tab(Tab.Overview)</c>, the first thing the run does once its queue is empty.
+    /// Refreshes the Overview Report, the first thing the run does once its queue is empty.
     /// </summary>
     /// <returns>
-    /// False when the refresh failed (and was reported): in the reference it raised out of the run, so the run stops
-    /// there, leaving its state as it was.
+    /// False when the refresh failed (and was reported). The run carries on either way: it still detects the files
+    /// again, redraws them, re-enables Patch All and lets the window close.
     /// </returns>
     Task<bool> RefreshOverviewAsync();
 

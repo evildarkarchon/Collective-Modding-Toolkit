@@ -12,6 +12,7 @@ using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Scanner;
@@ -52,8 +53,8 @@ public sealed class ScanDetailsPaneScenarioTests
         var browser = new RecordingBrowser();
         var time = new FakeTimeProvider();
         var runtime = new AppRuntime(logger) { Browser = browser, Time = time };
-        var state = new OverviewState();
-        var overview = new OverviewTab(runtime, machine.Host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
+        var state = new OverviewState(runtime, previous => OverviewReport.Gather(game, machine.Host, runtime.Logger, previous));
+        var overview = new OverviewTab(runtime, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
         {
             OpenFolder = _ => { },
             ShowWarning = (_, _) => throw new InvalidOperationException("The details scenarios show no warning."),

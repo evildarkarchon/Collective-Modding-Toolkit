@@ -10,6 +10,7 @@ using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Core.Overview;
@@ -54,8 +55,8 @@ public sealed class ScannerTabScenarioTests
         // The app log, which gets the scan's "Settings : Saving" line.
         var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, logger);
         var runtime = new AppRuntime(logger);
-        var state = new OverviewState();
-        var overview = new OverviewTab(runtime, machine.Host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
+        var state = new OverviewState(runtime, previous => OverviewReport.Gather(game, machine.Host, runtime.Logger, previous));
+        var overview = new OverviewTab(runtime, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
         {
             OpenFolder = _ => { },
             ShowWarning = (_, _) => throw new InvalidOperationException("The scanner scenarios show no warning."),

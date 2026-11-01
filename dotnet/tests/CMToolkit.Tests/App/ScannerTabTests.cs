@@ -33,10 +33,10 @@ public sealed class ScannerTabTests
         var work = new ManualResetEventSlim();
         bool? workerOnUiThread = null;
         using var app = ScannerApp.Start(
-            gatherer: (g, h, l, p) =>
+            gatherer: real => p =>
             {
                 gather.Wait(TimeSpan.FromSeconds(30));
-                return OverviewReport.Gather(g, h, l, p);
+                return real(p);
             },
             worker: s =>
             {
@@ -254,7 +254,7 @@ public sealed class ScannerTabTests
         var fail = false;
         var workerRan = false;
         using var app = ScannerApp.Start(
-            gatherer: (g, h, l, p) => fail ? throw new InvalidDataException("No [Archive] section") : OverviewReport.Gather(g, h, l, p),
+            gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p),
             worker: s =>
             {
                 workerRan = true;
@@ -273,27 +273,38 @@ public sealed class ScannerTabTests
         Assert.False(workerRan);
     }
 
+    /// <summary>
+    /// The scan's refresh succeeds, but the Overview tab can't rebuild its frames from the new report. That rebuild is
+    /// the Overview tab's own UI Action: its failure is reported, and the scan, which only needed the report, runs on.
+    /// </summary>
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S1"), Deviation(22, "A scan whose Overview refresh raises past its own reporting has the error reported and ends with nothing listed and Scan Game enabled again.")]
-    public void A_refresh_that_raises_is_reported_and_ends_the_scan_with_scan_game_enabled_again()
+    public void A_frame_rebuild_that_fails_in_the_overview_tab_is_reported_and_the_scan_still_runs()
     {
+        var gathered = 0;
         var workerRan = false;
-        using var app = ScannerApp.Start(worker: s =>
-        {
-            workerRan = true;
-            return ScanWorker.Run(s);
-        });
-        // The refresh itself raising, as rebuilding the Overview's frames could, rather than its gathering failing.
-        app.Overview.Refresher = () => throw new InvalidOperationException("The frames couldn't be rebuilt.");
+        using var app = ScannerApp.Start(
+            gatherer: real => p =>
+            {
+                var report = real(p);
+                // The frames are built from the binaries; the scan never reads them.
+                return ++gathered == 1 ? report : report with { Binaries = null! };
+            },
+            worker: s =>
+            {
+                workerRan = true;
+                return ScanWorker.Run(s);
+            },
+            overviewTab: true);
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        DispatcherWait.Until(() => workerRan && (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
         Dispatcher.UIThread.RunJobs();
 
-        AssertEndedBeforeTheWorker(app);
-        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal)
-            && e.Message.Contains("The frames couldn't be rebuilt.", StringComparison.Ordinal));
-        Assert.False(workerRan);
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.NullReferenceException", report.Message, StringComparison.Ordinal);
+        Assert.Equal(2, gathered);
+        Assert.True(app.Scanner.IsSelectable);
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
     }
 
     [AvaloniaFact]
@@ -446,15 +457,17 @@ public sealed class ScannerTabTests
         Assert.False(app.Scanner.IsSelectable);
     }
 
-    /// <summary>The Overview and Scanner tabs of the <c>scanner/overview-issues</c> machine in a shown main window, on the Scanner.</summary>
+    /// <summary>
+    /// The Scanner tab of the <c>scanner/overview-issues</c> machine, over a loaded Overview Report module, after another
+    /// tab in a shown main window, on the Scanner.
+    /// </summary>
     private sealed class ScannerApp : IDisposable
     {
         private readonly MaterializedScenario _machine;
         private readonly TabControl _tabs;
 
-        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner, OverviewState overview)
+        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner)
         {
-            Overview = overview;
             _machine = machine;
             Window = window;
             Runtime = runtime;
@@ -471,39 +484,51 @@ public sealed class ScannerTabTests
 
         public ScannerTab Scanner { get; }
 
-        /// <summary>The Overview state the scan refreshes and seeds from.</summary>
-        public OverviewState Overview { get; }
-
         public TextBlock ScanningText => Named<TextBlock>("ScanningText");
 
         public TextBlock ResultsInfo => Named<TextBlock>("ResultsInfo");
 
         public ProgressBar Progress => Named<ProgressBar>("Progress");
 
+        /// <summary>
+        /// Builds the module over the machine's real gathering (or <paramref name="gatherer"/> applied to it) and the
+        /// Scanner over it, in a shown main window whose first tab is the one to leave the Scanner for, and selects the
+        /// Scanner once the module is loaded.
+        /// </summary>
+        /// <param name="gatherer">Makes the module's gather function from the real one; null keeps the real one.</param>
+        /// <param name="worker">The scan's worker; the real one by default.</param>
+        /// <param name="stored">The settings the side pane starts from, unsaved; the defaults by default.</param>
+        /// <param name="settingsStore">The settings store, in place of <paramref name="stored"/>.</param>
+        /// <param name="overviewTab">
+        /// Whether the first tab is a real Overview tab over the module, which then loads it. A placeholder tab otherwise,
+        /// and the module is loaded directly: the Scanner needs only the module.
+        /// </param>
         public static ScannerApp Start(
-            Func<GameInstall, IHostEnvironment, ILogger, OverviewReport?, OverviewReport>? gatherer = null,
+            Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gatherer = null,
             Func<ScanSettings, ScanOutcome>? worker = null,
             CMToolkit.Core.Settings.AppSettings? stored = null,
-            SettingsStore? settingsStore = null)
+            SettingsStore? settingsStore = null,
+            bool overviewTab = false)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
                 .GetAwaiter().GetResult()!;
             var logger = new CapturingLogger();
             var runtime = new AppRuntime(logger);
-            var state = new OverviewState();
-            var overview = new OverviewTab(runtime, machine.Host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
-            {
-                OpenFolder = _ => { },
-                Gatherer = gatherer ?? OverviewReport.Gather,
-            };
+            Func<OverviewReport?, OverviewReport> real = p => OverviewReport.Gather(game, machine.Host, logger, p);
+            var state = new OverviewState(runtime, gatherer?.Invoke(real) ?? real);
+            TabPage first = overviewTab
+                ? new OverviewTab(runtime, PcInfo.Read(machine.Host, new CapturingLogger()), game, state) { OpenFolder = _ => { } }
+                : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
             var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ScanWorker.Run };
-            var window = new MainWindow(runtime, [overview, scanner]);
+            var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
+            var load = overviewTab ? null : state.LoadAsync();
             DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
-            var app = new ScannerApp(machine, window, runtime, logger, scanner, state);
+            load?.GetAwaiter().GetResult();
+            var app = new ScannerApp(machine, window, runtime, logger, scanner);
             app.Select(1);
             return app;
         }
