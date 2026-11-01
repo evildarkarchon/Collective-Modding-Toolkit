@@ -30,6 +30,8 @@ public sealed class GoldenAssertTests : IDisposable
         return new ParityScenario(_scenarios.Path, "m/s");
     }
 
+    // The file names are spelled out, not taken from ParityScenario, so these tests pin the on-disk names that
+    // .gitignore and parity/README.md rely on independently of the code under test.
     private static string GoldenPath(ParityScenario scenario) => Path.Combine(scenario.Directory, "golden.json");
 
     private static string NewGoldenPath(ParityScenario scenario) => Path.Combine(scenario.Directory, "golden.new.json");
