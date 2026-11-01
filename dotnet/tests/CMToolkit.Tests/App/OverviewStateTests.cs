@@ -60,6 +60,30 @@ public sealed class OverviewStateTests
         Assert.Equal([new LogEntry(LogLevel.Debug, "Overview : Refresh")], logger.Entries);
     }
 
+    [AvaloniaFact]
+    public void A_subscriber_that_throws_is_reported_once_and_neither_fails_the_refresh_nor_stops_the_others()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var calls = 0;
+        var state = new OverviewState(runtime, _ => ++calls == 1 ? OldGen : NextGen);
+        Await(state.LoadAsync());
+        var before = 0;
+        var after = 0;
+        state.Refreshed += (_, _) => before++;
+        state.Refreshed += (_, _) => throw new InvalidOperationException("A reader broke.");
+        state.Refreshed += (_, _) => after++;
+
+        Await(state.RefreshAsync());
+
+        Assert.Same(NextGen, state.Report);
+        Assert.Equal(1, before);
+        Assert.Equal(1, after);
+        var report = Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {ErrorReporter.UiThreadHeader}", report.Message, StringComparison.Ordinal);
+        Assert.Contains("A reader broke.", report.Message, StringComparison.Ordinal);
+    }
+
     [AvaloniaTheory]
     [InlineData("Overview load")]
     [InlineData("Overview refresh")]

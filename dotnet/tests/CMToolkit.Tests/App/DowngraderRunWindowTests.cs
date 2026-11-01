@@ -198,20 +198,32 @@ public sealed class DowngraderRunWindowTests
     }
 
     /// <summary>
-    /// An error the run doesn't expect raises out of the download poll, here a reader of the Overview Report that throws
-    /// when the refresh announces the new report, so the refresh fails with something other than the runner's reported
-    /// failure. The runner reports it once, under the poll's name, and the queue stays stuck: the window can't be closed
-    /// and Patch All stays disabled. The poll's count still drops.
+    /// An error the run doesn't expect raises out of the download poll: here the patched <c>Fallout4.exe</c> is locked by
+    /// another process (taken during the refresh's gathering, the step just before) when the queue's finished step
+    /// detects the six files again, so the detection's read fails. The runner reports it once, under the poll's name,
+    /// and the queue stays stuck: the window can't be closed and Patch All stays disabled. The poll's count still drops.
     /// </summary>
     [AvaloniaFact]
     [Trait("Parity", "DG-6")]
     public void An_unexpected_error_in_the_poll_is_reported_once_and_leaves_the_queue_stuck()
     {
         using var machine = Machine.Materialize();
+        // Declared after the machine, so it is released before the machine's folder is deleted.
+        using var exeLock = new ExclusiveLock(Path.Combine(machine.Root, "Game", "Fallout4.exe"));
         var logger = new CapturingLogger();
         var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
-        var (owner, window, runtime, overview) = Build(machine, http, logger);
-        overview.Refreshed += (_, _) => throw new InvalidOperationException("A reader broke.");
+        var gatherings = 0;
+        var (owner, window, runtime, _) = Build(machine, http, logger, gather: real => previous =>
+        {
+            var report = real(previous);
+            // The first gathering is Build's load; the second is the refresh at the start of the finished step.
+            if (Interlocked.Increment(ref gatherings) == 2)
+            {
+                exeLock.Take();
+            }
+
+            return report;
+        });
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
         DispatcherWait.Until(() => !runtime.Input.IsBlocking);
@@ -219,9 +231,11 @@ public sealed class DowngraderRunWindowTests
         DispatcherWait.Until(() => !window.IsRunning);
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
 
+        Assert.Equal(2, gatherings);
         Assert.Single(logger.Entries, IsErrorReport);
         Assert.StartsWith(ErrorReporter.OperationHeader("Downgrader download"), runtime.Errors.Window?.Text);
-        Assert.Contains("A reader broke.", runtime.Errors.Window?.Text, StringComparison.Ordinal);
+        Assert.Contains("System.IO.IOException", runtime.Errors.Window?.Text, StringComparison.Ordinal);
+        Assert.Contains("Fallout4.exe", runtime.Errors.Window?.Text, StringComparison.Ordinal);
         Assert.True(window.ProcessingData);
         Assert.False(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
         window.ProcessingData = false;
@@ -269,4 +283,19 @@ public sealed class DowngraderRunWindowTests
 
     /// <summary>Whether a log entry is an Error Window report rather than a line the app logged.</summary>
     private static bool IsErrorReport(LogEntry entry) => entry.Message.StartsWith("StdErr : ", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Another process holding a file open with no sharing, taken on demand from any thread: every open of the file
+    /// fails with an <see cref="IOException"/> until it is disposed.
+    /// </summary>
+    private sealed class ExclusiveLock(string path) : IDisposable
+    {
+        private FileStream? _stream;
+
+        /// <summary>Opens the file with no sharing and keeps it open until disposed. Take it once.</summary>
+        public void Take() => Volatile.Write(ref _stream, new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None));
+
+        /// <summary>Releases the file, if it was taken.</summary>
+        public void Dispose() => Interlocked.Exchange(ref _stream, null)?.Dispose();
+    }
 }

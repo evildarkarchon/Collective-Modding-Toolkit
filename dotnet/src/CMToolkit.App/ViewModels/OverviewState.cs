@@ -42,6 +42,10 @@ public sealed partial class OverviewState : ObservableObject
     /// Raised on the UI thread after a refresh has replaced <see cref="Report"/>. Not raised by the load, nor by a refresh
     /// that failed, even one that left a partial report current.
     /// </summary>
+    /// <remarks>
+    /// Each handler runs as its own UI Action: one that throws is reported to the Error Window, the handlers after it
+    /// still run, and the refresh still succeeds, so a reader's failure never reaches whoever asked for the refresh.
+    /// </remarks>
     public event EventHandler? Refreshed;
 
     /// <summary>The current report, or null before the first load (or after a first load that gathered nothing).</summary>
@@ -69,7 +73,8 @@ public sealed partial class OverviewState : ObservableObject
     /// <c>Overview refresh</c>, makes it current and raises <see cref="Refreshed"/>.
     /// </summary>
     /// <returns>
-    /// A task that completes once the new report is current and every <see cref="Refreshed"/> handler has returned.
+    /// A task that completes once the new report is current and every <see cref="Refreshed"/> handler has returned or
+    /// thrown. A handler that threw has been reported to the Error Window; its exception doesn't fail the refresh.
     /// </returns>
     /// <exception cref="InvalidOperationException">Not called on the UI thread.</exception>
     /// <exception cref="OperationFailedException">
@@ -81,7 +86,30 @@ public sealed partial class OverviewState : ObservableObject
         Dispatcher.UIThread.VerifyAccess();
         _runtime.Logger.Write(LogLevel.Debug, "Overview : Refresh");
         Report = await GatherAsync("Overview refresh", Report);
-        Refreshed?.Invoke(this, EventArgs.Empty);
+        await RaiseRefreshedAsync();
+    }
+
+    /// <summary>
+    /// Runs each <see cref="Refreshed"/> handler in turn as its own UI Action through <see cref="ErrorReporter.Handle"/>,
+    /// so a handler that throws is reported once to the Error Window and neither stops the handlers after it nor reaches
+    /// the caller that asked for the refresh.
+    /// </summary>
+    private async Task RaiseRefreshedAsync()
+    {
+        if (Refreshed is not { } refreshed)
+        {
+            return;
+        }
+
+        // Walk the invocation list by hand: a plain Invoke stops at the first handler that throws.
+        foreach (var handler in refreshed.GetInvocationList().Cast<EventHandler>())
+        {
+            await _runtime.Errors.Handle(() =>
+            {
+                handler(this, EventArgs.Empty);
+                return Task.CompletedTask;
+            });
+        }
     }
 
     /// <summary>

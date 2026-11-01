@@ -105,7 +105,7 @@ public sealed class DowngraderWindow : ModalWindow
     /// The Overview Report module. Its Install Type decides how a shared Next-Gen &amp; Anniversary file reads, and it is
     /// refreshed when the patch queue empties (see <see cref="WindowHost.RefreshOverviewAsync"/>).
     /// </param>
-    /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them (SET-7).</param>
+    /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them.</param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
     /// <param name="patchFolder">
     /// Where patches are saved: the app's own folder (<see cref="AppSession.AppFolder"/>, bug #36, fixed). None keeps
@@ -352,10 +352,10 @@ public sealed class DowngraderWindow : ModalWindow
         /// <returns>
         /// True once the new report is current; false when the gathering failed, which the runner has already reported.
         /// </returns>
-        /// <exception cref="Exception">
-        /// Anything other than the runner's failure, such as a <see cref="OverviewState.Refreshed"/> handler that threw,
-        /// propagates to the run and fails the operation it is part of.
-        /// </exception>
+        /// <remarks>
+        /// The runner's failure is the only way the module's refresh fails: a <see cref="OverviewState.Refreshed"/>
+        /// handler that throws is reported by the module and doesn't reach the run.
+        /// </remarks>
         public async Task<bool> RefreshOverviewAsync()
         {
             try
