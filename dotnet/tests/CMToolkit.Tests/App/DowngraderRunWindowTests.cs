@@ -1,8 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using CMToolkit.App;
 using CMToolkit.App.Runtime;
+using CMToolkit.App.Startup;
+using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
+using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
@@ -25,7 +30,7 @@ public sealed class DowngraderRunWindowTests
     {
         using var machine = Machine.Materialize();
         var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
-        var (main, window, runtime) = Open(machine, http);
+        var (owner, window, runtime, _) = Build(machine, http);
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
         DispatcherWait.Until(() => !runtime.Input.IsBlocking);
@@ -44,7 +49,7 @@ public sealed class DowngraderRunWindowTests
         Assert.Equal(100, ComposedSession.Named<ProgressBar>(window, "Progress").Value);
         UserClose.Request(window);
         DispatcherWait.Until(() => !window.IsVisible);
-        main.Close();
+        owner.Close();
     }
 
     [AvaloniaFact]
@@ -53,7 +58,7 @@ public sealed class DowngraderRunWindowTests
     {
         using var machine = Machine.Materialize();
         var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
-        var (main, window, runtime) = Open(machine, http);
+        var (owner, window, runtime, _) = Build(machine, http);
         var keepBackups = ComposedSession.Named<CheckBox>(window, "KeepBackups");
         Assert.True(keepBackups.IsChecked);
 
@@ -70,7 +75,7 @@ public sealed class DowngraderRunWindowTests
         Assert.Equal("C5965A2E", FileCrc32.Of(Path.Combine(machine.Root, "Game", "Fallout4.exe")));
         Assert.Contains("\"downgrader_keep_backups\": true", File.ReadAllText(Path.Combine(machine.Root, "Cwd", "settings.json")), StringComparison.Ordinal);
         window.Close();
-        main.Close();
+        owner.Close();
     }
 
     [AvaloniaFact]
@@ -79,7 +84,7 @@ public sealed class DowngraderRunWindowTests
         // patch_files saved the boxes on the Tk thread before its loop, so the save froze input (ADR-0003).
         using var machine = Machine.Materialize();
         var log = new HeldSaveLogger();
-        var (main, window, runtime) = Open(machine, machine.CreateHttpHandler(), log);
+        var (owner, window, runtime, _) = Build(machine, machine.CreateHttpHandler(), settingsLogger: log);
         var settingsPath = Path.Combine(machine.Root, "Cwd", "settings.json");
         var before = File.ReadAllBytes(settingsPath);
         MouseClick.On(ComposedSession.Named<CheckBox>(window, "KeepBackups"));
@@ -96,11 +101,44 @@ public sealed class DowngraderRunWindowTests
         DispatcherWait.Until(() => !window.IsRunning);
         Assert.Contains("\"downgrader_keep_backups\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
         window.Close();
+        owner.Close();
+    }
+
+    /// <summary>
+    /// The refresh that runs once the queue empties gathers the Overview Report again from the patched files and makes
+    /// it current, and the Overview tab, which the Downgrader was opened from, redraws its Binaries frame from it.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_refresh_when_the_queue_empties_replaces_the_overview_report_and_the_overview_tab_shows_it()
+    {
+        using var machine = Machine.Materialize();
+        var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
+        var (main, session) = DowngraderRunScenarioTests.Compose(machine, new CapturingLogger(), http);
+        var before = session.Overview.Report;
+        Assert.Equal("Old-Gen", ComposedSession.Named<TextBlock>(main, "Binary0").Text);
+        MouseClick.On(ComposedSession.Named<Button>(main, "DowngradeManager"));
+        DispatcherWait.Until(() => main.OwnedWindows.OfType<DowngraderWindow>().Any(w => w.Versions is not null && w.Content is not null));
+        var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
+        window.UpdateLayout();
+        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+
+        MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
+        DispatcherWait.Until(() => !session.Runtime.Input.IsBlocking);
+        http.Release();
+        DispatcherWait.Until(() => !window.IsRunning);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        Assert.NotSame(before, session.Overview.Report);
+        Assert.Equal(InstallType.NextGen, session.Overview.Report!.Binaries[0].InstallType);
+        Assert.Equal("Next-Gen", ComposedSession.Named<TextBlock>(main, "Binary0").Text);
+        Assert.Null(session.Runtime.Errors.Window);
+        UserClose.Request(window);
+        DispatcherWait.Until(() => !window.IsVisible);
         main.Close();
     }
 
     /// <summary>
-    /// The Overview refresh that runs once the queue empties fails: the runner reports it once, and the window tells the
+    /// The Overview Report's gathering fails when the queue empties: the runner reports it once, and the window tells the
     /// run as false at the Core seam, so the poll isn't failed and reported a second time. The window still recovers: the
     /// version labels are redrawn from the files as they are now, Patch All comes back and the window can be closed.
     /// </summary>
@@ -110,30 +148,27 @@ public sealed class DowngraderRunWindowTests
         using var machine = Machine.Materialize();
         var logger = new CapturingLogger();
         var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
-        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, http);
-        MouseClick.On(ComposedSession.Named<Button>(main, "DowngradeManager"));
-        DispatcherWait.Until(() => main.OwnedWindows.OfType<DowngraderWindow>().Any(w => w.Versions is not null && w.Content is not null));
-        var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
-        window.UpdateLayout();
-        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+        var gatherings = 0;
+        var (owner, window, runtime, _) = Build(machine, http, logger, real => previous =>
+            gatherings++ == 0 ? real(previous) : throw new IOException("The gathering broke."));
         Assert.Equal("Old-Gen", ComposedSession.Named<TextBlock>(window, "Game0").Text);
-        // Since the load: the local app data folder went away, which kills the Overview gathering's modules step.
-        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
-        DispatcherWait.Until(() => !session.Runtime.Input.IsBlocking);
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         http.Release();
         DispatcherWait.Until(() => !window.IsRunning);
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
 
-        var report = Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.Equal(2, gatherings);
+        var report = Assert.Single(logger.Entries, IsErrorReport);
         Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Overview refresh")}", report.Message, StringComparison.Ordinal);
+        Assert.StartsWith(ErrorReporter.OperationHeader("Overview refresh"), runtime.Errors.Window?.Text);
         Assert.Equal("Next-Gen", ComposedSession.Named<TextBlock>(window, "Game0").Text);
         Assert.True(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
         Assert.False(window.ProcessingData);
         UserClose.Request(window);
         DispatcherWait.Until(() => !window.IsVisible);
-        main.Close();
+        owner.Close();
     }
 
     /// <summary>
@@ -147,7 +182,7 @@ public sealed class DowngraderRunWindowTests
     {
         using var machine = Machine.Materialize();
         var logger = new CapturingLogger();
-        var (main, window, runtime) = Open(machine, machine.CreateHttpHandler(), logger: logger);
+        var (owner, window, runtime, _) = Build(machine, machine.CreateHttpHandler(), logger);
         File.Delete(Path.Combine(machine.Root, "Game", "Fallout4.exe"));
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
@@ -159,13 +194,14 @@ public sealed class DowngraderRunWindowTests
         Assert.False(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
         Assert.False(window.ProcessingData);
         window.Close();
-        main.Close();
+        owner.Close();
     }
 
     /// <summary>
-    /// An error the run doesn't expect raises out of the download poll, here a refresh that throws instead of reporting
-    /// its own failure. The runner reports it once, under the poll's name, and the queue stays stuck, as the exception
-    /// left the reference's poll: the window can't be closed and Patch All stays disabled. The poll's count still drops.
+    /// An error the run doesn't expect raises out of the download poll, here a reader of the Overview Report that throws
+    /// when the refresh announces the new report, so the refresh fails with something other than the runner's reported
+    /// failure. The runner reports it once, under the poll's name, and the queue stays stuck: the window can't be closed
+    /// and Patch All stays disabled. The poll's count still drops.
     /// </summary>
     [AvaloniaFact]
     [Trait("Parity", "DG-6")]
@@ -174,51 +210,63 @@ public sealed class DowngraderRunWindowTests
         using var machine = Machine.Materialize();
         var logger = new CapturingLogger();
         var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
-        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, http);
-        var window = new DowngraderWindow(
-            session.Runtime, session.Game, session.Host, session.Overview, session.Settings,
-            refreshOverview: () => throw new InvalidOperationException("The refresh broke."),
-            deltaPatchHttp: http,
-            patchFolder: session.AppFolder);
-        var opening = session.Runtime.Errors.Handle(() => window.OpenAsync(main));
-        DispatcherWait.Until(() => opening.IsCompleted && window.Content is not null);
-        window.UpdateLayout();
-        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+        var (owner, window, runtime, overview) = Build(machine, http, logger);
+        overview.Refreshed += (_, _) => throw new InvalidOperationException("A reader broke.");
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
-        DispatcherWait.Until(() => !session.Runtime.Input.IsBlocking);
+        DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         http.Release();
         DispatcherWait.Until(() => !window.IsRunning);
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
 
         Assert.Single(logger.Entries, IsErrorReport);
-        Assert.StartsWith(ErrorReporter.OperationHeader("Downgrader download"), session.Runtime.Errors.Window?.Text);
+        Assert.StartsWith(ErrorReporter.OperationHeader("Downgrader download"), runtime.Errors.Window?.Text);
+        Assert.Contains("A reader broke.", runtime.Errors.Window?.Text, StringComparison.Ordinal);
         Assert.True(window.ProcessingData);
         Assert.False(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
         window.ProcessingData = false;
         window.Close();
-        main.Close();
+        owner.Close();
+    }
+
+    /// <summary>
+    /// The Downgrader built on its own over the machine, without a main window or an Overview tab: its Overview Report
+    /// module gathers through <paramref name="gather"/> (the real gathering by default, which the function is handed so
+    /// it can wrap it) and is loaded before the window opens over a bare owner. The window is set to Next-Gen. Its
+    /// settings store logs to <paramref name="settingsLogger"/> if given, else to the app's log.
+    /// </summary>
+    /// <returns>The owner, the window with its content built, the app runtime and the window's Overview Report module.</returns>
+    private static (Window Owner, DowngraderWindow Window, AppRuntime Runtime, OverviewState Overview) Build(
+        MaterializedScenario machine,
+        HttpMessageHandler http,
+        CapturingLogger? logger = null,
+        Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gather = null,
+        Microsoft.Extensions.Logging.ILogger? settingsLogger = null)
+    {
+        logger ??= new CapturingLogger();
+        // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
+        var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
+            .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
+        // The working directory is the app folder: settings.json is read from it and Patch All saves there.
+        var appFolder = machine.Host.Expand(machine.Host.Block.Cwd!);
+        var settings = SettingsStore.Load(Path.Combine(appFolder, AppFolderFiles.SettingsFileName), DownloadSource.Nexus, settingsLogger ?? logger);
+        var runtime = new AppRuntime(logger);
+        Func<OverviewReport?, OverviewReport> real = previous => OverviewReport.Gather(game, machine.Host, runtime.Logger, previous);
+        var overview = new OverviewState(runtime, gather is null ? real : gather(real));
+        var load = overview.LoadAsync();
+        DispatcherWait.Until(() => load.IsCompleted);
+        load.GetAwaiter().GetResult();
+
+        var owner = new Window();
+        owner.Show();
+        var window = new DowngraderWindow(runtime, game, machine.Host, overview, settings, deltaPatchHttp: http, patchFolder: appFolder);
+        var opening = runtime.Errors.Handle(() => window.OpenAsync(owner));
+        DispatcherWait.Until(() => opening.IsCompleted && window.Content is not null);
+        window.UpdateLayout();
+        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
+        return (owner, window, runtime, overview);
     }
 
     /// <summary>Whether a log entry is an Error Window report rather than a line the app logged.</summary>
     private static bool IsErrorReport(LogEntry entry) => entry.Message.StartsWith("StdErr : ", StringComparison.Ordinal);
-
-    /// <summary>
-    /// The app on the machine, its Downgrader opened from the Overview and set to Next-Gen; its settings store logs to
-    /// <paramref name="settingsLogger"/> if given, and the app to <paramref name="logger"/> if given.
-    /// </summary>
-    private static (MainWindow Main, DowngraderWindow Window, AppRuntime Runtime) Open(
-        MaterializedScenario machine,
-        HttpMessageHandler http,
-        Microsoft.Extensions.Logging.ILogger? settingsLogger = null,
-        CapturingLogger? logger = null)
-    {
-        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger ?? new CapturingLogger(), http, settingsLogger);
-        MouseClick.On(ComposedSession.Named<Button>(main, "DowngradeManager"));
-        DispatcherWait.Until(() => main.OwnedWindows.OfType<DowngraderWindow>().Any(w => w.Versions is not null && w.Content is not null));
-        var window = main.OwnedWindows.OfType<DowngraderWindow>().Single();
-        window.UpdateLayout();
-        MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
-        return (main, window, session.Runtime);
-    }
 }
