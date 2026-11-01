@@ -175,20 +175,11 @@ public sealed class OverviewTab : TabPage
         BuildFrames();
         // Subscribed only now: until the content is built there are no frames to rebuild. A tab whose first load failed
         // never gets here, so it ignores every refresh.
-        _state.Refreshed += (_, _) => _ = _runtime.Errors.Handle(RebuildFramesAsync);
+        // Only the frames are rebuilt from the refreshed report; the top block's Version label follows the Install Type.
+        // The module runs each Refreshed handler as a UI Action of its own, so a rebuild that throws goes to the Error
+        // Window and never to whoever asked for the refresh.
+        _state.Refreshed += (_, _) => BuildFrames();
         return new DockPanel { Children = { top, _frames } };
-    }
-
-    /// <summary>
-    /// Rebuilds the frames from the refreshed report. The top block isn't rebuilt; its Version label follows the Install
-    /// Type. A UI Action of its own, started through <see cref="ErrorReporter.Handle"/> from
-    /// <see cref="OverviewState.Refreshed"/>, so a failure goes to the Error Window and never to whoever asked for the
-    /// refresh.
-    /// </summary>
-    private Task RebuildFramesAsync()
-    {
-        BuildFrames();
-        return Task.CompletedTask;
     }
 
     /// <summary>Shows each warning in turn, waiting for one to be dismissed before the next, as the Tk boxes blocked.</summary>
