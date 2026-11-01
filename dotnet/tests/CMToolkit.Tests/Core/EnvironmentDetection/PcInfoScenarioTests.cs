@@ -52,7 +52,6 @@ public sealed class PcInfoScenarioTests
     /// <c>environment/pc-registry-wrong-types</c> golden can't show a DEBUG line's absence, as goldens leave DEBUG out.
     /// </summary>
     [Fact]
-    [Trait("Parity", "PC-5")]
     public void Registry_values_of_the_wrong_type_are_ignored_without_a_log_line()
     {
         using var machine = new ParityScenario(ParityPaths.Scenarios, "environment/pc-registry-wrong-types").Materialize();
