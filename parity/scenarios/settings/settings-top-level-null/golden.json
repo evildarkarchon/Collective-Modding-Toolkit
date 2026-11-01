@@ -6,10 +6,6 @@
           "exception": true,
           "level": "ERROR",
           "message": "Settings : Failed to load settings.json. Settings will be reset."
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ]
     },

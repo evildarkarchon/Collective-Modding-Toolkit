@@ -632,12 +632,7 @@
           }
         ],
         "workerError": null,
-        "workerLog": [
-          {
-            "level": "DEBUG",
-            "message": "Added SimpleProblemInfo: Path: 101 SADD Records from 2 modules | Problem: Race Subgraph Record Count"
-          }
-        ]
+        "workerLog": []
       },
       {
         "boxes": [
@@ -1820,12 +1815,7 @@
           }
         ],
         "workerError": null,
-        "workerLog": [
-          {
-            "level": "DEBUG",
-            "message": "Added SimpleProblemInfo: Path: 101 SADD Records from 2 modules | Problem: Race Subgraph Record Count"
-          }
-        ]
+        "workerLog": []
       }
     ],
     "usingStage": false

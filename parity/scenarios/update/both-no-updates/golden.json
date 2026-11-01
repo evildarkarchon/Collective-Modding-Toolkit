@@ -21,24 +21,7 @@
   ],
   "updateCheck": {
     "display": {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods : No Updates"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub : No Updates"
-        }
-      ]
+      "log": []
     },
     "githubVersion": null,
     "nexusVersion": null

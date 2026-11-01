@@ -7,10 +7,6 @@
           "message": "Settings : settings.json not found; using defaults."
         },
         {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        },
-        {
           "exception": true,
           "level": "ERROR",
           "message": "Settings : Failed to save settings.json"

@@ -45,10 +45,6 @@
         {
           "level": "ERROR",
           "message": "Settings : 'downgrader_delete_deltas' has invalid type (float) 'nan'. Reset to 'True'"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ]
     },

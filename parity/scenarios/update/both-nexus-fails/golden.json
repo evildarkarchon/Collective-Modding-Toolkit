@@ -72,17 +72,9 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods"
-        },
-        {
           "exception": true,
           "level": "ERROR",
           "message": "Update Check : Nexus Mods : Failed"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
         },
         {
           "level": "INFO",

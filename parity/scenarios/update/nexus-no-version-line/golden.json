@@ -13,10 +13,6 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods"
-        },
-        {
           "level": "ERROR",
           "message": "Update Check : Nexus Mods : Failed"
         }

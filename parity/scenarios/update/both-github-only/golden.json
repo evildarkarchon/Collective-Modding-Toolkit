@@ -72,18 +72,6 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods : No Updates"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
-        {
           "level": "INFO",
           "message": "Update Check : GitHub : Update Available : v0.7.0"
         }

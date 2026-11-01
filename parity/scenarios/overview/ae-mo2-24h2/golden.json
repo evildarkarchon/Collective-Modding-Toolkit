@@ -145,52 +145,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Switch Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",
@@ -401,44 +356,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",

@@ -16,10 +16,6 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
-        {
           "exception": true,
           "level": "ERROR",
           "message": "Update Check : GitHub : Failed"

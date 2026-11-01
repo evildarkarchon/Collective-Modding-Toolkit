@@ -59,28 +59,8 @@
       },
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Switch Tab : F4SETab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : F4SETab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Scanning AddressLibrary.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Scanning Win32Plugin.dll"
-        },
-        {
           "level": "WARNING",
           "message": "Scanning Win32Plugin.dll : Failed : [WinError 193]"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Scanning ZPlugin.dll"
         }
       ],
       "scrollbar": {

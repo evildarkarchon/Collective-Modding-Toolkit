@@ -65,10 +65,6 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
-        {
           "level": "INFO",
           "message": "Update Check : GitHub : Update Available : v0.7"
         }

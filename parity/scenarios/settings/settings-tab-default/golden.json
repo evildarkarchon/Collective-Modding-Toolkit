@@ -1,12 +1,7 @@
 {
   "clicks": [
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "All: GitHub & Nexus Mods",
       "selected": [
         "All: GitHub & Nexus Mods",
@@ -17,12 +12,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Early: GitHub",
       "selected": [
         "Early: GitHub",
@@ -33,12 +23,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Stable: Nexus Mods",
       "selected": [
         "Stable: Nexus Mods",
@@ -49,12 +34,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Never: Don't Check",
       "selected": [
         "Never: Don't Check",
@@ -65,12 +45,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Debug",
       "selected": [
         "Never: Don't Check",
@@ -81,12 +56,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Info",
       "selected": [
         "Never: Don't Check",
@@ -97,12 +67,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Error",
       "selected": [
         "Never: Don't Check",
@@ -113,12 +78,7 @@
       }
     },
     {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
-        }
-      ],
+      "log": [],
       "radio": "Error",
       "selected": [
         "Never: Don't Check",

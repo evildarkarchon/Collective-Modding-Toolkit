@@ -59,22 +59,6 @@
       },
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Switch Tab : F4SETab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : F4SETab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Scanning AddressLibrary.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Scanning Folder.dll"
-        },
-        {
           "level": "WARNING",
           "message": "Scanning Folder.dll : Failed : [WinError 5]"
         }
