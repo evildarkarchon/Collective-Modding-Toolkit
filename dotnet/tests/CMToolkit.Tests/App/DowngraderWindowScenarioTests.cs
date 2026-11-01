@@ -109,7 +109,7 @@ public sealed class DowngraderWindowScenarioTests
                 ["maximum"] = Named<ProgressBar>(window, "Progress").Maximum,
             },
             ["processingData"] = window.ProcessingData,
-            ["logLines"] = new JsonArray([.. logger.Entries.Select(e => (JsonNode)new JsonObject
+            ["logLines"] = new JsonArray([.. logger.Entries.WithoutDebug().Select(e => (JsonNode)new JsonObject
             {
                 ["level"] = LogFile.LevelName(e.Level),
                 ["message"] = e.Message,
@@ -117,7 +117,7 @@ public sealed class DowngraderWindowScenarioTests
         };
         actual["downgrader"]!["display"] = display;
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         window.Close();
         owner.Close();
     }

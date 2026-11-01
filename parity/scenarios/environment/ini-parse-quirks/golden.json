@@ -17,13 +17,15 @@
       "NO-SECTION": {
         "borphan": "1"
       },
-      "nvflex": {
-        "  sindented": "  padded  ",
+      "display": {
         "[weird": "entry]x",
-        "bnvflexenable ": " 1",
-        "fafterbadheader": "2",
+        "fafterbadheader": "2"
+      },
+      "nvflex": {
+        "bnvflexenable": "1",
         "mixed case key": "Mixed Case Value",
-        "sequation": "a=b=c"
+        "sequation": "a=b=c",
+        "sindented": "padded"
       },
       "splits": {
         "sa": "1",

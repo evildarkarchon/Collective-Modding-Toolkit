@@ -25,3 +25,6 @@ cm-toolkit.log
 !parity/scenarios/**/http/**
 # The parity asset toolchains' built outputs (stub exes and the like) are committed, so scenarios can copy them.
 !parity/assets/*/out/**
+
+# A failing replay writes the app's result beside its golden; only a golden someone accepted is committed (ADR-0008).
+golden.new.json

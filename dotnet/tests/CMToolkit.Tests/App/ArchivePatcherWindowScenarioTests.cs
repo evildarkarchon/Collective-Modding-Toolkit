@@ -58,7 +58,7 @@ public sealed class ArchivePatcherWindowScenarioTests
 
         JsonObject Step(string name, bool patched = false)
         {
-            var lines = app.Logger.Entries.Skip(logged).ToList();
+            var lines = app.Logger.Entries.Skip(logged).WithoutDebug().ToList();
             logged = app.Logger.Entries.Count;
             var step = new JsonObject
             {
@@ -156,7 +156,7 @@ public sealed class ArchivePatcherWindowScenarioTests
         steps.Add(Step("unfiltered"));
 
         var actual = new JsonObject { ["archivePatcher"] = new JsonObject { ["changes"] = changes, ["steps"] = steps } };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         patcher.Close();
     }
 

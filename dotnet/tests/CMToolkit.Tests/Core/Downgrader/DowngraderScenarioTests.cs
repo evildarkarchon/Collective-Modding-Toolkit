@@ -29,7 +29,7 @@ public sealed class DowngraderScenarioTests
         var versions = DowngraderDetection.Detect(game, machine.Host);
 
         var actual = new JsonObject { ["downgrader"] = Project(overview.InstallType, versions) };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
     }
 
     /// <summary>The detection in the golden's shape: <c>current_versions</c>, the game's type and <c>CRCs_by_type</c>.</summary>

@@ -73,13 +73,13 @@ public sealed class UpdateCheckScenarioTests
             actual["httpRequests"] = new JsonArray([.. http.Requests.Select(Request)]);
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     private static JsonArray LogLines(RecordingLogger logger)
     {
         var lines = new JsonArray();
-        foreach (var record in logger.Records)
+        foreach (var record in logger.Records.WithoutDebug())
         {
             var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
             if (record.Exception is not null)

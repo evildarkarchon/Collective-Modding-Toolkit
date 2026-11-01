@@ -57,16 +57,7 @@
         },
         "text": "F4SE DLLs"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Switch Tab : F4SETab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : F4SETab"
-        }
-      ],
+      "log": [],
       "scrollbar": {
         "column": 1,
         "orient": "vertical"

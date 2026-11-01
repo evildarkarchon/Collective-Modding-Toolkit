@@ -3,14 +3,6 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Settings : 'log_level' is correct type (str)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'update_source' is correct type (str)"
-        },
-        {
           "level": "ERROR",
           "message": "Settings : 'scanner_OverviewIssues' has invalid type (int) '1'. Reset to 'True'"
         },
@@ -45,10 +37,6 @@
         {
           "level": "ERROR",
           "message": "Settings : 'downgrader_delete_deltas' has invalid type (int) '0'. Reset to 'True'"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ]
     },

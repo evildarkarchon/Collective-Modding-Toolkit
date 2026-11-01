@@ -80,7 +80,7 @@ public sealed class AboutTabScenarioTests
                 ["links"] = links,
             },
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     private static JsonObject State(Button button) => new()

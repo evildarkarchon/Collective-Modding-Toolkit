@@ -28,13 +28,13 @@
       {
         "key": "download_directory",
         "value": {
-          "path": "X:\\..\\downloads"
+          "path": "X:\\Modding\\MO2\\..\\downloads"
         }
       },
       {
         "key": "mod_directory",
         "value": {
-          "path": "X:\\a=b"
+          "path": "X:\\Modding\\MO2\\a=b"
         }
       },
       {
@@ -92,6 +92,6 @@
       ]
     },
     "skipFileSuffixes": [],
-    "stagePath": "X:\\a=b"
+    "stagePath": "X:\\Modding\\MO2\\a=b"
   }
 }

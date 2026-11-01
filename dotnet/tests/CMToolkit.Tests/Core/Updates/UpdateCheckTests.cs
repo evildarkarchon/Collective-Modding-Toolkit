@@ -153,6 +153,27 @@ public sealed class UpdateCheckTests
         Assert.DoesNotContain(logger.Records, r => r.Message.EndsWith("Failed", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// A source that answers with an error status (GitHub's 403 when rate-limited, a Nexus 404) is no update, and is
+    /// logged as no updates at DEBUG, not as a failure. The <c>update/github-rate-limited</c> and
+    /// <c>update/nexus-not-found</c> scenarios show the same, but their goldens leave out DEBUG lines.
+    /// </summary>
+    [Theory]
+    [InlineData(UpdateSource.GitHub, HttpStatusCode.Forbidden, "Update Check : GitHub : No Updates")]
+    [InlineData(UpdateSource.Nexus, HttpStatusCode.NotFound, "Update Check : Nexus Mods : No Updates")]
+    public async Task An_error_status_is_logged_as_no_updates_not_as_a_failure(UpdateSource source, HttpStatusCode status, string expected)
+    {
+        var handler = new StubHandler(_ => new HttpResponseMessage(status));
+        var logger = new RecordingLogger();
+
+        var result = await new UpdateCheck(handler, logger, OlderThanTheCannedRelease).RunAsync(source, TestContext.Current.CancellationToken);
+
+        Assert.Equal(new UpdateCheckResult(null, null), result);
+        var last = logger.Records[^1];
+        Assert.Equal((Microsoft.Extensions.Logging.LogLevel.Debug, expected), (last.Level, last.Message));
+        Assert.DoesNotContain(logger.Records, r => r.Level >= Microsoft.Extensions.Logging.LogLevel.Warning);
+    }
+
     [Fact]
     [Trait("Parity", "T-14")]
     public async Task The_timeout_is_per_read_so_a_slow_steady_response_outlasting_it_still_arrives()

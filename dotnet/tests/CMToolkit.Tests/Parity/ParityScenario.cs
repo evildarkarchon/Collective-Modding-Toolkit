@@ -6,8 +6,8 @@ namespace CMToolkit.Tests.Parity;
 
 /// <summary>
 /// One recorded Parity Scenario under <c>parity/scenarios/&lt;module&gt;/&lt;scenario&gt;/</c>: its <c>tree/</c>, its
-/// <c>scenario.json</c>, its optional <c>http/</c> folder, and the <c>golden.json</c> the Python driver recorded from the
-/// Reference Implementation (ADR-0004).
+/// <c>scenario.json</c>, its optional <c>http/</c> folder, and its one <c>golden.json</c>: the result a replay must
+/// produce.
 /// </summary>
 /// <remarks>
 /// It is <see cref="IXunitSerializable"/> so that each scenario shows up as its own row in test explorers and results. Only the scenarios root
@@ -46,75 +46,55 @@ public sealed class ParityScenario : IXunitSerializable
     /// <summary>The parsed <c>scenario.json</c>.</summary>
     public ScenarioManifest Manifest => _manifest ??= ScenarioManifest.Parse(File.ReadAllText(Path.Combine(Directory, "scenario.json")));
 
-    /// <summary>The reference-recorded golden's file name.</summary>
-    public const string ReferenceGoldenFileName = "golden.json";
-
-    /// <summary>The port-expected golden's file name, present only beside a declared deviation (ADR-0006).</summary>
-    public const string PortGoldenFileName = "golden.port.json";
+    /// <summary>The golden's file name. A scenario has exactly one golden (ADR-0008).</summary>
+    public const string GoldenFileName = "golden.json";
 
     /// <summary>
-    /// The app version the Reference Implementation ran as when every golden was recorded (<c>APP_VERSION</c> at the
-    /// Parity Baseline). The app has moved on since the Cutover, so a replay whose result depends on the running version,
-    /// such as which canned release is an update, runs as this one.
+    /// The app version a replay runs as when its result depends on the running version, such as which canned release
+    /// is an update. Every golden is recorded at this version, whatever version the app is built as, so a release
+    /// changes no golden.
     /// </summary>
     public const string RecordedAppVersion = "0.6.2-dev";
 
-    /// <summary>Whether the driver has recorded this scenario. A deviating scenario needs its reference recording too.</summary>
+    /// <summary>
+    /// The file a failing replay writes its result to, beside the golden (ADR-0008). Git ignores it, so only a golden
+    /// someone accepted is committed.
+    /// </summary>
+    public const string NewGoldenFileName = "golden.new.json";
+
+    /// <summary>
+    /// Serializes reads and writes of goldens within the test run. Replays of one scenario run in parallel, and while
+    /// <see cref="GoldenAssert"/> records, a reader must never see a half-written <c>golden.json</c>.
+    /// </summary>
+    internal static readonly Lock GoldenFileLock = new();
+
+    /// <summary>Whether the scenario has a golden.</summary>
     public bool IsRecorded => File.Exists(GoldenPath);
 
-    /// <summary>
-    /// Whether the scenario declares a Deviation from Behaviour Parity (ADR-0006): the port fixes a reference bug, so it
-    /// replays against <c>golden.port.json</c>.
-    /// </summary>
-    public bool Deviates => Manifest.Deviations is { Count: > 0 };
+    /// <summary>The scenario's <c>golden.json</c>.</summary>
+    internal string GoldenPath => Path.Combine(Directory, GoldenFileName);
 
-    private string GoldenPath => Path.Combine(Directory, ReferenceGoldenFileName);
-
-    private string PortGoldenPath => Path.Combine(Directory, PortGoldenFileName);
+    /// <summary>The scenario's <c>golden.new.json</c>, whether or not it exists.</summary>
+    internal string NewGoldenPath => Path.Combine(Directory, NewGoldenFileName);
 
     /// <summary>
-    /// Reads what the C# replay must produce: the port golden when the scenario declares deviations, otherwise the
-    /// reference-recorded golden. Every replaying test calls this, so flipping a scenario to a fix needs no test edit.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The scenario hasn't been recorded, or its deviations and its port golden don't come together: a declared deviation
-    /// without <c>golden.port.json</c> would silently keep proving the bug, and a port golden without a declared deviation
-    /// would override the reference with no bug issue to justify it.
-    /// </exception>
-    public JsonNode? LoadGolden()
-    {
-        var reference = LoadReferenceGolden();
-        var hasPortGolden = File.Exists(PortGoldenPath);
-        if (Deviates && !hasPortGolden)
-        {
-            throw new InvalidOperationException(
-                $"Parity Scenario '{Id}' declares deviations but has no {PortGoldenFileName}. Write the port's expected results there.");
-        }
-
-        if (!Deviates && hasPortGolden)
-        {
-            throw new InvalidOperationException(
-                $"Parity Scenario '{Id}' has a {PortGoldenFileName} but declares no \"deviations\" in scenario.json; name the bug it fixes.");
-        }
-
-        return Deviates ? JsonNode.Parse(File.ReadAllText(PortGoldenPath)) : reference;
-    }
-
-    /// <summary>
-    /// Reads the golden the Python driver recorded from the Reference Implementation, ignoring any deviation. Tests use
-    /// <see cref="LoadGolden"/>; this is for the harness, and for a fixer comparing what the fix changes.
+    /// Reads what the C# replay must produce: the scenario's <c>golden.json</c>. The manifest's <c>deviations</c> entries
+    /// are a record of what the port fixed and play no part in which file is read.
     /// </summary>
     /// <exception cref="InvalidOperationException">The scenario hasn't been recorded.</exception>
-    public JsonNode? LoadReferenceGolden()
+    public JsonNode? LoadGolden()
     {
         if (!IsRecorded)
         {
             throw new InvalidOperationException(
-                $"Parity Scenario '{Id}' has no golden.json. Goldens can no longer be recorded: the Python driver was "
-                + "removed with the Reference Implementation at the Cutover. Cover new behaviour with a hand-written test.");
+                $"Parity Scenario '{Id}' has no golden.json. Record one by running a test that replays it with "
+                + $"{GoldenAssert.RecordVariable}=1, or by accepting the {NewGoldenFileName} a failing replay writes.");
         }
 
-        return JsonNode.Parse(File.ReadAllText(GoldenPath));
+        lock (GoldenFileLock)
+        {
+            return JsonNode.Parse(File.ReadAllText(GoldenPath));
+        }
     }
 
     /// <summary>Copies the tree to a fresh NTFS temp root and applies the manifest's empty folders and attributes.</summary>

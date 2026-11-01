@@ -72,6 +72,6 @@ public sealed class ArchivePatcherScenarioTests
         steps.Add(Step("unfiltered"));
 
         var actual = new JsonObject { ["archivePatcher"] = new JsonObject { ["changes"] = changes, ["steps"] = steps } };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
     }
 }

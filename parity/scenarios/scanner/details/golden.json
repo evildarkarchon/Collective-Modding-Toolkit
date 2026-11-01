@@ -802,7 +802,7 @@
             "enabled": false,
             "text": "Copied!"
           },
-          "copies": "Problem: Legacy170.esp\nSummary: Module version (1.7) is not valid for Fallout 4.\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
+          "copies": "Problem: Legacy170.esp\nSummary: Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE\nSolution: It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.\n",
           "revertAfterMs": [
             3000
           ]
@@ -845,7 +845,7 @@
                 "size": 10,
                 "underline": false
               },
-              "value": "Module version (1.7) is not valid for Fallout 4.",
+              "value": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
               "valueColor": "#FFE4C4",
               "valueFont": {
                 "bold": false,
@@ -1506,7 +1506,7 @@
             "enabled": false,
             "text": "Copied!"
           },
-          "copies": "Problem: 150 SADD Records from 3 modules\nSummary: Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\nSolution: IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.\n",
+          "copies": "Problem: 105 SADD Records from 2 modules\nSummary: Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells.\nThis issue needs more investigation as this may be mere correlation and not causation.\nSolution: IF you are experiencing stutter when moving between cells, removing some of these mods could alleviate performance issues.\nMerging them may also reduce stutter.\n",
           "revertAfterMs": [
             3000
           ]
@@ -1535,7 +1535,7 @@
                 "size": 10,
                 "underline": false
               },
-              "value": "150 SADD Records from 3 modules",
+              "value": "105 SADD Records from 2 modules",
               "valueColor": "#FFE4C4",
               "valueFont": {
                 "bold": false,
@@ -1600,10 +1600,6 @@
             [
               "45",
               "ccDup.esm"
-            ],
-            [
-              "45",
-              "ccDup.esm"
             ]
           ],
           "text": "Counts race animation subgraph records (RACE \\ SADD).\nDepending on your PC, adding too many of these may result in stutter when loading Cells. This issue needs more investigation as this may be mere correlation and not causation.",
@@ -1611,7 +1607,7 @@
           "width": 400,
           "window": "TreeWindow"
         },
-        "itemText": "150 SADD Records from 3 modules",
+        "itemText": "105 SADD Records from 2 modules",
         "pathOpens": null,
         "solutionCopies": null,
         "solutionOpens": null,

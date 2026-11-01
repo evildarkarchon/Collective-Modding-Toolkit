@@ -59,7 +59,7 @@ public sealed class SettingsTabScenarioTests
             // the driver's was once the Tk callback returned. The next click would be discarded while it runs.
             DispatcherWait.Until(() => !runtime.Input.IsBlocking);
             var log = new JsonArray();
-            foreach (var record in logger.Records.Skip(seen))
+            foreach (var record in logger.Records.Skip(seen).WithoutDebug())
             {
                 log.Add(new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message });
             }
@@ -79,7 +79,7 @@ public sealed class SettingsTabScenarioTests
             ["settingsTab"] = new JsonObject { ["frames"] = built },
             ["clicks"] = clicks,
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     private static IEnumerable<RadioButton> Radios(GroupBox frame) => ((Panel)frame.Content!).Children.OfType<RadioButton>();

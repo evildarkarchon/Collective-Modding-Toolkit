@@ -46,6 +46,16 @@ _Avoid_: StdErr window (names the Python mechanism, not the thing), error dialog
 Something set going in the window with nobody waiting on its result: a click, a box change, a tab switch, or a step the app schedules for itself, such as the Downgrader's next download. It stops at its first failure. The failure goes to the Error Window, and whatever the action skipped is its Failure Outcome.
 _Avoid_: Tk callback (no Tk runs in the app), event handler (names the code that starts one, not the action)
 
+## Regression fixtures
+
+**Parity Scenario**:
+A fake game and mod-manager setup under `parity/scenarios/` that the tests replay as a regression fixture. It keeps its port-era name ([ADR-0007](docs/adr/0007-parity-process-retired.md)).
+_Avoid_: test case (a scenario can back several tests), golden (that is the recorded result alone, not the setup)
+
+**Golden**:
+The result a Parity Scenario's replay must produce, recorded by the app itself. A change that alters it is accepted by re-recording the golden and reviewing the diff ([ADR-0008](docs/adr/0008-goldens-recorded-by-the-app.md)).
+_Avoid_: snapshot, baseline (the Parity Baseline was the port's frozen reference), expected output
+
 ## Port history
 
 These terms come from the port from Python to C# (0.7.0). Code comments and older ADRs still use them; none of them constrains new work ([ADR-0007](docs/adr/0007-parity-process-retired.md)).
@@ -65,10 +75,6 @@ _Avoid_: feature parity
 **Parity Inventory**:
 The port's checklist of the Reference Implementation's behaviours, each under an ID (`SHELL-5`, `OVW-12`, `T-15`, `B-4`) that comments and `Trait("Parity", ...)` still cite. It was removed after the port; read it with `git show 2b8cea1:docs/parity-inventory.md`.
 _Avoid_: feature list, spec
-
-**Parity Scenario**:
-A fake game and mod-manager setup with the results recorded for it during the port, under `parity/scenarios/`. The scenarios are regression fixtures now: the tests replay them, and a change that alters a result edits the golden.
-_Avoid_: test case (a scenario can back several tests), golden (that is the recorded result alone, not the setup)
 
 **Deviation**:
 A place where the port deliberately departed from the Reference Implementation, usually to fix one of its bugs, recorded by issue number in a scenario's `deviations` or a test's `Deviation` attribute. The existing ones are kept as a record; new changes don't add them.

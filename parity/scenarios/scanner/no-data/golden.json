@@ -7,27 +7,19 @@
       },
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Switch Tab : ScannerTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : ScannerTab"
-        },
-        {
           "level": "ERROR",
           "message": "Load Tab : ScannerTab : Failed : Data folder not found"
         }
       ],
       "switchAway": {
         "overview": {
-          "currentTab": "ScannerTab",
-          "errors": 1
+          "currentTab": "OverviewTab",
+          "errors": 0
         },
         "tools": {
-          "currentTab": "ScannerTab",
-          "errors": 1,
-          "loaded": false
+          "currentTab": "ToolsTab",
+          "errors": 0,
+          "loaded": true
         }
       }
     },

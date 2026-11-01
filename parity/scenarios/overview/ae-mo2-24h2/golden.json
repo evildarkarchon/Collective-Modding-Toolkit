@@ -145,52 +145,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Switch Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",
@@ -210,7 +165,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
@@ -401,44 +356,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",
@@ -458,7 +376,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini\nPortable: False\n     base_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\n    cache_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\webcache\n download_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\downloads\n      mod_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\mods\noverwrite_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Default",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"

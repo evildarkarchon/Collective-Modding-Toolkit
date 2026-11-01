@@ -96,7 +96,7 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "1.10.999.0",
             "left": "Unknown",
             "text": "Unknown"
@@ -114,7 +114,7 @@
             "text": "Old-Gen"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "0.0.9.9",
             "left": "Unknown",
             "text": "Unknown"
@@ -140,60 +140,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Switch Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Load Tab : OverviewTab"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: Fallout4.exe | Problem: Unknown Game Version"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",
@@ -281,6 +228,16 @@
         "mod": "<Unmanaged>",
         "path": "<ROOT>\\Game\\steam_api64.dll",
         "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
         "solution": null,
         "summary": "The version of this binary does not match your installed game version.",
         "type": "Wrong Version"
@@ -394,7 +351,7 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "1.10.999.0",
             "left": "Unknown",
             "text": "Unknown"
@@ -412,7 +369,7 @@
             "text": "Old-Gen"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "0.0.9.9",
             "left": "Unknown",
             "text": "Unknown"
@@ -438,52 +395,7 @@
         ],
         "title": "Binaries (EXE/DLL/BIN)"
       },
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Gathering Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Reset Info: Binaries"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Added SimpleProblemInfo: Path: Fallout4.exe | Problem: Unknown Game Version"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
-        }
-      ],
+      "log": [],
       "top": {
         "gamePath": {
           "color": "bisque",
@@ -571,6 +483,16 @@
         "mod": "<Unmanaged>",
         "path": "<ROOT>\\Game\\steam_api64.dll",
         "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
         "solution": null,
         "summary": "The version of this binary does not match your installed game version.",
         "type": "Wrong Version"

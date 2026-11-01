@@ -32,7 +32,7 @@ public sealed class SettingsScenarioTests
 
         var settings = SettingsFile.Load(settingsPath, downloadSource, logger);
 
-        GoldenAssert.Matches(scenario.LoadGolden(), Project(settings, logger, settingsPath), GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, Project(settings, logger, settingsPath), GoldenCompareMode.Full);
     }
 
     private static JsonObject Project(AppSettings settings, RecordingLogger logger, string settingsPath)
@@ -49,7 +49,7 @@ public sealed class SettingsScenarioTests
         }
 
         var log = new JsonArray();
-        foreach (var record in logger.Records)
+        foreach (var record in logger.Records.WithoutDebug())
         {
             var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
             if (record.Exception is not null)

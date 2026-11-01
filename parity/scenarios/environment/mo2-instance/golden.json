@@ -7,7 +7,7 @@
   "mo2": {
     "gamePath": "X:\\Games\\Fallout 4",
     "iniPath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-    "overwritePath": "X:\\overwrite",
+    "overwritePath": "X:\\Modding\\Fallout 4\\overwrite",
     "portable": false,
     "portableTxtPath": null,
     "profilesPath": "X:\\Modding\\Fallout 4\\profiles",
@@ -40,7 +40,7 @@
       {
         "key": "overwrite_directory",
         "value": {
-          "path": "X:\\overwrite"
+          "path": "X:\\Modding\\Fallout 4\\overwrite"
         }
       },
       {
@@ -62,8 +62,7 @@
       {
         "key": "skip_file_suffixes",
         "value": [
-          "('.mohidden'",
-          ")"
+          ".mohidden"
         ]
       },
       {
@@ -99,8 +98,7 @@
       ]
     },
     "skipFileSuffixes": [
-      "('.mohidden'",
-      ")"
+      ".mohidden"
     ],
     "stagePath": "X:\\Modding\\Fallout 4\\mods"
   }

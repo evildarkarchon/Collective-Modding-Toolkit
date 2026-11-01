@@ -100,7 +100,7 @@ public sealed class ScannerTabScenarioTests
                     },
                 },
             };
-            GoldenAssert.Matches(scenario.LoadGolden(), failed, GoldenCompareMode.Full);
+            GoldenAssert.Matches(scenario, failed, GoldenCompareMode.Full);
             window.Close();
             return;
         }
@@ -177,7 +177,7 @@ public sealed class ScannerTabScenarioTests
             },
         };
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         window.Close();
     }
 
@@ -200,6 +200,7 @@ public sealed class ScannerTabScenarioTests
         // The Error Window's StdErr lines are this port's error surfacing, which the reference never logged (#40).
         var lines = logger.Entries.Skip(first)
             .Where(e => !e.Message.StartsWith("StdErr : ", StringComparison.Ordinal))
+            .WithoutDebug()
             .Select(e => (JsonNode)new JsonObject
             {
                 ["level"] = LogFile.LevelName(e.Level),

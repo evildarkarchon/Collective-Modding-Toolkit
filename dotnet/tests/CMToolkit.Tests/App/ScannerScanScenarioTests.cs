@@ -147,7 +147,7 @@ public sealed partial class ScannerScanScenarioTests
                 ["boxes"] = new JsonArray([.. ScanSettings.All.Where(ticked.Contains).Select(s => JsonValue.Create(s.Label()))]),
                 ["updates"] = new JsonArray([.. updates]),
                 ["workerError"] = watch.Error is null ? null : Address().Replace(Tokenise(machine, watch.Error.Message), "0x<ADDRESS>"),
-                ["workerLog"] = new JsonArray([.. watch.Log.Select(e => (JsonNode)new JsonObject
+                ["workerLog"] = new JsonArray([.. watch.Log.WithoutDebug().Select(e => (JsonNode)new JsonObject
                 {
                     ["level"] = LogFile.LevelName(e.Level),
                     ["message"] = Tokenise(machine, e.Message),
@@ -173,7 +173,7 @@ public sealed partial class ScannerScanScenarioTests
             },
         };
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         window.Close();
     }
 

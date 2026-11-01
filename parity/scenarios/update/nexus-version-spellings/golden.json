@@ -42,7 +42,7 @@
           0
         ],
         "sticky": "w",
-        "text": "v V0.7.0-PRE.2  (NexusMods)",
+        "text": "v0.7.0-PRE.2 (NexusMods)",
         "tooltip": "Open Nexus Mods"
       }
     ],
@@ -62,16 +62,12 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : Nexus Mods"
-        },
-        {
           "level": "INFO",
-          "message": "Update Check : Nexus Mods : Update Available : v V0.7.0-PRE.2 "
+          "message": "Update Check : Nexus Mods : Update Available : v0.7.0-PRE.2"
         }
       ]
     },
     "githubVersion": null,
-    "nexusVersion": " V0.7.0-PRE.2 "
+    "nexusVersion": "0.7.0-PRE.2"
   }
 }

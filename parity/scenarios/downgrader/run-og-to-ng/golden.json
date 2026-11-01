@@ -35,16 +35,11 @@
           ]
         },
         "log": [],
-        "logLines": [
-          {
-            "level": "DEBUG",
-            "message": "Settings : Saving settings.json"
-          }
-        ]
+        "logLines": []
       },
       "patchEnabled": false,
       "processingData": true,
-      "progress": 0.0,
+      "progress": 0,
       "versions": [
         {
           "file": "Fallout4.exe",
@@ -163,7 +158,7 @@
       },
       {
         "path": "<ROOT>/Game/Fallout4Launcher_upgradeBackup.exe",
-        "readonly": true,
+        "readonly": false,
         "sha256": "d895ad2da67cf2d5aa0d018b97cafe9cf61c9cbc0ee202603ccecef04f0d8942",
         "size": 65540
       },
@@ -294,80 +289,12 @@
           {
             "level": "INFO",
             "message": "Patched Archive2Interop.dll"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Refresh Tab : Overview"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Gathering Info: Binaries"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Reset Info: Binaries"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Gathering Info: Modules"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Reset Info: Modules"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Gathering Info: Archives"
-          },
-          {
-            "level": "DEBUG",
-            "message": "Reset Info: Archives"
-          },
-          {
-            "$unordered": [
-              {
-                "level": "DEBUG",
-                "message": "Archives: Checking Fallout4 - Startup.ba2"
-              }
-            ]
           }
         ]
       },
       "patchEnabled": true,
       "processingData": false,
-      "progress": 100.0,
+      "progress": 100,
       "versions": [
         {
           "file": "Fallout4.exe",

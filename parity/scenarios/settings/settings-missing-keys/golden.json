@@ -5,18 +5,6 @@
         {
           "level": "INFO",
           "message": "Settings : Adding new settings to JSON: update_source, scanner_OverviewIssues, scanner_WrongFormat, scanner_LoosePrevis, scanner_JunkFiles, scanner_ProblemOverrides, scanner_RaceSubgraphs, downgrader_keep_backups, downgrader_delete_deltas"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_Errors' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'log_level' is correct type (str)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ]
     },

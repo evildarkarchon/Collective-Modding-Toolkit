@@ -37,12 +37,12 @@
         },
         "foreground": "#36648B",
         "image": null,
-        "opens": "https://github.com/RowanSkie/Collective-Modding-Toolkit",
+        "opens": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
         "padding": [
           0
         ],
         "sticky": "w",
-        "text": "vv0.7.0 (GitHub)",
+        "text": "v0.7.0 (GitHub)",
         "tooltip": "Open GitHub"
       }
     ],
@@ -65,16 +65,12 @@
     "display": {
       "log": [
         {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
-        {
           "level": "INFO",
-          "message": "Update Check : GitHub : Update Available : vv0.7.0"
+          "message": "Update Check : GitHub : Update Available : v0.7.0"
         }
       ]
     },
-    "githubVersion": "v0.7.0",
+    "githubVersion": "0.7.0",
     "nexusVersion": null
   }
 }

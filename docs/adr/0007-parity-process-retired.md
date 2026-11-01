@@ -5,6 +5,10 @@ supersedes: ADR-0004 and ADR-0006; amends ADR-0001, ADR-0002 and ADR-0003
 
 # The parity process is retired; the scenarios stay as regression tests
 
+> **Amended by [ADR-0008](0008-goldens-recorded-by-the-app.md):** the app now records the goldens, each scenario has
+> one `golden.json`, and goldens no longer record DEBUG lines from the app log. That replaces this ADR's statement
+> that no golden can be re-recorded, and its rule that a replay reads `golden.port.json` when it exists.
+
 > **Amended (2026-11-01):** new work treats the Reference Implementation as if it never existed. A change is
 > never argued from what the Python app did, and a Failure Outcome inherited from it (a step skipped because a Tk
 > callback raised, say) is judged on its own merits like any other behaviour. A code comment rewritten because its code

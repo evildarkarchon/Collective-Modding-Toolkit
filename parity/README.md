@@ -7,15 +7,16 @@ App and compare. That proved the port matched the Python app
 retired ([ADR-0007](../docs/adr/0007-parity-process-retired.md)).
 
 The scenarios and goldens stay as **regression fixtures**: the tests below still replay them on every run. The
-driver is gone (preserved at the `python-reference` tag), so a golden can't be re-recorded. Cover new behaviour with
-ordinary hand-written tests, and when a fix or feature changes what a scenario must produce, edit its golden
+driver is gone (preserved at the `python-reference` tag), and the app records the goldens itself now
+([ADR-0008](../docs/adr/0008-goldens-recorded-by-the-app.md)). Cover new behaviour with ordinary hand-written tests,
+and when a fix or feature changes what a scenario must produce, re-record its golden
 ([below](#changing-a-scenarios-expected-result)).
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, `golden.json`, and a `golden.port.json` where the port's fix of a Python bug changed the result ([below](#changing-a-scenarios-expected-result)). |
+| `scenarios/<module>/<scenario>/` | One scenario: `tree/`, `scenario.json`, optional `http/`, and its one `golden.json` ([below](#goldens)). |
 | `assets/` | Sources and outputs for synthetic binaries (version stubs, F4SE DLLs, CRC32-forged files, deltas). |
 | `screenshots/<slice>/` | Screenshot pairs against the Tk app, captured during the port. The README's screenshots come from here. |
 
@@ -56,7 +57,7 @@ keys are errors. Nothing in the app reads `Script/`, and the golden echoes the s
     {"path": "App/assets/download-source.txt", "set": ["readonly", "hidden"]}
   ],
   "host": { ... },                         // the fake OS around the tree, below
-  "deviations": [                          // optional: where the port departs from the recording (golden.port.json)
+  "deviations": [                          // optional: the port's record of the bugs it fixed here; doesn't affect the replay
     {"bug": 77, "reason": "The Download Source line reaches cm-toolkit.log."}
   ]
 }
@@ -111,13 +112,19 @@ own version, so a version bump doesn't change them.
 
 ## Goldens
 
-`golden.json` was written by the driver; a `golden.port.json` was written by hand during the port. Both are now
-fixtures that can be edited ([below](#changing-a-scenarios-expected-result)). A golden is a neutral JSON projection:
+Each scenario has one golden, `golden.json`, and it is a fixture that can be changed
+([below](#changing-a-scenarios-expected-result)). Most were written by the driver. Where the port fixed a bug that
+changed a scenario's result, its golden was written by hand during the port instead, and the scenario's `deviations`
+record the bug. The driver's recordings of those scenarios are in git history only
+([ADR-0008](../docs/adr/0008-goldens-recorded-by-the-app.md)). A golden is a neutral JSON projection:
 canonical (sorted keys, ASCII escapes, LF), with:
 
 - **Semantic values**: what Core returns. Enums are camelCase strings, such as `"readFailed"`.
 - **`display` sub-objects**: the text the reference renders from those values (labels, log lines, message text). Core
   tests compare in `GoldenCompareMode.Semantic`, which skips every `display`. App presenter tests compare in `Full`.
+- **App-log lines** at INFO, WARNING and ERROR only. DEBUG lines are traces that move whenever code is reorganised,
+  so every projection of the app log drops them through `GoldenLog.WithoutDebug`. A behaviour that rests on a DEBUG
+  line gets a hand-written test instead. A window's visible Log pane is UI text, and its golden keeps every line.
 - **Paths as `<ROOT>` tokens**: `<ROOT>/Game/Data/a.esp`. Inside rendered text, the root is replaced in place.
   Where the exact `str(path)` matters (MO2 paths, T-7), the `mod-manager` operation keeps the backslashed text with the
   root replaced in place, and writes a path outside the root on the root's drive as `<DRIVE>\...` (B-6). Absolute
@@ -138,8 +145,9 @@ Each scenario ran in a fresh child process with `PYTHONHASHSEED=0`. The driver i
 (the .NET exemption) whatever the recording machine's Windows build. Results the reference only computed while building
 widgets were read back off the widgets.
 
-Goldens were recorded once, during the port. The driver was removed with the Python app at 0.7.0, so no golden can be
-recorded or re-recorded now.
+The driver was removed with the Python app at 0.7.0. Since then the C# replays record the goldens
+([below](#changing-a-scenarios-expected-result)), in the same format, except that a re-recorded number is written as
+the app holds it (`100` where Python wrote `100.0`).
 
 ## Replaying in C#
 
@@ -152,27 +160,46 @@ public void Core_matches_the_reference(ParityScenario scenario)
 {
     using var machine = scenario.Materialize();          // NTFS temp copy + extras; deleted on dispose
     var lookup = DownloadSourceFile.Read(machine.Host.AppDirectory);
-    GoldenAssert.Matches(scenario.LoadGolden(), Project(lookup), GoldenCompareMode.Semantic);
+    GoldenAssert.Matches(scenario, Project(lookup), GoldenCompareMode.Semantic);
 }
 ```
+
+`GoldenAssert.Matches` takes the scenario, not its loaded golden, because on a mismatch it writes the result beside
+the golden ([below](#changing-a-scenarios-expected-result)).
 
 `CommittedScenarioTests` fails if a committed scenario is unrecorded, doesn't parse, or isn't picked up by any
 `[MemberData]` returning `TheoryData<ParityScenario>`. A scenario no test replays protects nothing.
 
-`LoadGolden()` returns `golden.port.json` for a scenario that declares `deviations`, and `golden.json` otherwise, so a
-replaying test never needs to know whether its scenario deviates. `LoadReferenceGolden()` always returns the recording.
+`LoadGolden()` returns the scenario's `golden.json`. A scenario's `deviations` don't change which file it reads.
 
 ## Changing a scenario's expected result
 
-When a bug fix or a feature changes what a scenario must produce, edit the golden its replay reads, in the same
-change as the code: `golden.port.json` if the scenario has one, otherwise `golden.json`. Change only the fields the
-change affects, and keep the golden format (sorted keys, two-space indent, LF). Leave `tree/`, `http/` and the
-`parity` list alone unless the change needs a different input; if it does, a hand-written test is usually simpler
-than reshaping a scenario.
+A scenario has one golden, `golden.json`, and the app records it. When a bug fix or a feature changes what a scenario
+must produce, re-record the golden instead of editing its JSON by hand:
 
-`LoadGolden()` checks that `golden.port.json` and `deviations` come together: either one without the other fails
-`CommittedScenarioTests`. So don't add or remove either one on its own. The existing `deviations` entries and `Deviation` test attributes are the port's
-record of the Python bugs it fixed (ADR-0006); keep them, but new changes don't need new ones.
+1. Run the tests. A replay that no longer matches fails, listing every difference by JSON path, and writes what the
+   app produced to `golden.new.json` beside `golden.json`.
+2. Accept the change by replacing `golden.json` with `golden.new.json`. For a change that touches many scenarios, set
+   `CMT_RECORD_GOLDENS=1` and run the suite once instead: every replay rewrites its `golden.json` and passes.
+3. Run the tests again without the setting. They must pass and leave no `golden.new.json` behind.
+4. Review the goldens' `git diff` like code, and commit them in the same change as the code. A recording can't tell a
+   regression from an improvement, so every changed line needs a reason.
+
+`golden.new.json` is git-ignored, so a recording nobody accepted is never committed, and a passing replay deletes one
+left by an earlier run. A new scenario gets its first golden the same way.
+
+A recording is written in the golden format (sorted keys, two-space indent, LF, ASCII escapes, and `$unordered`
+wherever the projection wrote it), so its diff shows only what changed. Unordered items the golden already had keep
+its order. A replay in `GoldenCompareMode.Semantic` produces no display text, so it records with the golden's
+`display` sub-objects kept as they were. If the result changed shape so much that one can't be placed, it fails and
+records nothing: re-record the scenario through a test that compares in `Full` first.
+
+Leave `tree/`, `http/` and the `parity` list alone unless the change needs a different input; if it does, a
+hand-written test is usually simpler than reshaping a scenario.
+
+The existing `deviations` entries and `Deviation` test attributes are the port's record of the Python bugs it fixed
+(ADR-0006); keep them, but new changes don't need new ones. They don't select a golden, so adding or removing one
+changes nothing a replay reads.
 
 ## Screenshots
 

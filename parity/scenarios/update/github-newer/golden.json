@@ -37,7 +37,7 @@
         },
         "foreground": "#36648B",
         "image": null,
-        "opens": "https://github.com/RowanSkie/Collective-Modding-Toolkit",
+        "opens": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
         "padding": [
           0
         ],
@@ -64,10 +64,6 @@
   "updateCheck": {
     "display": {
       "log": [
-        {
-          "level": "DEBUG",
-          "message": "Update Check : GitHub"
-        },
         {
           "level": "INFO",
           "message": "Update Check : GitHub : Update Available : v0.7.0"

@@ -9,46 +9,6 @@
         {
           "level": "ERROR",
           "message": "Settings : 'update_source' has invalid value '['nexus', \"a'b\", {'k': None, \"x'\": True}]'. Reset to 'nexus'"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_OverviewIssues' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_Errors' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_WrongFormat' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_LoosePrevis' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_JunkFiles' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_ProblemOverrides' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_RaceSubgraphs' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'downgrader_keep_backups' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'downgrader_delete_deltas' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : Saving settings.json"
         }
       ]
     },

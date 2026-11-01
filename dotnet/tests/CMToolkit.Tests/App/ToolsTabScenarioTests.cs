@@ -62,6 +62,6 @@ public sealed class ToolsTabScenarioTests
         }
 
         var actual = new JsonObject { ["toolsTab"] = new JsonObject { ["columns"] = columns } };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 }

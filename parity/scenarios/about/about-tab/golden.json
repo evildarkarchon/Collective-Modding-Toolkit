@@ -48,7 +48,7 @@
             "enabled": false,
             "text": "Copied!"
           },
-          "copies": "https://github.com/RowanSkie/Collective-Modding-Toolkit",
+          "copies": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
           "revertAfterMs": 3000,
           "reverted": {
             "enabled": true,
@@ -58,12 +58,12 @@
         },
         "logo": "images/logo-github.png",
         "open": {
-          "opens": "https://github.com/RowanSkie/Collective-Modding-Toolkit",
+          "opens": "https://github.com/evildarkarchon/Collective-Modding-Toolkit",
           "text": "Open Link"
         }
       }
     ],
-    "text": "v0.6.2-dev\n\nCreated by wxMichael for the\nCollective Modding Community\n#cm-toolkit on Discord\nModified by RowanSkie",
+    "text": "v0.7.0\n\nCreated by wxMichael for the\nCollective Modding Community\n#cm-toolkit on Discord\nModified by RowanSkie\nC# port by evildarkarchon",
     "title": "Collective Modding\nToolkit"
   }
 }

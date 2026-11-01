@@ -134,8 +134,8 @@
       },
       "processingData": false,
       "progress": {
-        "maximum": 100.0,
-        "value": 0.0
+        "maximum": 100,
+        "value": 0
       },
       "title": "Downgrader",
       "width": 600

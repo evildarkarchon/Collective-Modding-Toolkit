@@ -1,52 +1,7 @@
 {
   "settings": {
     "display": {
-      "log": [
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'downgrader_delete_deltas' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'update_source' is correct type (str)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'log_level' is correct type (str)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_Errors' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_OverviewIssues' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_WrongFormat' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_LoosePrevis' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_JunkFiles' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_ProblemOverrides' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'scanner_RaceSubgraphs' is correct type (bool)"
-        },
-        {
-          "level": "DEBUG",
-          "message": "Settings : 'downgrader_keep_backups' is correct type (bool)"
-        }
-      ]
+      "log": []
     },
     "values": {
       "downgrader_delete_deltas": false,

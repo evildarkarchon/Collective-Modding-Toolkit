@@ -161,7 +161,7 @@ public sealed class ScanDetailsPaneScenarioTests
             },
         };
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         window.Close();
     }
 
