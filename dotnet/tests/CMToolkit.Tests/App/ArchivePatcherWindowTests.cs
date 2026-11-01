@@ -16,11 +16,12 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// How the Archive Patcher is reached and how it behaves around a run, beyond what its scenarios replay: both Archive
-/// Patcher buttons open it over the main window (OVW-A6, TOOL-1), a radio click on the selected radio still clears and
-/// lists again (AP-2), Patch All holds the UI through the Overview refresh (AP-3), a failed patch run or Overview refresh
-/// still leaves a window that closes and lists the archives' current versions, Escape closes it even while the log pane
-/// has focus (bug #88, fixed), and a game without a Data folder fails the reference's assert.
+/// How the Archive Patcher is reached and how it behaves around a run, beyond what its scenarios replay: the Archive
+/// Patcher buttons on the Overview and Tools tabs both open it over the main window, a click on the radio that is already
+/// selected still clears the pane and lists again, Patch All holds the input block through the Overview refresh, a
+/// failed patch run or Overview refresh still leaves a window that closes and lists the archives' current versions,
+/// Escape closes it even while the log pane has focus (bug #88, fixed), and a game without a Data folder fails Patch
+/// All's Data folder check.
 /// </summary>
 public sealed class ArchivePatcherWindowTests
 {

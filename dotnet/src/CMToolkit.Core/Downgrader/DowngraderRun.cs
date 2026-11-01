@@ -72,10 +72,9 @@ public sealed class DowngraderRun
     }
 
     /// <summary>
-    /// Whether the patch queue is being worked through (<c>download_or_patch_in_progress</c>): set by the first file a
-    /// click patches, cleared when the queue empties. In the reference it stayed set for good after a failed download
-    /// (B-10); the port's queue moves on past a failed download and empties (bug #15). It stays set only if the poll
-    /// itself fails unexpectedly.
+    /// Whether the patch queue is being worked through: set by the first file a click patches, cleared when the queue
+    /// empties. A failed download doesn't keep it set: the queue moves on past it and empties (bug #15). It stays set
+    /// only if the poll itself fails unexpectedly.
     /// </summary>
     public bool InProgress => _inProgress;
 
