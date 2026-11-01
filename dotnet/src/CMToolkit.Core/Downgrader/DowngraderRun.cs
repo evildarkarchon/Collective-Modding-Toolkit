@@ -75,7 +75,7 @@ public sealed class DowngraderRun
     /// Whether the patch queue is being worked through (<c>download_or_patch_in_progress</c>): set by the first file a
     /// click patches, cleared when the queue empties. In the reference it stayed set for good after a failed download
     /// (B-10); the port's queue moves on past a failed download and empties (bug #15). It stays set only if the poll
-    /// itself fails unexpectedly or the Overview refresh fails.
+    /// itself fails unexpectedly.
     /// </summary>
     public bool InProgress => _inProgress;
 
@@ -96,8 +96,8 @@ public sealed class DowngraderRun
     /// <param name="host">The window: live option reads, the Overview refresh, the poll.</param>
     /// <param name="events">Log lines, the progress bar, the button, the close guard and redrawn versions, in order.</param>
     /// <returns>
-    /// A task that completes when the click's work is done. It completes normally when an Overview refresh fails (the
-    /// host reported it), leaving everything after it undone, as the exception did in Tk.
+    /// A task that completes when the click's work is done. An Overview refresh that fails (the host reports it) doesn't
+    /// change that: the queue's finished step and the rest of the loop still run.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="desired"/> is neither Old-Gen nor Next-Gen.</exception>
     /// <exception cref="IOException">
@@ -145,10 +145,6 @@ public sealed class DowngraderRun
             // "finished" step turns it on again). Reported either way, as a "finished" step mid-loop may have turned
             // it on before a later file started a download.
             events.Report(new PatchAllEnabled(!_inProgress));
-        }
-        catch (RefreshFailedException)
-        {
-            // The host already reported the refresh's failure; in Tk it raised out of patch_files here.
         }
         finally
         {
@@ -348,11 +344,6 @@ public sealed class DowngraderRun
                 phases.Report(OperationPhase.Interactive);
                 current = next;
             }
-            catch (RefreshFailedException)
-            {
-                // The host already reported the refresh's failure; in Tk it raised out of the poll's callback here.
-                return;
-            }
             finally
             {
                 _ui.Release();
@@ -441,15 +432,14 @@ public sealed class DowngraderRun
 
     /// <summary>
     /// The queue's "finished" step: refreshes the Overview, detects the six files again and has the window redraw them,
-    /// re-enables the button and lets the window close again.
+    /// re-enables the button and lets the window close again. All of it happens whether or not the refresh succeeded.
     /// </summary>
-    /// <exception cref="RefreshFailedException">The refresh failed; the rest is skipped.</exception>
     private async Task FinishedAsync(IDowngraderHost host, IProgress<OperationEvent> events)
     {
-        if (!await host.RefreshOverviewAsync().ConfigureAwait(false))
-        {
-            throw new RefreshFailedException();
-        }
+        // A failed refresh has already been reported by the host, and the files on disk are what the window must show
+        // either way, so its result doesn't change anything here: the patches are applied, and the window has to come
+        // back (Patch All on, closable) rather than stay stuck as if the queue were still running.
+        _ = await host.RefreshOverviewAsync().ConfigureAwait(false);
 
         _versions = [.. DowngraderDetection.Detect(_game, _host)];
         events.Report(new VersionsDetected([.. _versions]));
@@ -597,7 +587,4 @@ public sealed class DowngraderRun
 
     /// <summary>A queued patch whose download is under way.</summary>
     private sealed record StartedDownload(QueuedPatch Patch, Task Download);
-
-    /// <summary>The Overview refresh failed and was reported; the reference's exception ended the callback.</summary>
-    private sealed class RefreshFailedException : Exception;
 }
