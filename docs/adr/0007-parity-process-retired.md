@@ -5,6 +5,14 @@ supersedes: ADR-0004 and ADR-0006; amends ADR-0001, ADR-0002 and ADR-0003
 
 # The parity process is retired; the scenarios stay as regression tests
 
+> **Amended (2026-11-01):** new work treats the Reference Implementation as if it never existed. A change is
+> never argued from what the Python app did, and a Failure Outcome inherited from it (a step skipped because a Tk
+> callback raised, say) is judged on its own merits like any other behaviour. A code comment rewritten because its code
+> changed drops its citations of the Reference Implementation (`cmc.*`, Tk, `_load`, ...) and its Parity Inventory IDs,
+> and describes the behaviour on its own terms; untouched comments keep theirs. A test rewritten for new behaviour drops
+> its `Trait("Parity", ...)` and `Deviation` attribute. This replaces the Consequences bullet below that calls the
+> `python-reference` tag "still useful for seeing how something used to behave".
+
 The port reached Behaviour Parity and replaced the Python app at the Cutover (0.7.0,
 [#71](https://github.com/evildarkarchon/Collective-Modding-Toolkit/issues/71)). On 2026-10-29 the user retired the
 parity process. From here the app moves forward with bug fixes and new features, each judged on its own merits rather
