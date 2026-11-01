@@ -117,7 +117,7 @@ public sealed class DowngraderWindowScenarioTests
         };
         actual["downgrader"]!["display"] = display;
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         window.Close();
         owner.Close();
     }

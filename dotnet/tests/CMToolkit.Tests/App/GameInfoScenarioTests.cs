@@ -83,7 +83,7 @@ public sealed class GameInfoScenarioTests
                     JsonEncodedRoot(machine.Root), MaterializedScenario.RootToken, StringComparison.Ordinal));
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     /// <summary>

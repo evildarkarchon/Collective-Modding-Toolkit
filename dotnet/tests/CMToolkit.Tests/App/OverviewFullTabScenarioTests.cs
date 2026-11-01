@@ -123,7 +123,7 @@ public sealed class OverviewFullTabScenarioTests
             actual["dialogs"] = dialogs;
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     /// <summary>The report and the log lines from <paramref name="firstLine"/> on, as the driver's <c>state</c> records them.</summary>

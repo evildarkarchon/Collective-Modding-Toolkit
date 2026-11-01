@@ -69,7 +69,7 @@ public sealed class OverviewTabScenarioTests
         var refreshed = Read(machine, window, state, logger, opened, refreshFrom);
 
         var actual = new JsonObject { ["overview"] = loaded, ["refresh"] = refreshed };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     /// <summary>The tab as the driver's <c>read</c> records it: the report, then what is shown, clicking as it goes.</summary>

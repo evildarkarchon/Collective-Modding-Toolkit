@@ -34,7 +34,7 @@ public sealed class OverviewScenarioTests
             ["overview"] = Project(machine, loaded),
             ["refresh"] = Project(machine, refreshed),
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
     }
 
     /// <summary>The report in the golden's shape: the driver's <c>file_info</c>, <c>install_type</c> and problem list.</summary>

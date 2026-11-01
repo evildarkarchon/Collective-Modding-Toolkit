@@ -26,7 +26,7 @@ public sealed class DownloadSourceScenarioTests
 
         // Full, so the log lines under "display" are compared too: Core writes them. The recorded lines are the
         // reference's own; only where they end up differs (bug #77, fixed: the port's reach cm-toolkit.log).
-        GoldenAssert.Matches(scenario.LoadGolden(), Project(lookup, logger), GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, Project(lookup, logger), GoldenCompareMode.Full);
     }
 
     private static JsonObject Project(DownloadSourceLookup lookup, RecordingLogger logger) => new()

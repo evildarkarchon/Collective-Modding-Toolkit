@@ -167,7 +167,7 @@ public sealed class DowngraderRunScenarioTests
             })]);
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         Assert.Equal(final["processingData"]!.GetValue<bool>(), window.ProcessingData);
         window.ProcessingData = false;
         window.Close();

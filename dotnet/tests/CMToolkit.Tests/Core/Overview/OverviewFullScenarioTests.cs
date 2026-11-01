@@ -41,7 +41,7 @@ public sealed class OverviewFullScenarioTests
             failed["error"] = Error(failure.InnerException!);
             actual["overview"] = failed;
             AddDialogs(actual, failure.Partial);
-            GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+            GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
             return;
         }
 
@@ -53,7 +53,7 @@ public sealed class OverviewFullScenarioTests
         actual["refresh"]!["loaded"] = true;
         // Only the load shows its warnings (OVW-M3, OVW-M5); the refresh's report has them too, unshown.
         AddDialogs(actual, loaded);
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
     }
 
     /// <summary>The report in the golden's shape: the driver's <c>state</c>, Python sets as unordered arrays.</summary>

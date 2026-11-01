@@ -55,7 +55,7 @@ public sealed class F4seScenarioTests
                     : null,
             },
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Semantic);
     }
 
     /// <summary>

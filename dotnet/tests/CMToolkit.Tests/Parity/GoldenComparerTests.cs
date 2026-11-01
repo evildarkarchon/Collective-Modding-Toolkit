@@ -116,14 +116,4 @@ public sealed class GoldenComparerTests
             """{"source": "github"}""",
             GoldenCompareMode.Semantic));
     }
-
-    [Fact]
-    public void Assert_matches_fails_with_every_difference_listed()
-    {
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            GoldenAssert.Matches(JsonNode.Parse("""{"a": 1, "b": 2}"""), JsonNode.Parse("""{"a": 3, "b": 4}"""), GoldenCompareMode.Full));
-
-        Assert.Contains("$.a: expected 1, got 3", ex.Message);
-        Assert.Contains("$.b: expected 2, got 4", ex.Message);
-    }
 }

@@ -32,7 +32,7 @@ public sealed class SettingsScenarioTests
 
         var settings = SettingsFile.Load(settingsPath, downloadSource, logger);
 
-        GoldenAssert.Matches(scenario.LoadGolden(), Project(settings, logger, settingsPath), GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, Project(settings, logger, settingsPath), GoldenCompareMode.Full);
     }
 
     private static JsonObject Project(AppSettings settings, RecordingLogger logger, string settingsPath)

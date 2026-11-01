@@ -25,7 +25,7 @@ public sealed class PcInfoScenarioTests
         var pc = PcInfo.Read(machine.Host, logger);
 
         // Full, not Semantic: the display holds the log lines Core itself writes (the get_cpu()/get_gpu() exceptions).
-        GoldenAssert.Matches(scenario.LoadGolden(), Project(pc, logger), GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, Project(pc, logger), GoldenCompareMode.Full);
     }
 
     /// <summary>

@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Xunit.Sdk;
 
 namespace CMToolkit.Tests.Parity;
 
@@ -212,22 +211,4 @@ public static class GoldenComparer
     };
 
     private static string Show(JsonNode? node) => node?.ToJsonString() ?? "null";
-}
-
-/// <summary>Assertions over <see cref="GoldenComparer"/>.</summary>
-public static class GoldenAssert
-{
-    /// <summary>Fails, listing every difference, unless <paramref name="actual"/> matches the golden.</summary>
-    /// <exception cref="XunitException">The documents differ.</exception>
-    public static void Matches(JsonNode? expected, JsonNode? actual, GoldenCompareMode mode)
-    {
-        var diffs = GoldenComparer.Differences(expected, actual, mode);
-        if (diffs.Count > 0)
-        {
-            throw new XunitException(
-                $"The result doesn't match the golden ({mode}, {diffs.Count} difference(s)):{Environment.NewLine}"
-                + string.Join(Environment.NewLine, diffs)
-                + $"{Environment.NewLine}Actual:{Environment.NewLine}{actual?.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}");
-        }
-    }
 }

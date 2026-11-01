@@ -156,7 +156,7 @@ public sealed class ArchivePatcherWindowScenarioTests
         steps.Add(Step("unfiltered"));
 
         var actual = new JsonObject { ["archivePatcher"] = new JsonObject { ["changes"] = changes, ["steps"] = steps } };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
         patcher.Close();
     }
 

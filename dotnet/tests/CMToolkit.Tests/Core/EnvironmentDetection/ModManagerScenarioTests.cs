@@ -30,7 +30,7 @@ public sealed class ModManagerScenarioTests
         catch (Exception ex)
         {
             golden["error"] = ProjectError(machine, ex);
-            GoldenAssert.Matches(scenario.LoadGolden(), golden, GoldenCompareMode.Semantic);
+            GoldenAssert.Matches(scenario, golden, GoldenCompareMode.Semantic);
             return;
         }
 
@@ -53,7 +53,7 @@ public sealed class ModManagerScenarioTests
             }
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), golden, GoldenCompareMode.Semantic);
+        GoldenAssert.Matches(scenario, golden, GoldenCompareMode.Semantic);
     }
 
     private static JsonObject Project(MaterializedScenario machine, Mo2Configuration mo2)

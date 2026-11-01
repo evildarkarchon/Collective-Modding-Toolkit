@@ -56,10 +56,26 @@ public sealed class ParityScenario : IXunitSerializable
     /// </summary>
     public const string RecordedAppVersion = "0.6.2-dev";
 
+    /// <summary>
+    /// The file a failing replay writes its result to, beside the golden (ADR-0008). Git ignores it, so only a golden
+    /// someone accepted is committed.
+    /// </summary>
+    public const string NewGoldenFileName = "golden.new.json";
+
+    /// <summary>
+    /// Serializes reads and writes of goldens within the test run. Replays of one scenario run in parallel, and while
+    /// <see cref="GoldenAssert"/> records, a reader must never see a half-written <c>golden.json</c>.
+    /// </summary>
+    internal static readonly Lock GoldenFileLock = new();
+
     /// <summary>Whether the scenario has a golden.</summary>
     public bool IsRecorded => File.Exists(GoldenPath);
 
-    private string GoldenPath => Path.Combine(Directory, GoldenFileName);
+    /// <summary>The scenario's <c>golden.json</c>.</summary>
+    internal string GoldenPath => Path.Combine(Directory, GoldenFileName);
+
+    /// <summary>The scenario's <c>golden.new.json</c>, whether or not it exists.</summary>
+    internal string NewGoldenPath => Path.Combine(Directory, NewGoldenFileName);
 
     /// <summary>
     /// Reads what the C# replay must produce: the scenario's <c>golden.json</c>. The manifest's <c>deviations</c> entries
@@ -71,11 +87,14 @@ public sealed class ParityScenario : IXunitSerializable
         if (!IsRecorded)
         {
             throw new InvalidOperationException(
-                $"Parity Scenario '{Id}' has no golden.json. Goldens can no longer be recorded: the Python driver was "
-                + "removed with the Reference Implementation at the Cutover. Cover new behaviour with a hand-written test.");
+                $"Parity Scenario '{Id}' has no golden.json. Record one by running a test that replays it with "
+                + $"{GoldenAssert.RecordVariable}=1, or by accepting the {NewGoldenFileName} a failing replay writes.");
         }
 
-        return JsonNode.Parse(File.ReadAllText(GoldenPath));
+        lock (GoldenFileLock)
+        {
+            return JsonNode.Parse(File.ReadAllText(GoldenPath));
+        }
     }
 
     /// <summary>Copies the tree to a fresh NTFS temp root and applies the manifest's empty folders and attributes.</summary>

@@ -73,7 +73,7 @@ public sealed class UpdateCheckScenarioTests
             actual["httpRequests"] = new JsonArray([.. http.Requests.Select(Request)]);
         }
 
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     private static JsonArray LogLines(RecordingLogger logger)

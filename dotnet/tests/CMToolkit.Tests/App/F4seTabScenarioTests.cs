@@ -132,7 +132,7 @@ public sealed class F4seTabScenarioTests
                 ["display"] = display,
             },
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     /// <summary>The built tab as the driver's <c>_f4se_display</c> records it, reading every row as rendered.</summary>

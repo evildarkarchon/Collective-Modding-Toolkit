@@ -79,7 +79,7 @@ public sealed class SettingsTabScenarioTests
             ["settingsTab"] = new JsonObject { ["frames"] = built },
             ["clicks"] = clicks,
         };
-        GoldenAssert.Matches(scenario.LoadGolden(), actual, GoldenCompareMode.Full);
+        GoldenAssert.Matches(scenario, actual, GoldenCompareMode.Full);
     }
 
     private static IEnumerable<RadioButton> Radios(GroupBox frame) => ((Panel)frame.Content!).Children.OfType<RadioButton>();
