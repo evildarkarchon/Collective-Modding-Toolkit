@@ -60,14 +60,13 @@
       {
         "key": "skip_file_suffixes",
         "value": [
-          "('.mohidden'",
-          ")"
+          ".mohidden"
         ]
       },
       {
         "key": "skip_directories",
         "value": [
-          "set()"
+          ".git"
         ]
       },
       {
@@ -85,12 +84,11 @@
     ],
     "skipDirectories": {
       "$unordered": [
-        "set()"
+        ".git"
       ]
     },
     "skipFileSuffixes": [
-      "('.mohidden'",
-      ")"
+      ".mohidden"
     ],
     "stagePath": "<ROOT>\\MO2\\mods"
   }

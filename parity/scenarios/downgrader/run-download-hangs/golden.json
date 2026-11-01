@@ -75,7 +75,7 @@
           }
         ]
       },
-      "patchEnabled": true,
+      "patchEnabled": false,
       "processingData": true,
       "progress": 0.0,
       "versions": [
@@ -107,15 +107,9 @@
     },
     "errors": {
       "callback": 0,
-      "thread": 1
+      "thread": 0
     },
     "files": [
-      {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4.exe.xdelta",
-        "readonly": false,
-        "sha256": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
-        "size": 1024
-      },
       {
         "path": "<ROOT>/Cwd/settings.json",
         "readonly": false,
@@ -135,9 +129,21 @@
         "size": 0
       },
       {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
         "path": "<ROOT>/Game/Fallout4_upgradeBackup.exe",
         "readonly": false,
         "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
+        "path": "<ROOT>/Game/Fallout4Launcher.exe",
+        "readonly": false,
+        "sha256": "7f8d167c4ceb8d1627e75451cb02661c08d1c96d89d8e4140799a92ef3b9cb06",
         "size": 2564
       },
       {
@@ -172,8 +178,8 @@
               "text": "Old-Gen"
             },
             {
-              "color": "dodger blue",
-              "text": "Old-Gen"
+              "color": "SlateBlue1",
+              "text": "Next-Gen"
             },
             {
               "color": "gray",
@@ -201,13 +207,100 @@
             "color": "dodger blue",
             "emoji": "\ud83d\udcad ",
             "text": "Skipped Archive2Interop.dll: Not Found."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
+            "text": "Failed patching Fallout4.exe"
+          },
+          {
+            "color": "#619267",
+            "emoji": "\u2705 ",
+            "text": "Patched Fallout4Launcher.exe"
           }
         ],
-        "logLines": []
+        "logLines": [
+          {
+            "level": "ERROR",
+            "message": "Failed patching Fallout4.exe"
+          },
+          {
+            "level": "INFO",
+            "message": "Patched Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Refresh Tab : Overview"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Binaries"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Added SimpleProblemInfo: Path: cm-toolkit.exe | Problem: No Mod Manager"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Fallout4Launcher.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\steam_api64.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_loader.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\f4se_steam_loader.dll"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\CreationKit.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Get File Info: <ROOT>\\Game\\Tools\\Archive2\\Archive2.exe"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Modules"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Gathering Info: Archives"
+          },
+          {
+            "level": "DEBUG",
+            "message": "Reset Info: Archives"
+          },
+          {
+            "$unordered": [
+              {
+                "level": "DEBUG",
+                "message": "Archives: Checking Fallout4 - Startup.ba2"
+              }
+            ]
+          }
+        ]
       },
       "patchEnabled": true,
-      "processingData": true,
-      "progress": 0.0,
+      "processingData": false,
+      "progress": 100.0,
       "versions": [
         {
           "file": "Fallout4.exe",
@@ -215,7 +308,7 @@
         },
         {
           "file": "Fallout4Launcher.exe",
-          "installType": "Old-Gen"
+          "installType": "Next-Gen"
         },
         {
           "file": "steam_api64.dll",
@@ -249,6 +342,13 @@
         "timeout": 10
       },
       "resource": "delta/OG-to-NG-Fallout4.exe.xdelta"
+    },
+    {
+      "kwargs": {
+        "stream": true,
+        "timeout": 10
+      },
+      "resource": "delta/OG-to-NG-Fallout4Launcher.exe.xdelta"
     }
   ]
 }

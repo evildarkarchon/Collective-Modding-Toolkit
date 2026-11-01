@@ -1,14 +1,15 @@
 {
-  "dialogs": [
-    {
-      "args": [
-        "Game not found",
-        "A Fallout 4 installation could not be found.\n\nThe path set in your registry is:\n<ROOT>\\Missing\n\nIf this is not correct, please run the Fallout 4 Launcher to correct it."
-      ],
-      "function": "showerror",
-      "kwargs": {},
-      "module": "messagebox"
-    }
-  ],
-  "exitCode": 0
+  "game": {
+    "ba2Suffixes": [
+      "main",
+      "textures",
+      "voices_en"
+    ],
+    "dataPath": null,
+    "f4sePath": null,
+    "gamePath": "<ROOT>\\GOG Game",
+    "language": "en",
+    "prefs": {},
+    "settings": {}
+  }
 }

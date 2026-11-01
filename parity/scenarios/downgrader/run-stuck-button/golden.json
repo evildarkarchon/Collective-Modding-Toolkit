@@ -93,7 +93,7 @@
           }
         ]
       },
-      "patchEnabled": false,
+      "patchEnabled": true,
       "processingData": false,
       "progress": 0.0,
       "versions": [
@@ -245,7 +245,7 @@
         ],
         "logLines": []
       },
-      "patchEnabled": false,
+      "patchEnabled": true,
       "processingData": false,
       "progress": 0.0,
       "versions": [

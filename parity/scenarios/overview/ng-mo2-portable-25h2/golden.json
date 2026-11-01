@@ -215,14 +215,17 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
           },
           "tooltip": "Detection details"
         },
-        "osWarning": null,
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
         "refresh": {
           "image": "images/refresh-32.png",
           "tooltip": "Refresh"
@@ -467,14 +470,17 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: ",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
           },
           "tooltip": "Detection details"
         },
-        "osWarning": null,
+        "osWarning": {
+          "image": "images/warning-16.png",
+          "tooltip": "Note: MO2 2.5.2 and earlier have issues on Windows 11 24H2+.\nPython apps such as Wrye Bash and CLASSIC may give errors\nsuch as FileNotFound or fail to detect files that are only\npresent in the VFS and not the Data folder."
+        },
         "refresh": {
           "image": "images/refresh-32.png",
           "tooltip": "Refresh"

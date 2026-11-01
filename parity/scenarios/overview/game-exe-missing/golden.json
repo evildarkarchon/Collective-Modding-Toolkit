@@ -76,43 +76,43 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "gray",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "gray",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
@@ -185,7 +185,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
@@ -208,13 +208,64 @@
           }
         ],
         "version": {
-          "color": "#619267",
+          "color": "#AF5A66",
           "text": "Not Found"
         }
       }
     },
     "installType": "Not Found",
-    "problems": []
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "Fallout4.exe",
+        "mod": "",
+        "path": "Fallout4.exe",
+        "relativePath": "Fallout4.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "steam_api64.dll",
+        "mod": "",
+        "path": "steam_api64.dll",
+        "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "",
+        "path": "f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_steam_loader.dll",
+        "mod": "",
+        "path": "f4se_steam_loader.dll",
+        "relativePath": "f4se_steam_loader.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      }
+    ]
   },
   "refresh": {
     "addressLibrary": null,
@@ -293,43 +344,43 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "gray",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
           },
           {
-            "color": "#619267",
+            "color": "gray",
             "hover": "Not Found",
             "left": "Not Found",
             "text": "Not Found"
@@ -394,7 +445,7 @@
           "image": "images/info-16.png",
           "opens": {
             "height": 350,
-            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: [\"('.mohidden'\", ')']\n   skip_directories: ['set()']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
+            "text": "EXE: <ROOT>\\MO2\\ModOrganizer.exe\nINI: <ROOT>\\MO2\\ModOrganizer.ini\nPortable: True\nPortable.txt: <ROOT>\\MO2\\portable.txt\n     base_directory: <ROOT>\\MO2\n    cache_directory: <ROOT>\\MO2\\webcache\n download_directory: <ROOT>\\MO2\\downloads\n      mod_directory: <ROOT>\\MO2\\mods\noverwrite_directory: <ROOT>\\MO2\\overwrite\n profile_local_inis: False\nprofile_local_saves: False\n profiles_directory: <ROOT>\\MO2\\profiles\n skip_file_suffixes: ['.mohidden']\n   skip_directories: ['.git']\n           gameName: Fallout 4\n           gamePath: Game\n   selected_profile: Survival",
             "title": "Detected Mod Manager Settings",
             "width": 750,
             "window": "AboutWindow"
@@ -417,12 +468,63 @@
           }
         ],
         "version": {
-          "color": "#619267",
+          "color": "#AF5A66",
           "text": "Not Found"
         }
       }
     },
     "installType": "Not Found",
-    "problems": []
+    "problems": [
+      {
+        "extraData": null,
+        "itemText": "Fallout4.exe",
+        "mod": "",
+        "path": "Fallout4.exe",
+        "relativePath": "Fallout4.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "Fallout4Launcher.exe",
+        "mod": "",
+        "path": "Fallout4Launcher.exe",
+        "relativePath": "Fallout4Launcher.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "steam_api64.dll",
+        "mod": "",
+        "path": "steam_api64.dll",
+        "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "",
+        "path": "f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_steam_loader.dll",
+        "mod": "",
+        "path": "f4se_steam_loader.dll",
+        "relativePath": "f4se_steam_loader.dll",
+        "solution": null,
+        "summary": "This file is missing from your game installation.",
+        "type": "File Not Found"
+      }
+    ]
   }
 }

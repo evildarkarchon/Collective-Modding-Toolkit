@@ -3,17 +3,17 @@
     "ba2Suffixes": [
       "main",
       "textures",
-      "voices_en"
+      "voices_en",
+      "voices_es"
     ],
     "dataPath": null,
     "f4sePath": null,
     "gamePath": "<ROOT>\\Game",
-    "language": "en",
+    "language": "es",
     "prefs": {},
     "settings": {
       "general": {
-        "slanguage": " es",
-        "slanguage ": " de"
+        "slanguage": "es"
       }
     }
   }

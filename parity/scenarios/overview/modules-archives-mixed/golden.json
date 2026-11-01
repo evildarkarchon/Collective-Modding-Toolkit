@@ -239,7 +239,7 @@
           {
             "color": "#619267",
             "row": 0,
-            "text": "  11",
+            "text": "  10",
             "tooltip": null
           },
           {
@@ -251,7 +251,7 @@
           {
             "color": "#619267",
             "row": 2,
-            "text": "  14",
+            "text": "  13",
             "tooltip": null
           },
           {
@@ -367,7 +367,6 @@
         "<ROOT>\\Game\\Data\\dlccoast.esm",
         "<ROOT>\\Game\\Data\\ccBGSFO4001-PipBoy(Black).esl",
         "<ROOT>\\Game\\Data\\ccDup.esm",
-        "<ROOT>\\Game\\Data\\ccDup.esm",
         "<ROOT>\\Game\\Data\\Unofficial.esp",
         "<ROOT>\\Game\\Data\\Short.esp",
         "<ROOT>\\Game\\Data\\BadMagic.esp",
@@ -380,7 +379,7 @@
         "<ROOT>\\Game\\Data\\Huge.esp",
         "<ROOT>\\Game\\Data\\Unknown.esl"
       ],
-      "full": 11,
+      "full": 10,
       "hedr100": 3,
       "hedr95": {
         "$unordered": [
@@ -497,7 +496,7 @@
         "path": "<ROOT>\\Game\\Data\\Legacy170.esp",
         "relativePath": "Legacy170.esp",
         "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
-        "summary": "Module version (1.7) is not valid for Fallout 4.",
+        "summary": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
         "type": "Invalid Module"
       },
       {
@@ -828,7 +827,7 @@
           {
             "color": "#619267",
             "row": 0,
-            "text": "  11",
+            "text": "  10",
             "tooltip": null
           },
           {
@@ -840,7 +839,7 @@
           {
             "color": "#619267",
             "row": 2,
-            "text": "  14",
+            "text": "  13",
             "tooltip": null
           },
           {
@@ -956,7 +955,6 @@
         "<ROOT>\\Game\\Data\\dlccoast.esm",
         "<ROOT>\\Game\\Data\\ccBGSFO4001-PipBoy(Black).esl",
         "<ROOT>\\Game\\Data\\ccDup.esm",
-        "<ROOT>\\Game\\Data\\ccDup.esm",
         "<ROOT>\\Game\\Data\\Unofficial.esp",
         "<ROOT>\\Game\\Data\\Short.esp",
         "<ROOT>\\Game\\Data\\BadMagic.esp",
@@ -969,7 +967,7 @@
         "<ROOT>\\Game\\Data\\Huge.esp",
         "<ROOT>\\Game\\Data\\Unknown.esl"
       ],
-      "full": 11,
+      "full": 10,
       "hedr100": 3,
       "hedr95": {
         "$unordered": [
@@ -1086,7 +1084,7 @@
         "path": "<ROOT>\\Game\\Data\\Legacy170.esp",
         "relativePath": "Legacy170.esp",
         "solution": "It may be possible to open/resave this file with Creation Kit to update its format for Fallout 4.\nYou should compare the original and resaved files with xEdit to verify no undesired changes were made.",
-        "summary": "Module version (1.7) is not valid for Fallout 4.",
+        "summary": "Module version (1.7) is not valid for Fallout 4.\nGames supporting v1.7: Skyrim LE, Skyrim VR, Skyrim SE",
         "type": "Invalid Module"
       },
       {

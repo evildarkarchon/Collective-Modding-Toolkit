@@ -96,7 +96,7 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "1.10.999.0",
             "left": "Unknown",
             "text": "Unknown"
@@ -114,7 +114,7 @@
             "text": "Old-Gen"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "0.0.9.9",
             "left": "Unknown",
             "text": "Unknown"
@@ -287,6 +287,16 @@
       },
       {
         "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      },
+      {
+        "extraData": null,
         "itemText": "f4se_steam_loader.dll",
         "mod": "",
         "path": "f4se_steam_loader.dll",
@@ -394,7 +404,7 @@
         "names": "Fallout4:\nFallout4Launcher:\nsteam_api64:\nf4se_loader:\nf4se_steam_loader:\nCreationKit:\nArchive2:",
         "rows": [
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "1.10.999.0",
             "left": "Unknown",
             "text": "Unknown"
@@ -412,7 +422,7 @@
             "text": "Old-Gen"
           },
           {
-            "color": "#619267",
+            "color": "#AF5A66",
             "hover": "0.0.9.9",
             "left": "Unknown",
             "text": "Unknown"
@@ -571,6 +581,16 @@
         "mod": "<Unmanaged>",
         "path": "<ROOT>\\Game\\steam_api64.dll",
         "relativePath": "steam_api64.dll",
+        "solution": null,
+        "summary": "The version of this binary does not match your installed game version.",
+        "type": "Wrong Version"
+      },
+      {
+        "extraData": null,
+        "itemText": "f4se_loader.exe",
+        "mod": "<Unmanaged>",
+        "path": "<ROOT>\\Game\\f4se_loader.exe",
+        "relativePath": "f4se_loader.exe",
         "solution": null,
         "summary": "The version of this binary does not match your installed game version.",
         "type": "Wrong Version"

@@ -79,7 +79,7 @@
           }
         ]
       },
-      "patchEnabled": true,
+      "patchEnabled": false,
       "processingData": true,
       "progress": 0.0,
       "versions": [
@@ -115,18 +115,6 @@
     },
     "files": [
       {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4.exe.xdelta",
-        "readonly": false,
-        "sha256": "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
-        "size": 9
-      },
-      {
-        "path": "<ROOT>/Cwd/OG-to-NG-Fallout4Launcher.exe.xdelta",
-        "readonly": false,
-        "sha256": "ac32e8d2ba63466a56307ece8dd5b4e5859e135a5ff4f12cc046ee87b6625ba2",
-        "size": 5343
-      },
-      {
         "path": "<ROOT>/Cwd/settings.json",
         "readonly": false,
         "sha256": "69e87441e4a160f88a840c825682ccb92ef06d4dad4c48d1928ada5f0a4abaf4",
@@ -145,10 +133,16 @@
         "size": 0
       },
       {
+        "path": "<ROOT>/Game/Fallout4.exe",
+        "readonly": false,
+        "sha256": "1f908175f71a0099409faecff8ee398c159a983db3dd21510b75193ac8969647",
+        "size": 2564
+      },
+      {
         "path": "<ROOT>/Game/Fallout4Launcher.exe",
         "readonly": false,
-        "sha256": "8df18035e747f588a961c1fa860e54ce489b8c26ece91adfa2534e15bf4b7fa3",
-        "size": 16384
+        "sha256": "d895ad2da67cf2d5aa0d018b97cafe9cf61c9cbc0ee202603ccecef04f0d8942",
+        "size": 65540
       }
     ],
     "final": {
@@ -172,12 +166,12 @@
         "game": {
           "values": [
             {
-              "color": "gray",
-              "text": "Not Found"
+              "color": "dodger blue",
+              "text": "Old-Gen"
             },
             {
-              "color": "#AF5A66",
-              "text": "Unknown"
+              "color": "dodger blue",
+              "text": "Old-Gen"
             },
             {
               "color": "gray",
@@ -209,6 +203,11 @@
           {
             "color": "#AF5A66",
             "emoji": "\u274c ",
+            "text": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found)."
+          },
+          {
+            "color": "#AF5A66",
+            "emoji": "\u274c ",
             "text": "Failed patching Fallout4.exe"
           },
           {
@@ -218,6 +217,10 @@
           }
         ],
         "logLines": [
+          {
+            "level": "ERROR",
+            "message": "Failed downloading OG-to-NG-Fallout4.exe.xdelta: The server answered 404 (Not Found)."
+          },
           {
             "level": "ERROR",
             "message": "Failed patching Fallout4.exe"
@@ -302,11 +305,11 @@
       "versions": [
         {
           "file": "Fallout4.exe",
-          "installType": "Not Found"
+          "installType": "Old-Gen"
         },
         {
           "file": "Fallout4Launcher.exe",
-          "installType": "Unknown"
+          "installType": "Old-Gen"
         },
         {
           "file": "steam_api64.dll",

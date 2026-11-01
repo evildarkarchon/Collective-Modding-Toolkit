@@ -163,7 +163,7 @@
       },
       {
         "path": "<ROOT>/Game/Fallout4Launcher_upgradeBackup.exe",
-        "readonly": true,
+        "readonly": false,
         "sha256": "d895ad2da67cf2d5aa0d018b97cafe9cf61c9cbc0ee202603ccecef04f0d8942",
         "size": 65540
       },

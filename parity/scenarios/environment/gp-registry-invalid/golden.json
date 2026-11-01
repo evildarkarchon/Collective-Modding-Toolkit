@@ -2,10 +2,10 @@
   "dialogs": [
     {
       "args": [
-        "Game not found",
-        "A Fallout 4 installation could not be found.\n\nThe path set in your registry is:\n<ROOT>\\Game\\\n\nIf this is not correct, please run the Fallout 4 Launcher to correct it."
+        "Fallout 4 Not Found",
+        "Your Fallout 4 installation could not be detected.\nThis is usually due to the game being moved or the launcher not being run once from its current location.\n\nManually specify a location?\nCM Toolkit will close otherwise."
       ],
-      "function": "showerror",
+      "function": "askyesno",
       "kwargs": {},
       "module": "messagebox"
     }

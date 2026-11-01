@@ -283,71 +283,55 @@ public sealed class ParityScenarioTests : IDisposable
     }
 
     /// <summary>
-    /// A synthetic Deviation (ADR-0006): the reference recorded <c>"buggy"</c>, the port is expected to produce
-    /// <c>"fixed"</c>. No real bug is involved; bug 1 and the values only exist to exercise the mechanism.
+    /// A scenario that records synthetic <c>deviations</c> entries and has a <c>golden.json</c> of <c>{"value": "fixed"}</c>.
+    /// No real bug is involved; bug 1 and the value only exist to exercise the manifest checks and the loader.
     /// </summary>
     private ParityScenario AuthorDeviation(string deviations = """[{"bug": 1, "reason": "Synthetic: the port fixes it."}]""")
     {
         var scenario = Author("m/s", $$"""{"operation": "op", "parity": ["SET-2"], "host": {}, "deviations": {{deviations}}}""");
-        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "buggy"}"""));
-        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.port.json"), Encoding.UTF8.GetBytes("""{"value": "fixed"}"""));
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "fixed"}"""));
         return scenario;
     }
 
     [Fact]
-    public void A_scenario_without_deviations_replays_against_the_reference_golden()
+    public void A_scenario_replays_against_its_golden()
     {
         var scenario = Author("m/s", MinimalManifest);
-        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "buggy"}"""));
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("""{"value": "recorded"}"""));
 
-        Assert.Empty(scenario.Manifest.Deviations ?? []);
-        Assert.False(scenario.Deviates);
-        Assert.Equal("buggy", scenario.LoadGolden()!["value"]!.GetValue<string>());
-        Assert.Equal("buggy", scenario.LoadReferenceGolden()!["value"]!.GetValue<string>());
+        Assert.True(scenario.IsRecorded);
+        Assert.Equal("recorded", scenario.LoadGolden()!["value"]!.GetValue<string>());
     }
 
     [Fact]
-    public void A_deviating_scenario_replays_against_its_port_golden_and_keeps_the_reference_one()
+    public void Deviations_are_kept_as_a_record_and_dont_change_which_golden_a_replay_reads()
     {
         var scenario = AuthorDeviation();
 
-        Assert.True(scenario.Deviates);
         Assert.Equal(new ScenarioDeviation(1, "Synthetic: the port fixes it."), Assert.Single(scenario.Manifest.Deviations!));
         Assert.Equal("fixed", scenario.LoadGolden()!["value"]!.GetValue<string>());
-        Assert.Equal("buggy", scenario.LoadReferenceGolden()!["value"]!.GetValue<string>());
     }
 
     [Fact]
-    public void A_deviation_without_a_port_golden_fails_instead_of_silently_proving_the_bug()
+    public void A_leftover_golden_port_json_is_not_read()
     {
+        // A scenario has one golden. A stray file under the old overlay's name must neither win over golden.json nor
+        // be demanded by the scenario's deviations.
         var scenario = AuthorDeviation();
-        File.Delete(Path.Combine(scenario.Directory, "golden.port.json"));
+        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.port.json"), Encoding.UTF8.GetBytes("""{"value": "stale"}"""));
 
-        var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
-
-        Assert.Contains("golden.port.json", ex.Message);
+        Assert.Equal("fixed", scenario.LoadGolden()!["value"]!.GetValue<string>());
     }
 
     [Fact]
-    public void A_port_golden_without_a_declared_deviation_fails()
-    {
-        var scenario = Author("m/s", MinimalManifest);
-        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.json"), Encoding.UTF8.GetBytes("{}"));
-        _scenarios.WriteBytes(Path.Combine("m", "s", "golden.port.json"), Encoding.UTF8.GetBytes("{}"));
-
-        var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
-
-        Assert.Contains("deviations", ex.Message);
-    }
-
-    [Fact]
-    public void A_deviating_scenario_still_needs_its_reference_recording()
+    public void A_scenario_with_deviations_but_no_golden_is_unrecorded()
     {
         var scenario = AuthorDeviation();
         File.Delete(Path.Combine(scenario.Directory, "golden.json"));
 
         Assert.False(scenario.IsRecorded);
-        Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
+        var ex = Assert.Throws<InvalidOperationException>(() => scenario.LoadGolden());
+        Assert.Contains("'m/s' has no golden.json", ex.Message);
     }
 
     [Theory]

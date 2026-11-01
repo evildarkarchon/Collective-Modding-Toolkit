@@ -1,8 +1,5 @@
 {
   "banner": null,
-  "error": {
-    "kind": "startupFailure"
-  },
   "httpRequests": [
     {
       "kwargs": {
@@ -21,6 +18,11 @@
         {
           "level": "DEBUG",
           "message": "Update Check : GitHub"
+        },
+        {
+          "exception": true,
+          "level": "ERROR",
+          "message": "Update Check : GitHub : Failed"
         }
       ]
     },
