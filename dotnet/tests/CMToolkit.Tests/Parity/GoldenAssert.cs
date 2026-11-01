@@ -114,6 +114,14 @@ public static class GoldenAssert
     /// dimension doesn't reshuffle on every re-record. In <see cref="GoldenCompareMode.Semantic"/>, where the replay
     /// produced no display text, each <c>display</c> sub-object of the basis is copied to the same place in the copy.
     /// </summary>
+    /// <remarks>
+    /// "The same place" pairs object properties by key and, in two ordered arrays of equal length, items by index. So
+    /// when a Semantic replay reorders or replaces rows without changing their count, each row receives the
+    /// <c>display</c> of whichever basis row held its index, and the recording still succeeds: Semantic mode can't see
+    /// display text, so it can't tell that the text no longer fits. A placement is refused only when the item at that
+    /// index is no longer an object. A Full-mode replay of the same scenario is what catches display text that doesn't
+    /// match its row.
+    /// </remarks>
     /// <param name="path">The JSON path of the two nodes, for messages.</param>
     /// <param name="unplaced">
     /// Receives the path of each basis <c>display</c> sub-object that has no place in <paramref name="actual"/>: its
