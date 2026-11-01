@@ -49,8 +49,9 @@ public static class GoldenAssert
     {
         lock (ParityScenario.GoldenFileLock)
         {
-            var golden = scenario.IsRecorded ? scenario.LoadGolden() : null;
-            IReadOnlyList<string> diffs = scenario.IsRecorded
+            var recorded = scenario.IsRecorded;
+            var golden = recorded ? scenario.LoadGolden() : null;
+            IReadOnlyList<string> diffs = recorded
                 ? GoldenComparer.Differences(golden, actual, mode)
                 : [$"$: the scenario has no {ParityScenario.GoldenFileName} yet"];
             var newGoldenPath = scenario.NewGoldenPath;
