@@ -7,8 +7,9 @@ App and compare. That proved the port matched the Python app
 retired ([ADR-0007](../docs/adr/0007-parity-process-retired.md)).
 
 The scenarios and goldens stay as **regression fixtures**: the tests below still replay them on every run. The
-driver is gone (preserved at the `python-reference` tag), so a golden can't be re-recorded. Cover new behaviour with
-ordinary hand-written tests, and when a fix or feature changes what a scenario must produce, edit its golden
+driver is gone (preserved at the `python-reference` tag), and the app records the goldens itself now
+([ADR-0008](../docs/adr/0008-goldens-recorded-by-the-app.md)). Cover new behaviour with ordinary hand-written tests,
+and when a fix or feature changes what a scenario must produce, re-record its golden
 ([below](#changing-a-scenarios-expected-result)).
 
 ## Layout
@@ -141,8 +142,9 @@ Each scenario ran in a fresh child process with `PYTHONHASHSEED=0`. The driver i
 (the .NET exemption) whatever the recording machine's Windows build. Results the reference only computed while building
 widgets were read back off the widgets.
 
-Goldens were recorded once, during the port. The driver was removed with the Python app at 0.7.0, so no golden can be
-recorded or re-recorded now.
+The driver was removed with the Python app at 0.7.0. Since then the C# replays record the goldens
+([below](#changing-a-scenarios-expected-result)), in the same format, except that a re-recorded number is written as
+the app holds it (`100` where Python wrote `100.0`).
 
 ## Replaying in C#
 
@@ -155,9 +157,12 @@ public void Core_matches_the_reference(ParityScenario scenario)
 {
     using var machine = scenario.Materialize();          // NTFS temp copy + extras; deleted on dispose
     var lookup = DownloadSourceFile.Read(machine.Host.AppDirectory);
-    GoldenAssert.Matches(scenario.LoadGolden(), Project(lookup), GoldenCompareMode.Semantic);
+    GoldenAssert.Matches(scenario, Project(lookup), GoldenCompareMode.Semantic);
 }
 ```
+
+`GoldenAssert.Matches` takes the scenario, not its loaded golden, because on a mismatch it writes the result beside
+the golden ([below](#changing-a-scenarios-expected-result)).
 
 `CommittedScenarioTests` fails if a committed scenario is unrecorded, doesn't parse, or isn't picked up by any
 `[MemberData]` returning `TheoryData<ParityScenario>`. A scenario no test replays protects nothing.
@@ -166,10 +171,28 @@ public void Core_matches_the_reference(ParityScenario scenario)
 
 ## Changing a scenario's expected result
 
-A scenario has one golden, `golden.json`. When a bug fix or a feature changes what a scenario must produce, edit that
-`golden.json`, in the same change as the code. Change only the fields the change affects, and keep the golden format
-(sorted keys, two-space indent, LF). Leave `tree/`, `http/` and the `parity` list alone unless the change needs a
-different input; if it does, a hand-written test is usually simpler than reshaping a scenario.
+A scenario has one golden, `golden.json`, and the app records it. When a bug fix or a feature changes what a scenario
+must produce, re-record the golden instead of editing its JSON by hand:
+
+1. Run the tests. A replay that no longer matches fails, listing every difference by JSON path, and writes what the
+   app produced to `golden.new.json` beside `golden.json`.
+2. Accept the change by replacing `golden.json` with `golden.new.json`. For a change that touches many scenarios, set
+   `CMT_RECORD_GOLDENS=1` and run the suite once instead: every replay rewrites its `golden.json` and passes.
+3. Run the tests again without the setting. They must pass and leave no `golden.new.json` behind.
+4. Review the goldens' `git diff` like code, and commit them in the same change as the code. A recording can't tell a
+   regression from an improvement, so every changed line needs a reason.
+
+`golden.new.json` is git-ignored, so a recording nobody accepted is never committed, and a passing replay deletes one
+left by an earlier run. A new scenario gets its first golden the same way.
+
+A recording is written in the golden format (sorted keys, two-space indent, LF, ASCII escapes, and `$unordered`
+wherever the projection wrote it), so its diff shows only what changed. Unordered items the golden already had keep
+its order. A replay in `GoldenCompareMode.Semantic` produces no display text, so it records with the golden's
+`display` sub-objects kept as they were. If the result changed shape so much that one can't be placed, it fails and
+records nothing: re-record the scenario through a test that compares in `Full` first.
+
+Leave `tree/`, `http/` and the `parity` list alone unless the change needs a different input; if it does, a
+hand-written test is usually simpler than reshaping a scenario.
 
 The existing `deviations` entries and `Deviation` test attributes are the port's record of the Python bugs it fixed
 (ADR-0006); keep them, but new changes don't need new ones. They don't select a golden, so adding or removing one
