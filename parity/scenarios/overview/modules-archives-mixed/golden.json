@@ -403,15 +403,15 @@
         },
         {
           "module": "<ROOT>\\Game\\Data\\Fo76.esm",
-          "version": 68.0
+          "version": 68
         },
         {
           "module": "<ROOT>\\Game\\Data\\Zero.esp",
-          "version": 0.0
+          "version": 0
         },
         {
           "module": "<ROOT>\\Game\\Data\\Huge.esp",
-          "version": 1.0000000200408773e+20
+          "version": 1.0000000200408773E+20
         },
         {
           "module": "<ROOT>\\Game\\Data\\Unknown.esl",
@@ -991,15 +991,15 @@
         },
         {
           "module": "<ROOT>\\Game\\Data\\Fo76.esm",
-          "version": 68.0
+          "version": 68
         },
         {
           "module": "<ROOT>\\Game\\Data\\Zero.esp",
-          "version": 0.0
+          "version": 0
         },
         {
           "module": "<ROOT>\\Game\\Data\\Huge.esp",
-          "version": 1.0000000200408773e+20
+          "version": 1.0000000200408773E+20
         },
         {
           "module": "<ROOT>\\Game\\Data\\Unknown.esl",

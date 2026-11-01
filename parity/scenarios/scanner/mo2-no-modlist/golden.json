@@ -129,7 +129,7 @@
               "text": "Wrong Version"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "5 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -139,7 +139,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folder": "Race Subgraph Records"
@@ -253,7 +253,7 @@
               "text": "Wrong Version"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "4 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -296,7 +296,7 @@
               "text": "File Not Found"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -339,7 +339,7 @@
               "text": "File Not Found"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -382,7 +382,7 @@
               "text": "File Not Found"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -425,7 +425,7 @@
               "text": "File Not Found"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -468,7 +468,7 @@
               "text": "File Not Found"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -487,7 +487,7 @@
         "index": null,
         "results": {
           "groups": [],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "0 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -497,7 +497,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Refreshing Overview...",
             "update": {
               "folder": "Race Subgraph Records"

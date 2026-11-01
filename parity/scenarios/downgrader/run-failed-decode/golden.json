@@ -81,7 +81,7 @@
       },
       "patchEnabled": false,
       "processingData": true,
-      "progress": 0.0,
+      "progress": 0,
       "versions": [
         {
           "file": "Fallout4.exe",
@@ -301,7 +301,7 @@
       },
       "patchEnabled": true,
       "processingData": false,
-      "progress": 100.0,
+      "progress": 100,
       "versions": [
         {
           "file": "Fallout4.exe",

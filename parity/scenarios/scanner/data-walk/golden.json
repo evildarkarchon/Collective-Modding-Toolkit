@@ -517,7 +517,7 @@
               "text": "Loose AnimTextData"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "29 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -527,14 +527,14 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folder": "Race Subgraph Records"
             }
           },
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -568,7 +568,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -589,7 +589,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -610,7 +610,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -689,7 +689,7 @@
               "text": "Invalid Module"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "2 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -708,7 +708,7 @@
         "index": null,
         "results": {
           "groups": [],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "0 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -718,7 +718,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -752,7 +752,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -773,7 +773,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -794,7 +794,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -1132,7 +1132,7 @@
               "text": "Unexpected Format"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "19 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1142,7 +1142,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1176,7 +1176,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -1197,7 +1197,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -1218,7 +1218,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -1301,7 +1301,7 @@
               "text": "Loose Previs"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "3 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1311,7 +1311,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1345,7 +1345,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -1366,7 +1366,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -1387,7 +1387,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -1515,7 +1515,7 @@
               "text": "Junk File"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "6 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1525,7 +1525,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1559,7 +1559,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -1580,7 +1580,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -1601,7 +1601,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -1654,7 +1654,7 @@
               "text": "Loose AnimTextData"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1664,7 +1664,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1698,7 +1698,7 @@
             }
           },
           {
-            "progress": 25.0,
+            "progress": 25,
             "scanningText": "Scanning... 3/12: fomod",
             "update": {
               "folder": "fomod"
@@ -1719,7 +1719,7 @@
             }
           },
           {
-            "progress": 50.0,
+            "progress": 50,
             "scanningText": "Scanning... 6/12: Meshes",
             "update": {
               "folder": "Meshes"
@@ -1740,7 +1740,7 @@
             }
           },
           {
-            "progress": 75.0,
+            "progress": 75,
             "scanningText": "Scanning... 9/12: Sound",
             "update": {
               "folder": "Sound"
@@ -1802,7 +1802,7 @@
               "text": "Race Subgraph Record Count"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1812,7 +1812,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Refreshing Overview...",
             "update": {
               "folder": "Race Subgraph Records"

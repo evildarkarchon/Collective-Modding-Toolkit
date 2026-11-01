@@ -5,7 +5,7 @@
       "during": {
         "detailsPane": false,
         "groups": [],
-        "progress": 1.0,
+        "progress": 1,
         "resultsInfo": "",
         "scan": {
           "enabled": false,
@@ -18,7 +18,7 @@
       "initial": {
         "detailsPane": false,
         "groups": [],
-        "progress": 0.0,
+        "progress": 0,
         "resultsInfo": "",
         "scan": {
           "enabled": true,
@@ -406,7 +406,7 @@
             "text": "Invalid Archive"
           }
         ],
-        "progress": 100.0,
+        "progress": 100,
         "resultsInfo": "16 Results ~ Select an item for details",
         "scan": {
           "enabled": true,
@@ -419,7 +419,7 @@
       "rescanDuring": {
         "detailsPane": false,
         "groups": [],
-        "progress": 1.0,
+        "progress": 1,
         "resultsInfo": "",
         "scan": {
           "enabled": false,
@@ -685,7 +685,7 @@
             "text": "Invalid Archive"
           }
         ],
-        "progress": 100.0,
+        "progress": 100,
         "resultsInfo": "16 Results ~ Select an item for details",
         "scan": {
           "enabled": true,
@@ -951,7 +951,7 @@
             "text": "Invalid Archive"
           }
         ],
-        "progress": 100.0,
+        "progress": 100,
         "resultsInfo": "16 Results ~ Select an item for details",
         "scan": {
           "enabled": true,

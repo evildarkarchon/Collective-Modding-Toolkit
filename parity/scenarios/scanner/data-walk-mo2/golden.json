@@ -370,7 +370,7 @@
               "text": "Unexpected Format"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "11 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -380,14 +380,14 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folder": "Race Subgraph Records"
             }
           },
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -400,28 +400,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -535,7 +535,7 @@
               "text": "Wrong Version"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "4 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -663,7 +663,7 @@
         },
         "results": {
           "groups": [],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "0 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -673,7 +673,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -686,28 +686,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -891,7 +891,7 @@
               "text": "Unexpected Format"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "3 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -901,7 +901,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -914,28 +914,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -1085,7 +1085,7 @@
               "text": "Loose Previs"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1095,7 +1095,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1108,28 +1108,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -1279,7 +1279,7 @@
               "text": "Junk File"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "1 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1289,7 +1289,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1302,28 +1302,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -1496,7 +1496,7 @@
               "text": "F4SE Script Override"
             }
           ],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "2 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1506,7 +1506,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Building mod file index...",
             "update": {
               "folders": [
@@ -1519,28 +1519,28 @@
             }
           },
           {
-            "progress": 20.0,
+            "progress": 20,
             "scanningText": "Scanning... 1/5: F4SE",
             "update": {
               "folder": "F4SE"
             }
           },
           {
-            "progress": 40.0,
+            "progress": 40,
             "scanningText": "Scanning... 2/5: Meshes",
             "update": {
               "folder": "Meshes"
             }
           },
           {
-            "progress": 60.0,
+            "progress": 60,
             "scanningText": "Scanning... 3/5: Scripts",
             "update": {
               "folder": "Scripts"
             }
           },
           {
-            "progress": 80.0,
+            "progress": 80,
             "scanningText": "Scanning... 4/5: Textures",
             "update": {
               "folder": "Textures"
@@ -1557,7 +1557,7 @@
         "index": null,
         "results": {
           "groups": [],
-          "progress": 100.0,
+          "progress": 100,
           "resultsInfo": "0 Results ~ Select an item for details",
           "scan": {
             "enabled": true,
@@ -1567,7 +1567,7 @@
         },
         "updates": [
           {
-            "progress": 1.0,
+            "progress": 1,
             "scanningText": "Refreshing Overview...",
             "update": {
               "folder": "Race Subgraph Records"
