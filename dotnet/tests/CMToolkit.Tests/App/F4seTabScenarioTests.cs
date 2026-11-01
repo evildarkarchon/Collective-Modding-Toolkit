@@ -117,6 +117,7 @@ public sealed class F4seTabScenarioTests
         // The Error Window's own log line isn't one the reference's loggers wrote.
         display["log"] = new JsonArray([.. logger.Entries
             .Where(e => !e.Message.StartsWith("StdErr : ", StringComparison.Ordinal))
+            .WithoutDebug()
             .Select(e => (JsonNode)new JsonObject { ["level"] = LogFile.LevelName(e.Level), ["message"] = e.Message })]);
 
         var actual = new JsonObject

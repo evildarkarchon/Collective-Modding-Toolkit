@@ -104,7 +104,7 @@ public sealed class DowngraderRunScenarioTests
         var logged = logger.Entries.Count;
         JsonObject State()
         {
-            var lines = logger.Entries.Skip(logged).Where(e => !IsErrorReport(e)).ToList();
+            var lines = logger.Entries.Skip(logged).Where(e => !IsErrorReport(e)).WithoutDebug().ToList();
             logged = logger.Entries.Count;
             window.UpdateLayout();
             return new JsonObject

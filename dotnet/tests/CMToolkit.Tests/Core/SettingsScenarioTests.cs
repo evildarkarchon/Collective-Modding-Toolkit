@@ -49,7 +49,7 @@ public sealed class SettingsScenarioTests
         }
 
         var log = new JsonArray();
-        foreach (var record in logger.Records)
+        foreach (var record in logger.Records.WithoutDebug())
         {
             var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
             if (record.Exception is not null)

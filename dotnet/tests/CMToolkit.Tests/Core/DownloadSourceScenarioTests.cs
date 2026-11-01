@@ -35,7 +35,7 @@ public sealed class DownloadSourceScenarioTests
         {
             ["display"] = new JsonObject
             {
-                ["log"] = new JsonArray([.. logger.Records.Select(record =>
+                ["log"] = new JsonArray([.. logger.Records.WithoutDebug().Select(record =>
                 {
                     var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
                     if (record.Exception is not null)

@@ -79,7 +79,7 @@ public sealed class UpdateCheckScenarioTests
     private static JsonArray LogLines(RecordingLogger logger)
     {
         var lines = new JsonArray();
-        foreach (var record in logger.Records)
+        foreach (var record in logger.Records.WithoutDebug())
         {
             var line = new JsonObject { ["level"] = LogFile.LevelName(record.Level), ["message"] = record.Message };
             if (record.Exception is not null)

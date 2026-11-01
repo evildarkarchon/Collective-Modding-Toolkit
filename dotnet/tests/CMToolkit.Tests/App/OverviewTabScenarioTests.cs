@@ -172,7 +172,7 @@ public sealed class OverviewTabScenarioTests
         {
             ["top"] = top,
             ["binaries"] = binaries,
-            ["log"] = new JsonArray([.. logger.Entries.Skip(firstLine).Select(e => (JsonNode)new JsonObject
+            ["log"] = new JsonArray([.. logger.Entries.Skip(firstLine).WithoutDebug().Select(e => (JsonNode)new JsonObject
             {
                 ["level"] = LogFile.LevelName(e.Level),
                 ["message"] = Tokenise(machine, e.Message),

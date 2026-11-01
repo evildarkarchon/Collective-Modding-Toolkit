@@ -133,6 +133,7 @@ public sealed class OverviewFullTabScenarioTests
         // The Error Window's StdErr line is this port's error surfacing, which the reference never logged (#40).
         var log = logger.Entries.Skip(firstLine)
             .Where(e => !e.Message.StartsWith("StdErr : ", StringComparison.Ordinal))
+            .WithoutDebug()
             .Select(e => (JsonNode)new JsonObject
             {
                 ["level"] = LogFile.LevelName(e.Level),

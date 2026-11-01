@@ -58,7 +58,7 @@ public sealed class ArchivePatcherWindowScenarioTests
 
         JsonObject Step(string name, bool patched = false)
         {
-            var lines = app.Logger.Entries.Skip(logged).ToList();
+            var lines = app.Logger.Entries.Skip(logged).WithoutDebug().ToList();
             logged = app.Logger.Entries.Count;
             var step = new JsonObject
             {

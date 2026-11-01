@@ -127,7 +127,7 @@ public sealed class PcInfoScenarioTests
     private static JsonArray ProjectLog(RecordingLogger logger)
     {
         var lines = new JsonArray();
-        foreach (var record in logger.Records)
+        foreach (var record in logger.Records.WithoutDebug())
         {
             var line = new JsonObject
             {

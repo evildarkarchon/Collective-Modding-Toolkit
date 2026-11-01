@@ -122,6 +122,9 @@ canonical (sorted keys, ASCII escapes, LF), with:
 - **Semantic values**: what Core returns. Enums are camelCase strings, such as `"readFailed"`.
 - **`display` sub-objects**: the text the reference renders from those values (labels, log lines, message text). Core
   tests compare in `GoldenCompareMode.Semantic`, which skips every `display`. App presenter tests compare in `Full`.
+- **App-log lines** at INFO, WARNING and ERROR only. DEBUG lines are traces that move whenever code is reorganised,
+  so every projection of the app log drops them through `GoldenLog.WithoutDebug`. A behaviour that rests on a DEBUG
+  line gets a hand-written test instead. A window's visible Log pane is UI text, and its golden keeps every line.
 - **Paths as `<ROOT>` tokens**: `<ROOT>/Game/Data/a.esp`. Inside rendered text, the root is replaced in place.
   Where the exact `str(path)` matters (MO2 paths, T-7), the `mod-manager` operation keeps the backslashed text with the
   root replaced in place, and writes a path outside the root on the root's drive as `<DRIVE>\...` (B-6). Absolute
