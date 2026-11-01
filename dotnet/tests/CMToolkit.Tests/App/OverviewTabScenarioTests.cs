@@ -50,13 +50,12 @@ public sealed class OverviewTabScenarioTests
         var pc = PcInfo.Read(machine.Host, new CapturingLogger());
         var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
-        var state = new OverviewState();
+        // Recorded with get_info_modules and get_info_archives stubbed out, so they are skipped here too.
+        var state = new OverviewState(runtime, previous => OverviewReport.Gather(game, machine.Host, logger, previous, modulesAndArchives: false));
         var opened = new List<JsonObject>();
-        var tab = new OverviewTab(runtime, machine.Host, pc, game, state, () => opened.Add(new JsonObject { ["window"] = "Downgrader" }))
+        var tab = new OverviewTab(runtime, pc, game, state, () => opened.Add(new JsonObject { ["window"] = "Downgrader" }))
         {
             OpenFolder = folder => opened.Add(new JsonObject { ["folder"] = Tokenise(machine, folder) }),
-            // Recorded with get_info_modules and get_info_archives stubbed out, so they are skipped here too.
-            Gatherer = (g, h, l, previous) => OverviewReport.Gather(g, h, l, previous, modulesAndArchives: false),
         };
         var window = TabHost.Show(runtime, tab);
 

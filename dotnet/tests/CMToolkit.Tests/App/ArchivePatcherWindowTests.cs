@@ -16,11 +16,12 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// How the Archive Patcher is reached and how it behaves around a run, beyond what its scenarios replay: both Archive
-/// Patcher buttons open it over the main window (OVW-A6, TOOL-1), a radio click on the selected radio still clears and
-/// lists again (AP-2), Patch All holds the UI through the Overview refresh and keeps the close guard after a failure
-/// (AP-3), Escape closes it even while the log pane has focus (bug #88, fixed), and a game without a Data folder fails the
-/// reference's assert.
+/// How the Archive Patcher is reached and how it behaves around a run, beyond what its scenarios replay: the Archive
+/// Patcher buttons on the Overview and Tools tabs both open it over the main window, a click on the radio that is already
+/// selected still clears the pane and lists again, Patch All holds the input block through the Overview refresh, a
+/// failed patch run or Overview refresh still leaves a window that closes and lists the archives' current versions,
+/// Escape closes it even while the log pane has focus (bug #88, fixed), and a game without a Data folder fails Patch
+/// All's Data folder check.
 /// </summary>
 public sealed class ArchivePatcherWindowTests
 {
@@ -73,78 +74,87 @@ public sealed class ArchivePatcherWindowTests
     {
         using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
         var (runtime, game, overview) = Parts(machine);
-        bool? blockedDuringRefresh = null;
-        var patcher = Show(runtime, game, machine, overview, () =>
-        {
-            blockedDuringRefresh = runtime.Input.IsBlocking;
-            return Task.CompletedTask;
-        });
+        bool? blockedAfterRefresh = null;
+        // Refreshed is raised once the refresh's own operation is over, so this sees the window's block, not the
+        // refresh's.
+        overview.Refreshed += (_, _) => blockedAfterRefresh = runtime.Input.IsBlocking;
+        var patcher = Show(runtime, game, machine, overview);
 
         Run(patcher.PatchAllAsync());
 
-        Assert.True(blockedDuringRefresh);
+        Assert.True(blockedAfterRefresh);
         Assert.False(runtime.Input.IsBlocking);
         Assert.False(patcher.ProcessingData);
     }
 
     /// <summary>
-    /// The reference's refresh raised out of <c>_patch_wrapper</c>, skipping the repopulate and leaving
-    /// <c>processing_data</c> set, so Escape and the close button do nothing afterwards.
+    /// The patch run dies on its worker after patching two archives. The window still refreshes the Overview Report, so
+    /// its list drops the two it patched, clears the close guard and shows the failure once.
     /// </summary>
     [AvaloniaFact]
-    [Trait("Parity", "AP-3")]
-    public void A_failed_overview_refresh_skips_the_repopulate_and_leaves_the_close_guard_set()
+    public void After_a_failed_patch_run_the_window_closes_and_lists_the_archives_current_versions()
     {
-        using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
-        var (runtime, game, overview) = Parts(machine);
-        var patcher = Show(runtime, game, machine, overview,
-            () => Task.FromException(new OperationFailedException("Overview refresh", new IOException("The Overview couldn't be gathered."))));
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        var game = Locate(machine);
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var report = Gather(game, machine);
+        string[] patchedFirst = ["Plain - Main.ba2", "BOSS - Textures.ba2"];
+        var nextGen = report.Archives.NextGen;
+        // An embedded NUL is a path no file system accepts: resolving it throws past the run's per-archive failures,
+        // so the run dies there, after the two archives listed before it are patched.
+        var unpatchable = game.DataPath!.Join("Bad\0 - Main.ba2");
+        var listed = report with
+        {
+            Archives = report.Archives with
+            {
+                NextGen = [.. nextGen.Where(p => patchedFirst.Contains(p.Name)), unpatchable, .. nextGen.Where(p => !patchedFirst.Contains(p.Name))],
+            },
+        };
+        // The load lists the doctored report; the refresh gathers what is on disk.
+        var overview = Loaded(runtime, previous => previous is null ? listed : Gather(game, machine, previous));
+        var patcher = Show(runtime, game, machine, overview);
+        Assert.Equal(12, patcher.Rows.Count);
 
-        // Started as the button starts it: the refresh's failure propagates out of Patch All, and Handle swallows it.
-        Run(runtime.Errors.Handle(patcher.PatchAllAsync));
+        PatchAllByClick(patcher);
 
-        Assert.True(patcher.ProcessingData);
-        // The "Showing" line of the open, then the run's, and no second "Showing" line.
         Assert.Equal(
-            ["Showing 0 files to be patched.\n", "Nothing to do!\n"],
-            patcher.Log.Runs.Where((_, i) => i % 2 == 1).Select(r => r.Text));
+            ["Alias - Main.ba2", "Changed - Main.ba2", "Corrupt - Main.ba2", "Flipped - Main.ba2", "Gone - Main.ba2",
+                "ReadOnly - Main.ba2", "Short - Main.ba2", "Straße - Main.ba2", "Alias - Main.ba2"],
+            patcher.Rows);
+        Assert.Single(logger.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
+        Assert.False(runtime.Input.IsBlocking);
         patcher.RequestClose();
-        Assert.True(patcher.IsVisible);
-        patcher.ProcessingData = false;
-        patcher.Close();
+        Assert.False(patcher.IsVisible);
     }
 
     /// <summary>
-    /// A patch run that raised skipped the rest of <c>_patch_wrapper</c> in the reference: no refresh, no repopulate,
-    /// and <c>processing_data</c> left set. Here the runner reports it once, under the operation's name.
+    /// The patch run succeeds, then the Overview refresh dies part-way with a report gathered after the run. The list
+    /// shows that report's archives, the close guard is clear and the failure is shown once.
     /// </summary>
     [AvaloniaFact]
-    [Trait("Parity", "AP-3")]
-    public void A_failed_patch_is_reported_once_and_leaves_the_close_guard_set()
+    public void After_a_failed_overview_refresh_the_window_closes_and_lists_the_archives_new_versions()
     {
-        using var machine = Scenario("archive-patcher/nothing-to-do").Materialize();
-        var (_, game, overview) = Parts(machine);
-        // Throws on the Core run's opening "Files:" line, so the patch run itself raises on its worker.
-        var logger = new ThrowingLogger(m => m.StartsWith("Files: ", StringComparison.Ordinal));
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        var game = Locate(machine);
+        var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
-        var refreshed = false;
-        var patcher = Show(runtime, game, machine, overview, () =>
-        {
-            refreshed = true;
-            return Task.CompletedTask;
-        });
+        var overview = Loaded(runtime, previous => previous is null
+            ? Gather(game, machine)
+            : throw new OverviewIncompleteException(Gather(game, machine, previous), new IOException("The modules couldn't be read.")));
+        var patcher = Show(runtime, game, machine, overview);
+        Assert.Equal(11, patcher.Rows.Count);
 
-        logger.Arm();
-        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
-        DispatcherWait.Until(() => runtime.Errors.Window is not null);
-        Dispatcher.UIThread.RunJobs();
+        PatchAllByClick(patcher);
 
+        // Everything but the read-only archive was patched to v1, so only it is still listed.
+        Assert.Equal(["ReadOnly - Main.ba2"], patcher.Rows);
         Assert.Single(logger.Messages, m => m.StartsWith("StdErr : ", StringComparison.Ordinal));
-        Assert.StartsWith(ErrorReporter.OperationHeader("Archive Patcher"), runtime.Errors.Window!.Text);
-        Assert.False(refreshed);
-        Assert.True(patcher.ProcessingData);
-        patcher.ProcessingData = false;
-        patcher.Close();
+        Assert.StartsWith(ErrorReporter.OperationHeader("Overview refresh"), runtime.Errors.Window!.Text);
+        Assert.False(runtime.Input.IsBlocking);
+        patcher.RequestClose();
+        Assert.False(patcher.IsVisible);
     }
 
     /// <summary>
@@ -176,7 +186,7 @@ public sealed class ArchivePatcherWindowTests
         Assert.Null(game.DataPath);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
 
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
@@ -198,7 +208,7 @@ public sealed class ArchivePatcherWindowTests
         var (runtime, game, overview) = Parts(machine);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, () => Task.CompletedTask);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
         MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
@@ -214,23 +224,50 @@ public sealed class ArchivePatcherWindowTests
 
     private static ParityScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id);
 
-    /// <summary>The runtime, game and a loaded Overview state for a patcher built by hand.</summary>
+    /// <summary>The runtime, game and a loaded Overview Report module for a patcher built by hand.</summary>
     private static (AppRuntime Runtime, GameInstall Game, OverviewState Overview) Parts(MaterializedScenario machine)
     {
-        var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
+        var game = Locate(machine);
+        var runtime = new AppRuntime(new CapturingLogger());
+        return (runtime, game, FixedOverview.Load(runtime, Gather(game, machine)));
+    }
+
+    /// <summary>The scenario's game, found as startup finds it.</summary>
+    private static GameInstall Locate(MaterializedScenario machine)
+        => Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var overview = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
-        return (new AppRuntime(new CapturingLogger()), game, overview);
+
+    /// <summary>A real Overview Report of the scenario's game as it is on disk now, logged nowhere the test reads.</summary>
+    private static OverviewReport Gather(GameInstall game, MaterializedScenario machine, OverviewReport? previous = null)
+        => OverviewReport.Gather(game, machine.Host, new CapturingLogger(), previous);
+
+    /// <summary>An Overview Report module over <paramref name="gather"/>, loaded. Call it on the UI thread.</summary>
+    private static OverviewState Loaded(AppRuntime runtime, Func<OverviewReport?, OverviewReport> gather)
+    {
+        var overview = new OverviewState(runtime, gather);
+        Run(overview.LoadAsync());
+        return overview;
     }
 
     private static ArchivePatcherWindow Show(
-        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<Task> refresh)
+        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview)
     {
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, refresh);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
         patcher.ShowOver(owner);
         return patcher;
+    }
+
+    /// <summary>
+    /// Clicks Patch All and waits until the run is over: the click sets the close guard before its first await, so the
+    /// guard clearing marks the end, failed or not.
+    /// </summary>
+    private static void PatchAllByClick(ArchivePatcherWindow patcher)
+    {
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+        DispatcherWait.Until(() => !patcher.ProcessingData);
+        Dispatcher.UIThread.RunJobs();
     }
 
     private static void Run(Task task)

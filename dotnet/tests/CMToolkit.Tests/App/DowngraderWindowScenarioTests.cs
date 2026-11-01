@@ -49,9 +49,9 @@ public sealed class DowngraderWindowScenarioTests
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
         var settingsPath = Path.Combine(machine.Host.Expand(machine.Host.Block.Cwd!), AppFolderFiles.SettingsFileName);
         var settings = SettingsStore.Load(settingsPath, DownloadSource.Nexus, new CapturingLogger());
-        var overview = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
         var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
+        var overview = FixedOverview.Load(runtime, OverviewReport.Gather(game, machine.Host, new CapturingLogger()));
         var owner = new Window();
         owner.Show();
 

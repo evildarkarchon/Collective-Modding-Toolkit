@@ -377,6 +377,10 @@
       "log": [
         {
           "level": "DEBUG",
+          "message": "Overview : Refresh"
+        },
+        {
+          "level": "DEBUG",
           "message": "Gathering Info: Binaries"
         },
         {
