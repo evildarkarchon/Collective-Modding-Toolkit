@@ -100,8 +100,8 @@ public sealed class OverviewTabTests
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult()!;
         var runtime = new AppRuntime(new CapturingLogger());
-        var state = new OverviewState();
-        var tab = new OverviewTab(runtime, host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
+        var state = new OverviewState(runtime, previous => OverviewReport.Gather(game, host, runtime.Logger, previous));
+        var tab = new OverviewTab(runtime, PcInfo.Read(machine.Host, new CapturingLogger()), game, state)
         {
             OpenFolder = _ => { },
         };

@@ -110,7 +110,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview, session.RefreshOverviewAsync)
+            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview, session.Overview.RefreshAsync)
                 .ShowOver(owner);
         }
     }

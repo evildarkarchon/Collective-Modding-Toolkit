@@ -21,13 +21,11 @@ public static class MainTabs
     ];
 
     /// <summary>
-    /// The Overview tab, with both its utility buttons wired (OVW-B9, OVW-A6). Building it over the session's
-    /// <see cref="AppSession.Overview"/> registers it as the Overview refresh (<c>cmc.refresh_tab(Tab.Overview)</c>),
-    /// which the Archive Patcher, the Downgrader and the Scanner call.
+    /// The Overview tab over the session's Overview Report module (<see cref="AppSession.Overview"/>), with both its
+    /// utility buttons wired to open the Downgrader and the Archive Patcher.
     /// </summary>
     private static OverviewTab Overview(AppSession session) => new(
         session.Runtime,
-        session.Host,
         session.Pc,
         session.Game,
         session.Overview,

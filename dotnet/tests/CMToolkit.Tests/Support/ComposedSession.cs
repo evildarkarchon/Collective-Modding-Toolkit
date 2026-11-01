@@ -29,9 +29,8 @@ public sealed class ComposedSession : IDisposable
         var model = new MainWindowViewModel(new DownloadSourceLookup(DownloadSource.GitHub, DownloadSourceOutcome.Valid, "github", null));
         // The app folder is the scenario's working directory, where its tree keeps the reference's files, so nothing a
         // test does lands beside the test assembly (the default, the exe's folder, bug #36).
-        Session = new AppSession(runtime, model, PcInfo.Read(machine.Host, Logger), game)
+        Session = new AppSession(runtime, model, PcInfo.Read(machine.Host, Logger), game, machine.Host)
         {
-            Host = machine.Host,
             AppFolder = machine.Host.Expand(machine.Host.Block.Cwd ?? MaterializedScenario.RootToken),
         };
         Window = new MainWindow(runtime, MainTabs.Compose(Session)) { DataContext = model };

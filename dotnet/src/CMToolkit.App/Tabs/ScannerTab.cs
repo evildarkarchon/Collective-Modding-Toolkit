@@ -52,7 +52,7 @@ public sealed class ScannerTab : TabPage
     /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
     /// <param name="runtime">The app runtime: its log, error reporting and background operations.</param>
     /// <param name="game">The installation found at startup.</param>
-    /// <param name="overview">The Overview state: its problems seed a scan, and it refreshes the Overview tab.</param>
+    /// <param name="overview">The Overview Report module: each scan refreshes it first, and its problems seed the scan.</param>
     /// <param name="settings">The settings the side pane's boxes start from (SET-8) and are saved to as they change (SET-7).</param>
     public ScannerTab(AppRuntime runtime, GameInstall game, OverviewState overview, SettingsStore settings)
         : base("Scanner", "ScannerTab")
@@ -300,7 +300,6 @@ public sealed class ScannerTab : TabPage
 
         _scanningText!.IsVisible = true;
         _scanningText.Text = "Refreshing Overview...";
-        _runtime.Logger.Write(LogLevel.Debug, "Refresh Tab : Overview");
         try
         {
             await _overview.RefreshAsync();
@@ -310,14 +309,6 @@ public sealed class ScannerTab : TabPage
             // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
             // left Scan Game disabled on Scanning... for good. The runner has reported the error; the scan ends before
             // its worker.
-            EndBeforeWorker(side);
-            return;
-        }
-        catch (Exception ex)
-        {
-            // The refresh raised past its own reporting (rebuilding the Overview's frames, say): reported here, as the
-            // Scan Game handler would have, so the scan can still end before its worker, as above.
-            _runtime.Errors.Report(ErrorReporter.UiThreadHeader, ex);
             EndBeforeWorker(side);
             return;
         }

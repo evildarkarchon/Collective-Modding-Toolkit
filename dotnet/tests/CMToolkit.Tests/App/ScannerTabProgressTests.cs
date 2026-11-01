@@ -151,14 +151,16 @@ public sealed class ScannerTabProgressTests
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
                 .GetAwaiter().GetResult()!;
             var runtime = new AppRuntime(new CapturingLogger());
-            var state = new OverviewState();
-            var overview = new OverviewTab(runtime, machine.Host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state) { OpenFolder = _ => { } };
+            var state = new OverviewState(runtime, p => CMToolkit.Core.Overview.OverviewReport.Gather(game, machine.Host, runtime.Logger, p));
             var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
             ScannerTab? scanner = null;
             scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, Worker = worker(() => scanner!.Progress) };
-            var window = new MainWindow(runtime, [overview, scanner]);
+            // The Scanner needs only the loaded module, not an Overview tab; the first tab is a placeholder.
+            var window = new MainWindow(runtime, [new ProbeTab("Other", "OtherTab"), scanner]);
             window.Show();
-            DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
+            var load = state.LoadAsync();
+            DispatcherWait.Until(() => load.IsCompleted && !runtime.Input.IsBlocking);
+            load.GetAwaiter().GetResult();
             window.GetLogicalDescendants().OfType<TabControl>().Single().SelectedIndex = 1;
             Dispatcher.UIThread.RunJobs();
             return new ProgressApp(machine, window, scanner);

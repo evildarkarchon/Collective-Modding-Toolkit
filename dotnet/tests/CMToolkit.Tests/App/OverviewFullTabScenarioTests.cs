@@ -50,27 +50,26 @@ public sealed class OverviewFullTabScenarioTests
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
         var logger = new CapturingLogger();
         var runtime = new AppRuntime(logger);
-        var state = new OverviewState();
         var opened = new List<JsonObject>();
         var dialogs = new JsonArray();
         OverviewIncompleteException? failure = null;
+        // The real gathering, watched so the test knows why a load died.
+        var state = new OverviewState(runtime, previous =>
+        {
+            try
+            {
+                return OverviewReport.Gather(game, machine.Host, logger, previous);
+            }
+            catch (OverviewIncompleteException ex)
+            {
+                failure = ex;
+                throw;
+            }
+        });
         var tab = new OverviewTab(
-            runtime, machine.Host, PcInfo.Read(machine.Host, new CapturingLogger()), game, state, null, () => opened.Add(new JsonObject { ["window"] = "ArchivePatcher" }))
+            runtime, PcInfo.Read(machine.Host, new CapturingLogger()), game, state, null, () => opened.Add(new JsonObject { ["window"] = "ArchivePatcher" }))
         {
             OpenFolder = _ => { },
-            // The real gathering, watched so the test knows why a load died.
-            Gatherer = (g, h, l, previous) =>
-            {
-                try
-                {
-                    return OverviewReport.Gather(g, h, l, previous);
-                }
-                catch (OverviewIncompleteException ex)
-                {
-                    failure = ex;
-                    throw;
-                }
-            },
             ShowWarning = (title, message) =>
             {
                 dialogs.Add(new JsonObject
