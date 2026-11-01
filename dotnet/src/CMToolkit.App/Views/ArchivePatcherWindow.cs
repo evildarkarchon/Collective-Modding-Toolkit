@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -23,8 +24,8 @@ namespace CMToolkit.App.Views;
 /// lists the archives again (AP-3).
 /// </summary>
 /// <remarks>
-/// Patch All ran on the UI thread in the reference; here the Core run is a blocking operation (ADR-0003), and one input
-/// block is held across it, the Overview refresh and the repopulate, as the single Tk callback held the UI.
+/// The Core run is a blocking operation (ADR-0003), and one input block is held across it, the Overview refresh and the
+/// repopulate. A failure in the run or the refresh still ends with the close guard cleared and the list repopulated.
 /// </remarks>
 public sealed class ArchivePatcherWindow : ModalWindow
 {
@@ -61,7 +62,6 @@ public sealed class ArchivePatcherWindow : ModalWindow
     private readonly GameInstall _game;
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
-    private readonly Func<Task> _refreshOverview;
     private readonly TextBlock _caption;
     private readonly StackPanel _rows = new() { Name = "Files" };
     private readonly TextBox _nameFilterBox;
@@ -69,19 +69,15 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
     /// <param name="game">The installation; the patcher needs its Data folder.</param>
     /// <param name="host">The machine the archives are patched on.</param>
-    /// <param name="overview">The Overview's state, whose current report's archives are the candidates.</param>
-    /// <param name="refreshOverview">
-    /// <c>cmc.refresh_tab(Tab.Overview)</c>, run after each Patch All. A failed refresh propagates its
-    /// <see cref="OperationFailedException"/> (already reported), which ends the Patch All.
+    /// <param name="overview">
+    /// The Overview Report module: its current report's archives are the candidates, and Patch All refreshes it.
     /// </param>
-    public ArchivePatcherWindow(
-        AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview, Func<Task> refreshOverview)
+    public ArchivePatcherWindow(AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview)
         : base(runtime, "Archive Patcher", 700, 600)
     {
         _game = game;
         _host = host;
         _overview = overview;
-        _refreshOverview = refreshOverview;
 
         _caption = Small(FilterText, "CmtNeutral2", "FilterCaption");
         // A ttk.Entry: 28 px tall in the reference (taller than the label with pady=5, so it sets the row's height), a
@@ -103,15 +99,14 @@ public sealed class ArchivePatcherWindow : ModalWindow
     }
 
     /// <summary>
-    /// Opens the Archive Patcher over the main window from the session (what both Archive Patcher buttons do, OVW-A6
-    /// and TOOL-1): <c>ArchivePatcher(self.cmc.root, self.cmc)</c>. Does nothing without a main window to own it.
+    /// Opens the Archive Patcher over the main window from the session, as the Overview tab's and the Tools tab's
+    /// Archive Patcher buttons do. Does nothing without a main window to own it.
     /// </summary>
     public static void Open(AppSession session)
     {
         if (session.MainWindow is { } owner)
         {
-            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview, session.Overview.RefreshAsync)
-                .ShowOver(owner);
+            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview).ShowOver(owner);
         }
     }
 
@@ -150,25 +145,53 @@ public sealed class ArchivePatcherWindow : ModalWindow
     }
 
     /// <summary>
-    /// Patch All (<c>_patch_wrapper</c>): patches <see cref="FilesToPatch"/> to the Desired Version as a blocking
-    /// operation, its log lines going to the pane as they come, then refreshes the Overview and lists the archives
-    /// again. The close guard is set throughout. A UI Action: the button starts it through
-    /// <see cref="ErrorReporter.Handle"/>.
+    /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a blocking operation, its log lines going
+    /// to the pane as they come, then refreshes the Overview Report and lists the archives again. The close guard is set
+    /// throughout. A UI Action: the button starts it through <see cref="ErrorReporter.Handle"/>.
     /// </summary>
-    /// <returns>
-    /// A task that completes when the run is over. If the patching or the refresh fails, the error is reported and the
-    /// rest is skipped, leaving the close guard set, as the exception left <c>processing_data</c> in Tk.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">The game has no Data folder (the reference's assert).</exception>
-    /// <exception cref="OperationFailedException">The patching or the refresh failed; the runner has reported it.</exception>
+    /// <remarks>
+    /// A failed patch run may have patched some archives before it died, so the refresh still runs after it. Whichever
+    /// step fails, the close guard is cleared and the list is repopulated from the current report: after a failed
+    /// refresh that is the partial report it left, if it carried one, otherwise the previous report.
+    /// </remarks>
+    /// <returns>A task that completes when the run is over, failed or not.</returns>
+    /// <exception cref="InvalidOperationException">The game has no Data folder; the close guard was never set.</exception>
+    /// <exception cref="OperationFailedException">
+    /// The patch run or the refresh failed; the runner has already reported it. When both fail, the refresh's failure is
+    /// the one thrown.
+    /// </exception>
     public async Task PatchAllAsync()
     {
         AssertDataPath();
-        // One block across the run, the refresh and the repopulate: in the reference they were one UI-thread callback,
-        // so no input could land between them.
+        // One block across the run, the refresh and the repopulate, so no input lands between them and the list is never
+        // shown against a report that the run has made stale.
         using var block = Runtime.Input.Block();
         ProcessingData = true;
+        try
+        {
+            var patchFailure = await PatchAsync();
+            await _overview.RefreshAsync();
+            // The refresh succeeded, so the list is right; the patch run's failure, if any, still ends the action.
+            patchFailure?.Throw();
+        }
+        finally
+        {
+            // Cleared first: the window must be able to close even if listing the archives were to throw.
+            ProcessingData = false;
+            PopulateTree();
+        }
+    }
 
+    /// <summary>
+    /// The patch run itself, as the blocking operation <c>Archive Patcher</c>, logged between <c>Patcher Running</c> and
+    /// <c>Patcher Finished</c>.
+    /// </summary>
+    /// <returns>
+    /// Null when the run finished, otherwise its <see cref="OperationFailedException"/>, already reported by the runner,
+    /// captured so that Patch All can refresh before rethrowing it.
+    /// </returns>
+    private async Task<ExceptionDispatchInfo?> PatchAsync()
+    {
         Runtime.Logger.Write(LogLevel.Information, "Patcher Running: ArchivePatcher");
         var files = FilesToPatch;
         var target = DesiredVersion;
@@ -180,17 +203,18 @@ public sealed class ArchivePatcherWindow : ModalWindow
                 Log.Log(line);
             }
         });
-        // A failure propagates as OperationFailedException, already reported by the runner. The rest of the wrapper is
-        // skipped, as the exception skipped it in Tk.
-        await Runtime.Operations.RunAsync(
-            "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
+        try
+        {
+            await Runtime.Operations.RunAsync(
+                "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
+        }
+        catch (OperationFailedException ex)
+        {
+            return ExceptionDispatchInfo.Capture(ex);
+        }
 
         Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
-        // A failed refresh propagates too, already reported; in Tk it raised out of the wrapper here.
-        await _refreshOverview();
-
-        PopulateTree();
-        ProcessingData = false;
+        return null;
     }
 
     /// <summary><c>filter_text</c>: which archives the list shows for the Desired Version.</summary>
