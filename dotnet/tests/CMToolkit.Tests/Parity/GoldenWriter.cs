@@ -6,10 +6,10 @@ using System.Text.Json.Nodes;
 namespace CMToolkit.Tests.Parity;
 
 /// <summary>
-/// Writes a golden in the format every committed golden uses: keys sorted ordinally, two-space indent, LF line
-/// endings, a closing newline, and every character outside printable ASCII as a lowercase <c>\u</c> escape. That is
-/// what Python's <c>json.dumps(indent=2, sort_keys=True)</c> wrote for the original recordings, so a re-record's diff
-/// shows only the values that changed.
+/// Writes a golden in the golden format (ADR-0008): keys sorted ordinally, two-space indent, LF line endings, a
+/// closing newline, and every character outside printable ASCII as a lowercase <c>\u</c> escape, so the text is plain
+/// ASCII and therefore valid UTF-8. <c>$unordered</c> markers are written where the node holds them. Every committed
+/// golden is in this format, so a re-record's diff shows only the values that changed.
 /// </summary>
 internal static class GoldenWriter
 {
@@ -25,6 +25,11 @@ internal static class GoldenWriter
         return text.ToString();
     }
 
+    /// <summary>
+    /// Appends <paramref name="node"/> to <paramref name="text"/>, recursing into objects (keys sorted ordinally) and
+    /// arrays (order kept). <paramref name="depth"/> is the nesting level of the line the node starts on, which sets
+    /// the indent of its children and closing bracket.
+    /// </summary>
     private static void WriteNode(StringBuilder text, JsonNode? node, int depth)
     {
         switch (node)
@@ -84,7 +89,10 @@ internal static class GoldenWriter
         text.Append(close);
     }
 
-    /// <summary>Writes a quoted string with Python's <c>ensure_ascii</c> escaping.</summary>
+    /// <summary>
+    /// Writes a quoted string in ASCII: the short escapes for quote, backslash and the common control characters, and
+    /// a lowercase four-digit <c>\u</c> escape for every other character outside space..tilde.
+    /// </summary>
     private static void WriteString(StringBuilder text, string value)
     {
         text.Append('"');
@@ -100,7 +108,7 @@ internal static class GoldenWriter
                 case '\b': text.Append("\\b"); break;
                 case '\f': text.Append("\\f"); break;
                 // Everything outside space..tilde is escaped, DEL included. A character above U+FFFF is already two
-                // UTF-16 surrogates here, so it comes out as an escaped pair, as Python writes it.
+                // UTF-16 surrogates here, so it comes out as a pair of escapes, high surrogate first.
                 case < ' ' or > '~': text.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture)); break;
                 default: text.Append(c); break;
             }
