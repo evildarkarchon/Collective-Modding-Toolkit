@@ -197,6 +197,20 @@ public sealed class GoldenAssertTests : IDisposable
     }
 
     [Fact]
+    public void An_unordered_run_keeps_the_goldens_order_when_the_array_around_it_changes_length()
+    {
+        // A log that loses lines (DEBUG dropped, a trace removed) shifts its runs to new indexes. Each run is still
+        // matched to the golden's run it shares an item with, in order, rather than to the item at its old index.
+        var scenario = Author("""{"log": ["x", {"$unordered": ["a", "b"]}, "y", {"$unordered": ["c", "d"]}, "z"]}""");
+
+        Replay(scenario, """{"log": [{"$unordered": ["b", "a"]}, "y", {"$unordered": ["e", "d", "c"]}]}""", GoldenCompareMode.Full, record: true);
+
+        Assert.Equal(
+            """{"log":[{"$unordered":["a","b"]},"y",{"$unordered":["c","d","e"]}]}""",
+            JsonNode.Parse(File.ReadAllText(GoldenPath(scenario)))!.ToJsonString());
+    }
+
+    [Fact]
     public void A_semantic_match_keeps_the_golden_new_json_a_full_mismatch_wrote_in_the_same_run()
     {
         // A Core test (Semantic) and an App test (Full) replay the same scenario. A change to display text only fails

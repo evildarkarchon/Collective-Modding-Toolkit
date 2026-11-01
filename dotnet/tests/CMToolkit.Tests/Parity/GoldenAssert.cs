@@ -160,6 +160,11 @@ public static class GoldenAssert
             case (JsonArray b, JsonArray a) when b.Count == a.Count:
                 return new JsonArray(a.Select((item, i) => Align(b[i], item, mode, $"{path}[{i}]", unplaced)).ToArray());
 
+            // A Semantic replay whose basis holds display text in a resized array falls through to default, which
+            // reports it as unplaced: only the order of unordered runs is recovered here, not display placement.
+            case (JsonArray b, JsonArray a) when !(semantic && HasDisplay(b)):
+                return AlignResized(b, a, mode, path, unplaced);
+
             default:
                 if (semantic && HasDisplay(basis))
                 {
@@ -204,6 +209,51 @@ public static class GoldenAssert
         }
 
         return aligned;
+    }
+
+    /// <summary>
+    /// Lines up two arrays whose lengths differ, such as a log that lost or gained lines, where items can't be paired
+    /// by index. Each unordered run of <paramref name="actual"/> is paired with the first basis run after the last one
+    /// paired that shares an item with it, and keeps that run's order (<see cref="AlignUnordered"/>). Every other item
+    /// is recorded as the replay produced it.
+    /// </summary>
+    private static JsonArray AlignResized(JsonArray basis, JsonArray actual, GoldenCompareMode mode, string path, List<string> unplaced)
+    {
+        var aligned = new JsonArray();
+        var next = 0;
+        for (var i = 0; i < actual.Count; i++)
+        {
+            if (actual[i] is JsonObject run && IsUnordered(run) && FindRun(basis, next, run, mode) is var match and >= 0)
+            {
+                aligned.Add(Align(basis[match], run, mode, $"{path}[{i}]", unplaced));
+                next = match + 1;
+                continue;
+            }
+
+            aligned.Add(actual[i]?.DeepClone());
+        }
+
+        return aligned;
+    }
+
+    /// <summary>
+    /// The index of the first unordered run in <paramref name="basis"/>, from <paramref name="from"/> on, that has an
+    /// item matching one of <paramref name="run"/>'s under <paramref name="mode"/>; -1 if there is none.
+    /// </summary>
+    private static int FindRun(JsonArray basis, int from, JsonObject run, GoldenCompareMode mode)
+    {
+        var items = run[GoldenComparer.UnorderedKey]!.AsArray();
+        for (var j = from; j < basis.Count; j++)
+        {
+            if (basis[j] is JsonObject candidate && IsUnordered(candidate)
+                && candidate[GoldenComparer.UnorderedKey]!.AsArray()
+                    .Any(b => items.Any(a => GoldenComparer.Differences(b, a, mode).Count == 0)))
+            {
+                return j;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>The marker <see cref="GoldenComparer"/> compares as a multiset: an object whose only key is <c>$unordered</c>.</summary>
