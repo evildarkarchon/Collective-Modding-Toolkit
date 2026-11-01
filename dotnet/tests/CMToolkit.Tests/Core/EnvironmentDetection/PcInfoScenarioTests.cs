@@ -48,6 +48,23 @@ public sealed class PcInfoScenarioTests
     }
 
     /// <summary>
+    /// Registry values of the wrong type are ignored without a log line at any level, DEBUG included. The
+    /// <c>environment/pc-registry-wrong-types</c> golden can't show a DEBUG line's absence, as goldens leave DEBUG out.
+    /// </summary>
+    [Fact]
+    [Trait("Parity", "PC-5")]
+    public void Registry_values_of_the_wrong_type_are_ignored_without_a_log_line()
+    {
+        using var machine = new ParityScenario(ParityPaths.Scenarios, "environment/pc-registry-wrong-types").Materialize();
+        var logger = new RecordingLogger();
+
+        var pc = PcInfo.Read(machine.Host, logger);
+
+        Assert.Equal(("Unknown", "Unknown GPU", 0L), (pc.Cpu, pc.Gpu, pc.Vram));
+        Assert.Empty(logger.Records);
+    }
+
+    /// <summary>
     /// PC-4's name clean-up on names the scenarios don't cover. The expected names were produced by the reference's
     /// own <c>PCInfo._get_cpu()</c> under CPython 3.14, including Python's wider whitespace set (U+001C..U+001F).
     /// </summary>
