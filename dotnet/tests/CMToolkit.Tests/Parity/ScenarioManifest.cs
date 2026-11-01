@@ -18,8 +18,8 @@ namespace CMToolkit.Tests.Parity;
 /// <param name="EmptyDirs">Tree-relative folders to create empty (git can't commit an empty folder).</param>
 /// <param name="Attributes">Tree-relative paths and the file attributes to set on them.</param>
 /// <param name="Deviations">
-/// The reference bugs the port fixes on this scenario (ADR-0006). When present, the C# replay compares against
-/// <c>golden.port.json</c> instead of the reference-recorded <c>golden.json</c>, which stays untouched.
+/// The bugs the port fixed on this scenario, kept as the port's record (ADR-0007). They don't affect the replay, which
+/// always compares against the scenario's one <c>golden.json</c>.
 /// </param>
 public sealed record ScenarioManifest(
     string Operation,
@@ -57,8 +57,8 @@ public sealed record ScenarioManifest(
     }
 
     /// <summary>
-    /// The deviation checks the JSON schema can't make. An empty list is rejected too: it would switch the replay to a
-    /// port golden that no bug issue justifies.
+    /// The deviation checks the JSON schema can't make. An empty list is rejected too: it records nothing, so the key
+    /// should be removed instead.
     /// </summary>
     /// <exception cref="JsonException">A deviation is malformed.</exception>
     private static void ValidateDeviations(IReadOnlyList<ScenarioDeviation>? deviations)
@@ -95,8 +95,8 @@ public sealed record ScenarioManifest(
 }
 
 /// <summary>
-/// A documented Deviation from Behaviour Parity (ADR-0006): the port fixes a reference bug, so on this scenario it is
-/// expected to produce <c>golden.port.json</c> rather than the reference-recorded <c>golden.json</c>.
+/// One bug the port fixed on this scenario, kept in <c>scenario.json</c> as the port's record (ADR-0007). It doesn't
+/// select a golden.
 /// </summary>
 /// <param name="Bug">The <c>bug</c> issue number on the fork, for example <c>77</c> for #77.</param>
 /// <param name="Reason">What the port does instead of the reference, in one sentence.</param>

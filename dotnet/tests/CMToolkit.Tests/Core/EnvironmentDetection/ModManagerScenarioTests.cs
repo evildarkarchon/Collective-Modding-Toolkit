@@ -95,9 +95,10 @@ public sealed class ModManagerScenarioTests
     }
 
     /// <summary>
-    /// The driver's <c>_path_text</c>: <c>str(path)</c> with the temp root as <c>&lt;ROOT&gt;</c>, and the root's drive
-    /// as <c>&lt;DRIVE&gt;</c> on a path outside the root (the reference's B-6 lands on the drive root; the port, fixing
-    /// bug #25, no longer does, but the reference goldens still hold it).
+    /// A path's text as the golden records it: the temp root replaced by <c>&lt;ROOT&gt;</c>, and the root's drive by
+    /// <c>&lt;DRIVE&gt;</c> on a path outside the root. No golden currently holds a <c>&lt;DRIVE&gt;</c> path, because
+    /// since bug #25 was fixed no scenario resolves a mod-manager path onto the drive root; the token keeps such a path
+    /// machine-independent if one appears.
     /// </summary>
     private static string? PathText(MaterializedScenario machine, object? path)
     {
