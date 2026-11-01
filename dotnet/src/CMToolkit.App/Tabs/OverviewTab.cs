@@ -24,10 +24,9 @@ namespace CMToolkit.App.Tabs;
 /// Modules (OVW-M9, OVW-M10), with their counts coloured against the limits (OVW-C1).
 /// </summary>
 /// <remarks>
-/// The data comes from <see cref="OverviewReport.Gather(GameInstall, IHostEnvironment, ILogger, OverviewReport?)"/>, run
-/// as a blocking operation on load and on refresh, as the reference ran both on the UI thread (ADR-0003). Each report
-/// replaces <see cref="OverviewState.Report"/>, which the other tabs read. Only the load shows the gathering's warning
-/// boxes (OVW-M3, OVW-M5); the refresh shows none (OVW-8).
+/// The tab is a reader of the Overview Report module (<see cref="OverviewState"/>): its first load asks the module to
+/// load and shows that report's warning boxes, the only time they are shown. Its refresh button asks the module to
+/// refresh, and every successful refresh, whichever window started it, rebuilds the three frames from the new report.
 /// </remarks>
 public sealed class OverviewTab : TabPage
 {
@@ -70,7 +69,6 @@ public sealed class OverviewTab : TabPage
         "These modules have an unsupported header version.\nFallout 4 supports only v0.95 and v1.00.\n\nFiles with v0.94 were likey made with FalloutSnip and\nshould be replaced, recreated, or removed.\nUse such mods AT YOUR OWN RISK as they may result\nin unknown behavior or issues due to having an invalid\nstructure or corruption.";
 
     private readonly AppRuntime _runtime;
-    private readonly IHostEnvironment _host;
     private readonly PcInfo _pc;
     private readonly GameInstall _game;
     private readonly OverviewState _state;
@@ -78,15 +76,11 @@ public sealed class OverviewTab : TabPage
     private readonly Action _openArchivePatcher;
     private readonly PackRow _frames = new();
 
-    /// <summary>
-    /// The Overview tab, registered as the shared state's refresher (<c>cmc.refresh_tab(Tab.Overview)</c>); it gathers
-    /// its first report when it first loads.
-    /// </summary>
-    /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
-    /// <param name="host">The machine the binaries are read on.</param>
+    /// <summary>The Overview tab, which loads the Overview Report when it first loads.</summary>
+    /// <param name="runtime">The app runtime: its error reporting, which the refresh button and the rebuild go through.</param>
     /// <param name="pc">The PC info for the PC Specs row.</param>
     /// <param name="game">The installation found at startup.</param>
-    /// <param name="state">Where each report goes, for the other tabs.</param>
+    /// <param name="state">The Overview Report module the tab loads, refreshes and draws from.</param>
     /// <param name="openDowngradeManager">
     /// Opens the Downgrader window (OVW-B9): <see cref="DowngraderWindow.Open"/> in the app (<see cref="MainTabs"/>).
     /// Null makes the button do nothing, for tests that don't open windows.
@@ -97,7 +91,6 @@ public sealed class OverviewTab : TabPage
     /// </param>
     public OverviewTab(
         AppRuntime runtime,
-        IHostEnvironment host,
         PcInfo pc,
         GameInstall game,
         OverviewState state,
@@ -106,14 +99,11 @@ public sealed class OverviewTab : TabPage
         : base("Overview", "OverviewTab")
     {
         _runtime = runtime;
-        _host = host;
         _pc = pc;
         _game = game;
         _state = state;
         _openDowngradeManager = openDowngradeManager ?? NoWindow;
         _openArchivePatcher = openArchivePatcher ?? NoWindow;
-        // cmc.refresh_tab(Tab.Overview): the Scanner refreshes this tab through the shared state.
-        state.Refresher = RefreshAsync;
     }
 
     /// <summary>
@@ -121,13 +111,6 @@ public sealed class OverviewTab : TabPage
     /// sv-styled warning box over the main window by default; tests record instead.
     /// </summary>
     public Func<string, string, Task> ShowWarning { get; init; } = ShowWarningBox;
-
-    /// <summary>
-    /// The Core gathering, <see cref="OverviewReport.Gather(GameInstall, IHostEnvironment, ILogger, OverviewReport?)"/>
-    /// by default. A test seam: the <c>overview-tab</c> scenarios were recorded with the module and archive steps
-    /// stubbed out, so their replays swap in the gathering without them.
-    /// </summary>
-    public Func<GameInstall, IHostEnvironment, ILogger, OverviewReport?, OverviewReport> Gatherer { get; init; } = OverviewReport.Gather;
 
     /// <summary>
     /// Opens a folder in Explorer (<c>os.startfile</c>; OVW-6). The shell by default; tests record instead. A failure
@@ -157,73 +140,56 @@ public sealed class OverviewTab : TabPage
     }
 
     /// <summary>
-    /// <c>OverviewTab._load</c>: gathers the first report, then shows its warnings in order (OVW-M3, OVW-M5), which the
-    /// reference showed mid-gathering, before the frames were built. If the gathering dies (in the reference OVW-A2,
-    /// B-15, which the port now reports instead, bug #31; still possible with no local app data folder), what it had
-    /// gathered becomes the current report, as the reference's shared state kept it, the warnings raised before it died
-    /// are still shown, and the failure propagates so the tab stays on its loading text.
+    /// Loads the Overview Report through the module, then shows its warnings in order, waiting for each to be dismissed.
+    /// If the load fails, the warnings of the partial report it left current (if any) are still shown, then the
+    /// failure propagates, so the tab stays on its loading text.
     /// </summary>
+    /// <exception cref="OperationFailedException">The load failed; the runner has reported it.</exception>
     protected internal override async Task<bool> LoadAsync()
     {
-        OverviewReport report;
         try
         {
-            report = await _runtime.Operations.RunAsync("Overview load", OperationPhase.Blocking, () => Gather(previous: null));
+            await _state.LoadAsync();
         }
-        catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
+        catch (OperationFailedException)
         {
-            _state.Report = incomplete.Partial;
-            await ShowWarningsAsync(incomplete.Partial.Warnings);
+            if (_state.Report is { } partial)
+            {
+                await ShowWarningsAsync(partial.Warnings);
+            }
+
             throw;
         }
 
-        _state.Report = report;
-        await ShowWarningsAsync(report.Warnings);
+        await ShowWarningsAsync(_state.Report!.Warnings);
         return true;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Builds the top block and the frames, and from then on rebuilds the frames after each successful refresh.
+    /// </summary>
     protected internal override Control BuildContent()
     {
         var top = BuildTopBlock();
         DockPanel.SetDock(top, Dock.Top);
         BuildFrames();
+        // Subscribed only now: until the content is built there are no frames to rebuild. A tab whose first load failed
+        // never gets here, so it ignores every refresh.
+        _state.Refreshed += (_, _) => _ = _runtime.Errors.Handle(RebuildFramesAsync);
         return new DockPanel { Children = { top, _frames } };
     }
 
     /// <summary>
-    /// The refresh button (OVW-8): gathers a new report as a blocking operation, then rebuilds the frames. The top block
-    /// isn't rebuilt; its Version label follows the Install Type. No warning is shown. If the gathering fails, the error
-    /// is reported, what it had gathered becomes the current report (the reference's shared state), and the frames are
-    /// left as they were. A UI Action: the button starts it through <see cref="ErrorReporter.Handle"/>.
+    /// Rebuilds the frames from the refreshed report. The top block isn't rebuilt; its Version label follows the Install
+    /// Type. A UI Action of its own, started through <see cref="ErrorReporter.Handle"/> from
+    /// <see cref="OverviewState.Refreshed"/>, so a failure goes to the Error Window and never to whoever asked for the
+    /// refresh.
     /// </summary>
-    /// <returns>A task that completes when the frames are rebuilt.</returns>
-    /// <exception cref="OperationFailedException">
-    /// The gathering failed; the runner has reported it. It propagates so the callers refreshing through
-    /// <c>cmc.refresh_tab</c> (the Scanner's scan, the Archive Patcher's Patch All) skip their rest, as the exception
-    /// ended their Tk callback too.
-    /// </exception>
-    public async Task RefreshAsync()
+    private Task RebuildFramesAsync()
     {
-        OverviewReport report;
-        try
-        {
-            var previous = _state.Report;
-            report = await _runtime.Operations.RunAsync("Overview refresh", OperationPhase.Blocking, () => Gather(previous));
-        }
-        catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
-        {
-            // Already reported by the runner. What it had gathered is shared, then the rest of the refresh is skipped, as
-            // the exception skipped it in Tk.
-            _state.Report = incomplete.Partial;
-            throw;
-        }
-
-        _state.Report = report;
         BuildFrames();
+        return Task.CompletedTask;
     }
-
-    private OverviewReport Gather(OverviewReport? previous) => Gatherer(_game, _host, _runtime.Logger, previous);
 
     /// <summary>Shows each warning in turn, waiting for one to be dismissed before the next, as the Tk boxes blocked.</summary>
     private async Task ShowWarningsAsync(IReadOnlyList<OverviewWarning> warnings)
@@ -359,7 +325,7 @@ public sealed class OverviewTab : TabPage
             Margin = new Thickness(10, 0),
         };
         ToolTip.SetTip(refresh, RefreshTooltip);
-        refresh.Click += (_, _) => _ = _runtime.Errors.Handle(RefreshAsync);
+        refresh.Click += (_, _) => _ = _runtime.Errors.Handle(_state.RefreshAsync);
         Place(refresh, 0, 3);
         Grid.SetRowSpan(refresh, 2);
         grid.Children.Add(refresh);

@@ -30,7 +30,7 @@ public sealed class F4seTabTests
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult()!;
         var runtime = new AppRuntime(new CapturingLogger());
-        var state = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
+        var state = FixedOverview.Load(runtime, OverviewReport.Gather(game, machine.Host, new CapturingLogger()));
         var window = TabHost.Show(runtime, new F4seTab(runtime, machine.Host, game, state));
 
         var content = TabHost.Content(window);

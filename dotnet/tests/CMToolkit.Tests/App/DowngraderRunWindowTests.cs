@@ -117,8 +117,8 @@ public sealed class DowngraderRunWindowTests
         window.UpdateLayout();
         MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));
         Assert.Equal("Old-Gen", ComposedSession.Named<TextBlock>(window, "Game0").Text);
-        session.Overview.Refresher = () => session.Runtime.Operations.RunAsync(
-            "Overview refresh", OperationPhase.Blocking, () => throw new IOException("The Overview couldn't be gathered."));
+        // Since the load: the local app data folder went away, which kills the Overview gathering's modules step.
+        Directory.Delete(machine.PathOf("LocalAppData"), recursive: true);
 
         MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
         DispatcherWait.Until(() => !session.Runtime.Input.IsBlocking);

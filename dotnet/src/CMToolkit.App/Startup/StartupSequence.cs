@@ -79,7 +79,7 @@ public sealed class StartupSequence(AppRuntime runtime, IHostEnvironment host, L
             return null;
         }
 
-        var session = new AppSession(runtime, model, pc, game) { Host = host, AppFolder = AppFolder, DeltaPatchHttp = DeltaPatchHttp };
+        var session = new AppSession(runtime, model, pc, game, host) { AppFolder = AppFolder, DeltaPatchHttp = DeltaPatchHttp };
         var window = new MainWindow(runtime, MainTabs.Compose(session)) { DataContext = model };
         session.MainWindow = window;
         await CheckForUpdatesAsync(window, session);

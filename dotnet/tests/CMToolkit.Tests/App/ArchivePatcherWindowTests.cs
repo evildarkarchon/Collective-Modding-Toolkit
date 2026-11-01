@@ -219,8 +219,8 @@ public sealed class ArchivePatcherWindowTests
     {
         var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var overview = new OverviewState { Report = OverviewReport.Gather(game, machine.Host, new CapturingLogger()) };
-        return (new AppRuntime(new CapturingLogger()), game, overview);
+        var runtime = new AppRuntime(new CapturingLogger());
+        return (runtime, game, FixedOverview.Load(runtime, OverviewReport.Gather(game, machine.Host, new CapturingLogger())));
     }
 
     private static ArchivePatcherWindow Show(

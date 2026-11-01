@@ -146,7 +146,7 @@ public sealed class DowngraderWindow : ModalWindow
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
             // click handler that called it has nothing left to do. Handle's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
-                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.RefreshOverviewAsync, session.DeltaPatchHttp,
+                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.Overview.RefreshAsync, session.DeltaPatchHttp,
                 session.AppFolder);
             _ = session.Runtime.Errors.Handle(() => window.OpenAsync(owner));
         }
