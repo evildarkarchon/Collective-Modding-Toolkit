@@ -50,9 +50,9 @@ public sealed class ParityScenario : IXunitSerializable
     public const string GoldenFileName = "golden.json";
 
     /// <summary>
-    /// The app version the Reference Implementation ran as when every golden was recorded (<c>APP_VERSION</c> at the
-    /// Parity Baseline). The app has moved on since the Cutover, so a replay whose result depends on the running version,
-    /// such as which canned release is an update, runs as this one.
+    /// The app version a replay runs as when its result depends on the running version, such as which canned release
+    /// is an update. Every golden is recorded at this version, whatever version the app is built as, so a release
+    /// changes no golden.
     /// </summary>
     public const string RecordedAppVersion = "0.6.2-dev";
 
