@@ -15,6 +15,9 @@ public sealed class ScanSidePane : UserControl
 {
     private readonly Dictionary<ScanSetting, CheckBox> _checks = [];
 
+    // Whether a Scan is running, as the tab last said. The pane never decides it: a box change only re-applies the rule.
+    private bool _scanning;
+
     /// <summary>
     /// Builds the pane with each box ticked as <paramref name="initial"/> says, and Scan Game enabled unless every box
     /// is unticked.
@@ -31,11 +34,11 @@ public sealed class ScanSidePane : UserControl
             // stored scanner_* values, so every box was ticked again on each launch and each return to the tab.
             var check = new CheckBox { Name = "Check" + setting, Content = setting.Label(), IsChecked = initial[setting], HorizontalAlignment = HorizontalAlignment.Left };
             ToolTip.SetTip(check, setting.Tooltip());
-            // on_checkbox_toggle: Scan Game is disabled while every box is unticked. The change is then announced so the
-            // tab can save it (bug #20).
+            // Scan Game's rule is applied again, so unticking every box disables it, and ticking one mid-scan can't
+            // enable it. The change is then announced so the tab can save it (bug #20).
             check.IsCheckedChanged += (_, _) =>
             {
-                ScanButton!.IsEnabled = _checks.Values.Any(c => c.IsChecked == true);
+                ApplyScanButtonRule();
                 BoxChanged?.Invoke(this, setting);
             };
             _checks[setting] = check;
@@ -96,12 +99,23 @@ public sealed class ScanSidePane : UserControl
     public IReadOnlyDictionary<ScanSetting, bool> Values => _checks.ToDictionary(c => c.Key, c => c.Value.IsChecked == true);
 
     /// <summary>
-    /// <c>button_scan.configure(...)</c> around a scan: <c>Scanning...</c> and disabled while it runs, <c>Scan Game</c>
-    /// and enabled once its results are in.
+    /// Tells the pane whether a Scan is running, as the tab learns it from the Scan module, and applies Scan Game's rule:
+    /// <c>Scanning...</c> and disabled while one runs; otherwise <c>Scan Game</c>, enabled unless every box is unticked.
     /// </summary>
+    /// <param name="scanning">Whether a Scan is running.</param>
     public void SetScanning(bool scanning)
     {
-        ScanButton.IsEnabled = !scanning;
-        ScanButton.Content = scanning ? "Scanning..." : "Scan Game";
+        _scanning = scanning;
+        ApplyScanButtonRule();
+    }
+
+    /// <summary>
+    /// Scan Game's one rule, from the running state the tab last set and the boxes as they are now: enabled only while
+    /// no Scan runs and some box is ticked, and showing <c>Scanning...</c> exactly while a Scan runs.
+    /// </summary>
+    private void ApplyScanButtonRule()
+    {
+        ScanButton.IsEnabled = !_scanning && _checks.Values.Any(c => c.IsChecked == true);
+        ScanButton.Content = _scanning ? "Scanning..." : "Scan Game";
     }
 }
