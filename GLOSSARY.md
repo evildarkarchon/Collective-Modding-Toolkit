@@ -53,8 +53,12 @@ The "An Error Occurred" window that reports unhandled errors while the app runs.
 _Avoid_: StdErr window (names the Python mechanism, not the thing), error dialog (ambiguous with the message boxes)
 
 **UI Action**:
-Something set going in the window with nobody waiting on its result: a click, a box change, a tab switch, or a step the app schedules for itself, such as the Downgrader's next download. It stops at its first failure. The failure goes to the Error Window, and whatever the action skipped is its Failure Outcome.
+Something set going in the window with nobody waiting on its result: a click, a box change, a tab switch, or a step the app schedules for itself, such as the Downgrader's next download. It runs zero or more Operations. It stops at its first failure. The failure goes to the Error Window, and whatever the action skipped is its Failure Outcome.
 _Avoid_: Tk callback (no Tk runs in the app), event handler (names the code that starts one, not the action)
+
+**Operation**:
+Work a UI Action hands to the background, so the window keeps painting while it runs. An Operation is Blocking, when clicks and keys in every window are discarded and Close and Escape wait until it ends, or Interactive, when the window stays live; it can switch between the two as it goes, as the Downgrader's run does. The startup steps before the main window appears, such as the update check, are not Operations.
+_Avoid_: background task, job, thread (names how it runs, not what it is)
 
 ## Regression fixtures
 
