@@ -98,7 +98,7 @@ public sealed class DowngraderWindow : ModalWindow
     /// <summary>How many of the run's operations (clicks and polls) are scheduled or running.</summary>
     private int _operations;
 
-    /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
+    /// <param name="runtime">The app runtime: its log and UI Action runner.</param>
     /// <param name="game">The installation whose game folder holds the six files.</param>
     /// <param name="host">The machine the files are read on.</param>
     /// <param name="overview">

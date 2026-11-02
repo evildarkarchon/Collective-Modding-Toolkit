@@ -32,8 +32,8 @@ public abstract class TabPage
     public string? LoadingError { get; protected set; }
 
     /// <summary>
-    /// Loads the tab's data (<c>_load</c>), on the UI thread with input blocked; Core calls inside it go through the
-    /// background-operation runner. Called at most once.
+    /// Loads the tab's data (<c>_load</c>), on the UI thread with input blocked; Core calls inside it are Operations
+    /// started through <see cref="CMToolkit.App.Runtime.UiActions"/>. Called at most once.
     /// </summary>
     /// <returns>Whether the load succeeded. An exception, like <see langword="false"/>, leaves the tab unloaded for
     /// good, but keeps the loading text up instead of the error.</returns>

@@ -11,7 +11,7 @@ namespace CMToolkit.App;
 /// <c>CMChecker</c> (<c>cmc</c>): the runtime, the main window's model (settings and Download Source), the PC info and
 /// the immutable game installation. Built once, after the game INIs and before the main window (SHELL-5).
 /// </summary>
-/// <param name="Runtime">The app runtime: log, error reporting, input block and background operations.</param>
+/// <param name="Runtime">The app runtime: log, error reporting, input block and UI Action runner.</param>
 /// <param name="Model">The main window's model, which holds the settings store (SET-7).</param>
 /// <param name="Pc">The PC info (<c>cmc.pc</c>, PC-1..PC-5).</param>
 /// <param name="Game">The game installation (<c>cmc.game</c>'s startup part).</param>

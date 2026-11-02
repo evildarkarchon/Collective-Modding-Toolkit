@@ -84,7 +84,7 @@ public sealed class F4seTab : TabPage
     private IReadOnlyList<F4seDll> _dlls = [];
 
     /// <summary>The F4SE tab; its DLLs are inspected when it first loads.</summary>
-    /// <param name="runtime">The app runtime: its log and background operations.</param>
+    /// <param name="runtime">The app runtime: its log and UI Action runner.</param>
     /// <param name="host">The machine the plugins folder is on.</param>
     /// <param name="game">The installation found at startup, whose plugins folder is listed.</param>
     /// <param name="overview">The Overview's state, whose Install Type the "Your Game" column is for.</param>
