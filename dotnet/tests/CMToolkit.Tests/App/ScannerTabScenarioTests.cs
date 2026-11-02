@@ -62,7 +62,11 @@ public sealed class ScannerTabScenarioTests
             ShowWarning = (_, _) => throw new InvalidOperationException("The scanner scenarios show no warning."),
         };
         var worker = new GatedWorker();
-        var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = worker.Run };
+        var scan = new ScanState(runtime, game, state, machine.Host) { RunScan = worker.Run };
+        var scanner = new ScannerTab(runtime, game, scan, settings) { Host = machine.Host };
+        // Stage mode as the app used it, from each listed Scan's snapshot: only a stage-mode Scan's rows get the mod
+        // column.
+        var stage = new ListedStageMode(scan);
         var window = new MainWindow(runtime, [overview, scanner, new ToolsTab(runtime)]);
         window.Show();
         DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
@@ -106,7 +110,7 @@ public sealed class ScannerTabScenarioTests
         }
 
         var side = ReadSide(scanner);
-        var initial = ReadTab(machine, scanner);
+        var initial = ReadTab(machine, scanner, stage);
         var toggles = UntickDataBoxes(scanner, runtime);
         var overviewCheck = scanner.SidePane!.Checks[ScanSetting.OverviewIssues];
         ClickBox(overviewCheck, runtime);
@@ -118,7 +122,7 @@ public sealed class ScannerTabScenarioTests
         // blocking write off the UI thread; the file is read once they have all landed.
         DispatcherWait.Until(() => !runtime.Input.IsBlocking);
         var settingsBefore = FileSnapshot.Of(settingsPath);
-        var (during, results, log) = Scan(machine, scanner, worker, logger);
+        var (during, results, log) = Scan(machine, scanner, stage, worker, logger);
         var settingsAfter = FileSnapshot.Of(settingsPath);
 
         JsonObject? selection = null;
@@ -135,7 +139,7 @@ public sealed class ScannerTabScenarioTests
         Select(tabs, 0);
         var left = new JsonObject { ["sidePane"] = scanner.SidePane is not null, ["detailsPane"] = scanner.DetailsPane is not null };
         Select(tabs, 1);
-        var returned = ReadTab(machine, scanner);
+        var returned = ReadTab(machine, scanner, stage);
         returned["side"] = ReadSide(scanner);
         returned["selection"] = scanner.Tree.SelectedItem is null ? new JsonArray() : new JsonArray("selected");
 
@@ -147,15 +151,15 @@ public sealed class ScannerTabScenarioTests
             SelectRow(scanner, (TreeViewItem)FirstGroup(scanner).Items[0]!);
         }
 
-        var (rescanDuring, rescan, _) = Scan(machine, scanner, worker, logger);
+        var (rescanDuring, rescan, _) = Scan(machine, scanner, stage, worker, logger);
 
         var actual = new JsonObject
         {
             ["scanner"] = new JsonObject
             {
                 ["loaded"] = true,
-                ["usingStage"] = scanner.UsingStage,
-                ["columns"] = scanner.UsingStage ? new JsonArray("mod") : new JsonArray(),
+                ["usingStage"] = stage.Listed,
+                ["columns"] = stage.Listed ? new JsonArray("mod") : new JsonArray(),
                 ["display"] = new JsonObject
                 {
                     ["side"] = side,
@@ -183,16 +187,16 @@ public sealed class ScannerTabScenarioTests
 
     /// <summary>Scan Game, read at once once the worker holds (<c>during</c>), then once the results are in.</summary>
     private static (JsonObject During, JsonObject Results, JsonArray Log) Scan(
-        MaterializedScenario machine, ScannerTab scanner, GatedWorker worker, CapturingLogger logger)
+        MaterializedScenario machine, ScannerTab scanner, ListedStageMode stage, GatedWorker worker, CapturingLogger logger)
     {
         var first = logger.Entries.Count;
         worker.Hold();
         MouseClick.On(scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => worker.Entered);
-        var during = ReadTab(machine, scanner);
+        var during = ReadTab(machine, scanner, stage);
         worker.Release();
         DispatcherWait.Until(() => (string?)scanner.SidePane!.ScanButton.Content == "Scan Game");
-        return (during, ReadTab(machine, scanner), Log(machine, logger, first));
+        return (during, ReadTab(machine, scanner, stage), Log(machine, logger, first));
     }
 
     private static JsonArray Log(MaterializedScenario machine, CapturingLogger logger, int first)
@@ -273,7 +277,7 @@ public sealed class ScannerTabScenarioTests
         };
     }
 
-    private static JsonObject ReadTab(MaterializedScenario machine, ScannerTab scanner)
+    private static JsonObject ReadTab(MaterializedScenario machine, ScannerTab scanner, ListedStageMode stage)
     {
         var content = scanner.Tree!.FindLogicalAncestorOfType<Grid>()!;
         var info = Named<TextBlock>(content, "ResultsInfo");
@@ -288,7 +292,7 @@ public sealed class ScannerTabScenarioTests
                 items.Add(new JsonObject
                 {
                     ["text"] = ItemText(item),
-                    ["values"] = scanner.UsingStage ? new JsonArray(ModText(item)) : new JsonArray(),
+                    ["values"] = stage.Listed ? new JsonArray(ModText(item)) : new JsonArray(),
                     ["problem"] = OverviewScenarioTests.ProjectProblem(machine, problem),
                 });
             }

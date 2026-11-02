@@ -60,7 +60,10 @@ public sealed class ScanDetailsPaneScenarioTests
             ShowWarning = (_, _) => throw new InvalidOperationException("The details scenarios show no warning."),
         };
         var started = new List<string>();
-        var scanner = new ScannerTab(runtime, game, state, settings)
+        var scan = new ScanState(runtime, game, state, machine.Host);
+        // Stage mode as the app used it, from each listed Scan's snapshot.
+        var stage = new ListedStageMode(scan);
+        var scanner = new ScannerTab(runtime, game, scan, settings)
         {
             Host = machine.Host,
             OpenFolder = folder => started.Add(folder.Replace(machine.Root, MaterializedScenario.RootToken, StringComparison.Ordinal)),
@@ -154,7 +157,7 @@ public sealed class ScanDetailsPaneScenarioTests
         {
             ["scanner"] = new JsonObject
             {
-                ["usingStage"] = scanner.UsingStage,
+                ["usingStage"] = stage.Listed,
                 ["details"] = details,
                 ["afterRescan"] = new JsonObject { ["detailsPane"] = scanner.DetailsPane is not null },
                 ["errors"] = logger.Entries.Count(e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal)),

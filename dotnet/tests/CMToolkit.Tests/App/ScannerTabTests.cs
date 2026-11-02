@@ -19,51 +19,13 @@ using Microsoft.Extensions.Logging;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// What the <c>scanner-tab</c> scenarios can't record: the scan's two phases (a blocking Overview refresh, then the rest
-/// of the scan as an interactive operation), a scan that stops early or throws, a refresh that dies, leaving the tab
-/// mid-scan (listing the results then fails because the side pane is gone), and Collapse All / Expand All.
+/// What the <c>scanner-tab</c> scenarios can't record, drawn by the tab from a real <see cref="ScanState"/>: what a scan
+/// that stops early lists and when, what a refresh that dies leaves, leaving the tab mid-scan and coming back, the panes
+/// during a blocking Operation, the box saves, Scan Game's rule and Collapse All / Expand All. The Scan's lifecycle is
+/// <see cref="ScanStateTests"/>'.
 /// </summary>
 public sealed class ScannerTabTests
 {
-    [AvaloniaFact]
-    [Trait("Parity", "THR-1")]
-    [Trait("Parity", "SCN-S1")]
-    public void The_overview_refresh_blocks_input_and_the_worker_runs_off_the_ui_thread_with_input_live()
-    {
-        var gather = new ManualResetEventSlim(true);
-        var work = new ManualResetEventSlim();
-        bool? workerOnUiThread = null;
-        using var app = ScannerApp.Start(
-            gatherer: real => p =>
-            {
-                gather.Wait(TimeSpan.FromSeconds(30));
-                return real(p);
-            },
-            runScan: (s, _) =>
-            {
-                workerOnUiThread = Dispatcher.UIThread.CheckAccess();
-                work.Wait(TimeSpan.FromSeconds(30));
-                return Scan.Run(s);
-            });
-
-        gather.Reset();
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        // The refresh's gathering is held, so input becoming blocked here is the refresh's doing; the wait is the
-        // assertion (it times out otherwise).
-        DispatcherWait.Until(() => app.Runtime.Input.IsBlocking);
-        Assert.Equal("Refreshing Overview...", app.ScanningText.Text);
-        gather.Set();
-
-        DispatcherWait.Until(() => workerOnUiThread is not null);
-        // The worker's phase is interactive: the tabs and panes take input while it runs.
-        Assert.False(app.Runtime.Input.IsBlocking);
-        Assert.Equal("Scanning...", (string?)app.Scanner.SidePane!.ScanButton.Content);
-        work.Set();
-        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
-
-        Assert.False(workerOnUiThread);
-    }
-
     [AvaloniaFact]
     [Trait("Parity", "SET-8"), Deviation(20, "Each side-pane box change saves the scanner_* settings at once, off the UI thread in a blocking operation, instead of only when a scan starts.")]
     public void A_box_change_saves_at_once_off_the_ui_thread_in_a_blocking_operation()
@@ -213,11 +175,6 @@ public sealed class ScannerTabTests
 
         Assert.Equal(0, listedWhenTheErrorShowed);
         Assert.Equal(stopping.Text, labelWhenTheErrorShowed);
-        // Reported once, under the Scanner scan's header, as the error itself and not a wrapper around it.
-        var header = ErrorReporter.OperationHeader("Scanner scan");
-        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
-        Assert.StartsWith($"StdErr : {header}\nSystem.Text.DecoderFallbackException: modlist.txt isn't UTF-8", report.Message, StringComparison.Ordinal);
-        Assert.StartsWith($"{header}\nSystem.Text.DecoderFallbackException: modlist.txt isn't UTF-8", app.Runtime.Errors.Window!.Text, StringComparison.Ordinal);
 
         var scan = app.Scanner.SidePane!.ScanButton;
         Assert.True(scan.IsEnabled);
@@ -235,70 +192,59 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void An_exception_that_escapes_the_scan_is_reported_once_and_the_scan_ends_listing_the_stopped_early_row()
+    public void Leaving_the_tab_mid_scan_opens_no_error_window_and_coming_back_shows_its_latest_status_then_its_results()
     {
-        // The scan returns its own failures on its outcome (ScanFailureTests); this is the tab's last resort for an
-        // exception that gets out anyway, so Scan Game can't stay disabled.
-        using var app = ScannerApp.Start(runScan: (_, _) => throw new InvalidOperationException("escaped the scan"));
-
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
-        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
-        Dispatcher.UIThread.RunJobs();
-
-        var scan = app.Scanner.SidePane!.ScanButton;
-        Assert.True(scan.IsEnabled);
-        Assert.False(app.ScanningText.IsVisible);
-        Assert.Equal(100, app.Progress.Value);
-        // The scan seeds its own results, so everything it would have listed was lost with the exception. What's left is
-        // the stopped-early row on its own, so the list can't pass for a clean scan; the count includes it.
-        Assert.Equal("1 Results ~ Select an item for details", app.ResultsInfo.Text);
-        var group = Assert.Single(app.Scanner.Tree!.Items.OfType<TreeViewItem>());
-        Assert.Equal("Incomplete Scan", ((TextBlock)group.Header!).Text);
-        Assert.Equal(["Scan stopped early"], ItemTexts(group));
-        Assert.True(app.Scanner.IsSelectable);
-        // The runner reported it; the tab doesn't report it again.
-        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
-        Assert.Equal(LogLevel.Error, report.Level);
-        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Scanner scan")}\nSystem.InvalidOperationException: escaped the scan", report.Message, StringComparison.Ordinal);
-    }
-
-    [AvaloniaFact]
-    [Trait("Parity", "SCN-5")]
-    [Trait("Parity", "THR-1")]
-    public void Leaving_the_tab_mid_scan_makes_the_populate_fail_and_coming_back_gives_a_fresh_side_pane()
-    {
-        var work = new ManualResetEventSlim();
+        using var away = new ManualResetEventSlim();
+        using var finish = new ManualResetEventSlim();
         var entered = false;
-        using var app = ScannerApp.Start(runScan: (s, _) =>
+        var reportedAway = false;
+        using var app = ScannerApp.Start(runScan: (s, progress) =>
         {
-            entered = true;
-            work.Wait(TimeSpan.FromSeconds(30));
+            progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));
+            Volatile.Write(ref entered, true);
+            away.Wait(TaskTimeouts.Default);
+            // Reported while the user is on another tab: the label and the bar still take it.
+            progress.Report(new ScanStatus("Scanning... 2/2: Textures", 75));
+            Volatile.Write(ref reportedAway, true);
+            finish.Wait(TaskTimeouts.Default);
             return Scan.Run(s);
         });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => entered);
+        DispatcherWait.Until(() => Volatile.Read(ref entered));
         app.Select(0);
         Assert.Null(app.Scanner.SidePane);
         Assert.Empty(app.Window.OwnedWindows);
-        work.Set();
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        away.Set();
+        DispatcherWait.Until(() => Volatile.Read(ref reportedAway));
 
-        // populate_results raised ValueError before touching anything: no results, the label and progress as they were.
-        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : " + ErrorReporter.UiThreadHeader, StringComparison.Ordinal));
-        Assert.Empty(app.Scanner.Tree!.Items);
-        Assert.Equal("", app.ResultsInfo.Text ?? "");
+        // Back mid-scan: the label and the bar show where the scan has got to, and a fresh side pane opens.
+        app.Select(1);
         Assert.True(app.ScanningText.IsVisible);
-        Assert.Equal(100, app.Progress.Value);
+        Assert.Equal("Scanning... 2/2: Textures", app.ScanningText.Text);
+        Assert.Equal(75, app.Progress.Value);
+        Assert.Empty(app.Scanner.Tree!.Items);
+        Assert.Single(app.Window.OwnedWindows);
+
+        // Away again when the scan ends: its results are listed all the same.
+        app.Select(0);
+        finish.Set();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(app.Runtime.Errors.Window);
+        Assert.DoesNotContain(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
 
         app.Select(1);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(100, app.Progress.Value);
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
+        Assert.EndsWith(" Results ~ Select an item for details", app.ResultsInfo.Text, StringComparison.Ordinal);
+        Assert.True(app.Scanner.IsSelectable);
         var side = Assert.IsType<ScanSidePane>(app.Scanner.SidePane);
         Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
         Assert.True(side.ScanButton.IsEnabled);
         // The new pane starts with the saved boxes (bug #20 fixed): every box ticked here, as the scan saved nothing.
         Assert.All(side.Checks.Values, c => Assert.True(c.IsChecked));
-        Assert.Single(app.Window.OwnedWindows);
     }
 
     [AvaloniaFact]
@@ -306,25 +252,32 @@ public sealed class ScannerTabTests
     public void A_refresh_that_dies_ends_the_scan_with_scan_game_enabled_again()
     {
         var fail = false;
-        var workerRan = false;
         using var app = ScannerApp.Start(
-            gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p),
-            runScan: (s, _) =>
-            {
-                workerRan = true;
-                return Scan.Run(s);
-            });
+            gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p));
         fail = true;
 
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
+        // Every text Scan Game shows from the click on. What reaches the Error Window when the refresh dies is
+        // ScanStateTests'; the tab is read once it has drawn the Scan's start and then its end, since the refresh can
+        // die before the click's own jobs have run out.
+        var button = app.Scanner.SidePane!.ScanButton;
+        var drawn = new List<string?>();
+        button.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == ContentControl.ContentProperty)
+            {
+                drawn.Add((string?)e.NewValue);
+            }
+        };
+
+        MouseClick.On(button);
+        DispatcherWait.Until(() => drawn is [.., "Scan Game"] && !app.Runtime.Input.IsBlocking);
         Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(["Scanning...", "Scan Game"], drawn);
 
         // Bug #22's loose end, fixed (ADR-0006): the reference's start_threaded_scan died with the refresh, leaving
         // Scan Game disabled on Scanning... and the label on Refreshing Overview....
         AssertEndedBeforeTheWorker(app);
-        Assert.Contains(app.Logger.Entries, e => e.Message.StartsWith("StdErr : " + ErrorReporter.OperationHeader("Overview refresh"), StringComparison.Ordinal));
-        Assert.False(workerRan);
     }
 
     /// <summary>
@@ -381,33 +334,6 @@ public sealed class ScannerTabTests
         Assert.StartsWith(ErrorReporter.OperationHeader(SettingsStore.SaveOperationName), app.Runtime.Errors.Window!.Text);
         // The new box value stays in effect for the session either way.
         Assert.False(store.Current.ScannerJunkFiles);
-    }
-
-    [AvaloniaFact]
-    public void A_scan_that_raises_is_reported_once_under_the_ui_thread_header()
-    {
-        // Leaving the tab mid-scan makes the populate raise (populate_results' ValueError): an exception no runner
-        // reported, so the Scan Game UI Action reports it, once, under the UI thread's header.
-        var work = new ManualResetEventSlim();
-        var entered = false;
-        using var app = ScannerApp.Start(runScan: (s, _) =>
-        {
-            entered = true;
-            work.Wait(TimeSpan.FromSeconds(30));
-            return Scan.Run(s);
-        });
-
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => entered);
-        app.Select(0);
-        work.Set();
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
-        Dispatcher.UIThread.RunJobs();
-
-        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
-        Assert.StartsWith(
-            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: populate_results: the side pane is gone.",
-            report.Message);
     }
 
     [AvaloniaFact]
@@ -485,6 +411,79 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    [AvaloniaFact]
+    public void Ticking_or_unticking_a_box_mid_scan_leaves_scan_game_disabled_on_scanning_and_saves_the_change()
+    {
+        using var held = new HeldScan();
+        var store = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
+        using var app = ScannerApp.Start(runScan: held.Run, settingsStore: store);
+        var side = app.Scanner.SidePane!;
+        MouseClick.On(side.ScanButton);
+        held.WaitUntilEntered();
+
+        // The scan's checks run as an Interactive Operation, so the boxes stay live while it runs.
+        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
+        Assert.False(side.Checks[ScanSetting.JunkFiles].IsChecked);
+        AssertScanning(side);
+        Assert.False(store.Current.ScannerJunkFiles);
+
+        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
+        Assert.True(side.Checks[ScanSetting.JunkFiles].IsChecked);
+        AssertScanning(side);
+        Assert.True(store.Current.ScannerJunkFiles);
+
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
+        Assert.True(side.ScanButton.IsEnabled);
+    }
+
+    [AvaloniaFact]
+    public void A_side_pane_opened_mid_scan_shows_scanning_with_scan_game_disabled_until_the_scan_ends()
+    {
+        using var held = new HeldScan();
+        using var app = ScannerApp.Start(runScan: held.Run);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        held.WaitUntilEntered();
+
+        app.Select(0);
+        app.Select(1);
+        var side = Assert.IsType<ScanSidePane>(app.Scanner.SidePane);
+        AssertScanning(side);
+
+        // The scan ends in this pane rather than the one it started from, which is closed.
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
+        Assert.True(side.ScanButton.IsEnabled);
+    }
+
+    [AvaloniaFact]
+    public void A_scan_that_ends_with_every_box_unticked_leaves_scan_game_disabled()
+    {
+        using var held = new HeldScan();
+        using var app = ScannerApp.Start(runScan: held.Run);
+        var side = app.Scanner.SidePane!;
+        MouseClick.On(side.ScanButton);
+        held.WaitUntilEntered();
+
+        foreach (var setting in ScanSettings.All)
+        {
+            ClickBoxAndWaitForTheSave(app, setting);
+            AssertScanning(side);
+        }
+
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
+        Assert.False(side.ScanButton.IsEnabled);
+        // The scan ran with the boxes it started from, so it still listed what they asked for.
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
+    }
+
     /// <summary>
     /// Clicks the side pane's box for <paramref name="setting"/>, then waits for the blocking save the change starts to
     /// land: a click while it is pending would be discarded (ADR-0003).
@@ -493,6 +492,13 @@ public sealed class ScannerTabTests
     {
         MouseClick.On(app.Scanner.SidePane!.Checks[setting]);
         DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
+    }
+
+    /// <summary>Scan Game as it is while a Scan runs: disabled, showing <c>Scanning...</c>.</summary>
+    private static void AssertScanning(ScanSidePane side)
+    {
+        Assert.Equal("Scanning...", (string?)side.ScanButton.Content);
+        Assert.False(side.ScanButton.IsEnabled);
     }
 
     /// <summary>The item rows' texts under <paramref name="group"/>, in tree order (rows without a mod column).</summary>
@@ -516,6 +522,37 @@ public sealed class ScannerTabTests
     }
 
     /// <summary>
+    /// A scripted <see cref="ScanState.RunScan"/> that holds mid-run until released, then runs the real scan over the
+    /// snapshot it was given.
+    /// </summary>
+    private sealed class HeldScan : IDisposable
+    {
+        private readonly ManualResetEventSlim _finish = new();
+        private bool _entered;
+
+        /// <summary>The scan: marks itself entered, waits for <see cref="Release"/>, then scans.</summary>
+        public ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus> progress)
+        {
+            Volatile.Write(ref _entered, true);
+            _finish.Wait(TaskTimeouts.Default);
+            return CMToolkit.Core.Scanner.Scan.Run(settings);
+        }
+
+        /// <summary>Runs dispatcher jobs until the scan has started its checks, past the Overview refresh.</summary>
+        public void WaitUntilEntered() => DispatcherWait.Until(() => Volatile.Read(ref _entered));
+
+        /// <summary>Lets the scan finish.</summary>
+        public void Release() => _finish.Set();
+
+        /// <summary>Releases the scan, so a failed test doesn't leave a worker waiting.</summary>
+        /// <remarks>
+        /// The event is set, not disposed: a worker still inside <see cref="ManualResetEventSlim.Wait(TimeSpan)"/> would
+        /// throw on a disposed one, and a slim event that never handed out its wait handle holds nothing to free.
+        /// </remarks>
+        public void Dispose() => _finish.Set();
+    }
+
+    /// <summary>
     /// The Scanner tab of the <c>scanner/overview-issues</c> machine, over a loaded Overview Report module, after another
     /// tab in a shown main window, on the Scanner.
     /// </summary>
@@ -524,12 +561,13 @@ public sealed class ScannerTabTests
         private readonly MaterializedScenario _machine;
         private readonly TabControl _tabs;
 
-        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScannerTab scanner)
+        private ScannerApp(MaterializedScenario machine, MainWindow window, AppRuntime runtime, CapturingLogger logger, ScanState scan, ScannerTab scanner)
         {
             _machine = machine;
             Window = window;
             Runtime = runtime;
             Logger = logger;
+            Scan = scan;
             Scanner = scanner;
             _tabs = window.GetLogicalDescendants().OfType<TabControl>().Single();
         }
@@ -539,6 +577,9 @@ public sealed class ScannerTabTests
         public AppRuntime Runtime { get; }
 
         public CapturingLogger Logger { get; }
+
+        /// <summary>The Scan module the tab draws.</summary>
+        public ScanState Scan { get; }
 
         public ScannerTab Scanner { get; }
 
@@ -555,7 +596,7 @@ public sealed class ScannerTabTests
         /// </summary>
         /// <param name="gatherer">Makes the module's gather function from the real one; null keeps the real one.</param>
         /// <param name="runScan">
-        /// The scan after its Overview refresh (<see cref="ScannerTab.RunScan"/>); the real one by default.
+        /// The scan after its Overview refresh (<see cref="ScanState.RunScan"/>); the real one by default.
         /// </param>
         /// <param name="stored">The settings the side pane starts from, unsaved; the defaults by default.</param>
         /// <param name="settingsStore">The settings store, in place of <paramref name="stored"/>.</param>
@@ -582,13 +623,14 @@ public sealed class ScannerTabTests
                 : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = runScan ?? ((s, _) => Scan.Run(s)) };
+            var scan = new ScanState(runtime, game, state, machine.Host) { RunScan = runScan ?? ((s, _) => CMToolkit.Core.Scanner.Scan.Run(s)) };
+            var scanner = new ScannerTab(runtime, game, scan, settings) { Host = machine.Host };
             var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
             var load = overviewTab ? null : state.LoadAsync();
             DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
             load?.GetAwaiter().GetResult();
-            var app = new ScannerApp(machine, window, runtime, logger, scanner);
+            var app = new ScannerApp(machine, window, runtime, logger, scan, scanner);
             app.Select(1);
             return app;
         }

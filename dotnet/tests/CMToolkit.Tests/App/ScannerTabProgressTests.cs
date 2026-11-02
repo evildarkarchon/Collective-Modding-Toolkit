@@ -17,7 +17,8 @@ namespace CMToolkit.Tests.App;
 
 /// <summary>
 /// The tab's side of the scan's progress, timed as the scenarios can't time it: the statuses the scan reports through
-/// the sink the tab gives it reach the scanning label and the progress bar as they are, in order, while it runs; each
+/// the sink its <see cref="ScanState"/> gives it reach the scanning label and the progress bar as they are, in order,
+/// with the refresh's statuses before them and the bar at 100 after them, while it runs; each
 /// is applied before the scan goes on, so all of them are shown before the results replace them; they still land when
 /// the scan throws, and are dropped once the scan is over (ADR-0003).
 /// </summary>
@@ -37,7 +38,7 @@ public sealed class ScannerTabProgressTests
             return ScanOutcome.Empty;
         });
 
-        var scan = app.Scanner.ScanAsync();
+        var scan = app.StartScan();
         DispatcherWait.Until(() => reported.IsSet && app.ScanningText.Text == "Scanning... 1/2: Meshes");
         Assert.Equal(50.0, app.Progress.Value);
         Assert.True(app.ScanningText.IsVisible);
@@ -51,21 +52,23 @@ public sealed class ScannerTabProgressTests
     [AvaloniaFact]
     public void Each_status_is_applied_before_the_scan_goes_on()
     {
-        // How many statuses the tab had applied each time Report handed control back to the scan: the sink waits for
-        // the UI thread, so the status just reported is always among them.
+        // How many of the scan's own statuses the tab had applied each time Report handed control back to the scan (the
+        // count less the refresh's statuses, applied before the scan began): the sink waits for the UI thread, so the
+        // status just reported is always among them.
         var appliedWhenReportReturned = new List<int>();
         var applied = 0;
         using var app = ProgressApp.Start((s, progress) =>
         {
+            var before = Volatile.Read(ref applied);
             progress.Report(new ScanStatus("Building mod file index...", 1));
-            appliedWhenReportReturned.Add(Volatile.Read(ref applied));
+            appliedWhenReportReturned.Add(Volatile.Read(ref applied) - before);
             progress.Report(new ScanStatus("Scanning... 0/1: Meshes", 0));
-            appliedWhenReportReturned.Add(Volatile.Read(ref applied));
+            appliedWhenReportReturned.Add(Volatile.Read(ref applied) - before);
             return ScanOutcome.Empty;
         });
         app.Scanner.ProgressApplied += (_, _) => Interlocked.Increment(ref applied);
 
-        var scan = app.Scanner.ScanAsync();
+        var scan = app.StartScan();
         DispatcherWait.Until(() => scan.IsCompleted);
 
         Assert.Equal([1, 2], appliedWhenReportReturned);
@@ -94,11 +97,20 @@ public sealed class ScannerTabProgressTests
             }
         };
 
-        var scan = app.Scanner.ScanAsync();
+        var scan = app.StartScan();
         DispatcherWait.Until(() => scan.IsCompleted);
 
+        // The refresh's two statuses come first, and the scan's end sets the bar to 100 under the scan's last label.
         Assert.Equal(
-            ["Building mod file index... @ 1", "Scanning... 1/2: Meshes @ 50", "Scanning... 2/2: Textures @ 100", "listed"],
+            [
+                "Refreshing Overview... @ 0",
+                "Refreshing Overview... @ 1",
+                "Building mod file index... @ 1",
+                "Scanning... 1/2: Meshes @ 50",
+                "Scanning... 2/2: Textures @ 100",
+                "Scanning... 2/2: Textures @ 100",
+                "listed",
+            ],
             shown);
         Assert.NotEmpty(app.Scanner.Tree!.Items);
     }
@@ -116,13 +128,16 @@ public sealed class ScannerTabProgressTests
         // The notification fires once per status, after the label and the bar show it.
         app.Scanner.ProgressApplied += (_, status) => applied.Add((status, app.ScanningText.Text, app.Progress.Value));
 
-        var scan = app.Scanner.ScanAsync();
+        var scan = app.StartScan();
         DispatcherWait.Until(() => scan.IsCompleted);
 
         Assert.Equal(
             [
+                (new ScanStatus("Refreshing Overview...", 0), "Refreshing Overview...", 0.0),
+                (new ScanStatus("Refreshing Overview...", 1), "Refreshing Overview...", 1.0),
                 (new ScanStatus("Building mod file index...", 1), "Building mod file index...", 1.0),
                 (new ScanStatus("Scanning... 0/1: Meshes", 0), "Scanning... 0/1: Meshes", 0.0),
+                (new ScanStatus("Scanning... 0/1: Meshes", 100), "Scanning... 0/1: Meshes", 100.0),
             ],
             applied);
         Assert.Equal(100.0, app.Progress.Value);
@@ -139,7 +154,7 @@ public sealed class ScannerTabProgressTests
         });
         app.Scanner.ProgressApplied += (_, _) => applied.Add(app.ScanningText.Text!);
 
-        var scan = app.Scanner.ScanAsync();
+        var scan = app.StartScan();
         DispatcherWait.Until(() => scan.IsCompleted);
 
         // Bug #22, fixed (ADR-0006): the reference left the last update shown with Scan Game stuck on Scanning...
@@ -152,17 +167,17 @@ public sealed class ScannerTabProgressTests
     [AvaloniaFact]
     public void A_status_after_the_scan_is_over_changes_nothing()
     {
-        // The sink the tab gave the scan, kept past its end, as a thread the scan left running might keep it.
+        // The sink the scan was given, kept past its end, as a thread the scan left running might keep it.
         IProgress<ScanStatus>? given = null;
         using var app = ProgressApp.Start((s, progress) =>
         {
             given = progress;
             return ScanOutcome.Empty;
         });
+        var scan = app.StartScan();
+        DispatcherWait.Until(() => scan.IsCompleted);
         var applied = 0;
         app.Scanner.ProgressApplied += (_, _) => applied++;
-        var scan = app.Scanner.ScanAsync();
-        DispatcherWait.Until(() => scan.IsCompleted);
 
         given!.Report(new ScanStatus("Scanning... 0/1: Meshes", 0));
         Dispatcher.UIThread.RunJobs();
@@ -177,10 +192,13 @@ public sealed class ScannerTabProgressTests
     {
         private readonly MaterializedScenario _machine;
 
-        private ProgressApp(MaterializedScenario machine, MainWindow window, ScannerTab scanner)
+        private readonly ScanState _scan;
+
+        private ProgressApp(MaterializedScenario machine, MainWindow window, ScanState scan, ScannerTab scanner)
         {
             _machine = machine;
             Window = window;
+            _scan = scan;
             Scanner = scanner;
         }
 
@@ -192,7 +210,7 @@ public sealed class ScannerTabProgressTests
 
         public ProgressBar Progress => Named<ProgressBar>("Progress");
 
-        /// <summary>Starts the app with <paramref name="runScan"/> as the scan, given the snapshot and the tab's progress sink.</summary>
+        /// <summary>Starts the app with <paramref name="runScan"/> as the scan, given the snapshot and the Scan's progress sink.</summary>
         public static ProgressApp Start(Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> runScan)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
@@ -201,7 +219,8 @@ public sealed class ScannerTabProgressTests
             var runtime = new AppRuntime(new CapturingLogger());
             var state = new OverviewState(runtime, p => CMToolkit.Core.Overview.OverviewReport.Gather(game, machine.Host, runtime.Logger, p));
             var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = runScan };
+            var scan = new ScanState(runtime, game, state, machine.Host) { RunScan = runScan };
+            var scanner = new ScannerTab(runtime, game, scan, settings) { Host = machine.Host };
             // The Scanner needs only the loaded module, not an Overview tab; the first tab is a placeholder.
             var window = new MainWindow(runtime, [new ProbeTab("Other", "OtherTab"), scanner]);
             window.Show();
@@ -210,8 +229,11 @@ public sealed class ScannerTabProgressTests
             load.GetAwaiter().GetResult();
             window.GetLogicalDescendants().OfType<TabControl>().Single().SelectedIndex = 1;
             Dispatcher.UIThread.RunJobs();
-            return new ProgressApp(machine, window, scanner);
+            return new ProgressApp(machine, window, scan, scanner);
         }
+
+        /// <summary>Starts a Scan with the side pane's boxes, as Scan Game does, and returns the task that ends with it.</summary>
+        public Task StartScan() => _scan.StartAsync(Scanner.SidePane!.Values);
 
         public T Named<T>(string name)
             where T : Control

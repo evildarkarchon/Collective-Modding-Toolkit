@@ -7,35 +7,27 @@ using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
-using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.Scanner;
-using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.App.Tabs;
 
 /// <summary>
-/// <c>tabs._scanner.ScannerTab</c>: the results tree under Collapse All / Expand All and the results info label, the
-/// scanning label and the progress bar (SCN-1, SCN-2), with the side pane and the details pane docked to the main
-/// window as owned windows (SCN-3..SCN-5). Scan Game runs the scan (SCN-S1..SCN-S6, THR-1) and lists its results
-/// (SCN-R1..SCN-R3).
+/// The Scanner tab: the results tree under Collapse All / Expand All and the results info label, the scanning label and
+/// the progress bar, with the side pane and the details pane docked to the main window as owned windows. Scan Game
+/// starts a Scan through the <see cref="ScanState"/>, and the tab draws what it raises: it clears the results when a
+/// Scan starts, shows each status, and lists the results when the Scan ends.
 /// </summary>
 /// <remarks>
-/// A scan runs in two phases, as the reference split them (ADR-0003): the Overview refresh, which the reference ran on
-/// the UI thread, is a blocking operation; the worker, which it ran on its scan thread, is an interactive one, so the
-/// tabs stay live and the reference's mid-scan Failure Outcomes stay reachable. Leaving the tab mid-scan destroys the
-/// side pane, so the populate that follows the worker raises, as <c>populate_results</c> raised
-/// <c>ValueError</c>: the results are never listed, and the scan's label and progress stay as they were.
+/// The tab decides nothing about the Scan. The Scan's events reach the tab whether or not it is current, so a Scan the
+/// user leaves the tab during keeps its label and progress bar up to date and lists its results when it ends, and coming
+/// back shows them.
 /// </remarks>
 public sealed class ScannerTab : TabPage
 {
-    // The scan's background operation: the runner reports an escaped exception under its name, and the tab reports a
-    // scan's returned error under the same header, so both read alike in the Error Window.
-    private const string ScanOperation = "Scanner scan";
-
     private readonly AppRuntime _runtime;
     private readonly GameInstall _game;
-    private readonly OverviewState _overview;
+    private readonly ScanState _scan;
     private readonly SettingsStore _settings;
     private readonly Dictionary<TreeViewItem, Problem> _items = [];
     private OwnedPaneDocker? _docker;
@@ -45,45 +37,33 @@ public sealed class ScannerTab : TabPage
     private ProgressBar? _progress;
     private bool _selectable;
 
+    // Stage mode as the listed Scan's snapshot had it, so the details pane agrees with the rows' mod column.
+    private bool _usingStage;
+
     /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
     /// <param name="runtime">The app runtime: its log, error reporting and UI Action runner.</param>
     /// <param name="game">The installation found at startup.</param>
-    /// <param name="overview">The Overview Report module: each scan refreshes it first, and its problems seed the scan.</param>
+    /// <param name="scan">The Scan module, which Scan Game starts and whose events the tab draws.</param>
     /// <param name="settings">The settings the side pane's boxes start from (SET-8) and are saved to as they change (SET-7).</param>
-    public ScannerTab(AppRuntime runtime, GameInstall game, OverviewState overview, SettingsStore settings)
+    public ScannerTab(AppRuntime runtime, GameInstall game, ScanState scan, SettingsStore settings)
         : base("Scanner", "ScannerTab")
     {
         _runtime = runtime;
         _game = game;
-        _overview = overview;
+        _scan = scan;
         _settings = settings;
-        RunScan = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
+        // Never unsubscribed: the module and the tab are built together and live as long as the main window. Only the
+        // side pane starts a Scan, and it opens after the tab has built, so no event arrives before there is a tree.
+        _scan.Started += (_, _) => OnStarted();
+        _scan.StatusChanged += (_, status) => Apply(status);
+        _scan.Ended += (_, ended) => OnEnded(ended);
     }
-
-    /// <summary>
-    /// Everything in the Scan after its Overview refresh, run off the UI thread as an interactive operation and given the
-    /// scan's snapshot and the tab's progress sink:
-    /// <see cref="Scan.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> with the app
-    /// log by default. A test seam, so tests can hold a scan mid-run, report statuses or hand the tab a canned outcome.
-    /// </summary>
-    /// <remarks>
-    /// The sink is a <see cref="UiThreadProgress{T}"/> made for each scan, so it takes statuses from any thread and
-    /// applies each one on the UI thread before <see cref="IProgress{T}.Report"/> returns. Every status is therefore
-    /// shown, in order, before the results are listed. A status reported once the scan is over is dropped.
-    /// </remarks>
-    public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> RunScan { get; init; }
 
     /// <summary>
     /// Raised on the UI thread after each status is applied to the scanning label and the progress bar. A test seam for
     /// reading the tab after every status.
     /// </summary>
     public event EventHandler<ScanStatus>? ProgressApplied;
-
-    /// <summary>
-    /// Stage mode (<c>using_stage</c>): the mod manager has a staging folder, which only MO2 has. The results tree then
-    /// has the mod column (SCN-2).
-    /// </summary>
-    public bool UsingStage => _game.Mo2 is not null;
 
     /// <summary>The side pane's view while the tab is current (<c>side_pane</c>), or null.</summary>
     public ScanSidePane? SidePane { get; private set; }
@@ -101,9 +81,8 @@ public sealed class ScannerTab : TabPage
     public Problem? ProblemOf(TreeViewItem item) => _items.GetValueOrDefault(item);
 
     /// <summary>
-    /// The machine the scan reads (the Race Subgraphs count, the mod file index and the data walk) and the details pane
-    /// checks result paths on: a relative path is relative to its working directory. Required, with no default, because the scan's snapshot is
-    /// taken with it: a tab built without naming its machine would silently scan the real one.
+    /// The machine the details pane checks result paths on: a relative path is relative to its working directory.
+    /// Required, with no default: a tab built without naming its machine would silently check the real one.
     /// </summary>
     public required IHostEnvironment Host { get; init; }
 
@@ -218,12 +197,13 @@ public sealed class ScannerTab : TabPage
             return;
         }
 
-        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
-        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
+        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch. A
+        // pane opened mid-scan, after the user comes back to the tab, starts on Scanning... so no second Scan can start.
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan.IsRunning);
+        var created = SidePane;
         // Both UI Actions start through runtime.Actions.Start: what they raise is reported once, at once (a failed
         // Operation already by the runner), and the task they return never faults, so discarding it is safe.
-        SidePane.ScanRequested += (_, _) => _ = _runtime.Actions.Start(ScanAsync);
-        var created = SidePane;
+        created.ScanRequested += (_, _) => _ = _runtime.Actions.Start(() => _scan.StartAsync(created.Values));
         created.BoxChanged += (_, _) => _ = _runtime.Actions.Start(() => SaveBoxesAsync(created));
         if (TopLevel.GetTopLevel(_tree) is not null)
         {
@@ -271,103 +251,37 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Scan Game: refreshes the Overview Report, runs the scan off the UI thread with its statuses shown on the label and
-    /// the progress bar, then lists the results. A UI Action: the Scan Game button starts it through
-    /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
+    /// Draws a Scan's start: Scan Game shows Scanning... in the open side pane, if there is one; the tree, its data and
+    /// the info label are cleared and nothing can be selected; the details pane closes; and the scanning label appears.
     /// </summary>
-    /// <returns>A task that completes when the results are listed, or when the scan stopped short.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// The side pane is gone (<c>ValueError</c>): when the scan starts, or, after leaving the tab mid-scan, when the
-    /// results would be listed.
-    /// </exception>
-    public async Task ScanAsync()
+    private void OnStarted()
     {
-        var side = SidePane ?? throw new InvalidOperationException("start_threaded_scan: the side pane is gone.");
-        var tree = _tree!;
-
-        // SCN-S1: the button shows Scanning..., the tree, its data and the info label are cleared, the details pane closes.
-        side.SetScanning(true);
+        SidePane?.SetScanning(true);
         _selectable = false;
-        tree.Items.Clear();
+        _tree!.Items.Clear();
         _items.Clear();
         _resultsInfo!.Text = "";
         CloseDetails();
-
         _scanningText!.IsVisible = true;
-        _scanningText.Text = "Refreshing Overview...";
-        if (await _overview.TryRefreshAsync() is OperationOutcome<OverviewReport>.Failed)
-        {
-            // Bug #22's loose end, fixed: a failed refresh must not leave Scan Game disabled on Scanning... for good.
-            // The runner has reported the error, and the outcome hands it back rather than ending the action, so the
-            // scan ends here, before its worker, with the button enabled again.
-            EndBeforeWorker(side);
-            return;
-        }
-
-        // SCN-S2: the snapshot. The reference saved the boxes here too when one differed from its stored value (SET-7);
-        // the port has saved each box as it changed (bug #20), so the settings already hold these and nothing is written.
-        var settings = ScanSettings.Snapshot(side.Values, _game, _overview.Report, Host);
-
-        // The label stays on Refreshing Overview... until the scan reports a status of its own, and it reports none when
-        // only Overview Issues is ticked.
-        _progress!.Value = 1;
-
-        ScanOutcome outcome;
-        var errorReported = false;
-
-        // This scan's own sink. The handler and the write to `over` below both run on the UI thread, so a status a
-        // thread the scan left running reports after the scan returned sees `over` set and changes nothing. A sink
-        // per scan also keeps one scan's flag from silencing another's.
-        var over = false;
-        var statuses = new UiThreadProgress<ScanStatus>(status =>
-        {
-            if (!over)
-            {
-                Apply(status);
-            }
-        });
-        var run = await _runtime.Actions.TryRun(
-            ScanOperation, OperationPhase.Interactive, () => RunScan(settings, statuses));
-        over = true;
-        if (run is OperationOutcome<ScanOutcome>.Failed failed)
-        {
-            // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
-            // Everything the scan would have listed died with it (it seeds its own results), so the list is the
-            // stopped-early row alone: an empty list would read as a clean scan. The runner has already reported the
-            // error, so it must not reach the Error Window a second time below.
-            outcome = ScanOutcome.StoppedEarly([], failed.Error);
-            errorReported = true;
-        }
-        else
-        {
-            outcome = ((OperationOutcome<ScanOutcome>.Succeeded)run).Value;
-        }
-
-        if (outcome.Error is { } error && !errorReported)
-        {
-            // The scan stopped early and returned its error rather than throwing it, so no runner reported it. Shown
-            // now, on the UI thread, so the Error Window is up before the partial results are listed.
-            _runtime.Actions.ReportFailure(ScanOperation, error);
-        }
-
-        _progress.Value = 100;
-        Populate(settings, outcome);
     }
 
     /// <summary>
-    /// Ends a scan that stopped before its worker started (its Overview refresh failed, already reported): the
-    /// scanning label hides and Scan Game is enabled again. Nothing is listed, since nothing was
-    /// scanned, and the tree stays cleared and unselectable.
+    /// Draws a Scan's end, wherever the user is: the scanning label hides, a <see cref="ScanEnded.Listed"/> Scan's
+    /// results are listed, and the open side pane, if there is one, shows Scan Game again, enabled unless every box is
+    /// unticked. A
+    /// <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and unselectable.
     /// </summary>
-    /// <param name="side">
-    /// The side pane the scan started from. The main window's input was blocked since, so the tab can't have been left
-    /// and it is still the open one.
-    /// </param>
-    private void EndBeforeWorker(ScanSidePane side)
+    /// <param name="ended">How the Scan ended.</param>
+    private void OnEnded(ScanEnded ended)
     {
         _scanningText!.IsVisible = false;
         _scanningText.Text = "";
-        side.SetScanning(false);
+        if (ended is ScanEnded.Listed listed)
+        {
+            Populate(listed.Settings, listed.Outcome);
+        }
+
+        SidePane?.SetScanning(false);
     }
 
     /// <summary>Collapse All / Expand All (<c>set_expanded</c>): opens or closes every group row.</summary>
@@ -380,19 +294,16 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// <c>populate_results</c>: hides the scanning label, sets the info label, lists the groups and re-enables Scan Game
-    /// and selection.
+    /// Lists a Scan's results: sets the info label, lists the groups and makes the results selectable. It reads no pane,
+    /// so it lists them whether or not the tab is current.
     /// </summary>
-    /// <param name="settings">The scan's snapshot, which says whether rows get the mod column.</param>
-    /// <param name="outcome">The scan's outcome: its problems are counted and its groups listed as they are.</param>
-    /// <exception cref="InvalidOperationException">The side pane is gone: the tab was left mid-scan.</exception>
+    /// <param name="settings">
+    /// The Scan's snapshot, which says whether rows get the mod column; the details pane follows it too.
+    /// </param>
+    /// <param name="outcome">The Scan's outcome: its problems are counted and its groups listed as they are.</param>
     private void Populate(ScanSettings settings, ScanOutcome outcome)
     {
-        // Left the tab mid-scan: the reference raised ValueError here, before touching anything.
-        var side = SidePane ?? throw new InvalidOperationException("populate_results: the side pane is gone.");
-
-        _scanningText!.IsVisible = false;
-        _scanningText.Text = "";
+        _usingStage = settings.UsingStage;
         _resultsInfo!.Text = ScanResults.InfoText(outcome.Problems.Count);
 
         foreach (var group in outcome.Groups)
@@ -400,7 +311,7 @@ public sealed class ScannerTab : TabPage
             var groupItem = new TreeViewItem { Header = Text(group.Kind), IsExpanded = true };
             foreach (var problem in group.Items)
             {
-                var item = new TreeViewItem { Header = Row(problem, settings.UsingStage) };
+                var item = new TreeViewItem { Header = Row(problem, _usingStage) };
                 item.Classes.Add("leaf");
                 _items[item] = problem;
                 groupItem.Items.Add(item);
@@ -409,7 +320,6 @@ public sealed class ScannerTab : TabPage
             _tree!.Items.Add(groupItem);
         }
 
-        side.SetScanning(false);
         _selectable = true;
     }
 
@@ -439,7 +349,7 @@ public sealed class ScannerTab : TabPage
             Docker().Show(PaneSlot.Details, DetailsPane);
         }
 
-        DetailsPane.Show(problem, UsingStage);
+        DetailsPane.Show(problem, _usingStage);
     }
 
     /// <summary>
@@ -507,7 +417,7 @@ public sealed class ScannerTab : TabPage
     private static TextBlock Text(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
 
     /// <summary>
-    /// Sets the scanning label and progress bar to <paramref name="status"/> as the scan reported it, then raises
+    /// Sets the scanning label and progress bar to <paramref name="status"/> as the Scan raised it, then raises
     /// <see cref="ProgressApplied"/>. UI thread only.
     /// </summary>
     private void Apply(ScanStatus status)
