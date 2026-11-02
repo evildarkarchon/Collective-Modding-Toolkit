@@ -7,15 +7,13 @@ using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
-using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// Closing the main window: the close guard (SHELL-9, <c>CMChecker.on_close</c>) and Escape (SHELL-10). The reference's
-/// Escape bypassed the guard (B-12, <c>root.bind("&lt;Escape&gt;", lambda _: root.destroy())</c>); since bug #29 was
-/// fixed (ADR-0006) the port's goes through it like a user close.
+/// Closing the main window: a user close and Escape both close it, at once or, during a blocking Operation, once the
+/// Operation ends. The main window has no close guard; a modal's guard is covered by <see cref="ModalWindowTests"/>.
 /// </summary>
 public sealed class MainWindowCloseTests
 {
@@ -37,51 +35,24 @@ public sealed class MainWindowCloseTests
 
     [AvaloniaFact]
     [Trait("Parity", "SHELL-9")]
-    public void A_user_close_closes_the_window_because_nothing_sets_the_close_guard()
+    public void A_user_close_closes_the_window()
     {
         var (_, window) = ShowShell();
 
-        Assert.False(window.ProcessingData);
         UserClose.Request(window);
 
         Assert.False(window.IsVisible);
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SHELL-9")]
-    public void A_user_close_is_ignored_while_the_close_guard_is_set()
-    {
-        var (_, window) = ShowShell();
-        window.ProcessingData = true;
-
-        UserClose.Request(window);
-
-        Assert.True(window.IsVisible);
-    }
-
-    [AvaloniaFact]
     [Trait("Parity", "SHELL-10")]
-    public void Escape_closes_the_window_when_the_close_guard_is_clear()
+    public void Escape_closes_the_window()
     {
         var (_, window) = ShowShell();
 
         PressEscape(window);
 
         Assert.False(window.IsVisible);
-    }
-
-    [AvaloniaFact]
-    [Trait("Parity", "SHELL-10")]
-    [Trait("Parity", "B-12")]
-    [Deviation(29, "Escape on the main window goes through the close guard, as a user close does, instead of destroying the window.")]
-    public void Escape_is_ignored_while_the_close_guard_is_set()
-    {
-        var (_, window) = ShowShell();
-        window.ProcessingData = true;
-
-        PressEscape(window);
-
-        Assert.True(window.IsVisible);
     }
 
     [AvaloniaFact]
@@ -115,26 +86,5 @@ public sealed class MainWindowCloseTests
         Dispatcher.UIThread.RunJobs();
 
         Assert.False(window.IsVisible);
-    }
-
-    [AvaloniaFact]
-    [Trait("Parity", "B-12")]
-    [Deviation(29, "Escape on the main window goes through the close guard, as a user close does, instead of destroying the window.")]
-    public async Task Escape_during_a_blocking_operation_still_meets_the_close_guard_once_it_ends()
-    {
-        var (runtime, window) = ShowShell();
-        window.ProcessingData = true;
-        var gate = new TaskCompletionSource();
-
-        var operation = runtime.Operations.RunAsync("Refresh", OperationPhase.Blocking, () => gate.Task.Wait());
-        PressEscape(window);
-        Assert.True(window.IsVisible);
-
-        gate.SetResult();
-        await operation;
-        Dispatcher.UIThread.RunJobs();
-
-        // The Escape held back by the operation is handled once it ends, and the guard refuses it then.
-        Assert.True(window.IsVisible);
     }
 }
