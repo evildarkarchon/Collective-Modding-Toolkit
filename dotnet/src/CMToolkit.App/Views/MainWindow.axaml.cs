@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace CMToolkit.App.Views;
 
 /// <summary>
-/// The main window (<c>cm_checker.CMChecker</c>): the tab strip of lazily loaded tabs, the close guard and Escape.
+/// The main window: the tab strip of lazily loaded tabs, and closing on Escape or a user close.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -34,8 +34,8 @@ public partial class MainWindow : Window
             Tabs.Items.Add(new TabItem { Header = page.Header, Content = new LazyTab(page, runtime) });
         }
 
-        // Escape and a user close both go through the close guard (SHELL-9, SHELL-10). The reference's Escape called
-        // root.destroy() directly, bypassing it (B-12); that is bug #29, fixed here as a Deviation (ADR-0006).
+        // Escape and a user close both go through RequestClose, so during a blocking Operation the input gate defers
+        // them alike and honours them once it ends.
         runtime.Input.Attach(this, onEscape: RequestClose, onCloseRequest: RequestClose);
 
         Tabs.SelectionChanged += (_, e) =>
@@ -56,12 +56,6 @@ public partial class MainWindow : Window
         };
     }
 
-    /// <summary>
-    /// The close guard (<c>CMChecker.processing_data</c>): while set, a user close is ignored. Nothing sets it, in the
-    /// reference or here, so in practice closing always works (SHELL-9).
-    /// </summary>
-    public bool ProcessingData { get; set; }
-
     /// <summary>The current tab's page (<c>CMChecker.current_tab</c>): the last one selected, or null before the first.</summary>
     public TabPage? CurrentPage => _current?.Page;
 
@@ -76,16 +70,10 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Closes the window unless <see cref="ProcessingData"/> is set (<c>CMChecker.on_close</c>): for a user close, and
-    /// for Escape too since bug #29 was fixed.
+    /// Closes the window, for a user close and for Escape. The main window has no close guard: during a blocking
+    /// Operation the input gate defers both until it ends, and nothing else holds the window open.
     /// </summary>
-    public void RequestClose()
-    {
-        if (!ProcessingData)
-        {
-            Close();
-        }
-    }
+    public void RequestClose() => Close();
 
     /// <summary><c>CMChecker.on_tab_changed</c>: switch from the old tab, then select (and maybe load) the new one.</summary>
     private void OnTabChanged()
