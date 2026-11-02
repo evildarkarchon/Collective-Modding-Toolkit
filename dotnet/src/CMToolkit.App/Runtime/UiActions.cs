@@ -233,7 +233,7 @@ public sealed class UiActions
         {
             // Invoke, not Post: the worker waits until the UI thread has applied the phase. With a post, the worker
             // would start blocking work while the block was still queued, so a click, Escape or close could land in
-            // work the reference ran with the UI frozen. Waiting can't deadlock, because the runner awaits the work
+            // work that must run with input blocked. Waiting can't deadlock, because the runner awaits the work
             // rather than blocking the UI thread on it. A marker reported after the work has ended is ignored.
             Dispatcher.UIThread.Invoke(() => Apply(value));
         }

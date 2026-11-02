@@ -271,8 +271,8 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Scan Game (<c>start_threaded_scan</c>, then <c>check_scan_progress</c> and <c>populate_results</c> once the worker
-    /// is done): SCN-S1..SCN-S3, SCN-R1..SCN-R3. A UI Action: the Scan Game button starts it through
+    /// Scan Game: refreshes the Overview Report, runs the scan off the UI thread with its statuses shown on the label and
+    /// the progress bar, then lists the results. A UI Action: the Scan Game button starts it through
     /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <returns>A task that completes when the results are listed, or when the scan stopped short.</returns>
@@ -297,9 +297,9 @@ public sealed class ScannerTab : TabPage
         _scanningText.Text = "Refreshing Overview...";
         if (await _overview.TryRefreshAsync() is OperationOutcome<OverviewReport>.Failed)
         {
-            // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
-            // left Scan Game disabled on Scanning... for good. The runner has reported the error; the scan ends before
-            // its worker.
+            // Bug #22's loose end, fixed: a failed refresh must not leave Scan Game disabled on Scanning... for good.
+            // The runner has reported the error, and the outcome hands it back rather than ending the action, so the
+            // scan ends here, before its worker, with the button enabled again.
             EndBeforeWorker(side);
             return;
         }

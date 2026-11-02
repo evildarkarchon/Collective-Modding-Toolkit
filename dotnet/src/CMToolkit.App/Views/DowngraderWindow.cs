@@ -138,8 +138,8 @@ public sealed class DowngraderWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
-            // click handler that called it has nothing left to do. Start's task never faults, so it can be discarded.
+            // Not awaited: opening shows the window and completes once it is built, and the click handler that called
+            // it has nothing left to do. Start's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
                 session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
             _ = session.Runtime.Actions.Start(() => window.OpenAsync(owner));
@@ -220,8 +220,8 @@ public sealed class DowngraderWindow : ModalWindow
     /// <returns>A task that completes when the click is done; a download it started goes on in the poll.</returns>
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
     /// <exception cref="OperationFailedException">
-    /// The click's run failed and the runner has reported it. The rest of <c>patch_files</c> is skipped, the button
-    /// staying disabled, as the exception left it in Tk. Start it through <see cref="UiActions.Start"/>.
+    /// The click's run failed and the runner has reported it. The rest of the run is skipped, and the button stays
+    /// disabled. Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task PatchAllAsync()
     {

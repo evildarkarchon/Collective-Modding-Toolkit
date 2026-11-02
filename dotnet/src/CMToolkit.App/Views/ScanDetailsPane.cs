@@ -302,8 +302,8 @@ public sealed class ScanDetailsPane : UserControl
     }
 
     /// <summary>
-    /// <c>copy_details</c>: the shown rows to the clipboard, and <c>Copied!</c> for 3 s (THR-3). The text is read at click
-    /// time, since Copy Details is the one button that outlives a selection. A UI Action: the click starts it through
+    /// Copy Details: the shown rows to the clipboard, and <c>Copied!</c> for 3 s. The text is read at click time, since
+    /// Copy Details is the one button that outlives a selection. A UI Action: the click starts it through
     /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <exception cref="InvalidOperationException">The pane is not in a window, so there is no clipboard.</exception>
@@ -333,8 +333,8 @@ public sealed class ScanDetailsPane : UserControl
             headers,
             [.. fileList.Select(f => (f.Count, f.File.ToString()))],
             count => count.ToString(CultureInfo.InvariantCulture));
-        // Not awaited: like the reference's modal, it runs on while the click handler returns. Started as a UI Action,
-        // so a window that fails to open reaches the Error Window; Start's task never faults.
+        // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a window that fails
+        // to open reaches the Error Window; Start's task never faults.
         _ = _runtime.Actions.Start(() => window.ShowModalAsync(owner));
     }
 }
