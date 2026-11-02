@@ -241,6 +241,36 @@ public sealed class ScanStateTests
     }
 
     [AvaloniaFact]
+    public void A_start_off_the_ui_thread_throws_before_raising_anything_or_running_a_scan()
+    {
+        var scanned = false;
+        var fixture = Fixture.Start((_, _) =>
+        {
+            scanned = true;
+            return ScanOutcome.Empty;
+        });
+        var seen = fixture.Record();
+        // Whether a Scan was running at any point while the start was in flight, sampled from the UI thread.
+        var everRunning = false;
+
+        var start = Task.Run(() => fixture.Scan.StartAsync(Fixture.AllTicked));
+        DispatcherWait.Until(() =>
+        {
+            everRunning |= fixture.Scan.IsRunning;
+            return start.IsCompleted;
+        });
+
+        Assert.IsType<InvalidOperationException>(start.Exception?.InnerException);
+        // Every event is raised on the UI thread, so a start from elsewhere raises none of them.
+        Assert.Empty(seen.Lines);
+        Assert.False(everRunning);
+        Assert.False(fixture.Scan.IsRunning);
+        Assert.False(scanned);
+        // Only the load gathered: the refresh never started.
+        Assert.Equal(1, fixture.Gathered);
+    }
+
+    [AvaloniaFact]
     public void A_handler_that_throws_fails_the_start_and_leaves_no_scan_running()
     {
         var fixture = Fixture.Start((_, _) => ScanOutcome.Empty);

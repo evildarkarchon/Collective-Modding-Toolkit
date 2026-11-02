@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CMToolkit.App.Runtime;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
@@ -120,6 +121,9 @@ public sealed class ScanState
     /// </exception>
     public async Task StartAsync(IReadOnlyDictionary<ScanSetting, bool> boxes)
     {
+        // Checked before anything else, so a start from another thread sets nothing and raises nothing: left to the
+        // refresh's own check, it would already have set IsRunning and raised Started and a status off the UI thread.
+        Dispatcher.UIThread.VerifyAccess();
         if (IsRunning)
         {
             // Scan Game is the only way in, and it is disabled while a Scan runs; this is the defensive path behind it,
