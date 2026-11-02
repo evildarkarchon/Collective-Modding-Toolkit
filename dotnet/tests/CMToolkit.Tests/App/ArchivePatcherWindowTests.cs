@@ -260,6 +260,38 @@ public sealed class ArchivePatcherWindowTests
         owner.Close();
     }
 
+    /// <summary>
+    /// An Archive Patcher whose window fails to open stops there: the opener throws, so the synchronous click that ran it
+    /// reports the failure once through the UI thread's handler, and the list a window nobody can see would show is never
+    /// filled.
+    /// </summary>
+    [AvaloniaFact]
+    public void An_archive_patcher_that_fails_to_open_reports_it_once_and_lists_nothing()
+    {
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        var logger = new CapturingLogger();
+        var game = Locate(machine);
+        var runtime = new AppRuntime(logger);
+        var overview = FixedOverview.Load(runtime, Gather(game, machine));
+        var owner = new Window();
+        owner.Show();
+        owner.Close();
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
+
+        using (runtime.Errors.InstallGlobalHandlers())
+        {
+            // Posted, as a click's handler is dispatched, so the opener's throw reaches Dispatcher.UnhandledException.
+            Dispatcher.UIThread.Post(() => patcher.ShowOver(owner));
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        // Counted by its header: with the global handlers in, a stray unobserved task from another test may land too.
+        Assert.Single(logger.Entries, e => e.Message.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: ", StringComparison.Ordinal));
+        Assert.False(patcher.IsVisible);
+        Assert.Empty(patcher.Rows);
+    }
+
     private static ParityScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id);
 
     /// <summary>The runtime, game and a loaded Overview Report module for a patcher built by hand.</summary>

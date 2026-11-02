@@ -138,9 +138,11 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// </exception>
     public void ShowOver(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes. Started as a UI Action, so a window
-        // that fails to open reaches the Error Window; Start's task never faults.
-        _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
+        // Taken first, so a window that fails to open throws here, before the list is filled, and the click that opened
+        // it reports the failure. The task completes only when the modal closes, so it is not awaited: it runs on as a
+        // UI Action of its own, which reports a later fault, and Start's task never faults.
+        var shown = ShowModalAsync(owner);
+        _ = Runtime.Actions.Start(() => shown);
         PopulateTree();
     }
 
