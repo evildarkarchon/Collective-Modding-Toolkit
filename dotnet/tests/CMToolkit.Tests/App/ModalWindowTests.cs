@@ -150,6 +150,31 @@ public sealed class ModalWindowTests
     }
 
     [AvaloniaFact]
+    [Trait("Parity", "MOD-1")]
+    public async Task An_escape_deferred_by_a_blocking_operation_still_meets_the_close_guard_once_it_ends()
+    {
+        var (runtime, owner) = ShowOwner();
+        var about = ShowAbout(runtime, owner);
+        about.ProcessingData = true;
+        var gate = new TaskCompletionSource();
+
+        var operation = runtime.Operations.RunAsync("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
+        Press(about, Key.Escape, PhysicalKey.Escape);
+        Assert.True(about.IsVisible);
+
+        gate.SetResult();
+        await operation;
+        Dispatcher.UIThread.RunJobs();
+
+        // The Escape held back by the operation is handled once it ends, and the guard, still set, refuses it then.
+        Assert.True(about.IsVisible);
+
+        about.ProcessingData = false;
+        Press(about, Key.Escape, PhysicalKey.Escape);
+        Assert.False(about.IsVisible);
+    }
+
+    [AvaloniaFact]
     [Trait("Parity", "MOD-2")]
     public void About_shows_its_text_at_10pt_left_justified_from_the_top_above_a_close_button()
     {
