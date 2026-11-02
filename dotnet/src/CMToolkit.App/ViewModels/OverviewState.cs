@@ -10,14 +10,16 @@ namespace CMToolkit.App.ViewModels;
 
 /// <summary>
 /// The Overview Report module: it owns the current <see cref="OverviewReport"/>, which the Overview, F4SE, Scanner,
-/// Downgrader and Archive Patcher read. Only its <see cref="LoadAsync"/> and <see cref="RefreshAsync"/> replace it; until
-/// the first load there is none, and the Install Type is <c>Unknown</c>.
+/// Downgrader and Archive Patcher read. Only its load and refresh replace it; until the first load there is none, and the
+/// Install Type is <c>Unknown</c>.
 /// </summary>
 /// <remarks>
 /// Each gathering runs as a Blocking operation through the runner, which reports a failure once, under the operation's
-/// name, and throws its <see cref="OperationFailedException"/>. A gathering that dies part-way still leaves what it had
-/// gathered as the current report before the failure propagates, so readers work from the best report there is, and
-/// each caller decides what its own failure skips. Start both operations on the UI thread.
+/// name. <see cref="LoadAsync"/> and <see cref="RefreshAsync"/> then throw it, which ends the caller's UI Action;
+/// <see cref="TryLoadAsync"/> and <see cref="TryRefreshAsync"/> hand it back as an <see cref="OperationOutcome{T}"/>, for
+/// a caller that carries on. Either way, a gathering that dies part-way still leaves what it had gathered as the current
+/// report, so readers work from the best report there is, and each caller decides what its own failure skips. Start
+/// every load and refresh on the UI thread.
 /// </remarks>
 public sealed partial class OverviewState : ObservableObject
 {
@@ -62,10 +64,21 @@ public sealed partial class OverviewState : ObservableObject
     /// <exception cref="OperationFailedException">
     /// The gathering failed; the runner has reported it, and any partial report it carried is current.
     /// </exception>
-    public async Task LoadAsync()
+    public async Task LoadAsync() => (await TryLoadAsync()).ThrowIfFailed();
+
+    /// <summary>
+    /// Gathers the first report as the Blocking operation <c>Overview load</c>, like <see cref="LoadAsync"/>, but hands
+    /// a failure back instead of throwing it, for a caller that carries on after it.
+    /// </summary>
+    /// <returns>
+    /// <see cref="OperationOutcome{T}.Succeeded"/> with the report, now current; or
+    /// <see cref="OperationOutcome{T}.Failed"/>, already reported, with any partial report it carried current.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">Not called on the UI thread.</exception>
+    public async Task<OperationOutcome<OverviewReport>> TryLoadAsync()
     {
         Dispatcher.UIThread.VerifyAccess();
-        Report = await GatherAsync("Overview load", previous: null);
+        return await GatherAsync("Overview load", previous: null);
     }
 
     /// <summary>
@@ -81,12 +94,29 @@ public sealed partial class OverviewState : ObservableObject
     /// The gathering failed; the runner has reported it, any partial report it carried is current, and
     /// <see cref="Refreshed"/> was not raised.
     /// </exception>
-    public async Task RefreshAsync()
+    public async Task RefreshAsync() => (await TryRefreshAsync()).ThrowIfFailed();
+
+    /// <summary>
+    /// Refreshes the report like <see cref="RefreshAsync"/>, but hands a failed gathering back instead of throwing it,
+    /// for a caller that carries on after it.
+    /// </summary>
+    /// <returns>
+    /// <see cref="OperationOutcome{T}.Succeeded"/> with the new report, once it is current and every
+    /// <see cref="Refreshed"/> handler has returned or thrown; or <see cref="OperationOutcome{T}.Failed"/>, already
+    /// reported, with any partial report it carried current and <see cref="Refreshed"/> not raised.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">Not called on the UI thread.</exception>
+    public async Task<OperationOutcome<OverviewReport>> TryRefreshAsync()
     {
         Dispatcher.UIThread.VerifyAccess();
         _runtime.Logger.Write(LogLevel.Debug, "Overview : Refresh");
-        Report = await GatherAsync("Overview refresh", Report);
-        await RaiseRefreshedAsync();
+        var outcome = await GatherAsync("Overview refresh", Report);
+        if (outcome is OperationOutcome<OverviewReport>.Succeeded)
+        {
+            await RaiseRefreshedAsync();
+        }
+
+        return outcome;
     }
 
     /// <summary>
@@ -113,20 +143,23 @@ public sealed partial class OverviewState : ObservableObject
     }
 
     /// <summary>
-    /// Runs the gather function as the Blocking operation <paramref name="name"/>. A gathering that died part-way makes
-    /// its partial report current before the runner's failure propagates.
+    /// Runs the gather function as the Blocking operation <paramref name="name"/> and makes what it gathered current: the
+    /// new report, or, from a gathering that died part-way, its partial report. A gathering that died with nothing
+    /// gathered leaves the current report as it was.
     /// </summary>
-    private async Task<OverviewReport> GatherAsync(string name, OverviewReport? previous)
+    private async Task<OperationOutcome<OverviewReport>> GatherAsync(string name, OverviewReport? previous)
     {
-        try
+        var outcome = await _runtime.Actions.TryRun(name, OperationPhase.Blocking, () => _gather(previous));
+        if (outcome is OperationOutcome<OverviewReport>.Succeeded succeeded)
         {
-            return await _runtime.Actions.Run(name, OperationPhase.Blocking, () => _gather(previous));
+            Report = succeeded.Value;
         }
-        catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
+        else if (outcome is OperationOutcome<OverviewReport>.Failed { Error: OverviewIncompleteException incomplete })
         {
             // The runner has reported it; what the gathering had got to is still the best report there is.
             Report = incomplete.Partial;
-            throw;
         }
+
+        return outcome;
     }
 }
