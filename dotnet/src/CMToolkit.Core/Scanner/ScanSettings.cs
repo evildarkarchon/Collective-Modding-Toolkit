@@ -1,5 +1,6 @@
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
+using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Settings;
 
@@ -99,7 +100,10 @@ public sealed class ScanSettings
     /// </summary>
     /// <param name="values">Every setting's box, ticked or not.</param>
     /// <param name="game">The installation; its mod manager decides the skip lists.</param>
-    /// <param name="overview">The Overview's last report, whose enabled modules and archives the scan checks; null for none.</param>
+    /// <param name="overview">
+    /// The Overview's last report, whose enabled modules and archives the scan checks and whose problems it carries; null
+    /// for none.
+    /// </param>
     /// <param name="host">The machine the scan reads.</param>
     private ScanSettings(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)
     {
@@ -107,6 +111,7 @@ public sealed class ScanSettings
         Host = host;
         ModulesEnabled = overview?.Modules.Enabled ?? [];
         ArchivesEnabled = new HashSet<PythonPath>(overview?.Archives.Enabled ?? [], PythonPath.Equality);
+        OverviewProblems = overview?.Problems ?? [];
         // Overview Issues and Race Subgraphs don't need the walk; any other ticked box does.
         SkipDataScan = !All.Any(s => values[s] && s is not (ScanSetting.OverviewIssues or ScanSetting.RaceSubgraphs));
         Game = game;
@@ -162,6 +167,12 @@ public sealed class ScanSettings
     /// enabled archive is never an Invalid Archive Name (SCN-C8).
     /// </summary>
     public IReadOnlySet<PythonPath> ArchivesEnabled { get; }
+
+    /// <summary>
+    /// The Overview Report's problems as the scan's Overview refresh left them, in the report's order. Empty without an
+    /// Overview Report.
+    /// </summary>
+    public IReadOnlyList<Problem> OverviewProblems { get; }
 
     /// <summary>The machine the scan reads: relative paths resolve against its working directory.</summary>
     public IHostEnvironment Host { get; }

@@ -1,6 +1,7 @@
 using CMToolkit.App.Startup;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Core.Settings;
 using CMToolkit.Tests.Parity;
@@ -115,6 +116,30 @@ public sealed class ScanSettingsTests
                 ScannerRaceSubgraphs = false,
             },
             changed);
+    }
+
+    [Fact]
+    public async Task Without_an_overview_report_the_snapshot_carries_no_overview_problems()
+    {
+        using var machine = Scenario("scanner/overview-issues");
+
+        var settings = ScanSettings.Snapshot(Ticked(ScanSettings.All), await Locate(machine), null, machine.Host);
+
+        Assert.Empty(settings.OverviewProblems);
+    }
+
+    [Fact]
+    public async Task The_snapshot_carries_the_overview_reports_problems_in_their_list_order()
+    {
+        using var machine = Scenario("scanner/overview-issues");
+        var game = await Locate(machine);
+        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
+        // More than one problem, or the order isn't being checked at all.
+        Assert.True(report.Problems.Count > 1, $"The scenario's report has {report.Problems.Count} problems.");
+
+        var settings = ScanSettings.Snapshot(Ticked(ScanSettings.All), game, report, machine.Host);
+
+        Assert.Equal(report.Problems, settings.OverviewProblems);
     }
 
     private static MaterializedScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id).Materialize();
