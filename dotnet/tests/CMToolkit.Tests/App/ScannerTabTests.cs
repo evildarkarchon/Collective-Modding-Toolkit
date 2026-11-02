@@ -183,21 +183,36 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void A_scan_that_stopped_early_shows_its_error_then_lists_what_it_found_and_the_stopped_early_row()
+    public void A_scan_that_stopped_early_applies_its_statuses_shows_its_error_then_lists_what_it_found_and_the_stopped_early_row()
     {
         var error = new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8");
         var found = Problem.Simple("101 SADD Records from 1 modules", ScanProblemTypes.RaceSubgraphRecordCount, "Too many.", "Merge some.");
-        using var app = ScannerApp.Start(worker: (_, _) => ScanOutcome.StoppedEarly([found], error));
-        // What the tree holds when the Error Window opens: the error must show before the list appears.
+        var stopping = new ScanStatus("Building mod file index...", 1);
+        // Built as Scan.Run builds a stopped-early outcome: the seed (the snapshot's Overview problems, since Overview
+        // Issues is ticked), then what the checks found, then the stopped-early row. The status is the last one the
+        // scan reported before it stopped.
+        using var app = ScannerApp.Start(worker: (s, progress) =>
+        {
+            progress.Report(stopping);
+            return ScanOutcome.StoppedEarly(
+                [.. ScanResults.Seed(s[ScanSetting.OverviewIssues], s.OverviewProblems), found], error);
+        });
+        // What the tree and the scanning label hold when the Error Window opens: the scan's statuses are applied
+        // first, and the error must show before the list appears.
         int? listedWhenTheErrorShowed = null;
-        using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>(
-            (_, _) => listedWhenTheErrorShowed ??= app.Scanner.Tree!.Items.Count);
+        string? labelWhenTheErrorShowed = null;
+        using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>((_, _) =>
+        {
+            listedWhenTheErrorShowed ??= app.Scanner.Tree!.Items.Count;
+            labelWhenTheErrorShowed ??= app.ScanningText.Text;
+        });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game" && app.Scanner.IsSelectable);
         Dispatcher.UIThread.RunJobs();
 
         Assert.Equal(0, listedWhenTheErrorShowed);
+        Assert.Equal(stopping.Text, labelWhenTheErrorShowed);
         // Reported once, under the Scanner scan's header, as the error itself and not a wrapper around it.
         var header = ErrorReporter.OperationHeader("Scanner scan");
         var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
@@ -208,17 +223,19 @@ public sealed class ScannerTabTests
         Assert.True(scan.IsEnabled);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100, app.Progress.Value);
-        // The tab lists the outcome as it is, seeding nothing of its own though Overview Issues is ticked: the one problem
-        // the scan found, then the stopped-early row, which the count includes.
-        Assert.Equal("2 Results ~ Select an item for details", app.ResultsInfo.Text);
+        // The tab lists the outcome as it is: the Overview's 16 problems (scanner/overview-issues), then the one problem
+        // the checks found, then the stopped-early row. The count includes all of them.
+        Assert.Equal("18 Results ~ Select an item for details", app.ResultsInfo.Text);
         var groups = app.Scanner.Tree!.Items.OfType<TreeViewItem>().ToList();
-        Assert.Equal(["Race Subgraph Record Count", "Incomplete Scan"], groups.Select(g => ((TextBlock)g.Header!).Text));
+        Assert.Equal(
+            ["No Mod Manager", "Invalid Module", "File Not Found", "Invalid Archive", "Race Subgraph Record Count", "Incomplete Scan"],
+            groups.Select(g => ((TextBlock)g.Header!).Text));
         Assert.Equal(["101 SADD Records from 1 modules"], ItemTexts(groups[^2]));
         Assert.Equal(["Scan stopped early"], ItemTexts(groups[^1]));
     }
 
     [AvaloniaFact]
-    public void An_exception_that_escapes_the_scan_is_reported_and_the_scan_ends_listing_nothing()
+    public void An_exception_that_escapes_the_scan_is_reported_once_and_the_scan_ends_listing_the_stopped_early_row()
     {
         // The scan returns its own failures on its outcome (ScanFailureTests); this is the tab's last resort for an
         // exception that gets out anyway, so Scan Game can't stay disabled.
@@ -233,9 +250,12 @@ public sealed class ScannerTabTests
         Assert.True(scan.IsEnabled);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100, app.Progress.Value);
-        // The scan seeds its own results, so everything it would have listed was lost with the exception.
-        Assert.Equal("0 Results ~ Select an item for details", app.ResultsInfo.Text);
-        Assert.Empty(app.Scanner.Tree!.Items);
+        // The scan seeds its own results, so everything it would have listed was lost with the exception. What's left is
+        // the stopped-early row on its own, so the list can't pass for a clean scan; the count includes it.
+        Assert.Equal("1 Results ~ Select an item for details", app.ResultsInfo.Text);
+        var group = Assert.Single(app.Scanner.Tree!.Items.OfType<TreeViewItem>());
+        Assert.Equal("Incomplete Scan", ((TextBlock)group.Header!).Text);
+        Assert.Equal(["Scan stopped early"], ItemTexts(group));
         Assert.True(app.Scanner.IsSelectable);
         // The runner reported it; the tab doesn't report it again.
         var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));

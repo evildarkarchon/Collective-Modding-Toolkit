@@ -326,6 +326,7 @@ public sealed class ScannerTab : TabPage
         _progress!.Value = 1;
 
         ScanOutcome outcome;
+        var errorReported = false;
         var pending = new ConcurrentQueue<ScanStatus>();
         _pending = pending;
         try
@@ -333,27 +334,29 @@ public sealed class ScannerTab : TabPage
             outcome = await _runtime.Operations.RunAsync(
                 ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
         }
-        catch (OperationFailedException)
+        catch (OperationFailedException ex)
         {
             // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
-            // The runner has already reported the error; the scan ends as a finished one does, listing nothing (the
-            // scan seeds its own results, so everything it would have listed died with it) and enabling Scan Game
-            // again.
-            outcome = ScanOutcome.Empty;
+            // Everything the scan would have listed died with it (it seeds its own results), so the list is the
+            // stopped-early row alone: an empty list would read as a clean scan. The runner has already reported the
+            // error, so it must not reach the Error Window a second time below.
+            outcome = ScanOutcome.StoppedEarly([], ex.InnerException ?? ex);
+            errorReported = true;
         }
 
-        if (outcome.Error is { } error)
-        {
-            // The scan stopped early and returned its error rather than throwing it, so no runner reported it. Shown
-            // now, on the UI thread, so the Error Window is up before the partial results are listed.
-            _runtime.Errors.Report(ErrorReporter.OperationHeader(ScanOperation), error);
-        }
-
-        // check_scan_progress drains the queue before it finds the thread done; nothing is applied after this.
+        // The statuses still queued when the scan returned are applied first: the await's continuation can run ahead of
+        // the drains the sink posted. Nothing is applied after this.
         DrainProgress(pending);
         if (ReferenceEquals(_pending, pending))
         {
             _pending = null;
+        }
+
+        if (outcome.Error is { } error && !errorReported)
+        {
+            // The scan stopped early and returned its error rather than throwing it, so no runner reported it. Shown
+            // now, on the UI thread, so the Error Window is up before the partial results are listed.
+            _runtime.Errors.Report(ErrorReporter.OperationHeader(ScanOperation), error);
         }
 
         _progress.Value = 100;
