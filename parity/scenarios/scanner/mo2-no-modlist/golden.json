@@ -140,10 +140,11 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folder": "Race Subgraph Records"
-            }
+            "scanningText": "Counting Race Subgraph records..."
+          },
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
           }
         ],
         "workerError": null,
@@ -304,7 +305,12 @@
           },
           "scanningLabel": null
         },
-        "updates": [],
+        "updates": [
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
+          }
+        ],
         "workerError": null,
         "workerLog": []
       },
@@ -347,7 +353,12 @@
           },
           "scanningLabel": null
         },
-        "updates": [],
+        "updates": [
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
+          }
+        ],
         "workerError": null,
         "workerLog": []
       },
@@ -390,7 +401,12 @@
           },
           "scanningLabel": null
         },
-        "updates": [],
+        "updates": [
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
+          }
+        ],
         "workerError": null,
         "workerLog": []
       },
@@ -433,7 +449,12 @@
           },
           "scanningLabel": null
         },
-        "updates": [],
+        "updates": [
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
+          }
+        ],
         "workerError": null,
         "workerLog": []
       },
@@ -476,7 +497,12 @@
           },
           "scanningLabel": null
         },
-        "updates": [],
+        "updates": [
+          {
+            "progress": 1,
+            "scanningText": "Building mod file index..."
+          }
+        ],
         "workerError": null,
         "workerLog": []
       },
@@ -498,10 +524,7 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Refreshing Overview...",
-            "update": {
-              "folder": "Race Subgraph Records"
-            }
+            "scanningText": "Counting Race Subgraph records..."
           }
         ],
         "workerError": null,

@@ -22,7 +22,7 @@ namespace CMToolkit.Tests.App;
 /// <summary>
 /// The Scanner's data checks against the <c>scanner-scan</c> goldens: the real Overview and Scanner tabs in a main
 /// window, scanned once per driver run (every box, then each box alone), each run read back as the driver reads it:
-/// every progress update the worker reported with the scanning label and progress bar after the tab applied it, the
+/// every status the worker reported, as the scanning label and progress bar showed it once the tab applied it, the
 /// worker's error and log lines, the mod file index it built, and the results tree. A worker that raised left the
 /// reference's scan stuck (B-3), and the script stops there. The port's worker turns MO2's missing profile or
 /// <c>modlist.txt</c> into a problem row instead (bug #22, in the port goldens), so its scans complete and the script
@@ -75,16 +75,15 @@ public sealed partial class ScannerScanScenarioTests
 
         // The real worker, watched: what it returns or raises, and the lines it logs (the only logging while it runs).
         var watch = new WorkerWatch();
-        ScannerTab? scannerRef = null;
         var scanner = new ScannerTab(runtime, game, state, settings)
         {
             Host = machine.Host,
-            Worker = s =>
+            Worker = (s, progress) =>
             {
                 var first = logger.Entries.Count;
                 try
                 {
-                    watch.Outcome = ScanWorker.Run(s, scannerRef!.Progress, logger);
+                    watch.Outcome = ScanWorker.Run(s, progress, logger);
                     return watch.Outcome;
                 }
                 catch (Exception ex)
@@ -98,16 +97,10 @@ public sealed partial class ScannerScanScenarioTests
                 }
             },
         };
-        scannerRef = scanner;
+        // Each status the scan reported, read back off the scanning label and the progress bar once the tab applied it.
         var updates = new List<JsonNode>();
-        scanner.ProgressApplied += (_, update) => updates.Add(new JsonObject
+        scanner.ProgressApplied += (_, _) => updates.Add(new JsonObject
         {
-            ["update"] = update switch
-            {
-                ScanUpdate.TopLevelFolders folders => new JsonObject { ["folders"] = new JsonArray([.. folders.Names.Select(n => JsonValue.Create(n))]) },
-                ScanUpdate.Folder folder => new JsonObject { ["folder"] = folder.Name },
-                _ => throw new InvalidOperationException("Unexpected update."),
-            },
             ["scanningText"] = Named<TextBlock>(scanner, "ScanningText").Text,
             ["progress"] = Named<ProgressBar>(scanner, "Progress").Value,
         });

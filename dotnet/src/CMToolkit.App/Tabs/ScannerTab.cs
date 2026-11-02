@@ -46,12 +46,12 @@ public sealed class ScannerTab : TabPage
     private ProgressBar? _progress;
     private bool _selectable;
 
-    // scan_folders lives on the tab, so the last folder tuple carries over to the next scan (SCN-S4).
-    private readonly ScanProgressTracker _tracker = new();
+    // The progress sink the tab hands the scan through Worker: the only way a status reaches the label and the bar.
+    private readonly IProgress<ScanStatus> _statuses;
 
     // The running scan's progress queue, or null when no worker is running; replaced per scan so a late update from an
     // earlier scan can't reach this one.
-    private volatile ConcurrentQueue<ScanUpdate>? _pending;
+    private volatile ConcurrentQueue<ScanStatus>? _pending;
 
     /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
     /// <param name="runtime">The app runtime: its log, error reporting and background operations.</param>
@@ -65,29 +65,29 @@ public sealed class ScannerTab : TabPage
         _game = game;
         _overview = overview;
         _settings = settings;
-        Progress = new ProgressQueue(this);
-        Worker = s => ScanWorker.Run(s, Progress, _runtime.Logger);
+        _statuses = new ProgressQueue(this);
+        Worker = (s, progress) => ScanWorker.Run(s, progress, _runtime.Logger);
     }
 
     /// <summary>
-    /// The scan's worker part (<c>scan_data_files</c>), run off the UI thread as an interactive operation:
-    /// <see cref="ScanWorker.Run(ScanSettings, IProgress{ScanUpdate}?, Microsoft.Extensions.Logging.ILogger)"/> reporting
-    /// to <see cref="Progress"/> by default. A test seam, so tests can hold a scan mid-run or make the worker fail.
+    /// The scan's worker part (<c>scan_data_files</c>), run off the UI thread as an interactive operation and given the
+    /// scan's snapshot and the tab's progress sink:
+    /// <see cref="ScanWorker.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> by
+    /// default. A test seam, so tests can hold a scan mid-run, report statuses or make the worker fail.
     /// </summary>
-    public Func<ScanSettings, ScanOutcome> Worker { get; init; }
+    /// <remarks>
+    /// The sink takes statuses from any thread. They are queued for the running scan and applied on the UI thread in
+    /// order; the queue is drained once more when the worker returns, before the results are listed, as
+    /// <c>check_scan_progress</c> drained it before testing for the finished thread. A status reported once the scan is
+    /// over is dropped.
+    /// </remarks>
+    public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> Worker { get; init; }
 
     /// <summary>
-    /// Where the worker reports its progress (<c>queue_progress</c>, SCN-S4), from any thread. Updates are queued for
-    /// the running scan and applied on the UI thread in order; the queue is drained once more when the worker returns,
-    /// before the results are listed, as <c>check_scan_progress</c> drained it before testing for the finished thread.
+    /// Raised on the UI thread after each status is applied to the scanning label and the progress bar. A test seam for
+    /// reading the tab after every status.
     /// </summary>
-    public IProgress<ScanUpdate> Progress { get; }
-
-    /// <summary>
-    /// Raised on the UI thread after each progress update is applied to the scanning label and the progress bar
-    /// (whether or not it changed them). A test seam for reading the tab after every update.
-    /// </summary>
-    public event EventHandler<ScanUpdate>? ProgressApplied;
+    public event EventHandler<ScanStatus>? ProgressApplied;
 
     /// <summary>
     /// Stage mode (<c>using_stage</c>): the mod manager has a staging folder, which only MO2 has. The results tree then
@@ -323,18 +323,17 @@ public sealed class ScannerTab : TabPage
 
         // SCN-S3.
         var seeded = ScanResults.Seed(settings[ScanSetting.OverviewIssues], _overview.Report?.Problems ?? []);
+        // The label stays on Refreshing Overview... until the scan reports a status of its own, and it reports none when
+        // only Overview Issues is ticked.
         _progress!.Value = 1;
-        if (!settings.SkipDataScan)
-        {
-            _scanningText.Text = "Building mod file index...";
-        }
 
         ScanOutcome outcome;
-        var pending = new ConcurrentQueue<ScanUpdate>();
+        var pending = new ConcurrentQueue<ScanStatus>();
         _pending = pending;
         try
         {
-            outcome = await _runtime.Operations.RunAsync(ScanOperation, OperationPhase.Interactive, () => Worker(settings));
+            outcome = await _runtime.Operations.RunAsync(
+                ScanOperation, OperationPhase.Interactive, () => Worker(settings, _statuses));
         }
         catch (OperationFailedException)
         {
@@ -513,31 +512,26 @@ public sealed class ScannerTab : TabPage
     private static TextBlock Text(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
 
     /// <summary>
-    /// <c>check_scan_progress</c>'s drain: applies <paramref name="queue"/>'s updates in order, if it is still the
-    /// running scan's queue, setting the scanning label and progress bar for each update the tracker accepts (SCN-S4).
-    /// UI thread only.
+    /// <c>check_scan_progress</c>'s drain: applies <paramref name="queue"/>'s statuses in order, if it is still the
+    /// running scan's queue, setting the scanning label and progress bar to each as the scan reported it. UI thread only.
     /// </summary>
-    private void DrainProgress(ConcurrentQueue<ScanUpdate> queue)
+    private void DrainProgress(ConcurrentQueue<ScanStatus> queue)
     {
-        while (ReferenceEquals(queue, _pending) && queue.TryDequeue(out var update))
+        while (ReferenceEquals(queue, _pending) && queue.TryDequeue(out var status))
         {
-            if (_tracker.Apply(update) is { } status)
-            {
-                _scanningText!.Text = status.Text;
-                _progress!.Value = status.Progress;
-            }
-
-            ProgressApplied?.Invoke(this, update);
+            _scanningText!.Text = status.Text;
+            _progress!.Value = status.Progress;
+            ProgressApplied?.Invoke(this, status);
         }
     }
 
     /// <summary>
-    /// <see cref="Progress"/>: queues each update for the running scan and asks the UI thread to drain it, standing in
-    /// for the reference's 100 ms polling. Updates reported while no scan's worker runs are dropped.
+    /// The progress sink <see cref="Worker"/> is given: queues each status for the running scan and asks the UI thread to
+    /// drain it, standing in for the reference's 100 ms polling. Statuses reported while no scan's worker runs are dropped.
     /// </summary>
-    private sealed class ProgressQueue(ScannerTab tab) : IProgress<ScanUpdate>
+    private sealed class ProgressQueue(ScannerTab tab) : IProgress<ScanStatus>
     {
-        public void Report(ScanUpdate value)
+        public void Report(ScanStatus value)
         {
             if (tab._pending is not { } queue)
             {
