@@ -14,8 +14,8 @@ namespace CMToolkit.App.Tabs;
 /// </summary>
 /// <remarks>
 /// The whole load, building included, runs in one <see cref="UiActions.Blocking"/> span, so no click, key or tab switch
-/// lands between the load and its content appearing. The state flags mirror the reference's: an exception mid-load leaves <c>_loading</c> set for good, which is what
-/// stops every later selection from retrying.
+/// lands between the load and its content appearing. An exception mid-load leaves <c>_loading</c> set for good, which is
+/// what stops every later selection from retrying.
 /// </remarks>
 public sealed class LazyTab : ContentControl
 {

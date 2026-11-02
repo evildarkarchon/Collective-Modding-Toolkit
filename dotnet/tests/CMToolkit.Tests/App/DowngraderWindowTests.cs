@@ -125,6 +125,29 @@ public sealed class DowngraderWindowTests
     }
 
     /// <summary>
+    /// A Downgrader whose window fails to open stops there: its failure is reported once, and the detection that would
+    /// fill a window nobody can see never runs.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_downgrader_that_fails_to_open_reports_it_once_and_skips_the_detection()
+    {
+        using var machine = ParityScenarios.All().Single(s => s.Id == "downgrader/og-steam").Materialize();
+        var logger = new CapturingLogger();
+        var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, new DowngraderRunScenarioTests.HeldHandler(null));
+        main.Close();
+        var window = new DowngraderWindow(
+            session.Runtime, session.Game, session.Host, session.Overview, session.Settings, patchFolder: session.AppFolder);
+
+        var opening = session.Runtime.Actions.Start(() => window.OpenAsync(main));
+        DispatcherWait.Until(() => opening.IsCompleted);
+
+        Assert.Single(logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: ", session.Runtime.Errors.Window?.Text);
+        Assert.Null(window.Versions);
+        Assert.Null(window.Content);
+    }
+
+    /// <summary>
     /// The app as startup composes it (the real <see cref="StartupSequence"/>, so the session's main window and the
     /// tabs' openers are the production wiring) on a scenario's machine, shown with its Overview loaded.
     /// </summary>

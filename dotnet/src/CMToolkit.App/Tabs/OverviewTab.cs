@@ -434,8 +434,8 @@ public sealed class OverviewTab : TabPage
             {
                 if (e.GetCurrentPoint(icon).Properties.IsLeftButtonPressed && TopLevel.GetTopLevel(icon) is Window owner)
                 {
-                    // Not awaited: like the reference's modal, it runs on while the click handler returns. Started as a
-                    // UI Action, so a window that fails to open reaches the Error Window; Start's task never faults.
+                    // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a
+                    // window that fails to open reaches the Error Window; Start's task never faults.
                     _ = _runtime.Actions.Start(() => TreeWindow.Create(
                             _runtime, 400, 500, "Detected Invalid Module Versions", "", ["HEDR", " Module"], items, PythonFloat.Repr)
                         .ShowModalAsync(owner));
@@ -690,8 +690,8 @@ public sealed class OverviewTab : TabPage
     {
         if (TopLevel.GetTopLevel(source) is Window owner)
         {
-            // Not awaited: like the reference's modal, it runs on while the click handler returns. Started as a UI
-            // Action, so a window that fails to open reaches the Error Window; Start's task never faults.
+            // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a window that
+            // fails to open reaches the Error Window; Start's task never faults.
             _ = _runtime.Actions.Start(
                 () => new AboutWindow(_runtime, 750, 350, "Detected Mod Manager Settings", details).ShowModalAsync(owner));
         }

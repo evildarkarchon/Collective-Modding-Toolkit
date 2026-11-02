@@ -23,7 +23,7 @@ namespace CMToolkit.App.Views;
 /// lists the archives again (AP-3).
 /// </summary>
 /// <remarks>
-/// The Core run is a blocking operation (ADR-0003), and one input block is held across it, the Overview refresh and the
+/// The Core run is a Blocking Operation (ADR-0003), and one input block is held across it, the Overview refresh and the
 /// repopulate. A failure in the run or the refresh still ends with the list repopulated and input back.
 /// </remarks>
 public sealed class ArchivePatcherWindow : ModalWindow
@@ -138,14 +138,16 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// </exception>
     public void ShowOver(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes. Started as a UI Action, so a window
-        // that fails to open reaches the Error Window; Start's task never faults.
-        _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
+        // Taken first, so a window that fails to open throws here, before the list is filled, and the click that opened
+        // it reports the failure. The task completes only when the modal closes, so it is not awaited: it runs on as a
+        // UI Action of its own, which reports a later fault, and Start's task never faults.
+        var shown = ShowModalAsync(owner);
+        _ = Runtime.Actions.Start(() => shown);
         PopulateTree();
     }
 
     /// <summary>
-    /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a blocking operation, its log lines going
+    /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a Blocking Operation, its log lines going
     /// to the pane as they come, then refreshes the Overview Report and lists the archives again, all in one
     /// <see cref="UiActions.Blocking"/> span. A Close or Escape meanwhile waits until it is over. A UI Action: the
     /// button starts it through <see cref="UiActions.Start"/>.
@@ -183,7 +185,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     }
 
     /// <summary>
-    /// The patch run itself, as the blocking operation <c>Archive Patcher</c>, logged between <c>Patcher Running</c> and
+    /// The patch run itself, as the Blocking Operation <c>Archive Patcher</c>, logged between <c>Patcher Running</c> and
     /// <c>Patcher Finished</c>.
     /// </summary>
     /// <returns>

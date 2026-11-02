@@ -138,8 +138,8 @@ public sealed class DowngraderWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
-            // click handler that called it has nothing left to do. Start's task never faults, so it can be discarded.
+            // Not awaited: opening shows the window and completes once it is built, and the click handler that called
+            // it has nothing left to do. Start's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
                 session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
             _ = session.Runtime.Actions.Start(() => window.OpenAsync(owner));
@@ -163,15 +163,20 @@ public sealed class DowngraderWindow : ModalWindow
     /// window's content.
     /// </summary>
     /// <returns>A task that completes once the window is built.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The window could not be shown (its owner has closed, say); thrown before the detection starts, which never runs.
+    /// </exception>
     /// <exception cref="OperationFailedException">
-    /// The detection failed and the runner has reported it. The rest of the constructor is skipped, as the exception
-    /// skipped it in Tk, and the window stays up, empty. Start it through <see cref="UiActions.Start"/>.
+    /// The detection failed and the runner has reported it. The content is never built, and the window stays up, empty.
+    /// Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task OpenAsync(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes. Started as a UI Action of its own, so a
-        // window that fails to open reaches the Error Window; Start's task never faults.
-        _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
+        // Taken first, so a window that fails to open throws here and ends the opener before the detection starts. The
+        // task completes only when the modal closes, so it is not awaited: it runs on as a UI Action of its own, which
+        // reports a later fault, and Start's task never faults.
+        var shown = ShowModalAsync(owner);
+        _ = Runtime.Actions.Start(() => shown);
         Versions = await Runtime.Actions.Run(
             "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
 
@@ -215,8 +220,8 @@ public sealed class DowngraderWindow : ModalWindow
     /// <returns>A task that completes when the click is done; a download it started goes on in the poll.</returns>
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
     /// <exception cref="OperationFailedException">
-    /// The click's run failed and the runner has reported it. The rest of <c>patch_files</c> is skipped, the button
-    /// staying disabled, as the exception left it in Tk. Start it through <see cref="UiActions.Start"/>.
+    /// The click's run failed and the runner has reported it. The rest of the run is skipped, and the button stays
+    /// disabled. Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task PatchAllAsync()
     {

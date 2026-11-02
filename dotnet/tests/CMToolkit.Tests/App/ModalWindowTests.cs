@@ -150,7 +150,6 @@ public sealed class ModalWindowTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "MOD-1")]
     public async Task An_escape_deferred_by_a_blocking_operation_still_meets_the_close_guard_once_it_ends()
     {
         var (runtime, owner) = ShowOwner();
