@@ -12,7 +12,7 @@ namespace CMToolkit.Tests.Core.Scanner;
 /// turns each into a problem row and keeps what it found before (bug #22). And one it doesn't expect, a
 /// <c>modlist.txt</c> that isn't UTF-8, which stops the scan early with what it found and a stopped-early row.
 /// </summary>
-public sealed class ScanWorkerFailureTests
+public sealed class ScanFailureTests
 {
     [Fact]
     [Trait("Parity", "B-3"), Deviation(22, "A missing modlist.txt is a File Not Found problem on its path, listed after the problems the worker found before it, instead of an exception.")]
@@ -23,7 +23,7 @@ public sealed class ScanWorkerFailureTests
         WriteSaddRecords(machine, 101);
         var settings = await AllTicked(machine);
 
-        var outcome = ScanWorker.Run(settings);
+        var outcome = Scan.Run(settings);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -54,7 +54,7 @@ public sealed class ScanWorkerFailureTests
         using var machine = Scenario("scanner/mo2-no-profile");
         var settings = await AllTicked(machine);
 
-        var outcome = ScanWorker.Run(settings);
+        var outcome = Scan.Run(settings);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -85,7 +85,7 @@ public sealed class ScanWorkerFailureTests
         var settings = await AllTicked(machine);
         var log = new CapturingLogger();
 
-        var outcome = ScanWorker.Run(settings, null, log);
+        var outcome = Scan.Run(settings, null, log);
 
         Assert.IsType<System.Text.DecoderFallbackException>(outcome.Error);
         Assert.Null(outcome.Index);

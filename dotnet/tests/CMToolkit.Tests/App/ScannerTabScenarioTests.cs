@@ -384,7 +384,7 @@ public sealed class ScannerTabScenarioTests
         {
             _entered = true;
             _gate.Wait(TimeSpan.FromSeconds(30));
-            return ScanWorker.Run(settings, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+            return CMToolkit.Core.Scanner.Scan.Run(settings, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
         }
     }
 }

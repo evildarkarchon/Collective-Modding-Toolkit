@@ -9,7 +9,7 @@ namespace CMToolkit.Tests.Core.Scanner;
 /// The scan worker's pieces the scenarios can't reach cheaply: the SADD count across read chunks (SCN-S5) and the
 /// <c>Path.walk</c> emulation's order, pruning and link handling that the data walk and the mod file index stand on.
 /// </summary>
-public sealed class ScanWorkerTests
+public sealed class ScanTests
 {
     private const int Chunk = 1 << 20;
 
@@ -30,7 +30,7 @@ public sealed class ScanWorkerTests
         Sadd.CopyTo(bytes, 10);
         var path = temp.WriteBytes("module.esp", bytes);
 
-        Assert.Equal(2, ScanWorker.CountSadd(path));
+        Assert.Equal(2, Scan.CountSadd(path));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class ScanWorkerTests
         // b"\x00SADD\x00SADDSADD\x00\x00SADD".count(b"\x00SADD") == 3.
         var path = temp.WriteBytes("module.esp", [.. Sadd, .. Sadd, 0x53, 0x41, 0x44, 0x44, 0x00, .. Sadd]);
 
-        Assert.Equal(3, ScanWorker.CountSadd(path));
+        Assert.Equal(3, Scan.CountSadd(path));
     }
 
     [Fact]

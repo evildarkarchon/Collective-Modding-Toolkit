@@ -43,7 +43,7 @@ public sealed class ScannerTabTests
             {
                 workerOnUiThread = Dispatcher.UIThread.CheckAccess();
                 work.Wait(TimeSpan.FromSeconds(30));
-                return ScanWorker.Run(s);
+                return Scan.Run(s);
             });
 
         gather.Reset();
@@ -226,7 +226,7 @@ public sealed class ScannerTabTests
     public void An_exception_that_escapes_the_scan_is_reported_and_the_scan_ends_listing_the_overview_problems()
     {
         // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
-        // scan returns its own failures on its outcome (ScanWorkerFailureTests); this is the tab's last resort for an
+        // scan returns its own failures on its outcome (ScanFailureTests); this is the tab's last resort for an
         // exception that gets out anyway.
         using var app = ScannerApp.Start(worker: (_, _) => throw new InvalidOperationException("escaped the scan"));
 
@@ -261,7 +261,7 @@ public sealed class ScannerTabTests
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
-            return ScanWorker.Run(s);
+            return Scan.Run(s);
         });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
@@ -299,7 +299,7 @@ public sealed class ScannerTabTests
             worker: (s, _) =>
             {
                 workerRan = true;
-                return ScanWorker.Run(s);
+                return Scan.Run(s);
             });
         fail = true;
 
@@ -333,7 +333,7 @@ public sealed class ScannerTabTests
             worker: (s, _) =>
             {
                 workerRan = true;
-                return ScanWorker.Run(s);
+                return Scan.Run(s);
             },
             overviewTab: true);
 
@@ -381,7 +381,7 @@ public sealed class ScannerTabTests
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
-            return ScanWorker.Run(s);
+            return Scan.Run(s);
         });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
@@ -567,7 +567,7 @@ public sealed class ScannerTabTests
                 : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ((s, _) => ScanWorker.Run(s)) };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ((s, _) => Scan.Run(s)) };
             var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
             var load = overviewTab ? null : state.LoadAsync();

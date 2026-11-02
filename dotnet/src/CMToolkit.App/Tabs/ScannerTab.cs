@@ -66,13 +66,13 @@ public sealed class ScannerTab : TabPage
         _overview = overview;
         _settings = settings;
         _statuses = new ProgressQueue(this);
-        Worker = (s, progress) => ScanWorker.Run(s, progress, _runtime.Logger);
+        Worker = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
     }
 
     /// <summary>
     /// The scan's worker part (<c>scan_data_files</c>), run off the UI thread as an interactive operation and given the
     /// scan's snapshot and the tab's progress sink:
-    /// <see cref="ScanWorker.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> by
+    /// <see cref="Scan.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> by
     /// default. A test seam, so tests can hold a scan mid-run, report statuses or make the worker fail.
     /// </summary>
     /// <remarks>

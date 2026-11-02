@@ -63,7 +63,7 @@ public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Inde
 /// <c>ScannerTab.scan_data_files</c>: the work the reference ran on its scan thread, which the App runs as an
 /// interactive operation (THR-1, ADR-0003).
 /// </summary>
-public static class ScanWorker
+public static class Scan
 {
     // The statuses reported before the walk's own: both at 1%, where the tab's progress bar already stands once the
     // Overview refresh is done, so only the label moves.

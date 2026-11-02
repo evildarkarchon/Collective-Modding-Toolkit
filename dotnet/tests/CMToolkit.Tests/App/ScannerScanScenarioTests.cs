@@ -83,7 +83,7 @@ public sealed partial class ScannerScanScenarioTests
                 var first = logger.Entries.Count;
                 try
                 {
-                    watch.Outcome = ScanWorker.Run(s, progress, logger);
+                    watch.Outcome = Scan.Run(s, progress, logger);
                     return watch.Outcome;
                 }
                 catch (Exception ex)
