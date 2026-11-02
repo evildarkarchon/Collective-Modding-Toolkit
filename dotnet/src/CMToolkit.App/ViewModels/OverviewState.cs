@@ -90,7 +90,7 @@ public sealed partial class OverviewState : ObservableObject
     }
 
     /// <summary>
-    /// Runs each <see cref="Refreshed"/> handler in turn as its own UI Action through <see cref="ErrorReporter.Handle"/>,
+    /// Runs each <see cref="Refreshed"/> handler in turn as its own UI Action through <see cref="UiActions.Start"/>,
     /// so a handler that throws is reported once to the Error Window and neither stops the handlers after it nor reaches
     /// the caller that asked for the refresh.
     /// </summary>
@@ -104,7 +104,7 @@ public sealed partial class OverviewState : ObservableObject
         // Walk the invocation list by hand: a plain Invoke stops at the first handler that throws.
         foreach (var handler in refreshed.GetInvocationList().Cast<EventHandler>())
         {
-            await _runtime.Errors.Handle(() =>
+            await _runtime.Actions.Start(() =>
             {
                 handler(this, EventArgs.Empty);
                 return Task.CompletedTask;

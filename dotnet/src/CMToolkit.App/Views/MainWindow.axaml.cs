@@ -106,10 +106,10 @@ public partial class MainWindow : Window
         _current = (Tabs.SelectedItem as TabItem)?.Content as LazyTab;
         if (_current is not null)
         {
-            // Handle's task never faults, so it is safe to discard. A failed load's input block is already released
-            // when Handle sees the exception, but deferred input replays from a posted job, and Handle reports
+            // Start's task never faults, so it is safe to discard. A failed load's input block is already released
+            // when Start sees the exception, but deferred input replays from a posted job, and Start reports
             // synchronously, so the Error Window is up first.
-            _ = _runtime.Errors.Handle(_current.SelectAsync);
+            _ = _runtime.Actions.Start(_current.SelectAsync);
         }
     }
 }

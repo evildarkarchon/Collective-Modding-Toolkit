@@ -229,11 +229,11 @@ public sealed class ScannerTab : TabPage
 
         // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
         SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
-        // Both UI Actions start through Handle: what they raise is reported once, at once (a failed operation already by
-        // the runner), and the task they return never faults, so discarding it is safe.
-        SidePane.ScanRequested += (_, _) => _ = _runtime.Errors.Handle(ScanAsync);
+        // Both UI Actions start through runtime.Actions.Start: what they raise is reported once, at once (a failed
+        // operation already by the runner), and the task they return never faults, so discarding it is safe.
+        SidePane.ScanRequested += (_, _) => _ = _runtime.Actions.Start(ScanAsync);
         var created = SidePane;
-        created.BoxChanged += (_, _) => _ = _runtime.Errors.Handle(() => SaveBoxesAsync(created));
+        created.BoxChanged += (_, _) => _ = _runtime.Actions.Start(() => SaveBoxesAsync(created));
         if (TopLevel.GetTopLevel(_tree) is not null)
         {
             Docker().Show(PaneSlot.Side, SidePane);
@@ -282,7 +282,7 @@ public sealed class ScannerTab : TabPage
     /// <summary>
     /// Scan Game (<c>start_threaded_scan</c>, then <c>check_scan_progress</c> and <c>populate_results</c> once the worker
     /// is done): SCN-S1..SCN-S3, SCN-R1..SCN-R3. A UI Action: the Scan Game button starts it through
-    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
+    /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <returns>A task that completes when the results are listed, or when the scan stopped short.</returns>
     /// <exception cref="InvalidOperationException">
@@ -456,7 +456,7 @@ public sealed class ScannerTab : TabPage
     /// started, and never read them back. Through <see cref="SettingsStore.SaveAsync"/>, so the settings in effect
     /// change at once and the file is written off the UI thread under an input block, quick changes landing in order
     /// with the last one winning. Nothing is written when the boxes already match the settings in effect. A UI Action:
-    /// each box change starts it through <see cref="ErrorReporter.Handle"/>.
+    /// each box change starts it through <see cref="UiActions.Start"/>.
     /// </summary>
     /// <param name="side">The pane whose box changed.</param>
     /// <returns>A task that completes once the file is written, or at once when nothing changed.</returns>

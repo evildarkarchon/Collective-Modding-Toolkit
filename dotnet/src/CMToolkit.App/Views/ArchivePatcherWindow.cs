@@ -139,15 +139,16 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// </exception>
     public void ShowOver(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes.
-        _ = ShowModalAsync(owner);
+        // Not awaited: the returned task completes only when the modal closes. Started as a UI Action, so a window
+        // that fails to open reaches the Error Window; Start's task never faults.
+        _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
         PopulateTree();
     }
 
     /// <summary>
     /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a blocking operation, its log lines going
     /// to the pane as they come, then refreshes the Overview Report and lists the archives again. The close guard is set
-    /// throughout. A UI Action: the button starts it through <see cref="ErrorReporter.Handle"/>.
+    /// throughout. A UI Action: the button starts it through <see cref="UiActions.Start"/>.
     /// </summary>
     /// <remarks>
     /// A failed patch run may have patched some archives before it died, so the refresh still runs after it. Whichever
@@ -286,12 +287,13 @@ public sealed class ArchivePatcherWindow : ModalWindow
         // pack(side=RIGHT, padx=24, pady=5).
         about.Margin = new Thickness(24, 5);
         // The AboutWindow is transient to the patcher (parent=self), so it is owned by it.
-        about.Click += (_, _) => _ = new AboutWindow(Runtime, 500, 435, AboutTitle, AboutText).ShowModalAsync(this);
+        about.Click += (_, _) => _ = Runtime.Actions.Start(
+            () => new AboutWindow(Runtime, 500, 435, AboutTitle, AboutText).ShowModalAsync(this));
         DockPanel.SetDock(about, Dock.Right);
 
         var patch = TopButton("PatchAll", "Patch All");
         patch.Margin = new Thickness(5);
-        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
+        patch.Click += (_, _) => _ = Runtime.Actions.Start(PatchAllAsync);
         DockPanel.SetDock(patch, Dock.Right);
 
         var oldGen = Radio("OldGen", "v1 (OG)", ArchiveVersion.OldGen, isChecked: true);
