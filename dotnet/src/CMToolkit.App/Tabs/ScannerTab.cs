@@ -110,8 +110,8 @@ public sealed class ScannerTab : TabPage
     public Problem? ProblemOf(TreeViewItem item) => _items.GetValueOrDefault(item);
 
     /// <summary>
-    /// The machine the scan reads (SCN-S5, SCN-S6, the data walk) and the details pane checks result paths on (SCN-R5):
-    /// a relative path is relative to its working directory. Required, with no default, because the scan's snapshot is
+    /// The machine the scan reads (the Race Subgraphs count, the mod file index and the data walk) and the details pane
+    /// checks result paths on: a relative path is relative to its working directory. Required, with no default, because the scan's snapshot is
     /// taken with it: a tab built without naming its machine would silently scan the real one.
     /// </summary>
     public required IHostEnvironment Host { get; init; }
@@ -516,8 +516,8 @@ public sealed class ScannerTab : TabPage
     private static TextBlock Text(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
 
     /// <summary>
-    /// <c>check_scan_progress</c>'s drain: applies <paramref name="queue"/>'s statuses in order, if it is still the
-    /// running scan's queue, setting the scanning label and progress bar to each as the scan reported it. UI thread only.
+    /// Applies <paramref name="queue"/>'s statuses in order, if it is still the running scan's queue, setting the scanning
+    /// label and progress bar to each as the scan reported it. UI thread only.
     /// </summary>
     private void DrainProgress(ConcurrentQueue<ScanStatus> queue)
     {
@@ -531,7 +531,8 @@ public sealed class ScannerTab : TabPage
 
     /// <summary>
     /// The progress sink <see cref="RunScan"/> is given: queues each status for the running scan and asks the UI thread to
-    /// drain it, standing in for the reference's 100 ms polling. Statuses reported while no scan's worker runs are dropped.
+    /// drain it, so statuses reach the tab as soon as the UI thread is free. Statuses reported while no scan is running
+    /// are dropped.
     /// </summary>
     private sealed class ProgressQueue(ScannerTab tab) : IProgress<ScanStatus>
     {

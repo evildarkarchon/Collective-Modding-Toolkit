@@ -7,10 +7,10 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// The two failures the Scan expects while building the mod file index (SCN-S6): MO2's selected profile has no
-/// <c>modlist.txt</c>, or MO2 has no selected profile. The reference's worker raised and its scan stuck (B-3); the port
-/// turns each into a problem row and keeps what it found before (bug #22). And one it doesn't expect, a
-/// <c>modlist.txt</c> that isn't UTF-8, which stops the scan early with what it found and a stopped-early row.
+/// The two failures the Scan expects while building the mod file index: MO2's selected profile has no
+/// <c>modlist.txt</c>, or MO2 has no selected profile. Each is a problem row after what the scan found before it, and
+/// the scan carries on as a finished one (bug #22). And one it doesn't expect, a <c>modlist.txt</c> that isn't UTF-8,
+/// which stops the scan early with what it found and a stopped-early row.
 /// </summary>
 public sealed class ScanFailureTests
 {

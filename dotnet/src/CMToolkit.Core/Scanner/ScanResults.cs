@@ -68,7 +68,7 @@ public sealed record ScanResultGroup(string Kind, IReadOnlyList<Problem> Items);
 public static class ScanResults
 {
     /// <summary>
-    /// The results a scan starts with (SCN-S3): the Overview problems, in their list order, when Overview Issues is
+    /// The results a scan starts with (the seed): the Overview problems, in their list order, when Overview Issues is
     /// ticked; none otherwise. The Scan appends its checks' problems after them.
     /// </summary>
     /// <param name="overviewIssues">Whether Overview Issues was ticked.</param>

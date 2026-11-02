@@ -14,7 +14,7 @@ internal abstract record ScanUpdate
     /// <param name="Names">Every top-level folder, in enumeration order, before any is pruned.</param>
     public sealed record TopLevelFolders(IReadOnlyList<string> Names) : ScanUpdate;
 
-    /// <summary>A <c>str</c>: the top-level Data folder the walk has entered.</summary>
+    /// <summary>The top-level Data folder the walk has entered.</summary>
     /// <param name="Name">The folder's name.</param>
     public sealed record Folder(string Name) : ScanUpdate;
 }

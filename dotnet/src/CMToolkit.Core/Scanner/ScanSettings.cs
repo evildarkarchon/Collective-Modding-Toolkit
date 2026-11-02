@@ -95,8 +95,8 @@ public sealed class ScanSettings
     private readonly IReadOnlyDictionary<ScanSetting, bool> _values;
 
     /// <summary>
-    /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, taken once, as
-    /// <c>ScanSettings.__init__</c> copied them. Built through <see cref="Snapshot"/>.
+    /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, copied once when the scan
+    /// starts. Built through <see cref="Snapshot"/>.
     /// </summary>
     /// <param name="values">Every setting's box, ticked or not.</param>
     /// <param name="game">The installation; its mod manager decides the skip lists.</param>
@@ -178,8 +178,8 @@ public sealed class ScanSettings
     public IHostEnvironment Host { get; }
 
     /// <summary>
-    /// Takes the snapshot with what the worker reads from the Overview refresh the scan just ran (the reference's shared
-    /// <c>cmc.game</c> state) and the machine it reads. It doesn't save the boxes (see
+    /// Takes the snapshot with what the scan reads from the Overview refresh it just ran (the enabled modules and
+    /// archives, and the problems) and the machine it reads. It doesn't save the boxes (see
     /// <see cref="ChangedSettings(AppSettings)"/>).
     /// </summary>
     /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
