@@ -1,3 +1,4 @@
+using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 
 namespace CMToolkit.App.Tabs;
@@ -14,7 +15,7 @@ public static class MainTabs
     [
         Overview(session),
         new F4seTab(session.Runtime, session.Host, session.Game, session.Overview),
-        new ScannerTab(session.Runtime, session.Game, session.Overview, session.Settings) { Host = session.Host },
+        Scanner(session),
         new ToolsTab(session.Runtime, openDowngradeManager: () => DowngraderWindow.Open(session), openArchivePatcher: () => ArchivePatcherWindow.Open(session)),
         new SettingsTab(session.Runtime, session.Settings),
         new AboutTab(session.Runtime),
@@ -31,4 +32,17 @@ public static class MainTabs
         session.Overview,
         () => DowngraderWindow.Open(session),
         () => ArchivePatcherWindow.Open(session));
+
+    /// <summary>
+    /// The Scanner tab over a <see cref="ScanState"/> built here for it, over the session's game, Overview Report module
+    /// and machine. Nothing else holds the module.
+    /// </summary>
+    private static ScannerTab Scanner(AppSession session) => new(
+        session.Runtime,
+        session.Game,
+        new ScanState(session.Runtime, session.Game, session.Overview, session.Host),
+        session.Settings)
+    {
+        Host = session.Host,
+    };
 }
