@@ -16,6 +16,16 @@ _Avoid_: outdated, unsupported version (the Downgrader also calls Unknown files 
 What the app has gathered about the game install: its Install Type, binaries, archives, modules and the problems found. The Overview tab shows it and the other tabs read it. It is gathered when the Overview tab first opens and again on each refresh, and a gathering that fails part-way still leaves what it had gathered as the current report.
 _Avoid_: overview state, game info, scan (the Scanner's scan is a separate, wider check)
 
+## Scanning
+
+**Scan**:
+One run of the Scanner tab's Scan Game. It refreshes the Overview Report, then checks the Data folder and the mod setup behind it for the problems the ticked Scan Settings ask for, and lists them, after the Overview Report's problems when Overview Issues is ticked. A scan that fails part-way still lists what it found, followed by a row saying it stopped early.
+_Avoid_: data scan (one part of a scan), check (one rule within a scan), Overview refresh (the first step of a scan, not the scan)
+
+**Scan Setting**:
+One of the Scanner's checkboxes, each choosing a kind of problem a Scan looks for, such as Junk Files or Race Subgraphs. Each is saved the moment it changes, and the Scanner starts from the saved choices.
+_Avoid_: box, option, check (a check is one rule within a scan)
+
 ## Downgrading
 
 **Delta Patch**:
