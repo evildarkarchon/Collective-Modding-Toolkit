@@ -156,7 +156,7 @@ public static class ScanProblemTypes
 
     /// <summary>
     /// The group of the row that ends a scan stopped by an unexpected error (<see cref="ScanOutcome.StoppedEarly"/>).
-    /// The port's own group, with no <c>ProblemType</c> counterpart.
+    /// A group of its own, so the row isn't mistaken for a problem with the user's setup.
     /// </summary>
     public const string IncompleteScan = "Incomplete Scan";
 }

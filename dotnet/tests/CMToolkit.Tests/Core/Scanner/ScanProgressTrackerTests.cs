@@ -1,4 +1,5 @@
 using CMToolkit.Core.Scanner;
+using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Scanner;
 
@@ -46,8 +47,8 @@ public sealed class ScanProgressTrackerTests
     [Fact]
     public void A_status_is_passed_on_only_when_the_label_or_the_progress_changes()
     {
-        var shown = new List<ScanStatus>();
-        var tracker = new ScanProgressTracker(new ListProgress(shown));
+        var shown = new ListProgress<ScanStatus>();
+        var tracker = new ScanProgressTracker(shown);
 
         tracker.Show(new ScanStatus("Building mod file index...", 1));
         tracker.Show(new ScanStatus("Building mod file index...", 1));
@@ -64,7 +65,7 @@ public sealed class ScanProgressTrackerTests
                 new ScanStatus("Scanning... 0/2: Meshes", 1),
                 new ScanStatus("Scanning... 0/2: Meshes", 0),
             ],
-            shown);
+            shown.Reported);
     }
 
     [Fact]
@@ -75,11 +76,5 @@ public sealed class ScanProgressTrackerTests
         tracker.Apply(new ScanUpdate.TopLevelFolders([]));
 
         Assert.Null(tracker.Apply(new ScanUpdate.Folder("Meshes")));
-    }
-
-    /// <summary>Records each status as it is reported, on the reporting thread.</summary>
-    private sealed class ListProgress(List<ScanStatus> shown) : IProgress<ScanStatus>
-    {
-        public void Report(ScanStatus value) => shown.Add(value);
     }
 }

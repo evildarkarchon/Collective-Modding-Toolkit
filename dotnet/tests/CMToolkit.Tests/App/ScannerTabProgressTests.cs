@@ -16,16 +16,15 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// The tab's side of the scan's progress, timed as the scenarios can't time it: the statuses the worker reports through
+/// The tab's side of the scan's progress, timed as the scenarios can't time it: the statuses the scan reports through
 /// the sink the tab gives it reach the scanning label and the progress bar as they are, in order, while it runs; they
-/// are drained before the results replace them, still land when the worker dies, and are dropped once the scan is over
+/// are drained before the results replace them, still land when the scan throws, and are dropped once the scan is over
 /// (ADR-0003).
 /// </summary>
 public sealed class ScannerTabProgressTests
 {
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S4")]
-    public void Statuses_reach_the_label_and_the_bar_while_the_worker_runs()
+    public void Statuses_reach_the_label_and_the_bar_while_the_scan_runs()
     {
         var gate = new ManualResetEventSlim();
         var reported = new ManualResetEventSlim();
@@ -50,8 +49,7 @@ public sealed class ScannerTabProgressTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S4")]
-    public void Statuses_still_queued_when_the_worker_returns_are_applied_before_the_results()
+    public void Statuses_still_queued_when_the_scan_returns_are_applied_before_the_results()
     {
         var applied = new List<(ScanStatus Status, string? Label, double Bar)>();
         using var app = ProgressApp.Start((s, progress) =>
@@ -76,10 +74,7 @@ public sealed class ScannerTabProgressTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S4")]
-    [Trait("Parity", "B-3")]
-    [Deviation(22, "A worker that dies unexpectedly has its queued updates applied, and then the scan ends instead of staying stuck.")]
-    public void A_worker_that_dies_has_its_updates_applied_and_then_the_scan_ends()
+    public void A_scan_that_throws_has_its_statuses_applied_and_then_the_scan_ends()
     {
         var applied = new List<string>();
         using var app = ProgressApp.Start((s, progress) =>
@@ -100,10 +95,9 @@ public sealed class ScannerTabProgressTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "SCN-S4")]
     public void A_status_after_the_scan_is_over_changes_nothing()
     {
-        // The sink the tab gave the scan, kept past its end, as a worker thread still running might keep it.
+        // The sink the tab gave the scan, kept past its end, as a thread the scan left running might keep it.
         IProgress<ScanStatus>? given = null;
         using var app = ProgressApp.Start((s, progress) =>
         {
@@ -143,8 +137,8 @@ public sealed class ScannerTabProgressTests
 
         public ProgressBar Progress => Named<ProgressBar>("Progress");
 
-        /// <summary>Starts the app with <paramref name="worker"/> as the scan, given the snapshot and the tab's progress sink.</summary>
-        public static ProgressApp Start(Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> worker)
+        /// <summary>Starts the app with <paramref name="runScan"/> as the scan, given the snapshot and the tab's progress sink.</summary>
+        public static ProgressApp Start(Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> runScan)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
@@ -152,7 +146,7 @@ public sealed class ScannerTabProgressTests
             var runtime = new AppRuntime(new CapturingLogger());
             var state = new OverviewState(runtime, p => CMToolkit.Core.Overview.OverviewReport.Gather(game, machine.Host, runtime.Logger, p));
             var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = worker };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = runScan };
             // The Scanner needs only the loaded module, not an Overview tab; the first tab is a placeholder.
             var window = new MainWindow(runtime, [new ProbeTab("Other", "OtherTab"), scanner]);
             window.Show();

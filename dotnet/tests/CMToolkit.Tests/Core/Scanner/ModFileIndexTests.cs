@@ -1,9 +1,6 @@
-using CMToolkit.App.Startup;
-using CMToolkit.Core.Overview;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
-using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Scanner;
 
@@ -158,10 +155,7 @@ public sealed class ModFileIndexTests
     /// </summary>
     private static async Task<ModFiles> Build(MaterializedScenario machine)
     {
-        var game = await Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
-            ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
-        var settings = ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, _ => true), game, report, machine.Host);
+        var settings = (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All);
 
         var index = ModFileIndex.Build(settings, out var failure);
 

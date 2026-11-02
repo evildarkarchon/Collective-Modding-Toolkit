@@ -19,9 +19,9 @@ using Microsoft.Extensions.Logging;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// What the <c>scanner-tab</c> scenarios can't record: the scan's two phases (a blocking Overview refresh, then an
-/// interactive worker; THR-1), the Failure Outcomes of a worker that raises (B-3) or stops early, a refresh that dies, and leaving the
-/// tab mid-scan (<c>populate_results</c> raising), and Collapse All / Expand All.
+/// What the <c>scanner-tab</c> scenarios can't record: the scan's two phases (a blocking Overview refresh, then the rest
+/// of the scan as an interactive operation), a scan that stops early or throws, a refresh that dies, leaving the tab
+/// mid-scan (listing the results then fails because the side pane is gone), and Collapse All / Expand All.
 /// </summary>
 public sealed class ScannerTabTests
 {
@@ -39,7 +39,7 @@ public sealed class ScannerTabTests
                 gather.Wait(TimeSpan.FromSeconds(30));
                 return real(p);
             },
-            worker: (s, _) =>
+            runScan: (s, _) =>
             {
                 workerOnUiThread = Dispatcher.UIThread.CheckAccess();
                 work.Wait(TimeSpan.FromSeconds(30));
@@ -183,21 +183,36 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void A_scan_that_stopped_early_shows_its_error_then_lists_what_it_found_and_the_stopped_early_row()
+    public void A_scan_that_stopped_early_applies_its_statuses_shows_its_error_then_lists_what_it_found_and_the_stopped_early_row()
     {
         var error = new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8");
         var found = Problem.Simple("101 SADD Records from 1 modules", ScanProblemTypes.RaceSubgraphRecordCount, "Too many.", "Merge some.");
-        using var app = ScannerApp.Start(worker: (_, _) => ScanOutcome.StoppedEarly([found], error));
-        // What the tree holds when the Error Window opens: the error must show before the list appears.
+        var stopping = new ScanStatus("Building mod file index...", 1);
+        // Built as Scan.Run builds a stopped-early outcome: the seed (the snapshot's Overview problems, since Overview
+        // Issues is ticked), then what the checks found, then the stopped-early row. The status is the last one the
+        // scan reported before it stopped.
+        using var app = ScannerApp.Start(runScan: (s, progress) =>
+        {
+            progress.Report(stopping);
+            return ScanOutcome.StoppedEarly(
+                [.. ScanResults.Seed(s[ScanSetting.OverviewIssues], s.OverviewProblems), found], error);
+        });
+        // What the tree and the scanning label hold when the Error Window opens: the scan's statuses are applied
+        // first, and the error must show before the list appears.
         int? listedWhenTheErrorShowed = null;
-        using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>(
-            (_, _) => listedWhenTheErrorShowed ??= app.Scanner.Tree!.Items.Count);
+        string? labelWhenTheErrorShowed = null;
+        using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>((_, _) =>
+        {
+            listedWhenTheErrorShowed ??= app.Scanner.Tree!.Items.Count;
+            labelWhenTheErrorShowed ??= app.ScanningText.Text;
+        });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game" && app.Scanner.IsSelectable);
         Dispatcher.UIThread.RunJobs();
 
         Assert.Equal(0, listedWhenTheErrorShowed);
+        Assert.Equal(stopping.Text, labelWhenTheErrorShowed);
         // Reported once, under the Scanner scan's header, as the error itself and not a wrapper around it.
         var header = ErrorReporter.OperationHeader("Scanner scan");
         var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
@@ -208,21 +223,23 @@ public sealed class ScannerTabTests
         Assert.True(scan.IsEnabled);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100, app.Progress.Value);
-        // The tab lists the outcome as it is, seeding nothing of its own though Overview Issues is ticked: the one problem
-        // the scan found, then the stopped-early row, which the count includes.
-        Assert.Equal("2 Results ~ Select an item for details", app.ResultsInfo.Text);
+        // The tab lists the outcome as it is: the Overview's 16 problems (scanner/overview-issues), then the one problem
+        // the checks found, then the stopped-early row. The count includes all of them.
+        Assert.Equal("18 Results ~ Select an item for details", app.ResultsInfo.Text);
         var groups = app.Scanner.Tree!.Items.OfType<TreeViewItem>().ToList();
-        Assert.Equal(["Race Subgraph Record Count", "Incomplete Scan"], groups.Select(g => ((TextBlock)g.Header!).Text));
+        Assert.Equal(
+            ["No Mod Manager", "Invalid Module", "File Not Found", "Invalid Archive", "Race Subgraph Record Count", "Incomplete Scan"],
+            groups.Select(g => ((TextBlock)g.Header!).Text));
         Assert.Equal(["101 SADD Records from 1 modules"], ItemTexts(groups[^2]));
         Assert.Equal(["Scan stopped early"], ItemTexts(groups[^1]));
     }
 
     [AvaloniaFact]
-    public void An_exception_that_escapes_the_scan_is_reported_and_the_scan_ends_listing_nothing()
+    public void An_exception_that_escapes_the_scan_is_reported_once_and_the_scan_ends_listing_the_stopped_early_row()
     {
         // The scan returns its own failures on its outcome (ScanFailureTests); this is the tab's last resort for an
         // exception that gets out anyway, so Scan Game can't stay disabled.
-        using var app = ScannerApp.Start(worker: (_, _) => throw new InvalidOperationException("escaped the scan"));
+        using var app = ScannerApp.Start(runScan: (_, _) => throw new InvalidOperationException("escaped the scan"));
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
@@ -233,9 +250,12 @@ public sealed class ScannerTabTests
         Assert.True(scan.IsEnabled);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100, app.Progress.Value);
-        // The scan seeds its own results, so everything it would have listed was lost with the exception.
-        Assert.Equal("0 Results ~ Select an item for details", app.ResultsInfo.Text);
-        Assert.Empty(app.Scanner.Tree!.Items);
+        // The scan seeds its own results, so everything it would have listed was lost with the exception. What's left is
+        // the stopped-early row on its own, so the list can't pass for a clean scan; the count includes it.
+        Assert.Equal("1 Results ~ Select an item for details", app.ResultsInfo.Text);
+        var group = Assert.Single(app.Scanner.Tree!.Items.OfType<TreeViewItem>());
+        Assert.Equal("Incomplete Scan", ((TextBlock)group.Header!).Text);
+        Assert.Equal(["Scan stopped early"], ItemTexts(group));
         Assert.True(app.Scanner.IsSelectable);
         // The runner reported it; the tab doesn't report it again.
         var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
@@ -250,7 +270,7 @@ public sealed class ScannerTabTests
     {
         var work = new ManualResetEventSlim();
         var entered = false;
-        using var app = ScannerApp.Start(worker: (s, _) =>
+        using var app = ScannerApp.Start(runScan: (s, _) =>
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
@@ -289,7 +309,7 @@ public sealed class ScannerTabTests
         var workerRan = false;
         using var app = ScannerApp.Start(
             gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p),
-            worker: (s, _) =>
+            runScan: (s, _) =>
             {
                 workerRan = true;
                 return Scan.Run(s);
@@ -323,7 +343,7 @@ public sealed class ScannerTabTests
                 // The frames are built from the binaries; the scan never reads them.
                 return ++gathered == 1 ? report : report with { Binaries = null! };
             },
-            worker: (s, _) =>
+            runScan: (s, _) =>
             {
                 workerRan = true;
                 return Scan.Run(s);
@@ -370,7 +390,7 @@ public sealed class ScannerTabTests
         // reported, so the Scan Game UI Action reports it, once, under the UI thread's header.
         var work = new ManualResetEventSlim();
         var entered = false;
-        using var app = ScannerApp.Start(worker: (s, _) =>
+        using var app = ScannerApp.Start(runScan: (s, _) =>
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
@@ -534,7 +554,9 @@ public sealed class ScannerTabTests
         /// Scanner once the module is loaded.
         /// </summary>
         /// <param name="gatherer">Makes the module's gather function from the real one; null keeps the real one.</param>
-        /// <param name="worker">The scan's worker; the real one by default.</param>
+        /// <param name="runScan">
+        /// The scan after its Overview refresh (<see cref="ScannerTab.RunScan"/>); the real one by default.
+        /// </param>
         /// <param name="stored">The settings the side pane starts from, unsaved; the defaults by default.</param>
         /// <param name="settingsStore">The settings store, in place of <paramref name="stored"/>.</param>
         /// <param name="overviewTab">
@@ -543,7 +565,7 @@ public sealed class ScannerTabTests
         /// </param>
         public static ScannerApp Start(
             Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gatherer = null,
-            Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome>? worker = null,
+            Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome>? runScan = null,
             CMToolkit.Core.Settings.AppSettings? stored = null,
             SettingsStore? settingsStore = null,
             bool overviewTab = false)
@@ -560,7 +582,7 @@ public sealed class ScannerTabTests
                 : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = worker ?? ((s, _) => Scan.Run(s)) };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = runScan ?? ((s, _) => Scan.Run(s)) };
             var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
             var load = overviewTab ? null : state.LoadAsync();

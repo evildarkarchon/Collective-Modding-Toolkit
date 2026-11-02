@@ -26,6 +26,13 @@ internal sealed record ScanScenarioMachine(MaterializedScenario Machine, GameIns
         return new(machine, game, OverviewReport.Gather(game, machine.Host, new CapturingLogger()));
     }
 
+    /// <summary>
+    /// This machine with its Overview Report gathered again, as the next Scan's Overview refresh would gather it: the
+    /// current report is the one it replaces.
+    /// </summary>
+    public ScanScenarioMachine Refreshed()
+        => this with { Report = OverviewReport.Gather(Game, Machine.Host, new CapturingLogger(), Report) };
+
     /// <summary>The scan's snapshot with only <paramref name="ticked"/> ticked, reading this machine.</summary>
     public ScanSettings Snapshot(IEnumerable<ScanSetting> ticked)
     {

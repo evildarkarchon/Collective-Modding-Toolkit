@@ -58,8 +58,8 @@ public sealed class ScanOutcome
     public IReadOnlyList<ScanResultGroup> Groups { get; }
 
     /// <summary>
-    /// The mod file index (SCN-S6), which only a data walk in MO2 stage mode builds; null otherwise, and always null when
-    /// the scan stopped early. SCN-R2 looks the Overview problems' mods up in it.
+    /// The mod file index, which only a data walk in MO2 stage mode builds; null otherwise, and always null when the scan
+    /// stopped early. <see cref="Groups"/> looks the Overview problems' mods up in it.
     /// </summary>
     public ModFiles? Index { get; }
 
