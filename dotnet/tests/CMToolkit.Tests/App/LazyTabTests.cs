@@ -251,18 +251,19 @@ public sealed class LazyTabTests
     }
 
     [AvaloniaFact]
-    public async Task Selecting_a_tab_directly_leaves_a_failed_load_to_the_caller()
+    public async Task Selecting_a_tab_directly_reports_a_load_that_throws_and_throws_it_as_already_reported()
     {
-        // The main window starts the selection through runtime.Actions.Start, which does the reporting; the tab itself
-        // only lets the failure through.
+        // The load runs in a blocking span, which reports the error before it lets input back in; the caller only sees
+        // that the action has stopped.
         var runtime = new AppRuntime(new CapturingLogger());
         var page = new ProbeTab("F4SE", "F4SETab") { Load = _ => throw new InvalidOperationException("no DLLs") };
         var tab = new LazyTab(page, runtime);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(tab.SelectAsync);
+        var ex = await Assert.ThrowsAsync<OperationFailedException>(tab.SelectAsync);
 
-        Assert.Equal("no DLLs", ex.Message);
-        Assert.Null(runtime.Errors.Window);
+        Assert.Equal("no DLLs", ex.InnerException?.Message);
+        Assert.StartsWith(
+            $"{ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: no DLLs", runtime.Errors.Window?.Text);
         Assert.False(runtime.Input.IsBlocking);
     }
 
