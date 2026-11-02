@@ -10,6 +10,7 @@ using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
+using CMToolkit.Core.Problems;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
@@ -19,7 +20,7 @@ namespace CMToolkit.Tests.App;
 
 /// <summary>
 /// What the <c>scanner-tab</c> scenarios can't record: the scan's two phases (a blocking Overview refresh, then an
-/// interactive worker; THR-1), the Failure Outcomes of a worker that raises (B-3), a refresh that dies, and leaving the
+/// interactive worker; THR-1), the Failure Outcomes of a worker that raises (B-3) or stops early, a refresh that dies, and leaving the
 /// tab mid-scan (<c>populate_results</c> raising), and Collapse All / Expand All.
 /// </summary>
 public sealed class ScannerTabTests
@@ -182,31 +183,71 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    [Trait("Parity", "B-3")]
-    [Trait("Parity", "THR-1")]
-    [Deviation(22, "A worker that raises unexpectedly is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
-    public void A_worker_that_raises_unexpectedly_is_reported_and_the_scan_ends_listing_the_overview_problems()
+    public void A_scan_that_stopped_early_shows_its_error_then_lists_what_it_found_and_the_stopped_early_row()
     {
-        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
-        // failures the worker expects (MO2's missing profile or modlist.txt) are problem rows now (ScanWorkerFailureTests);
-        // anything else, such as a modlist.txt that isn't UTF-8, still raises.
-        using var app = ScannerApp.Start(worker: _ => throw new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8"));
+        var error = new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8");
+        var found = Problem.Simple("101 SADD Records from 1 modules", ScanProblemTypes.RaceSubgraphRecordCount, "Too many.", "Merge some.");
+        using var app = ScannerApp.Start(worker: _ => ScanOutcome.StoppedEarly([found], error));
+        // What the tree holds when the Error Window opens: the error must show before the list appears.
+        int? listedWhenTheErrorShowed = null;
+        using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>(
+            (_, _) => listedWhenTheErrorShowed ??= app.Scanner.Tree!.Items.Count);
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
-        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game" && app.Scanner.IsSelectable);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(0, listedWhenTheErrorShowed);
+        // Reported once, under the Scanner scan's header, as the error itself and not a wrapper around it.
+        var header = ErrorReporter.OperationHeader("Scanner scan");
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.StartsWith($"StdErr : {header}\nSystem.Text.DecoderFallbackException: modlist.txt isn't UTF-8", report.Message, StringComparison.Ordinal);
+        Assert.StartsWith($"{header}\nSystem.Text.DecoderFallbackException: modlist.txt isn't UTF-8", app.Runtime.Errors.Window!.Text, StringComparison.Ordinal);
 
         var scan = app.Scanner.SidePane!.ScanButton;
         Assert.True(scan.IsEnabled);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100, app.Progress.Value);
-        // Every box starts ticked, so the Overview's 16 problems (scanner/overview-issues) seeded the results; the
-        // worker's own were lost with it.
+        // Every box starts ticked, so the Overview's 16 problems (scanner/overview-issues) come first, then the one the
+        // scan found, then the stopped-early row, which the count includes.
+        Assert.Equal("18 Results ~ Select an item for details", app.ResultsInfo.Text);
+        var groups = app.Scanner.Tree!.Items.OfType<TreeViewItem>().ToList();
+        Assert.Equal(
+            ["No Mod Manager", "Invalid Module", "File Not Found", "Invalid Archive", "Race Subgraph Record Count", "Incomplete Scan"],
+            groups.Select(g => ((TextBlock)g.Header!).Text));
+        Assert.Equal(["101 SADD Records from 1 modules"], ItemTexts(groups[^2]));
+        Assert.Equal(["Scan stopped early"], ItemTexts(groups[^1]));
+    }
+
+    [AvaloniaFact]
+    [Trait("Parity", "B-3")]
+    [Trait("Parity", "THR-1")]
+    [Deviation(22, "An exception that escapes the scan is reported and the scan ends: the seeded Overview problems are listed and Scan Game is enabled again.")]
+    public void An_exception_that_escapes_the_scan_is_reported_and_the_scan_ends_listing_the_overview_problems()
+    {
+        // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
+        // scan returns its own failures on its outcome (ScanWorkerFailureTests); this is the tab's last resort for an
+        // exception that gets out anyway.
+        using var app = ScannerApp.Start(worker: _ => throw new InvalidOperationException("escaped the scan"));
+
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
+        DispatcherWait.Until(() => (string?)app.Scanner.SidePane!.ScanButton.Content == "Scan Game");
+        Dispatcher.UIThread.RunJobs();
+
+        var scan = app.Scanner.SidePane!.ScanButton;
+        Assert.True(scan.IsEnabled);
+        Assert.False(app.ScanningText.IsVisible);
+        Assert.Equal(100, app.Progress.Value);
+        // The seeded Overview problems are listed; whatever the scan found was lost with the exception.
         Assert.Equal("16 Results ~ Select an item for details", app.ResultsInfo.Text);
         Assert.Equal(["No Mod Manager", "Invalid Module", "File Not Found", "Invalid Archive"],
             app.Scanner.Tree!.Items.OfType<TreeViewItem>().Select(g => (string?)((TextBlock)g.Header!).Text));
         Assert.True(app.Scanner.IsSelectable);
-        Assert.Contains(app.Logger.Entries, e => e.Level == LogLevel.Error && e.Message.Contains("Scanner scan", StringComparison.Ordinal));
+        // The runner reported it; the tab doesn't report it again.
+        var report = Assert.Single(app.Logger.Entries, e => e.Message.StartsWith("StdErr : ", StringComparison.Ordinal));
+        Assert.Equal(LogLevel.Error, report.Level);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Scanner scan")}\nSystem.InvalidOperationException: escaped the scan", report.Message, StringComparison.Ordinal);
     }
 
     [AvaloniaFact]
@@ -440,6 +481,10 @@ public sealed class ScannerTabTests
         MouseClick.On(app.Scanner.SidePane!.Checks[setting]);
         DispatcherWait.Until(() => !app.Runtime.Input.IsBlocking);
     }
+
+    /// <summary>The item rows' texts under <paramref name="group"/>, in tree order (rows without a mod column).</summary>
+    private static IEnumerable<string?> ItemTexts(TreeViewItem group)
+        => group.Items.OfType<TreeViewItem>().Select(i => ((TextBlock)i.Header!).Text);
 
     /// <summary>
     /// A scan that stopped before its worker has ended: Scan Game is back and enabled, the scanning label is hidden, and

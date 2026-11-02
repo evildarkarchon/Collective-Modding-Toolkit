@@ -30,6 +30,10 @@ namespace CMToolkit.App.Tabs;
 /// </remarks>
 public sealed class ScannerTab : TabPage
 {
+    // The scan's background operation: the runner reports an escaped exception under its name, and the tab reports a
+    // scan's returned error under the same header, so both read alike in the Error Window.
+    private const string ScanOperation = "Scanner scan";
+
     private readonly AppRuntime _runtime;
     private readonly GameInstall _game;
     private readonly OverviewState _overview;
@@ -330,16 +334,22 @@ public sealed class ScannerTab : TabPage
         _pending = pending;
         try
         {
-            outcome = await _runtime.Operations.RunAsync("Scanner scan", OperationPhase.Interactive, () => Worker(settings));
+            outcome = await _runtime.Operations.RunAsync(ScanOperation, OperationPhase.Interactive, () => Worker(settings));
         }
         catch (OperationFailedException)
         {
-            // B-3, bug #22 fixed (ADR-0006): the reference's thread died without clearing thread_scan, so polling never
-            // ended and the scan stayed on Scanning... with the button disabled. The failures the worker expects (MO2's
-            // missing profile or modlist.txt) come back as problem rows now; this is anything else. The runner has
-            // already reported the error; the scan ends as a finished one does, listing the results it has (the seeded
-            // Overview problems; the worker's died with it) and enabling Scan Game again.
+            // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
+            // The reference's thread died without clearing thread_scan, so the scan stayed on Scanning... with the
+            // button disabled. The runner has already reported the error; the scan ends as a finished one does, listing
+            // the seeded Overview problems (whatever the scan found died with it) and enabling Scan Game again.
             outcome = ScanOutcome.Empty;
+        }
+
+        if (outcome.Error is { } error)
+        {
+            // The scan stopped early and returned its error rather than throwing it, so no runner reported it. Shown
+            // now, on the UI thread, so the Error Window is up before the partial results are listed.
+            _runtime.Errors.Report(ErrorReporter.OperationHeader(ScanOperation), error);
         }
 
         // check_scan_progress drains the queue before it finds the thread done; nothing is applied after this.
