@@ -267,7 +267,8 @@ public sealed class ScannerTab : TabPage
 
     /// <summary>
     /// Draws a Scan's end, wherever the user is: the scanning label hides, a <see cref="ScanEnded.Listed"/> Scan's
-    /// results are listed, and Scan Game is enabled again in the open side pane, if there is one. A
+    /// results are listed, and the open side pane, if there is one, shows Scan Game again, enabled unless every box is
+    /// unticked. A
     /// <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and unselectable.
     /// </summary>
     /// <param name="ended">How the Scan ended.</param>

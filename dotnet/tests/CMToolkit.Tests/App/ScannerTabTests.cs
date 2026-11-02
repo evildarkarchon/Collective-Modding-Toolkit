@@ -446,6 +446,30 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    [AvaloniaFact]
+    public void A_scan_that_ends_with_every_box_unticked_leaves_scan_game_disabled()
+    {
+        using var held = new HeldScan();
+        using var app = ScannerApp.Start(runScan: held.Run);
+        var side = app.Scanner.SidePane!;
+        MouseClick.On(side.ScanButton);
+        held.WaitUntilEntered();
+
+        foreach (var setting in ScanSettings.All)
+        {
+            ClickBoxAndWaitForTheSave(app, setting);
+            AssertScanning(side);
+        }
+
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
+        Assert.False(side.ScanButton.IsEnabled);
+        // The scan ran with the boxes it started from, so it still listed what they asked for.
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
+    }
+
     /// <summary>
     /// Clicks the side pane's box for <paramref name="setting"/>, then waits for the blocking save the change starts to
     /// land: a click while it is pending would be discarded (ADR-0003).
