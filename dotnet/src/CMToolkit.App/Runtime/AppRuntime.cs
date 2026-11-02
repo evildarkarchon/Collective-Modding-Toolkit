@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 namespace CMToolkit.App.Runtime;
 
 /// <summary>
-/// The App infrastructure every window and tab shares: the log, the Error Window, the input block and the
-/// background-operation runner. One instance is built at startup and passed down explicitly, so headless tests can
+/// The App infrastructure every window and tab shares: the log, the Error Window, the input block and the UI Action
+/// runner. One instance is built at startup and passed down explicitly, so headless tests can
 /// each run on their own.
 /// </summary>
 public sealed class AppRuntime
@@ -18,7 +18,7 @@ public sealed class AppRuntime
         Logger = logger;
         Input = new InputBlocker();
         Errors = new ErrorReporter(logger, Input);
-        Operations = new BackgroundOperations(Errors, Input);
+        Actions = new UiActions(Errors, Input);
     }
 
     /// <summary>The app log.</summary>
@@ -33,8 +33,8 @@ public sealed class AppRuntime
     /// </summary>
     public InputBlocker Input { get; }
 
-    /// <summary>The runner every Core call goes through.</summary>
-    public BackgroundOperations Operations { get; }
+    /// <summary>The UI Action runner: every async UI Action, and every Operation (each Core call), starts through it.</summary>
+    public UiActions Actions { get; }
 
     /// <summary>Where links open (NET-4): the user's browser, or a recorder in tests.</summary>
     public IBrowser Browser { get; init; } = ShellBrowser.Instance;

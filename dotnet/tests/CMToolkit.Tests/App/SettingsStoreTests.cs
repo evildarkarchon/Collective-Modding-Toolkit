@@ -26,9 +26,9 @@ public sealed class SettingsStoreTests
 
         // The first write is held mid-way, then the second save is made: two quick clicks on two radios.
         log.Hold(count: 1);
-        var firstSave = store.SaveAsync(runtime.Operations, first);
+        var firstSave = store.SaveAsync(runtime.Actions, first);
         DispatcherWait.Until(() => log.WritesOnUiThread.Count == 1);
-        var secondSave = store.SaveAsync(runtime.Operations, second);
+        var secondSave = store.SaveAsync(runtime.Actions, second);
         Assert.Equal(second, store.Current);
 
         // Room for the second write to overtake the held one, if anything let it.

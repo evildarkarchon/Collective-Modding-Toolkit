@@ -147,18 +147,16 @@ public sealed class OverviewTab : TabPage
     /// <exception cref="OperationFailedException">The load failed; the runner has reported it.</exception>
     protected internal override async Task<bool> LoadAsync()
     {
-        try
-        {
-            await _state.LoadAsync();
-        }
-        catch (OperationFailedException)
+        var outcome = await _state.TryLoadAsync();
+        if (outcome is OperationOutcome<OverviewReport>.Failed)
         {
             if (_state.Report is { } partial)
             {
                 await ShowWarningsAsync(partial.Warnings);
             }
 
-            throw;
+            // Already reported by the runner; this only ends the load, so the tab stays on its loading text.
+            outcome.ThrowIfFailed();
         }
 
         await ShowWarningsAsync(_state.Report!.Warnings);
@@ -316,7 +314,7 @@ public sealed class OverviewTab : TabPage
             Margin = new Thickness(10, 0),
         };
         ToolTip.SetTip(refresh, RefreshTooltip);
-        refresh.Click += (_, _) => _ = _runtime.Errors.Handle(_state.RefreshAsync);
+        refresh.Click += (_, _) => _ = _runtime.Actions.Start(_state.RefreshAsync);
         Place(refresh, 0, 3);
         Grid.SetRowSpan(refresh, 2);
         grid.Children.Add(refresh);
@@ -436,10 +434,11 @@ public sealed class OverviewTab : TabPage
             {
                 if (e.GetCurrentPoint(icon).Properties.IsLeftButtonPressed && TopLevel.GetTopLevel(icon) is Window owner)
                 {
-                    // Not awaited: like the reference's modal, it runs on while the click handler returns.
-                    _ = TreeWindow.Create(
+                    // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a
+                    // window that fails to open reaches the Error Window; Start's task never faults.
+                    _ = _runtime.Actions.Start(() => TreeWindow.Create(
                             _runtime, 400, 500, "Detected Invalid Module Versions", "", ["HEDR", " Module"], items, PythonFloat.Repr)
-                        .ShowModalAsync(owner);
+                        .ShowModalAsync(owner));
                 }
             };
             grid.Children.Add(icon);
@@ -691,8 +690,10 @@ public sealed class OverviewTab : TabPage
     {
         if (TopLevel.GetTopLevel(source) is Window owner)
         {
-            // Not awaited: like the reference's modal, it runs on while the click handler returns.
-            _ = new AboutWindow(_runtime, 750, 350, "Detected Mod Manager Settings", details).ShowModalAsync(owner);
+            // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a window that
+            // fails to open reaches the Error Window; Start's task never faults.
+            _ = _runtime.Actions.Start(
+                () => new AboutWindow(_runtime, 750, 350, "Detected Mod Manager Settings", details).ShowModalAsync(owner));
         }
     }
 

@@ -98,7 +98,7 @@ public sealed class DowngraderWindow : ModalWindow
     /// <summary>How many of the run's operations (clicks and polls) are scheduled or running.</summary>
     private int _operations;
 
-    /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
+    /// <param name="runtime">The app runtime: its log and UI Action runner.</param>
     /// <param name="game">The installation whose game folder holds the six files.</param>
     /// <param name="host">The machine the files are read on.</param>
     /// <param name="overview">
@@ -138,11 +138,11 @@ public sealed class DowngraderWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
-            // click handler that called it has nothing left to do. Handle's task never faults, so it can be discarded.
+            // Not awaited: opening shows the window and completes once it is built, and the click handler that called
+            // it has nothing left to do. Start's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
                 session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
-            _ = session.Runtime.Errors.Handle(() => window.OpenAsync(owner));
+            _ = session.Runtime.Actions.Start(() => window.OpenAsync(owner));
         }
     }
 
@@ -163,15 +163,21 @@ public sealed class DowngraderWindow : ModalWindow
     /// window's content.
     /// </summary>
     /// <returns>A task that completes once the window is built.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The window could not be shown (its owner has closed, say); thrown before the detection starts, which never runs.
+    /// </exception>
     /// <exception cref="OperationFailedException">
-    /// The detection failed and the runner has reported it. The rest of the constructor is skipped, as the exception
-    /// skipped it in Tk, and the window stays up, empty. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// The detection failed and the runner has reported it. The content is never built, and the window stays up, empty.
+    /// Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task OpenAsync(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes.
-        _ = ShowModalAsync(owner);
-        Versions = await Runtime.Operations.RunAsync(
+        // Taken first, so a window that fails to open throws here and ends the opener before the detection starts. The
+        // task completes only when the modal closes, so it is not awaited: it runs on as a UI Action of its own, which
+        // reports a later fault, and Start's task never faults.
+        var shown = ShowModalAsync(owner);
+        _ = Runtime.Actions.Start(() => shown);
+        Versions = await Runtime.Actions.Run(
             "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
 
         _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions) { PatchFolder = _patchFolder };
@@ -214,8 +220,8 @@ public sealed class DowngraderWindow : ModalWindow
     /// <returns>A task that completes when the click is done; a download it started goes on in the poll.</returns>
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
     /// <exception cref="OperationFailedException">
-    /// The click's run failed and the runner has reported it. The rest of <c>patch_files</c> is skipped, the button
-    /// staying disabled, as the exception left it in Tk. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// The click's run failed and the runner has reported it. The rest of the run is skipped, and the button stays
+    /// disabled. Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task PatchAllAsync()
     {
@@ -234,7 +240,7 @@ public sealed class DowngraderWindow : ModalWindow
         Interlocked.Increment(ref _operations);
         try
         {
-            await Runtime.Operations.RunPhasedAsync(
+            await Runtime.Actions.RunPhased(
                 "Downgrader Patch All", OperationPhase.Blocking, async _ =>
                 {
                     // The settings file is written inside the blocking operation, off the UI thread (ADR-0003), and
@@ -307,8 +313,7 @@ public sealed class DowngraderWindow : ModalWindow
     {
         // Counted now, on the run's thread, so the window never looks idle between the click and its poll.
         Interlocked.Increment(ref _operations);
-        // Handle's task never faults, so the posted job can discard it.
-        Dispatcher.UIThread.Post(() => _ = Runtime.Errors.Handle(() => PollAsync(poll)));
+        Runtime.Actions.Schedule(() => PollAsync(poll));
     }
 
     /// <summary>
@@ -323,7 +328,7 @@ public sealed class DowngraderWindow : ModalWindow
     {
         try
         {
-            await Runtime.Operations.RunPhasedAsync(
+            await Runtime.Actions.RunPhased(
                 "Downgrader download", OperationPhase.Interactive, async phases =>
                 {
                     await poll(phases).ConfigureAwait(false);
@@ -358,17 +363,10 @@ public sealed class DowngraderWindow : ModalWindow
         /// </remarks>
         public async Task<bool> RefreshOverviewAsync()
         {
-            try
-            {
-                await Dispatcher.UIThread.InvokeAsync(window._overview.RefreshAsync).ConfigureAwait(false);
-                return true;
-            }
-            catch (OperationFailedException)
-            {
-                // Translated, not propagated: IDowngraderHost is a Core seam and Core doesn't know the runner's exception
-                // (ADR-0003). Left to propagate, it would also fail the download poll, and be reported a second time.
-                return false;
-            }
+            var outcome = await Dispatcher.UIThread.InvokeAsync(window._overview.TryRefreshAsync).ConfigureAwait(false);
+            // Translated, not thrown: IDowngraderHost is a Core seam and Core doesn't know the runner's outcomes or
+            // exception (ADR-0003). Thrown, it would also fail the download poll, and be reported a second time.
+            return outcome is OperationOutcome<OverviewReport>.Succeeded;
         }
 
         public void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll) => window.SchedulePoll(poll);
@@ -434,7 +432,7 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
         };
-        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
+        patch.Click += (_, _) => _ = Runtime.Actions.Start(PatchAllAsync);
         grid.Children.Add(Place(patch, 0, 2, rowSpan: 2, margin: new Thickness(5, 10, 10, 0)));
 
         var about = new Button
@@ -446,7 +444,8 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
         };
         // The AboutWindow is transient to the Downgrader (parent=self), so it is owned by it.
-        about.Click += (_, _) => _ = new AboutWindow(Runtime, 500, 300, AboutTitle, AboutText).ShowModalAsync(this);
+        about.Click += (_, _) => _ = Runtime.Actions.Start(
+            () => new AboutWindow(Runtime, 500, 300, AboutTitle, AboutText).ShowModalAsync(this));
         grid.Children.Add(Place(about, 2, 2, margin: new Thickness(5, 5, 10, 0)));
 
         Log = new LogPane(Runtime.Logger) { Name = "Log", HorizontalAlignment = HorizontalAlignment.Stretch };

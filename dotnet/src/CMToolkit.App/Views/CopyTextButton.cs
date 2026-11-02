@@ -19,14 +19,14 @@ public static class CopyTextButton
 
     /// <summary>
     /// Makes <paramref name="button"/> copy <paramref name="text"/> when clicked. The copy is a UI Action started through
-    /// <see cref="ErrorReporter.Handle"/>, so a failure is reported to the Error Window as an exception on the UI
+    /// <see cref="UiActions.Start"/>, so a failure is reported to the Error Window as an exception on the UI
     /// thread, like any other callback's.
     /// </summary>
     /// <param name="button">The button; its content is its idle text.</param>
     /// <param name="text">What it copies.</param>
     /// <param name="runtime">The app runtime: its clock times the revert, its error reporter takes failures.</param>
     public static void Attach(Button button, string text, AppRuntime runtime)
-        => button.Click += (_, _) => _ = runtime.Errors.Handle(() => CopyAsync(button, text, runtime.Time));
+        => button.Click += (_, _) => _ = runtime.Actions.Start(() => CopyAsync(button, text, runtime.Time));
 
     /// <summary>
     /// One click: the clipboard is replaced (<c>clipboard_clear</c> + <c>clipboard_append</c>), the button shows

@@ -93,7 +93,10 @@ public sealed class ArchivePatcherWindowScenarioTests
         void PatchAll()
         {
             MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
-            DispatcherWait.Until(() => !patcher.ProcessingData);
+            // The click blocks input before its first await, and the block lifts only once the run, the refresh and
+            // the repopulate are over, so its end marks the end of Patch All, failed or not. Polled because the click
+            // starts the action itself and discards its task.
+            DispatcherWait.Until(() => !app.Session.Runtime.Input.IsBlocking);
             patcher.UpdateLayout();
         }
 

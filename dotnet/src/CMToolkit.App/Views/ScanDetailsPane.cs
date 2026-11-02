@@ -168,7 +168,7 @@ public sealed class ScanDetailsPane : UserControl
         if (_copy is null)
         {
             _copy = PaneButton("Copy Details");
-            _copy.Click += (_, _) => _ = _runtime.Errors.Handle(CopyDetailsAsync);
+            _copy.Click += (_, _) => _ = _runtime.Actions.Start(CopyDetailsAsync);
             _buttons.Children.Add(_copy);
         }
 
@@ -285,13 +285,13 @@ public sealed class ScanDetailsPane : UserControl
         else if (point.IsRightButtonPressed)
         {
             // <Button-3>: copy_text(url), the clipboard alone, with no Copied! anywhere.
-            _ = _runtime.Errors.Handle(() => CopyUrlAsync(url));
+            _ = _runtime.Actions.Start(() => CopyUrlAsync(url));
         }
     }
 
     /// <summary>
     /// Puts <paramref name="url"/> on the clipboard. A UI Action: the right click starts it through
-    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
+    /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <exception cref="InvalidOperationException">The pane is not in a window, so there is no clipboard.</exception>
     private async Task CopyUrlAsync(string url)
@@ -302,9 +302,9 @@ public sealed class ScanDetailsPane : UserControl
     }
 
     /// <summary>
-    /// <c>copy_details</c>: the shown rows to the clipboard, and <c>Copied!</c> for 3 s (THR-3). The text is read at click
-    /// time, since Copy Details is the one button that outlives a selection. A UI Action: the click starts it through
-    /// <see cref="ErrorReporter.Handle"/>, which reports a failure in the Error Window.
+    /// Copy Details: the shown rows to the clipboard, and <c>Copied!</c> for 3 s. The text is read at click time, since
+    /// Copy Details is the one button that outlives a selection. A UI Action: the click starts it through
+    /// <see cref="UiActions.Start"/>, which reports a failure in the Error Window.
     /// </summary>
     /// <exception cref="InvalidOperationException">The pane is not in a window, so there is no clipboard.</exception>
     private Task CopyDetailsAsync()
@@ -333,7 +333,8 @@ public sealed class ScanDetailsPane : UserControl
             headers,
             [.. fileList.Select(f => (f.Count, f.File.ToString()))],
             count => count.ToString(CultureInfo.InvariantCulture));
-        // Not awaited: like the reference's modal, it runs on while the click handler returns.
-        _ = window.ShowModalAsync(owner);
+        // Not awaited: the modal runs on while the click handler returns. Started as a UI Action, so a window that fails
+        // to open reaches the Error Window; Start's task never faults.
+        _ = _runtime.Actions.Start(() => window.ShowModalAsync(owner));
     }
 }

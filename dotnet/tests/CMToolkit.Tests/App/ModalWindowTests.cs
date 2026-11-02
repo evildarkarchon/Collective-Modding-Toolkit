@@ -137,7 +137,7 @@ public sealed class ModalWindowTests
         var about = ShowAbout(runtime, owner);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
         Press(about, Key.Space, PhysicalKey.Space);
         Press(about, Key.Escape, PhysicalKey.Escape);
         Assert.True(about.IsVisible);
@@ -146,6 +146,30 @@ public sealed class ModalWindowTests
         await operation;
         Dispatcher.UIThread.RunJobs();
 
+        Assert.False(about.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public async Task An_escape_deferred_by_a_blocking_operation_still_meets_the_close_guard_once_it_ends()
+    {
+        var (runtime, owner) = ShowOwner();
+        var about = ShowAbout(runtime, owner);
+        about.ProcessingData = true;
+        var gate = new TaskCompletionSource();
+
+        var operation = runtime.Actions.Run("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
+        Press(about, Key.Escape, PhysicalKey.Escape);
+        Assert.True(about.IsVisible);
+
+        gate.SetResult();
+        await operation;
+        Dispatcher.UIThread.RunJobs();
+
+        // The Escape held back by the operation is handled once it ends, and the guard, still set, refuses it then.
+        Assert.True(about.IsVisible);
+
+        about.ProcessingData = false;
+        Press(about, Key.Escape, PhysicalKey.Escape);
         Assert.False(about.IsVisible);
     }
 

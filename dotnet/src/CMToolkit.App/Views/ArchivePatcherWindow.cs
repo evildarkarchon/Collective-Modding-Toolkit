@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -24,8 +23,8 @@ namespace CMToolkit.App.Views;
 /// lists the archives again (AP-3).
 /// </summary>
 /// <remarks>
-/// The Core run is a blocking operation (ADR-0003), and one input block is held across it, the Overview refresh and the
-/// repopulate. A failure in the run or the refresh still ends with the close guard cleared and the list repopulated.
+/// The Core run is a Blocking Operation (ADR-0003), and one input block is held across it, the Overview refresh and the
+/// repopulate. A failure in the run or the refresh still ends with the list repopulated and input back.
 /// </remarks>
 public sealed class ArchivePatcherWindow : ModalWindow
 {
@@ -66,7 +65,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     private readonly StackPanel _rows = new() { Name = "Files" };
     private readonly TextBox _nameFilterBox;
 
-    /// <param name="runtime">The app runtime: its log, input block and background operations.</param>
+    /// <param name="runtime">The app runtime: its log and UI Action runner.</param>
     /// <param name="game">The installation; the patcher needs its Data folder.</param>
     /// <param name="host">The machine the archives are patched on.</param>
     /// <param name="overview">
@@ -139,58 +138,61 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// </exception>
     public void ShowOver(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes.
-        _ = ShowModalAsync(owner);
+        // Taken first, so a window that fails to open throws here, before the list is filled, and the click that opened
+        // it reports the failure. The task completes only when the modal closes, so it is not awaited: it runs on as a
+        // UI Action of its own, which reports a later fault, and Start's task never faults.
+        var shown = ShowModalAsync(owner);
+        _ = Runtime.Actions.Start(() => shown);
         PopulateTree();
     }
 
     /// <summary>
-    /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a blocking operation, its log lines going
-    /// to the pane as they come, then refreshes the Overview Report and lists the archives again. The close guard is set
-    /// throughout. A UI Action: the button starts it through <see cref="ErrorReporter.Handle"/>.
+    /// Patch All: patches <see cref="FilesToPatch"/> to the Desired Version as a Blocking Operation, its log lines going
+    /// to the pane as they come, then refreshes the Overview Report and lists the archives again, all in one
+    /// <see cref="UiActions.Blocking"/> span. A Close or Escape meanwhile waits until it is over. A UI Action: the
+    /// button starts it through <see cref="UiActions.Start"/>.
     /// </summary>
     /// <remarks>
     /// A failed patch run may have patched some archives before it died, so the refresh still runs after it. Whichever
-    /// step fails, the close guard is cleared and the list is repopulated from the current report: after a failed
-    /// refresh that is the partial report it left, if it carried one, otherwise the previous report.
+    /// step fails, the list is repopulated from the current report before input comes back: after a failed refresh
+    /// that is the partial report it left, if it carried one, otherwise the previous report.
     /// </remarks>
     /// <returns>A task that completes when the run is over, failed or not.</returns>
-    /// <exception cref="InvalidOperationException">The game has no Data folder; the close guard was never set.</exception>
+    /// <exception cref="InvalidOperationException">The game has no Data folder; input was never blocked.</exception>
     /// <exception cref="OperationFailedException">
-    /// The patch run or the refresh failed; the runner has already reported it. When both fail, the refresh's failure is
-    /// the one thrown.
+    /// The patch run, the refresh or the repopulate failed, and the error has been reported. When the run and the
+    /// refresh both fail, the refresh's failure is the one thrown.
     /// </exception>
     public async Task PatchAllAsync()
     {
         AssertDataPath();
         // One block across the run, the refresh and the repopulate, so no input lands between them and the list is never
         // shown against a report that the run has made stale.
-        using var block = Runtime.Input.Block();
-        ProcessingData = true;
-        try
+        await Runtime.Actions.Blocking(async () =>
         {
-            var patchFailure = await PatchAsync();
-            await _overview.RefreshAsync();
-            // The refresh succeeded, so the list is right; the patch run's failure, if any, still ends the action.
-            patchFailure?.Throw();
-        }
-        finally
-        {
-            // Cleared first: the window must be able to close even if listing the archives were to throw.
-            ProcessingData = false;
-            PopulateTree();
-        }
+            try
+            {
+                var patched = await PatchAsync();
+                await _overview.RefreshAsync();
+                // The refresh succeeded, so the list is right; the patch run's failure, if any, still ends the action.
+                patched.ThrowIfFailed();
+            }
+            finally
+            {
+                PopulateTree();
+            }
+        });
     }
 
     /// <summary>
-    /// The patch run itself, as the blocking operation <c>Archive Patcher</c>, logged between <c>Patcher Running</c> and
+    /// The patch run itself, as the Blocking Operation <c>Archive Patcher</c>, logged between <c>Patcher Running</c> and
     /// <c>Patcher Finished</c>.
     /// </summary>
     /// <returns>
-    /// Null when the run finished, otherwise its <see cref="OperationFailedException"/>, already reported by the runner,
-    /// captured so that Patch All can refresh before rethrowing it.
+    /// The run's outcome. A failure has already been reported by the runner, and is handed back rather than thrown so
+    /// that Patch All can refresh before it ends the action.
     /// </returns>
-    private async Task<ExceptionDispatchInfo?> PatchAsync()
+    private async Task<OperationOutcome<ArchivePatchResult>> PatchAsync()
     {
         Runtime.Logger.Write(LogLevel.Information, "Patcher Running: ArchivePatcher");
         var files = FilesToPatch;
@@ -203,18 +205,14 @@ public sealed class ArchivePatcherWindow : ModalWindow
                 Log.Log(line);
             }
         });
-        try
+        var outcome = await Runtime.Actions.TryRun(
+            "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
+        if (outcome is OperationOutcome<ArchivePatchResult>.Succeeded)
         {
-            await Runtime.Operations.RunAsync(
-                "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
-        }
-        catch (OperationFailedException ex)
-        {
-            return ExceptionDispatchInfo.Capture(ex);
+            Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
         }
 
-        Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
-        return null;
+        return outcome;
     }
 
     /// <summary><c>filter_text</c>: which archives the list shows for the Desired Version.</summary>
@@ -286,12 +284,13 @@ public sealed class ArchivePatcherWindow : ModalWindow
         // pack(side=RIGHT, padx=24, pady=5).
         about.Margin = new Thickness(24, 5);
         // The AboutWindow is transient to the patcher (parent=self), so it is owned by it.
-        about.Click += (_, _) => _ = new AboutWindow(Runtime, 500, 435, AboutTitle, AboutText).ShowModalAsync(this);
+        about.Click += (_, _) => _ = Runtime.Actions.Start(
+            () => new AboutWindow(Runtime, 500, 435, AboutTitle, AboutText).ShowModalAsync(this));
         DockPanel.SetDock(about, Dock.Right);
 
         var patch = TopButton("PatchAll", "Patch All");
         patch.Margin = new Thickness(5);
-        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
+        patch.Click += (_, _) => _ = Runtime.Actions.Start(PatchAllAsync);
         DockPanel.SetDock(patch, Dock.Right);
 
         var oldGen = Radio("OldGen", "v1 (OG)", ArchiveVersion.OldGen, isChecked: true);
