@@ -7,16 +7,56 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CMToolkit.Core.Scanner;
 
-/// <summary>What the scan worker hands back: its problems, appended to the seeded results, and the mod file index.</summary>
-/// <param name="Problems">The worker's problems, in the order it found them.</param>
-/// <param name="Index">
-/// The mod file index (SCN-S6), which only a data walk in MO2 stage mode builds; null otherwise. SCN-R2 looks the
-/// Overview problems' mods up in it.
+/// <summary>
+/// What the scan worker hands back: its problems, appended to the seeded results, the mod file index, and the error that
+/// stopped the scan early, if one did.
+/// </summary>
+/// <param name="Problems">
+/// The worker's problems, in the order it found them. A scan that stopped early ends them with the
+/// <see cref="StoppedEarlyRow"/>.
 /// </param>
-public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Index)
+/// <param name="Index">
+/// The mod file index (SCN-S6), which only a data walk in MO2 stage mode builds; null otherwise, and always null when
+/// the scan stopped early. SCN-R2 looks the Overview problems' mods up in it.
+/// </param>
+/// <param name="Error">
+/// The unexpected error that stopped the scan early, as it was thrown; null for a scan that finished. The worker doesn't
+/// log or report it: its caller does, once.
+/// </param>
+public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Index, Exception? Error = null)
 {
+    private const string StoppedEarlyItem = "Scan stopped early";
+
+    private const string StoppedEarlySummary =
+        "The scan stopped at an unexpected error, so its results are incomplete. The error is shown in the error window and saved to the log.";
+
+    private const string StoppedEarlySolution =
+        "Scan again. If it stops again, share the error from the log with the Collective Modding Discord.";
+
     /// <summary>No problems and no index.</summary>
     public static ScanOutcome Empty { get; } = new([], null);
+
+    /// <summary>
+    /// The row that ends a scan that stopped early: a simple problem in its own group,
+    /// <see cref="ScanProblemTypes.IncompleteScan"/>, so it isn't mistaken for a problem with the user's setup.
+    /// </summary>
+    public static Problem StoppedEarlyRow { get; } =
+        Problem.Simple(StoppedEarlyItem, ScanProblemTypes.IncompleteScan, StoppedEarlySummary, StoppedEarlySolution);
+
+    /// <summary>
+    /// The outcome of a scan that <paramref name="error"/> stopped early: the problems found before it, then the
+    /// <see cref="StoppedEarlyRow"/>, with no mod file index.
+    /// </summary>
+    /// <param name="found">The problems found before the error, in the order found. Copied, so the caller may reuse it.</param>
+    /// <param name="error">The error, kept as thrown so the Error Window shows it and not a wrapper.</param>
+    public static ScanOutcome StoppedEarly(IEnumerable<Problem> found, Exception error)
+    {
+        ArgumentNullException.ThrowIfNull(found);
+        ArgumentNullException.ThrowIfNull(error);
+        // Added directly, not through the Overview's problem-logging helper: the error's own log entry, with its
+        // traceback, is the only record of the failure.
+        return new([.. found, StoppedEarlyRow], null, error);
+    }
 }
 
 /// <summary>
@@ -52,12 +92,16 @@ public static class ScanWorker
     /// if ticked, then, unless no data check is ticked, the mod file index (SCN-S6) and the walk of Data (SCN-C1..C9),
     /// reporting each top-level folder it enters (SCN-S4). When MO2's configuration stops the index (no selected
     /// profile, or no <c>modlist.txt</c>), its problem row follows what was found before and the walk is skipped
-    /// (bug #22).
+    /// (bug #22). Those rows aren't failures.
     /// </summary>
+    /// <remarks>
+    /// An unexpected error from a check, such as a <c>modlist.txt</c> that isn't UTF-8, doesn't escape: the scan stops
+    /// there and returns <see cref="ScanOutcome.StoppedEarly"/>, the problems found before it and then the stopped-early
+    /// row, with the error on the outcome and no index. The worker neither logs nor reports the error; its caller does.
+    /// </remarks>
     /// <param name="settings">The scan's settings snapshot.</param>
     /// <param name="progress">Where progress updates go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
-    /// <exception cref="System.Text.DecoderFallbackException">MO2's <c>modlist.txt</c> isn't UTF-8 (T-1).</exception>
     public static ScanOutcome Run(ScanSettings settings, IProgress<ScanUpdate>? progress, ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -69,6 +113,26 @@ public static class ScanWorker
         }
 
         var problems = new List<Problem>();
+        try
+        {
+            return RunChecks(settings, data, progress, logger, problems);
+        }
+        catch (Exception ex)
+        {
+            // Everything a check throws: whatever they found before it is still worth listing. There is no cancellation
+            // to let through, and a bug in a check is exactly the kind of error the stopped-early row is for.
+            return ScanOutcome.StoppedEarly(problems, ex);
+        }
+    }
+
+    /// <summary>
+    /// The checks <see cref="Run(ScanSettings, IProgress{ScanUpdate}?, ILogger)"/> runs over <paramref name="data"/>,
+    /// adding what they find to <paramref name="problems"/> as they go, so a caller catching a throw still has the
+    /// problems found before it.
+    /// </summary>
+    private static ScanOutcome RunChecks(
+        ScanSettings settings, PythonPath data, IProgress<ScanUpdate>? progress, ILogger logger, List<Problem> problems)
+    {
         if (settings[ScanSetting.RaceSubgraphs])
         {
             progress?.Report(new ScanUpdate.Folder(RaceSubgraphStep));
