@@ -8,22 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace CMToolkit.Core.Scanner;
 
 /// <summary>
-/// What the scan worker hands back: its problems, appended to the seeded results, the mod file index, and the error that
+/// What a <see cref="Scan"/> hands back: everything the Scanner tab lists, the mod file index, and the error that
 /// stopped the scan early, if one did.
 /// </summary>
-/// <param name="Problems">
-/// The worker's problems, in the order it found them. A scan that stopped early ends them with the
-/// <see cref="StoppedEarlyRow"/>.
-/// </param>
-/// <param name="Index">
-/// The mod file index (SCN-S6), which only a data walk in MO2 stage mode builds; null otherwise, and always null when
-/// the scan stopped early. SCN-R2 looks the Overview problems' mods up in it.
-/// </param>
-/// <param name="Error">
-/// The unexpected error that stopped the scan early, as it was thrown; null for a scan that finished. The worker doesn't
-/// log or report it: its caller does, once.
-/// </param>
-public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Index, Exception? Error = null)
+public sealed class ScanOutcome
 {
     private const string StoppedEarlyItem = "Scan stopped early";
 
@@ -33,8 +21,53 @@ public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Inde
     private const string StoppedEarlySolution =
         "Scan again. If it stops again, share the error from the log with the Collective Modding Discord.";
 
+    /// <summary>
+    /// The outcome of a scan that found <paramref name="problems"/>, with the groups of the results tree made from them
+    /// and <paramref name="index"/>, so the groups always match the list.
+    /// </summary>
+    /// <param name="problems">
+    /// The full ordered problem list: the seed, then the checks' problems in the order found, then the
+    /// <see cref="StoppedEarlyRow"/> when the scan stopped early.
+    /// </param>
+    /// <param name="index">The mod file index, or null when none was built.</param>
+    /// <param name="error">The error that stopped the scan early, or null for a scan that finished.</param>
+    public ScanOutcome(IReadOnlyList<Problem> problems, ModFiles? index, Exception? error = null)
+    {
+        ArgumentNullException.ThrowIfNull(problems);
+        Problems = problems;
+        Index = index;
+        Error = error;
+        // Grouping is a pure function of the list and the index, so the outcome is the one place it is called.
+        Groups = ScanResults.Group(problems, index);
+    }
+
     /// <summary>No problems and no index.</summary>
     public static ScanOutcome Empty { get; } = new([], null);
+
+    /// <summary>
+    /// Everything the scan lists, in order: the Overview Report's problems when Overview Issues is ticked, then the
+    /// checks' problems in the order found, then the <see cref="StoppedEarlyRow"/> when the scan stopped early.
+    /// </summary>
+    public IReadOnlyList<Problem> Problems { get; }
+
+    /// <summary>
+    /// The results tree's groups (<see cref="ScanResults.Group"/>): one per problem type, in the order the types first
+    /// appear in <see cref="Problems"/>, each sorted by type + mod, with the Overview problems' mods looked up in the
+    /// <see cref="Index"/>.
+    /// </summary>
+    public IReadOnlyList<ScanResultGroup> Groups { get; }
+
+    /// <summary>
+    /// The mod file index (SCN-S6), which only a data walk in MO2 stage mode builds; null otherwise, and always null when
+    /// the scan stopped early. SCN-R2 looks the Overview problems' mods up in it.
+    /// </summary>
+    public ModFiles? Index { get; }
+
+    /// <summary>
+    /// The unexpected error that stopped the scan early, as it was thrown; null for a scan that finished. The scan doesn't
+    /// log or report it: its caller does, once.
+    /// </summary>
+    public Exception? Error { get; }
 
     /// <summary>
     /// The row that ends a scan that stopped early: a simple problem in its own group,
@@ -47,7 +80,10 @@ public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Inde
     /// The outcome of a scan that <paramref name="error"/> stopped early: the problems found before it, then the
     /// <see cref="StoppedEarlyRow"/>, with no mod file index.
     /// </summary>
-    /// <param name="found">The problems found before the error, in the order found. Copied, so the caller may reuse it.</param>
+    /// <param name="found">
+    /// The problems listed before the error, in order: the seed, then what the checks found. Copied, so the caller may
+    /// reuse it.
+    /// </param>
     /// <param name="error">The error, kept as thrown so the Error Window shows it and not a wrapper.</param>
     public static ScanOutcome StoppedEarly(IEnumerable<Problem> found, Exception error)
     {
@@ -60,8 +96,10 @@ public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Inde
 }
 
 /// <summary>
-/// <c>ScannerTab.scan_data_files</c>: the work the reference ran on its scan thread, which the App runs as an
-/// interactive operation (THR-1, ADR-0003).
+/// A Scan, from its snapshot of the Scan Settings to everything the Scanner tab lists. The Overview refresh, the first
+/// step of a Scan, happens before <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> is called: the
+/// snapshot carries what the scan reads from its Overview Report. Synchronous and unaware of threads; the App runs it
+/// as an interactive operation (ADR-0003).
 /// </summary>
 public static class Scan
 {
@@ -85,15 +123,17 @@ public static class Scan
     // b"\x00\x53\x41\x44\x44": a NUL then the SADD record tag.
     private static readonly byte[] SaddBytes = [0x00, 0x53, 0x41, 0x44, 0x44];
 
-    /// <summary>Runs the scan's worker part for <paramref name="settings"/>, reporting no progress and logging nothing.</summary>
+    /// <summary>Runs the Scan for <paramref name="settings"/> after its Overview refresh, reporting no progress and logging nothing.</summary>
     /// <param name="settings">The scan's settings snapshot.</param>
     public static ScanOutcome Run(ScanSettings settings) => Run(settings, null, NullLogger.Instance);
 
     /// <summary>
-    /// Runs the scan's worker part: without a Data folder it finds nothing. Otherwise the Race Subgraphs count (SCN-S5)
-    /// if ticked, then, unless no data check is ticked, the mod file index (SCN-S6) and the walk of Data (SCN-C1..C9).
-    /// When MO2's configuration stops the index (no selected profile, or no <c>modlist.txt</c>), its problem row
-    /// follows what was found before and the walk is skipped (bug #22). Those rows aren't failures.
+    /// Runs everything in a Scan after the Overview refresh. The results start with the seed: the snapshot's Overview
+    /// Report problems, in their order, when Overview Issues is ticked; none otherwise. Without a Data folder nothing
+    /// more is found. Otherwise the Race Subgraphs count if ticked, then, unless no data check is ticked, the mod file
+    /// index and the walk of Data. When MO2's configuration stops the index (no selected profile, or no
+    /// <c>modlist.txt</c>), its problem row follows what was found before and the walk is skipped. Those rows aren't
+    /// failures.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -106,23 +146,25 @@ public static class Scan
     /// <para>
     /// An unexpected error from a check, such as a <c>modlist.txt</c> that isn't UTF-8, doesn't escape: the scan stops
     /// there and returns <see cref="ScanOutcome.StoppedEarly"/>, the problems found before it and then the stopped-early
-    /// row, with the error on the outcome and no index. The worker neither logs nor reports the error; its caller does.
+    /// row, with the error on the outcome and no index. The scan neither logs nor reports the error; its caller does.
     /// </para>
     /// </remarks>
-    /// <param name="settings">The scan's settings snapshot.</param>
+    /// <param name="settings">The scan's settings snapshot, which carries its Overview Report's problems.</param>
     /// <param name="progress">Where the scan's statuses go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
+    /// <returns>The full ordered problem list, its groups, the mod file index and the error, if any.</returns>
     public static ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus>? progress, ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(logger);
+        // The checks append to the seed, so a scan that stops early still lists it first.
+        var problems = new List<Problem>(ScanResults.Seed(settings[ScanSetting.OverviewIssues], settings.OverviewProblems));
         var data = settings.Game.DataPath;
         if (data is null)
         {
-            return ScanOutcome.Empty;
+            return new ScanOutcome(problems, null);
         }
 
-        var problems = new List<Problem>();
         try
         {
             return RunChecks(settings, data, new ScanProgressTracker(progress), logger, problems);

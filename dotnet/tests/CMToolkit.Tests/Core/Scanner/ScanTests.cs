@@ -1,19 +1,104 @@
 using System.Diagnostics;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Scanner;
+using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// The scan worker's pieces the scenarios can't reach cheaply: the SADD count across read chunks (SCN-S5) and the
-/// <c>Path.walk</c> emulation's order, pruning and link handling that the data walk and the mod file index stand on.
+/// The Scan's rules over a materialized scenario: the seed from the Overview Report, the order of the problem list
+/// and the groups on the outcome. Then the pieces the scenarios can't reach cheaply: the SADD count across read chunks
+/// (SCN-S5) and the <c>Path.walk</c> emulation's order, pruning and link handling that the data walk and the mod file
+/// index stand on.
 /// </summary>
 public sealed class ScanTests
 {
     private const int Chunk = 1 << 20;
 
     private static readonly byte[] Sadd = [0x00, 0x53, 0x41, 0x44, 0x44];
+
+    // scanner/data-walk-mo2's Overview Report problems, in the report's order.
+    private static readonly (string Kind, string Item)[] OverviewProblems =
+    [
+        ("Invalid Module", "BadMagic.esp"),
+        ("File Not Found", "Fallout4 - TexturesPatch.ba2"),
+        ("Invalid Archive", "BadMagic - main.ba2"),
+        ("Wrong Version", "f4se_loader.exe"),
+    ];
+
+    [Fact]
+    public async Task With_overview_issues_ticked_the_overview_problems_come_first_then_what_the_checks_found()
+    {
+        using var materialized = Materialize("scanner/data-walk-mo2");
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+        var checksOnly = Scan.Run(machine.Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues)));
+
+        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+
+        Assert.Equal(OverviewProblems, outcome.Problems.Take(OverviewProblems.Length).Select(KindAndItem));
+        // Then the checks' problems, in the order found: what the same scan finds without the seed.
+        Assert.NotEmpty(checksOnly.Problems);
+        Assert.Equal(checksOnly.Problems.Select(KindAndItem), outcome.Problems.Skip(OverviewProblems.Length).Select(KindAndItem));
+    }
+
+    [Fact]
+    public async Task With_overview_issues_unticked_no_overview_problem_is_listed()
+    {
+        using var materialized = Materialize("scanner/data-walk-mo2");
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+
+        var outcome = Scan.Run(machine.Snapshot([ScanSetting.JunkFiles]));
+
+        Assert.Equal([("Junk File", "Thumbs.db")], outcome.Problems.Select(KindAndItem));
+    }
+
+    [Fact]
+    public async Task Overview_issues_alone_lists_the_overview_problems_in_their_order()
+    {
+        using var materialized = Materialize("scanner/data-walk-mo2");
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+
+        var outcome = Scan.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
+
+        Assert.Equal(OverviewProblems, outcome.Problems.Select(KindAndItem));
+        Assert.Null(outcome.Error);
+        Assert.Null(outcome.Index);
+    }
+
+    [Fact]
+    public async Task The_outcome_groups_its_problems_by_type_naming_the_mod_that_supplies_an_overview_problems_file()
+    {
+        using var materialized = Materialize("scanner/data-walk-mo2");
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+
+        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+
+        Assert.Equal(
+            [
+                "Invalid Module", "File Not Found", "Invalid Archive", "Wrong Version", "Junk File", "Loose Previs",
+                "Loose AnimTextData", "F4SE Script Override", "Unexpected Format",
+            ],
+            outcome.Groups.Select(g => g.Kind));
+        // The Overview's module and archive problems name the mod that has the file at its root, through the index.
+        Assert.Equal("LowMod", Assert.Single(outcome.Groups[0].Items).Mod);
+        Assert.Equal("HighMod", Assert.Single(outcome.Groups[2].Items).Mod);
+        // Sorted by type + mod within a group.
+        Assert.Equal(["<Unmanaged>", "HighMod", "LowMod"], outcome.Groups[^1].Items.Select(p => p.Mod));
+        Assert.Equal(outcome.Problems.Count, outcome.Groups.Sum(g => g.Items.Count));
+    }
+
+    [Fact]
+    public async Task Without_a_mod_file_index_the_overview_problems_name_no_mod()
+    {
+        using var materialized = Materialize("scanner/data-walk-mo2");
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+
+        // No data check is ticked, so no index is built to name the mods.
+        var outcome = Scan.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
+
+        Assert.Equal(["", "", "", "<Unmanaged>"], outcome.Groups.SelectMany(g => g.Items).Select(p => p.Mod));
+    }
 
     [Theory]
     [Trait("Parity", "SCN-S5")]
@@ -99,4 +184,8 @@ public sealed class ScanTests
 
         Assert.Empty(PythonWalk.TopDown(new PythonPath(Path.Combine(temp.Path, "missing")), p => p.ToString()));
     }
+
+    private static MaterializedScenario Materialize(string id) => ParityScenarios.All().Single(s => s.Id == id).Materialize();
+
+    private static (string Kind, string Item) KindAndItem(CMToolkit.Core.Problems.Problem problem) => (problem.Kind, problem.ItemText);
 }

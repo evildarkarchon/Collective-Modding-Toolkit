@@ -78,7 +78,7 @@ public sealed class ScannerTabProgressTests
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
     [Trait("Parity", "B-3")]
-    [Deviation(22, "A worker that dies unexpectedly has its queued updates applied, and then the scan ends listing the seeded Overview problems only instead of staying stuck.")]
+    [Deviation(22, "A worker that dies unexpectedly has its queued updates applied, and then the scan ends instead of staying stuck.")]
     public void A_worker_that_dies_has_its_updates_applied_and_then_the_scan_ends()
     {
         var applied = new List<string>();
@@ -152,7 +152,7 @@ public sealed class ScannerTabProgressTests
             var runtime = new AppRuntime(new CapturingLogger());
             var state = new OverviewState(runtime, p => CMToolkit.Core.Overview.OverviewReport.Gather(game, machine.Host, runtime.Logger, p));
             var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, Worker = worker };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = worker };
             // The Scanner needs only the loaded module, not an Overview tab; the first tab is a placeholder.
             var window = new MainWindow(runtime, [new ProbeTab("Other", "OtherTab"), scanner]);
             window.Show();

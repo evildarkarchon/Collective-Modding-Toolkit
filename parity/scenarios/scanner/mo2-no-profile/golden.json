@@ -1,6 +1,5 @@
 {
   "scanner": {
-    "errors": 0,
     "runs": [
       {
         "boxes": [
@@ -12,529 +11,359 @@
           "Problem Overrides",
           "Race Subgraphs"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "BadMagic.esp",
-                    "mod": "",
-                    "path": "Game\\Data\\BadMagic.esp",
-                    "relativePath": "BadMagic.esp",
-                    "solution": null,
-                    "summary": "Module is either corrupt or not in TES4 format.",
-                    "type": "Invalid Module"
-                  },
-                  "text": "BadMagic.esp",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Invalid Module"
-            },
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "Fallout4 - TexturesPatch.ba2",
-                    "mod": "",
-                    "path": null,
-                    "relativePath": "Fallout4 - TexturesPatch.ba2",
-                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
-                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
-                    "type": "File Not Found"
-                  },
-                  "text": "Fallout4 - TexturesPatch.ba2",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "File Not Found"
-            },
-            {
-              "items": [
-                {
-                  "$unordered": [
-                    {
-                      "problem": {
-                        "extraData": null,
-                        "fileList": null,
-                        "itemText": "BadMagic - main.ba2",
-                        "mod": "",
-                        "path": "Game\\Data\\BadMagic - main.ba2",
-                        "relativePath": "BadMagic - main.ba2",
-                        "solution": null,
-                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
-                        "type": "Invalid Archive"
-                      },
-                      "text": "BadMagic - main.ba2",
-                      "values": [
-                        ""
-                      ]
-                    }
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Invalid Archive"
-            },
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "f4se_loader.exe",
-                    "mod": "<Unmanaged>",
-                    "path": "Game\\f4se_loader.exe",
-                    "relativePath": "f4se_loader.exe",
-                    "solution": null,
-                    "summary": "The version of this binary does not match your installed game version.",
-                    "type": "Wrong Version"
-                  },
-                  "text": "f4se_loader.exe",
-                  "values": [
-                    "<Unmanaged>"
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Wrong Version"
-            },
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "5 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Counting Race Subgraph records..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "BadMagic.esp",
+                "mod": "",
+                "path": "Game\\Data\\BadMagic.esp",
+                "relativePath": "BadMagic.esp",
+                "solution": null,
+                "summary": "Module is either corrupt or not in TES4 format.",
+                "type": "Invalid Module"
+              }
+            ],
+            "kind": "Invalid Module"
           },
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "Fallout4 - TexturesPatch.ba2",
+                "mod": "",
+                "path": null,
+                "relativePath": "Fallout4 - TexturesPatch.ba2",
+                "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                "type": "File Not Found"
+              }
+            ],
+            "kind": "File Not Found"
+          },
+          {
+            "items": [
+              {
+                "$unordered": [
+                  {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "BadMagic - main.ba2",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic - main.ba2",
+                    "relativePath": "BadMagic - main.ba2",
+                    "solution": null,
+                    "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                    "type": "Invalid Archive"
+                  }
+                ]
+              }
+            ],
+            "kind": "Invalid Archive"
+          },
+          {
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "f4se_loader.exe",
+                "mod": "<Unmanaged>",
+                "path": "Game\\f4se_loader.exe",
+                "relativePath": "f4se_loader.exe",
+                "solution": null,
+                "summary": "The version of this binary does not match your installed game version.",
+                "type": "Wrong Version"
+              }
+            ],
+            "kind": "Wrong Version"
+          },
+          {
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Counting Race Subgraph records..."
+          },
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Overview Issues"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "BadMagic.esp",
-                    "mod": "",
-                    "path": "Game\\Data\\BadMagic.esp",
-                    "relativePath": "BadMagic.esp",
-                    "solution": null,
-                    "summary": "Module is either corrupt or not in TES4 format.",
-                    "type": "Invalid Module"
-                  },
-                  "text": "BadMagic.esp",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Invalid Module"
-            },
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "Fallout4 - TexturesPatch.ba2",
-                    "mod": "",
-                    "path": null,
-                    "relativePath": "Fallout4 - TexturesPatch.ba2",
-                    "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
-                    "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
-                    "type": "File Not Found"
-                  },
-                  "text": "Fallout4 - TexturesPatch.ba2",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "File Not Found"
-            },
-            {
-              "items": [
-                {
-                  "$unordered": [
-                    {
-                      "problem": {
-                        "extraData": null,
-                        "fileList": null,
-                        "itemText": "BadMagic - main.ba2",
-                        "mod": "",
-                        "path": "Game\\Data\\BadMagic - main.ba2",
-                        "relativePath": "BadMagic - main.ba2",
-                        "solution": null,
-                        "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
-                        "type": "Invalid Archive"
-                      },
-                      "text": "BadMagic - main.ba2",
-                      "values": [
-                        ""
-                      ]
-                    }
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Invalid Archive"
-            },
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "f4se_loader.exe",
-                    "mod": "<Unmanaged>",
-                    "path": "Game\\f4se_loader.exe",
-                    "relativePath": "f4se_loader.exe",
-                    "solution": null,
-                    "summary": "The version of this binary does not match your installed game version.",
-                    "type": "Wrong Version"
-                  },
-                  "text": "f4se_loader.exe",
-                  "values": [
-                    "<Unmanaged>"
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Wrong Version"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "4 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
+        "error": null,
+        "groups": [
+          {
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "BadMagic.esp",
+                "mod": "",
+                "path": "Game\\Data\\BadMagic.esp",
+                "relativePath": "BadMagic.esp",
+                "solution": null,
+                "summary": "Module is either corrupt or not in TES4 format.",
+                "type": "Invalid Module"
+              }
+            ],
+            "kind": "Invalid Module"
           },
-          "scanningLabel": null
-        },
-        "updates": [],
-        "workerError": null,
-        "workerLog": []
+          {
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "Fallout4 - TexturesPatch.ba2",
+                "mod": "",
+                "path": null,
+                "relativePath": "Fallout4 - TexturesPatch.ba2",
+                "solution": "Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
+                "summary": "Your game is Anniversary Edition but the TexturesPatch BA2 is missing.\nThe exe is hardcoded to load this BA2.",
+                "type": "File Not Found"
+              }
+            ],
+            "kind": "File Not Found"
+          },
+          {
+            "items": [
+              {
+                "$unordered": [
+                  {
+                    "extraData": null,
+                    "fileList": null,
+                    "itemText": "BadMagic - main.ba2",
+                    "mod": "",
+                    "path": "Game\\Data\\BadMagic - main.ba2",
+                    "relativePath": "BadMagic - main.ba2",
+                    "solution": null,
+                    "summary": "Archive is either corrupt or not in Bethesda Archive 2 format.",
+                    "type": "Invalid Archive"
+                  }
+                ]
+              }
+            ],
+            "kind": "Invalid Archive"
+          },
+          {
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "f4se_loader.exe",
+                "mod": "<Unmanaged>",
+                "path": "Game\\f4se_loader.exe",
+                "relativePath": "f4se_loader.exe",
+                "solution": null,
+                "summary": "The version of this binary does not match your installed game version.",
+                "type": "Wrong Version"
+              }
+            ],
+            "kind": "Wrong Version"
+          }
+        ],
+        "index": null,
+        "log": [],
+        "statuses": []
       },
       {
         "boxes": [
           "Errors"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "1 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Wrong File Formats"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "1 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Loose Previs"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "1 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Junk Files"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "1 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Problem Overrides"
         ],
-        "index": null,
-        "results": {
-          "groups": [
-            {
-              "items": [
-                {
-                  "problem": {
-                    "extraData": null,
-                    "fileList": null,
-                    "itemText": "ModOrganizer.ini",
-                    "mod": "",
-                    "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
-                    "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
-                    "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
-                    "type": "Missing MO2 Settings"
-                  },
-                  "text": "ModOrganizer.ini",
-                  "values": [
-                    ""
-                  ]
-                }
-              ],
-              "open": true,
-              "text": "Missing MO2 Settings"
-            }
-          ],
-          "progress": 100,
-          "resultsInfo": "1 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "error": null,
+        "groups": [
           {
-            "progress": 1,
-            "scanningText": "Building mod file index..."
+            "items": [
+              {
+                "extraData": null,
+                "fileList": null,
+                "itemText": "ModOrganizer.ini",
+                "mod": "",
+                "path": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "relativePath": "<ROOT>\\LocalAppData\\ModOrganizer\\Fallout 4\\ModOrganizer.ini",
+                "solution": "Open Mod Organizer 2 and select a profile, then relaunch the toolkit from MO2 and scan again.",
+                "summary": "Mod Organizer 2 has no selected profile (selected_profile in ModOrganizer.ini is empty), so the Scanner can't tell which mods are enabled.\nThe data checks were skipped.",
+                "type": "Missing MO2 Settings"
+              }
+            ],
+            "kind": "Missing MO2 Settings"
           }
         ],
-        "workerError": null,
-        "workerLog": []
+        "index": null,
+        "log": [],
+        "statuses": [
+          {
+            "progress": 1,
+            "text": "Building mod file index..."
+          }
+        ]
       },
       {
         "boxes": [
           "Race Subgraphs"
         ],
+        "error": null,
+        "groups": [],
         "index": null,
-        "results": {
-          "groups": [],
-          "progress": 100,
-          "resultsInfo": "0 Results ~ Select an item for details",
-          "scan": {
-            "enabled": true,
-            "text": "Scan Game"
-          },
-          "scanningLabel": null
-        },
-        "updates": [
+        "log": [],
+        "statuses": [
           {
             "progress": 1,
-            "scanningText": "Counting Race Subgraph records..."
+            "text": "Counting Race Subgraph records..."
           }
-        ],
-        "workerError": null,
-        "workerLog": []
+        ]
       }
     ],
     "usingStage": true

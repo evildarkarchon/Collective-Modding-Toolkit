@@ -7,7 +7,7 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// The two failures the scan worker expects while building the mod file index (SCN-S6): MO2's selected profile has no
+/// The two failures the Scan expects while building the mod file index (SCN-S6): MO2's selected profile has no
 /// <c>modlist.txt</c>, or MO2 has no selected profile. The reference's worker raised and its scan stuck (B-3); the port
 /// turns each into a problem row and keeps what it found before (bug #22). And one it doesn't expect, a
 /// <c>modlist.txt</c> that isn't UTF-8, which stops the scan early with what it found and a stopped-early row.
@@ -21,7 +21,7 @@ public sealed class ScanFailureTests
         using var machine = Scenario("scanner/mo2-no-modlist");
         // 101 SADD records in an enabled module: over the threshold, so the count found before the index is a problem.
         WriteSaddRecords(machine, 101);
-        var settings = await AllTicked(machine);
+        var settings = await ChecksTicked(machine);
 
         var outcome = Scan.Run(settings);
 
@@ -52,7 +52,7 @@ public sealed class ScanFailureTests
     public async Task An_empty_selected_profile_is_a_missing_mo2_settings_problem_on_the_mo2_ini()
     {
         using var machine = Scenario("scanner/mo2-no-profile");
-        var settings = await AllTicked(machine);
+        var settings = await ChecksTicked(machine);
 
         var outcome = Scan.Run(settings);
 
@@ -82,7 +82,7 @@ public sealed class ScanFailureTests
         var modlist = machine.PathOf(@"LocalAppData\ModOrganizer\Fallout 4\profiles\Default\modlist.txt");
         Directory.CreateDirectory(Path.GetDirectoryName(modlist)!);
         File.WriteAllBytes(modlist, [0xFF, 0xFE, (byte)'+', (byte)'A', (byte)'\r', (byte)'\n']);
-        var settings = await AllTicked(machine);
+        var settings = await ChecksTicked(machine);
         var log = new CapturingLogger();
 
         var outcome = Scan.Run(settings, null, log);
@@ -106,6 +106,28 @@ public sealed class ScanFailureTests
         Assert.Contains("Problem: " + ScanProblemTypes.RaceSubgraphRecordCount, line, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task A_scan_that_stops_early_lists_the_overview_problems_then_what_it_found_then_the_stopped_early_row()
+    {
+        using var materialized = Scenario("scanner/mo2-no-modlist");
+        WriteSaddRecords(materialized, 101);
+        var modlist = materialized.PathOf(@"LocalAppData\ModOrganizer\Fallout 4\profiles\Default\modlist.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(modlist)!);
+        File.WriteAllBytes(modlist, [0xFF, 0xFE]);
+        var machine = await ScanScenarioMachine.LocateAsync(materialized);
+        Assert.NotEmpty(machine.Report.Problems);
+
+        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+
+        Assert.NotNull(outcome.Error);
+        Assert.Equal(
+            [.. machine.Report.Problems.Select(p => p.Kind), ScanProblemTypes.RaceSubgraphRecordCount, ScanProblemTypes.IncompleteScan],
+            outcome.Problems.Select(p => p.Kind));
+        // The stopped-early row is in a group of its own, last, and the groups hold every listed problem.
+        Assert.Equal([ScanProblemTypes.IncompleteScan], outcome.Groups[^1].Items.Select(p => p.Kind));
+        Assert.Equal(outcome.Problems.Count, outcome.Groups.Sum(g => g.Items.Count));
+    }
+
     private static MaterializedScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id).Materialize();
 
     /// <summary>
@@ -115,12 +137,15 @@ public sealed class ScanFailureTests
     private static void WriteSaddRecords(MaterializedScenario machine, int count)
         => File.WriteAllBytes(machine.PathOf("Game/Data/BadMagic.esp"), [.. Enumerable.Repeat<byte[]>([0x00, 0x53, 0x41, 0x44, 0x44], count).SelectMany(b => b)]);
 
-    /// <summary>Every box ticked, with the Overview gathered as the scan's refresh would have (its enabled modules).</summary>
-    private static async Task<ScanSettings> AllTicked(MaterializedScenario machine)
+    /// <summary>
+    /// Every box ticked but Overview Issues, so the outcome holds only what the checks found, with the Overview gathered as
+    /// the scan's refresh would have (its enabled modules).
+    /// </summary>
+    private static async Task<ScanSettings> ChecksTicked(MaterializedScenario machine)
     {
         var game = await Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             ?? throw new InvalidOperationException("The scenario's game wasn't found.");
         var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
-        return ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, _ => true), game, report, machine.Host);
+        return ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, s => s != ScanSetting.OverviewIssues), game, report, machine.Host);
     }
 }
