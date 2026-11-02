@@ -187,7 +187,7 @@ public static class ScanWorker
         {
             foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(settings.Host, p)))
             {
-                var (modName, modPath) = index.Folders.TryGetValue(step.Relative, out var folder) ? (folder.Mod, folder.Path) : (string.Empty, step.Path);
+                var (modName, modPath) = index.OwnerOf(step.Relative, ModPathKind.Folder, step.Path);
 
                 // Bug #89, fixed (ADR-0006): the reference's `current_path is data_path` was never true on Python 3.12+
                 // (Path.walk yields a new root object), so the tuple of top-level folders was never queued and no
@@ -255,7 +255,7 @@ public static class ScanWorker
                 }
 
                 var relative = step.Relative.Join(name);
-                var (mod, path) = index.Folders.TryGetValue(relative, out var folder) ? (folder.Mod, folder.Path) : (string.Empty, step.Path.Join(name));
+                var (mod, path) = index.OwnerOf(relative, ModPathKind.Folder, step.Path.Join(name));
                 if (settings[ScanSetting.LoosePrevis] && lower == "precombined")
                 {
                     problems.Add(Problem.ForFile(ScanProblemTypes.LoosePrevis, path, relative, mod, LoosePrevisSummary, ScanSolutionTypes.ArchiveFolder));
@@ -287,7 +287,7 @@ public static class ScanWorker
 
                 var full = step.Path.Join(name);
                 var relative = step.Relative.Join(name);
-                var (mod, path) = index.Files.TryGetValue(relative, out var file) ? (file.Mod, file.Path) : (string.Empty, full);
+                var (mod, path) = index.OwnerOf(relative, ModPathKind.File, full);
 
                 if (settings[ScanSetting.JunkFiles] && (ScanTables.JunkFiles.Contains(lower) || ModFileIndex.HasSuffix(lower, ScanTables.JunkFileSuffixes)))
                 {
