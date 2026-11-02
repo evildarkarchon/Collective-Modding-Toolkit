@@ -37,12 +37,12 @@ public sealed class UiActions
     /// <summary>Starts a UI Action and reports its failure, if it has not been reported already.</summary>
     /// <remarks>
     /// <para>An <see cref="OperationFailedException"/> is swallowed: the runner already reported it, under the
-    /// operation's own header, and propagating it is what skipped the rest of the action. Any other exception is
+    /// Operation's own header, and propagating it is what skipped the rest of the action. Any other exception is
     /// reported under <see cref="ErrorReporter.UiThreadHeader"/>, synchronously, before the returned task completes.
     /// The Error Window must be up before deferred input (a queued Close or Escape) replays from its posted job, which
     /// is also why handlers don't rely on <c>async void</c> and the global hook: an <c>async void</c> rethrow arrives as
     /// a posted job, queued behind the replay.</para>
-    /// <para>No name parameter: an operation that fails inside the action is still reported by the runner under its own
+    /// <para>No name parameter: an Operation that fails inside the action is still reported by the runner under its own
     /// name. No input block either: an action that needs one wraps the steps it covers in <see cref="Blocking"/>, since
     /// a block often deliberately starts after earlier steps. UI thread only.</para>
     /// </remarks>
@@ -63,7 +63,7 @@ public sealed class UiActions
         }
         catch (OperationFailedException)
         {
-            // The runner reported it when the operation died; propagating it is what skipped the rest of the action.
+            // The runner reported it when the Operation died; propagating it is what skipped the rest of the action.
         }
         catch (Exception ex)
         {
@@ -107,7 +107,7 @@ public sealed class UiActions
     /// </summary>
     /// <param name="name">Names the Operation in the Error Window if it fails.</param>
     /// <param name="initialPhase">The phase it starts in, applied before this method returns.</param>
-    /// <param name="work">The Core operation. It receives the sink for its phase markers, which it must only call from
+    /// <param name="work">The Core Operation. It receives the sink for its phase markers, which it must only call from
     /// its own worker thread or the UI thread; the UI thread must never wait synchronously on the work.</param>
     /// <returns>The work's result, back on the UI thread.</returns>
     /// <exception cref="OperationFailedException">The work threw; the error has been reported.</exception>
@@ -213,7 +213,7 @@ public sealed class UiActions
     }
 
     /// <summary>
-    /// Maps an operation's phase markers onto the input block: it holds a block exactly while the current phase is
+    /// Maps an Operation's phase markers onto the input block: it holds a block exactly while the current phase is
     /// <see cref="OperationPhase.Blocking"/>. Touched only on the UI thread; a report from the worker is marshalled
     /// there, and the worker waits for it.
     /// </summary>

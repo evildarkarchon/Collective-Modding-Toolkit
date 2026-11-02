@@ -14,7 +14,7 @@ namespace CMToolkit.App.ViewModels;
 /// Install Type is <c>Unknown</c>.
 /// </summary>
 /// <remarks>
-/// Each gathering runs as a Blocking operation through the runner, which reports a failure once, under the operation's
+/// Each gathering runs as a Blocking Operation through the runner, which reports a failure once, under the Operation's
 /// name. <see cref="LoadAsync"/> and <see cref="RefreshAsync"/> then throw it, which ends the caller's UI Action;
 /// <see cref="TryLoadAsync"/> and <see cref="TryRefreshAsync"/> hand it back as an <see cref="OperationOutcome{T}"/>, for
 /// a caller that carries on. Either way, a gathering that dies part-way still leaves what it had gathered as the current
@@ -67,7 +67,7 @@ public sealed partial class OverviewState : ObservableObject
     public async Task LoadAsync() => (await TryLoadAsync()).ThrowIfFailed();
 
     /// <summary>
-    /// Gathers the first report as the Blocking operation <c>Overview load</c>, like <see cref="LoadAsync"/>, but hands
+    /// Gathers the first report as the Blocking Operation <c>Overview load</c>, like <see cref="LoadAsync"/>, but hands
     /// a failure back instead of throwing it, for a caller that carries on after it.
     /// </summary>
     /// <returns>
@@ -143,7 +143,7 @@ public sealed partial class OverviewState : ObservableObject
     }
 
     /// <summary>
-    /// Runs the gather function as the Blocking operation <paramref name="name"/> and makes what it gathered current: the
+    /// Runs the gather function as the Blocking Operation <paramref name="name"/> and makes what it gathered current: the
     /// new report, or, from a gathering that died part-way, its partial report. A gathering that died with nothing
     /// gathered leaves the current report as it was.
     /// </summary>
