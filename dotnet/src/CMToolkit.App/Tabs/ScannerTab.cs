@@ -54,7 +54,7 @@ public sealed class ScannerTab : TabPage
     private volatile ConcurrentQueue<ScanStatus>? _pending;
 
     /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
-    /// <param name="runtime">The app runtime: its log, error reporting and background operations.</param>
+    /// <param name="runtime">The app runtime: its log, error reporting and UI Action runner.</param>
     /// <param name="game">The installation found at startup.</param>
     /// <param name="overview">The Overview Report module: each scan refreshes it first, and its problems seed the scan.</param>
     /// <param name="settings">The settings the side pane's boxes start from (SET-8) and are saved to as they change (SET-7).</param>
@@ -331,7 +331,7 @@ public sealed class ScannerTab : TabPage
         _pending = pending;
         try
         {
-            outcome = await _runtime.Operations.RunAsync(
+            outcome = await _runtime.Actions.Run(
                 ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
         }
         catch (OperationFailedException ex)
@@ -465,7 +465,7 @@ public sealed class ScannerTab : TabPage
     /// </exception>
     private Task SaveBoxesAsync(ScanSidePane side)
         => ScanSettings.ChangedSettings(_settings.Current, side.Values) is { } changed
-            ? _settings.SaveAsync(_runtime.Operations, changed)
+            ? _settings.SaveAsync(_runtime.Actions, changed)
             : Task.CompletedTask;
 
     /// <summary>Closes the details pane if one is open (<c>details_pane.destroy()</c>), so the next selection makes a new one.</summary>

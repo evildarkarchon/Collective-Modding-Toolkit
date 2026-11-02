@@ -1,16 +1,23 @@
 namespace CMToolkit.App.Runtime;
 
 /// <summary>
-/// A background operation died; its exception has already gone to the Error Window and the log. Callers let it
-/// propagate, so the rest of their UI code is skipped as the rest of a Tk callback was, and the global handlers drop it
-/// rather than report it twice.
+/// An Operation died, or a <see cref="UiActions.Blocking"/> span failed; the exception has already gone to the Error
+/// Window and the log. Callers let it propagate, so the rest of the UI Action is skipped, and
+/// <see cref="UiActions.Start"/> and the global handlers drop it rather than report it twice.
 /// </summary>
 public sealed class OperationFailedException : Exception
 {
-    /// <param name="operationName">The operation's name, as given to <see cref="BackgroundOperations"/>.</param>
+    /// <param name="operationName">The operation's name, as given to <see cref="UiActions"/>.</param>
     /// <param name="innerException">What the work threw.</param>
     public OperationFailedException(string operationName, Exception innerException)
         : base($"Background operation '{operationName}' failed; the error has been reported.", innerException)
+    {
+    }
+
+    /// <summary>A UI Action failed outside any Operation, and <see cref="UiActions.Blocking"/> has reported it.</summary>
+    /// <param name="innerException">What the UI Action threw.</param>
+    internal OperationFailedException(Exception innerException)
+        : base("A UI Action failed; the error has been reported.", innerException)
     {
     }
 }

@@ -120,7 +120,7 @@ public sealed partial class OverviewState : ObservableObject
     {
         try
         {
-            return await _runtime.Operations.RunAsync(name, OperationPhase.Blocking, () => _gather(previous));
+            return await _runtime.Actions.Run(name, OperationPhase.Blocking, () => _gather(previous));
         }
         catch (OperationFailedException ex) when (ex.InnerException is OverviewIncompleteException incomplete)
         {

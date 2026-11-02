@@ -26,7 +26,7 @@ public sealed class OwnedWindowInputBlockTests
         var owned = OwnedButtonWindow.Show(probe.Window);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Blocking, () => gate.Task.Wait());
         MouseClick.On(owned.Button);
         Assert.Equal(0, owned.Clicks);
 
@@ -45,7 +45,7 @@ public sealed class OwnedWindowInputBlockTests
         var owned = OwnedButtonWindow.Show(middle.Window);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Blocking, () => gate.Task.Wait());
         MouseClick.On(owned.Button);
         Assert.Equal(0, owned.Clicks);
 
@@ -61,7 +61,7 @@ public sealed class OwnedWindowInputBlockTests
         var owned = OwnedButtonWindow.Show(probe.Window);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Interactive, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Interactive, () => gate.Task.Wait());
         MouseClick.On(owned.Button);
         Assert.Equal(1, owned.Clicks);
 
@@ -77,7 +77,7 @@ public sealed class OwnedWindowInputBlockTests
         var owned = OwnedButtonWindow.Show(probe.Window);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Blocking, () => gate.Task.Wait());
         Assert.False(UserClose.Request(owned.Window));
         Assert.True(owned.Window.IsVisible);
 
@@ -105,7 +105,7 @@ public sealed class OwnedWindowInputBlockTests
         var runtime = new AppRuntime(new CapturingLogger());
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Blocking, () => gate.Task.Wait());
         runtime.Errors.Report(ErrorReporter.UiThreadHeader, new InvalidOperationException("boom"));
         var window = runtime.Errors.Window!;
         Assert.False(UserClose.Request(window));
@@ -126,7 +126,7 @@ public sealed class OwnedWindowInputBlockTests
         var probe = InputProbe.Show(runtime);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("wait", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("wait", OperationPhase.Blocking, () => gate.Task.Wait());
         var shown = MessageBox.ShowWarningAsync(probe.Window, "Warning", "Fallout4.ccc not found.");
         var box = probe.Window.OwnedWindows.OfType<MessageBoxWindow>().Single();
         // A size-to-content box gets its final layout after it opens; settle it so the button has real bounds.

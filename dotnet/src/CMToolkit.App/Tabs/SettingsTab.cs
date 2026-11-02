@@ -30,7 +30,7 @@ public sealed class SettingsTab : TabPage
     /// Takes the radios' values from the settings in effect now, as the reference's <c>StringVar</c>s were set in the
     /// tab's constructor at startup rather than when the tab is first shown.
     /// </summary>
-    /// <param name="runtime">The app runtime, whose background operations write the file.</param>
+    /// <param name="runtime">The app runtime, whose UI Action runner writes the file.</param>
     /// <param name="settings">The settings the radios show and save.</param>
     public SettingsTab(AppRuntime runtime, SettingsStore settings)
         : base("Settings", "SettingsTab")
@@ -111,7 +111,7 @@ public sealed class SettingsTab : TabPage
         {
             // Set before the action starts: routing has moved on by the time the save completes.
             e.Handled = true;
-            _ = _runtime.Actions.Start(() => _settings.SaveAsync(_runtime.Operations, change(_settings.Current)));
+            _ = _runtime.Actions.Start(() => _settings.SaveAsync(_runtime.Actions, change(_settings.Current)));
         };
         return radio;
     }

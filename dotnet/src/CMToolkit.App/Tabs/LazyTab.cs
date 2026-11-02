@@ -13,8 +13,8 @@ namespace CMToolkit.App.Tabs;
 /// never retried.
 /// </summary>
 /// <remarks>
-/// The whole load, building included, runs under an input block, because the reference ran it inside one Tk callback.
-/// The state flags mirror the reference's: an exception mid-load leaves <c>_loading</c> set for good, which is what
+/// The whole load, building included, runs in one <see cref="UiActions.Blocking"/> span, so no click, key or tab switch
+/// lands between the load and its content appearing. The state flags mirror the reference's: an exception mid-load leaves <c>_loading</c> set for good, which is what
 /// stops every later selection from retrying.
 /// </remarks>
 public sealed class LazyTab : ContentControl
@@ -44,7 +44,9 @@ public sealed class LazyTab : ContentControl
     /// <c>_loading</c>, which is what stops every later selection from retrying, so the tab stays on its loading text.
     /// </remarks>
     /// <returns>A task that completes when the load, if any, has finished.</returns>
-    /// <exception cref="OperationFailedException">An operation in the load failed; the runner already reported it.</exception>
+    /// <exception cref="OperationFailedException">
+    /// The load failed; the error has been reported, by the Operation that died or by the load's blocking span.
+    /// </exception>
     public async Task SelectAsync()
     {
         _runtime.Logger.LogDebug("Switch Tab : {Tab}", Page.LogName);
@@ -62,34 +64,37 @@ public sealed class LazyTab : ContentControl
 
         _runtime.Logger.LogDebug("Load Tab : {Tab}", Page.LogName);
         _loading = true;
-        _label = new TextBlock
+        var label = new TextBlock
         {
             Text = Page.LoadingText ?? "",
             TextAlignment = TextAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        _label.Classes.Add("large");
-        Content = _label;
+        label.Classes.Add("large");
+        _label = label;
+        Content = label;
 
-        using var block = _runtime.Input.Block();
-        if (await Page.LoadAsync())
+        await _runtime.Actions.Blocking(async () =>
         {
-            Content = null;
-            _label = null;
-            _loaded = true;
-            Content = Page.BuildContent();
-            Page.SwitchTo();
-        }
-        else
-        {
-            // The reference logs loading_error with %s, so a missing one is logged as "None".
-            _runtime.Logger.LogError("Load Tab : {Tab} : Failed : {Error}", Page.LogName, Page.LoadingError ?? "None");
-            _label.Text = Page.LoadingError ?? "Failed to load tab.";
-            _label.Bind(TextBlock.ForegroundProperty, _label.GetResourceObservable("CmtBad"));
-        }
+            if (await Page.LoadAsync())
+            {
+                Content = null;
+                _label = null;
+                _loaded = true;
+                Content = Page.BuildContent();
+                Page.SwitchTo();
+            }
+            else
+            {
+                // The reference logs loading_error with %s, so a missing one is logged as "None".
+                _runtime.Logger.LogError("Load Tab : {Tab} : Failed : {Error}", Page.LogName, Page.LoadingError ?? "None");
+                label.Text = Page.LoadingError ?? "Failed to load tab.";
+                label.Bind(TextBlock.ForegroundProperty, label.GetResourceObservable("CmtBad"));
+            }
 
-        _loading = false;
+            _loading = false;
+        });
     }
 
     /// <summary>Handles another tab being selected while this one was current.</summary>

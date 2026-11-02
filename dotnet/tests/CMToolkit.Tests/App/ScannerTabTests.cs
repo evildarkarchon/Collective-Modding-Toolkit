@@ -136,7 +136,7 @@ public sealed class ScannerTabTests
         var junk = app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles];
         var gate = new TaskCompletionSource();
 
-        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = app.Runtime.Actions.Run("hold", OperationPhase.Blocking, () => gate.Task.Wait());
         MouseClick.On(junk);
         Assert.True(junk.IsChecked);
 
@@ -157,7 +157,7 @@ public sealed class ScannerTabTests
         var copy = app.Scanner.DetailsPane!.Buttons.Single(b => (string?)b.Content == "Copy Details");
         var gate = new TaskCompletionSource();
 
-        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = app.Runtime.Actions.Run("hold", OperationPhase.Blocking, () => gate.Task.Wait());
         MouseClick.On(copy);
         Assert.Equal("Copy Details", (string?)copy.Content);
 
@@ -174,7 +174,7 @@ public sealed class ScannerTabTests
         var junk = app.Scanner.SidePane!.Checks[ScanSetting.JunkFiles];
         var gate = new TaskCompletionSource();
 
-        var operation = app.Runtime.Operations.RunAsync("hold", OperationPhase.Interactive, () => gate.Task.Wait());
+        var operation = app.Runtime.Actions.Run("hold", OperationPhase.Interactive, () => gate.Task.Wait());
         MouseClick.On(junk);
         Assert.False(junk.IsChecked);
 
