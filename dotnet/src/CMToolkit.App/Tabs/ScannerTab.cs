@@ -197,8 +197,9 @@ public sealed class ScannerTab : TabPage
             return;
         }
 
-        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch.
-        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current));
+        // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch. A
+        // pane opened mid-scan, after the user comes back to the tab, starts on Scanning... so no second Scan can start.
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan.IsRunning);
         var created = SidePane;
         // Both UI Actions start through runtime.Actions.Start: what they raise is reported once, at once (a failed
         // Operation already by the runner), and the task they return never faults, so discarding it is safe.

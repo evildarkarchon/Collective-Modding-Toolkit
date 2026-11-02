@@ -19,14 +19,18 @@ public sealed class ScanSidePane : UserControl
     private bool _scanning;
 
     /// <summary>
-    /// Builds the pane with each box ticked as <paramref name="initial"/> says, and Scan Game enabled unless every box
-    /// is unticked.
+    /// Builds the pane with each box ticked as <paramref name="initial"/> says, and Scan Game's rule applied from the
+    /// start: <c>Scanning...</c> and disabled while a Scan runs, otherwise enabled unless every box is unticked.
     /// </summary>
     /// <param name="initial">Each box's starting state: the saved settings (<see cref="ScanSettings.Stored"/>).</param>
+    /// <param name="scanning">
+    /// Whether a Scan is running as the pane opens, as it is when the user comes back to the tab mid-scan.
+    /// </param>
     /// <exception cref="KeyNotFoundException">A setting is missing from <paramref name="initial"/>.</exception>
-    public ScanSidePane(IReadOnlyDictionary<ScanSetting, bool> initial)
+    public ScanSidePane(IReadOnlyDictionary<ScanSetting, bool> initial, bool scanning)
     {
         ArgumentNullException.ThrowIfNull(initial);
+        _scanning = scanning;
         var checks = new StackPanel { Name = "Checks", HorizontalAlignment = HorizontalAlignment.Left };
         foreach (var setting in ScanSettings.All)
         {
@@ -55,8 +59,8 @@ public sealed class ScanSidePane : UserControl
             Padding = new Thickness(9, 8),
         };
         ScanButton.Classes.Add("accent");
-        // on_checkbox_toggle's rule from the start, since the saved boxes may all be unticked.
-        ScanButton.IsEnabled = _checks.Values.Any(c => c.IsChecked == true);
+        // The rule from the start, since the saved boxes may all be unticked, or a Scan may be running.
+        ApplyScanButtonRule();
         ScanButton.Click += (_, e) =>
         {
             e.Handled = true;

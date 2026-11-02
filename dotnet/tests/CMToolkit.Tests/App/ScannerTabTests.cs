@@ -425,6 +425,27 @@ public sealed class ScannerTabTests
         Assert.True(side.ScanButton.IsEnabled);
     }
 
+    [AvaloniaFact]
+    public void A_side_pane_opened_mid_scan_shows_scanning_with_scan_game_disabled_until_the_scan_ends()
+    {
+        using var held = new HeldScan();
+        using var app = ScannerApp.Start(runScan: held.Run);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        held.WaitUntilEntered();
+
+        app.Select(0);
+        app.Select(1);
+        var side = Assert.IsType<ScanSidePane>(app.Scanner.SidePane);
+        AssertScanning(side);
+
+        // The scan ends in this pane rather than the one it started from, which is closed.
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
+        Assert.True(side.ScanButton.IsEnabled);
+    }
+
     /// <summary>
     /// Clicks the side pane's box for <paramref name="setting"/>, then waits for the blocking save the change starts to
     /// land: a click while it is pending would be discarded (ADR-0003).
