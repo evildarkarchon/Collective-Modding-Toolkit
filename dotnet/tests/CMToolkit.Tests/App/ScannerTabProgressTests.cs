@@ -17,9 +17,9 @@ namespace CMToolkit.Tests.App;
 
 /// <summary>
 /// The tab's side of the scan's progress, timed as the scenarios can't time it: the statuses the scan reports through
-/// the sink the tab gives it reach the scanning label and the progress bar as they are, in order, while it runs; they
-/// are drained before the results replace them, still land when the scan throws, and are dropped once the scan is over
-/// (ADR-0003).
+/// the sink the tab gives it reach the scanning label and the progress bar as they are, in order, while it runs; each
+/// is applied before the scan goes on, so all of them are shown before the results replace them; they still land when
+/// the scan throws, and are dropped once the scan is over (ADR-0003).
 /// </summary>
 public sealed class ScannerTabProgressTests
 {
@@ -49,7 +49,62 @@ public sealed class ScannerTabProgressTests
     }
 
     [AvaloniaFact]
-    public void Statuses_still_queued_when_the_scan_returns_are_applied_before_the_results()
+    public void Each_status_is_applied_before_the_scan_goes_on()
+    {
+        // How many statuses the tab had applied each time Report handed control back to the scan: the sink waits for
+        // the UI thread, so the status just reported is always among them.
+        var appliedWhenReportReturned = new List<int>();
+        var applied = 0;
+        using var app = ProgressApp.Start((s, progress) =>
+        {
+            progress.Report(new ScanStatus("Building mod file index...", 1));
+            appliedWhenReportReturned.Add(Volatile.Read(ref applied));
+            progress.Report(new ScanStatus("Scanning... 0/1: Meshes", 0));
+            appliedWhenReportReturned.Add(Volatile.Read(ref applied));
+            return ScanOutcome.Empty;
+        });
+        app.Scanner.ProgressApplied += (_, _) => Interlocked.Increment(ref applied);
+
+        var scan = app.Scanner.ScanAsync();
+        DispatcherWait.Until(() => scan.IsCompleted);
+
+        Assert.Equal([1, 2], appliedWhenReportReturned);
+    }
+
+    [AvaloniaFact]
+    public void The_scans_last_status_is_the_last_one_applied_before_the_results_are_listed()
+    {
+        // What the tab showed, in order: each status as the label and bar applied it, then the moment the first result
+        // group was listed.
+        var shown = new List<string>();
+        using var app = ProgressApp.Start((s, progress) =>
+        {
+            progress.Report(new ScanStatus("Building mod file index...", 1));
+            progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));
+            progress.Report(new ScanStatus("Scanning... 2/2: Textures", 100));
+            // The seed alone: the snapshot's Overview problems, since Overview Issues is ticked.
+            return new ScanOutcome([.. ScanResults.Seed(s[ScanSetting.OverviewIssues], s.OverviewProblems)], null);
+        });
+        app.Scanner.ProgressApplied += (_, status) => shown.Add($"{app.ScanningText.Text} @ {app.Progress.Value}");
+        ((System.Collections.Specialized.INotifyCollectionChanged)app.Scanner.Tree!.Items).CollectionChanged += (_, e) =>
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && !shown.Contains("listed"))
+            {
+                shown.Add("listed");
+            }
+        };
+
+        var scan = app.Scanner.ScanAsync();
+        DispatcherWait.Until(() => scan.IsCompleted);
+
+        Assert.Equal(
+            ["Building mod file index... @ 1", "Scanning... 1/2: Meshes @ 50", "Scanning... 2/2: Textures @ 100", "listed"],
+            shown);
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
+    }
+
+    [AvaloniaFact]
+    public void Each_status_raises_the_notification_once_after_the_label_and_the_bar_show_it()
     {
         var applied = new List<(ScanStatus Status, string? Label, double Bar)>();
         using var app = ProgressApp.Start((s, progress) =>

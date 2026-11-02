@@ -1,9 +1,7 @@
-using System.Collections.Concurrent;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
@@ -47,13 +45,6 @@ public sealed class ScannerTab : TabPage
     private ProgressBar? _progress;
     private bool _selectable;
 
-    // The progress sink the tab hands the scan through RunScan: the only way a status reaches the label and the bar.
-    private readonly IProgress<ScanStatus> _statuses;
-
-    // The running scan's progress queue, or null when no worker is running; replaced per scan so a late update from an
-    // earlier scan can't reach this one.
-    private volatile ConcurrentQueue<ScanStatus>? _pending;
-
     /// <summary>The Scanner tab, built on first switch; its side pane docks beside the main window when it is shown.</summary>
     /// <param name="runtime">The app runtime: its log, error reporting and UI Action runner.</param>
     /// <param name="game">The installation found at startup.</param>
@@ -66,7 +57,6 @@ public sealed class ScannerTab : TabPage
         _game = game;
         _overview = overview;
         _settings = settings;
-        _statuses = new ProgressQueue(this);
         RunScan = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
     }
 
@@ -77,9 +67,9 @@ public sealed class ScannerTab : TabPage
     /// log by default. A test seam, so tests can hold a scan mid-run, report statuses or hand the tab a canned outcome.
     /// </summary>
     /// <remarks>
-    /// The sink takes statuses from any thread. They are queued for the running scan and applied on the UI thread in
-    /// order; the queue is drained once more when the scan returns, before the results are listed. A status reported
-    /// once the scan is over is dropped.
+    /// The sink is a <see cref="UiThreadProgress{T}"/> made for each scan, so it takes statuses from any thread and
+    /// applies each one on the UI thread before <see cref="IProgress{T}.Report"/> returns. Every status is therefore
+    /// shown, in order, before the results are listed. A status reported once the scan is over is dropped.
     /// </remarks>
     public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> RunScan { get; init; }
 
@@ -324,10 +314,21 @@ public sealed class ScannerTab : TabPage
 
         ScanOutcome outcome;
         var errorReported = false;
-        var pending = new ConcurrentQueue<ScanStatus>();
-        _pending = pending;
+
+        // This scan's own sink. The handler and the write to `over` below both run on the UI thread, so a status a
+        // thread the scan left running reports after the scan returned sees `over` set and changes nothing. A sink
+        // per scan also keeps one scan's flag from silencing another's.
+        var over = false;
+        var statuses = new UiThreadProgress<ScanStatus>(status =>
+        {
+            if (!over)
+            {
+                Apply(status);
+            }
+        });
         var run = await _runtime.Actions.TryRun(
-            ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
+            ScanOperation, OperationPhase.Interactive, () => RunScan(settings, statuses));
+        over = true;
         if (run is OperationOutcome<ScanOutcome>.Failed failed)
         {
             // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
@@ -340,14 +341,6 @@ public sealed class ScannerTab : TabPage
         else
         {
             outcome = ((OperationOutcome<ScanOutcome>.Succeeded)run).Value;
-        }
-
-        // The statuses still queued when the scan returned are applied first: the await's continuation can run ahead of
-        // the drains the sink posted. Nothing is applied after this.
-        DrainProgress(pending);
-        if (ReferenceEquals(_pending, pending))
-        {
-            _pending = null;
         }
 
         if (outcome.Error is { } error && !errorReported)
@@ -514,35 +507,13 @@ public sealed class ScannerTab : TabPage
     private static TextBlock Text(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
 
     /// <summary>
-    /// Applies <paramref name="queue"/>'s statuses in order, if it is still the running scan's queue, setting the scanning
-    /// label and progress bar to each as the scan reported it. UI thread only.
+    /// Sets the scanning label and progress bar to <paramref name="status"/> as the scan reported it, then raises
+    /// <see cref="ProgressApplied"/>. UI thread only.
     /// </summary>
-    private void DrainProgress(ConcurrentQueue<ScanStatus> queue)
+    private void Apply(ScanStatus status)
     {
-        while (ReferenceEquals(queue, _pending) && queue.TryDequeue(out var status))
-        {
-            _scanningText!.Text = status.Text;
-            _progress!.Value = status.Progress;
-            ProgressApplied?.Invoke(this, status);
-        }
-    }
-
-    /// <summary>
-    /// The progress sink <see cref="RunScan"/> is given: queues each status for the running scan and asks the UI thread to
-    /// drain it, so statuses reach the tab as soon as the UI thread is free. Statuses reported while no scan is running
-    /// are dropped.
-    /// </summary>
-    private sealed class ProgressQueue(ScannerTab tab) : IProgress<ScanStatus>
-    {
-        public void Report(ScanStatus value)
-        {
-            if (tab._pending is not { } queue)
-            {
-                return;
-            }
-
-            queue.Enqueue(value);
-            Dispatcher.UIThread.Post(() => tab.DrainProgress(queue));
-        }
+        _scanningText!.Text = status.Text;
+        _progress!.Value = status.Progress;
+        ProgressApplied?.Invoke(this, status);
     }
 }
