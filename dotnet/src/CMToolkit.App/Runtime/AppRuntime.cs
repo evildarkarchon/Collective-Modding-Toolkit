@@ -19,6 +19,7 @@ public sealed class AppRuntime
         Input = new InputBlocker();
         Errors = new ErrorReporter(logger, Input);
         Operations = new BackgroundOperations(Errors, Input);
+        Actions = new UiActions(Errors);
     }
 
     /// <summary>The app log.</summary>
@@ -35,6 +36,9 @@ public sealed class AppRuntime
 
     /// <summary>The runner every Core call goes through.</summary>
     public BackgroundOperations Operations { get; }
+
+    /// <summary>The UI Action runner: every async UI Action starts through it.</summary>
+    public UiActions Actions { get; }
 
     /// <summary>Where links open (NET-4): the user's browser, or a recorder in tests.</summary>
     public IBrowser Browser { get; init; } = ShellBrowser.Instance;

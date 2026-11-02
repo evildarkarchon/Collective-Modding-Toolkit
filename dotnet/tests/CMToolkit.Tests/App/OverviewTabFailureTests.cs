@@ -70,7 +70,7 @@ public sealed class OverviewTabFailureTests
     }
 
     /// <summary>
-    /// The refresh button is a UI Action started through <see cref="ErrorReporter.Handle"/>: a gathering that dies is
+    /// The refresh button is a UI Action started through <see cref="UiActions.Start"/>: a gathering that dies is
     /// reported once, by the runner under the refresh's name, and not a second time by the click.
     /// </summary>
     [AvaloniaFact]

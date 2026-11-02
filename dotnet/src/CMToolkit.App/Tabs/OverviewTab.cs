@@ -316,7 +316,7 @@ public sealed class OverviewTab : TabPage
             Margin = new Thickness(10, 0),
         };
         ToolTip.SetTip(refresh, RefreshTooltip);
-        refresh.Click += (_, _) => _ = _runtime.Errors.Handle(_state.RefreshAsync);
+        refresh.Click += (_, _) => _ = _runtime.Actions.Start(_state.RefreshAsync);
         Place(refresh, 0, 3);
         Grid.SetRowSpan(refresh, 2);
         grid.Children.Add(refresh);
@@ -436,10 +436,11 @@ public sealed class OverviewTab : TabPage
             {
                 if (e.GetCurrentPoint(icon).Properties.IsLeftButtonPressed && TopLevel.GetTopLevel(icon) is Window owner)
                 {
-                    // Not awaited: like the reference's modal, it runs on while the click handler returns.
-                    _ = TreeWindow.Create(
+                    // Not awaited: like the reference's modal, it runs on while the click handler returns. Started as a
+                    // UI Action, so a window that fails to open reaches the Error Window; Start's task never faults.
+                    _ = _runtime.Actions.Start(() => TreeWindow.Create(
                             _runtime, 400, 500, "Detected Invalid Module Versions", "", ["HEDR", " Module"], items, PythonFloat.Repr)
-                        .ShowModalAsync(owner);
+                        .ShowModalAsync(owner));
                 }
             };
             grid.Children.Add(icon);
@@ -691,8 +692,10 @@ public sealed class OverviewTab : TabPage
     {
         if (TopLevel.GetTopLevel(source) is Window owner)
         {
-            // Not awaited: like the reference's modal, it runs on while the click handler returns.
-            _ = new AboutWindow(_runtime, 750, 350, "Detected Mod Manager Settings", details).ShowModalAsync(owner);
+            // Not awaited: like the reference's modal, it runs on while the click handler returns. Started as a UI
+            // Action, so a window that fails to open reaches the Error Window; Start's task never faults.
+            _ = _runtime.Actions.Start(
+                () => new AboutWindow(_runtime, 750, 350, "Detected Mod Manager Settings", details).ShowModalAsync(owner));
         }
     }
 

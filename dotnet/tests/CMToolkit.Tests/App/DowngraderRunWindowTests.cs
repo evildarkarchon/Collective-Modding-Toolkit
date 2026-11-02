@@ -274,7 +274,7 @@ public sealed class DowngraderRunWindowTests
         var owner = new Window();
         owner.Show();
         var window = new DowngraderWindow(runtime, game, machine.Host, overview, settings, deltaPatchHttp: http, patchFolder: appFolder);
-        var opening = runtime.Errors.Handle(() => window.OpenAsync(owner));
+        var opening = runtime.Actions.Start(() => window.OpenAsync(owner));
         DispatcherWait.Until(() => opening.IsCompleted && window.Content is not null);
         window.UpdateLayout();
         MouseClick.On(ComposedSession.Named<RadioButton>(window, "NextGen"));

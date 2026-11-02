@@ -101,7 +101,7 @@ public sealed class SettingsTab : TabPage
     /// <remarks>
     /// Click, not IsChecked: a Tk radiobutton runs its command on every click, so clicking the selected radio saves the
     /// file again; Checked would only fire on a change. The save is a UI Action started through
-    /// <see cref="ErrorReporter.Handle"/>: a failed write is reported by the runner, as the exception ended
+    /// <see cref="UiActions.Start"/>: a failed write is reported by the runner, as the exception ended
     /// <c>on_radio_change</c> in Tk, and there is nothing else to undo.
     /// </remarks>
     private RadioButton Radio(string text, bool selected, Func<AppSettings, AppSettings> change)
@@ -111,7 +111,7 @@ public sealed class SettingsTab : TabPage
         {
             // Set before the action starts: routing has moved on by the time the save completes.
             e.Handled = true;
-            _ = _runtime.Errors.Handle(() => _settings.SaveAsync(_runtime.Operations, change(_settings.Current)));
+            _ = _runtime.Actions.Start(() => _settings.SaveAsync(_runtime.Operations, change(_settings.Current)));
         };
         return radio;
     }

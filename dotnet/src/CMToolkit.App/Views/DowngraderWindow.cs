@@ -139,10 +139,10 @@ public sealed class DowngraderWindow : ModalWindow
         if (session.MainWindow is { } owner)
         {
             // Not awaited: like the reference's constructor, it shows the window and returns once it is built, and the
-            // click handler that called it has nothing left to do. Handle's task never faults, so it can be discarded.
+            // click handler that called it has nothing left to do. Start's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
                 session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
-            _ = session.Runtime.Errors.Handle(() => window.OpenAsync(owner));
+            _ = session.Runtime.Actions.Start(() => window.OpenAsync(owner));
         }
     }
 
@@ -165,12 +165,13 @@ public sealed class DowngraderWindow : ModalWindow
     /// <returns>A task that completes once the window is built.</returns>
     /// <exception cref="OperationFailedException">
     /// The detection failed and the runner has reported it. The rest of the constructor is skipped, as the exception
-    /// skipped it in Tk, and the window stays up, empty. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// skipped it in Tk, and the window stays up, empty. Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task OpenAsync(Window owner)
     {
-        // Not awaited: the returned task completes only when the modal closes.
-        _ = ShowModalAsync(owner);
+        // Not awaited: the returned task completes only when the modal closes. Started as a UI Action of its own, so a
+        // window that fails to open reaches the Error Window; Start's task never faults.
+        _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
         Versions = await Runtime.Operations.RunAsync(
             "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
 
@@ -215,7 +216,7 @@ public sealed class DowngraderWindow : ModalWindow
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
     /// <exception cref="OperationFailedException">
     /// The click's run failed and the runner has reported it. The rest of <c>patch_files</c> is skipped, the button
-    /// staying disabled, as the exception left it in Tk. Start it through <see cref="ErrorReporter.Handle"/>.
+    /// staying disabled, as the exception left it in Tk. Start it through <see cref="UiActions.Start"/>.
     /// </exception>
     public async Task PatchAllAsync()
     {
@@ -307,8 +308,7 @@ public sealed class DowngraderWindow : ModalWindow
     {
         // Counted now, on the run's thread, so the window never looks idle between the click and its poll.
         Interlocked.Increment(ref _operations);
-        // Handle's task never faults, so the posted job can discard it.
-        Dispatcher.UIThread.Post(() => _ = Runtime.Errors.Handle(() => PollAsync(poll)));
+        Runtime.Actions.Schedule(() => PollAsync(poll));
     }
 
     /// <summary>
@@ -434,7 +434,7 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
         };
-        patch.Click += (_, _) => _ = Runtime.Errors.Handle(PatchAllAsync);
+        patch.Click += (_, _) => _ = Runtime.Actions.Start(PatchAllAsync);
         grid.Children.Add(Place(patch, 0, 2, rowSpan: 2, margin: new Thickness(5, 10, 10, 0)));
 
         var about = new Button
@@ -446,7 +446,8 @@ public sealed class DowngraderWindow : ModalWindow
             HorizontalContentAlignment = HorizontalAlignment.Center,
         };
         // The AboutWindow is transient to the Downgrader (parent=self), so it is owned by it.
-        about.Click += (_, _) => _ = new AboutWindow(Runtime, 500, 300, AboutTitle, AboutText).ShowModalAsync(this);
+        about.Click += (_, _) => _ = Runtime.Actions.Start(
+            () => new AboutWindow(Runtime, 500, 300, AboutTitle, AboutText).ShowModalAsync(this));
         grid.Children.Add(Place(about, 2, 2, margin: new Thickness(5, 5, 10, 0)));
 
         Log = new LogPane(Runtime.Logger) { Name = "Log", HorizontalAlignment = HorizontalAlignment.Stretch };

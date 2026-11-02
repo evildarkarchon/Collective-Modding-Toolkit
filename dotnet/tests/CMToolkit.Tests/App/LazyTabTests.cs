@@ -253,7 +253,7 @@ public sealed class LazyTabTests
     [AvaloniaFact]
     public async Task Selecting_a_tab_directly_leaves_a_failed_load_to_the_caller()
     {
-        // The main window starts the selection through ErrorReporter.Handle, which does the reporting; the tab itself
+        // The main window starts the selection through runtime.Actions.Start, which does the reporting; the tab itself
         // only lets the failure through.
         var runtime = new AppRuntime(new CapturingLogger());
         var page = new ProbeTab("F4SE", "F4SETab") { Load = _ => throw new InvalidOperationException("no DLLs") };

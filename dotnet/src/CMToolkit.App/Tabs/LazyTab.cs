@@ -37,7 +37,7 @@ public sealed class LazyTab : ContentControl
 
     /// <summary>
     /// Handles this tab becoming the selected one (<c>CMCTabFrame.load</c>): switches to it if it is loaded, or loads it
-    /// the first time. A UI Action: start it through <see cref="ErrorReporter.Handle"/>, which reports its failure.
+    /// the first time. A UI Action: start it through <see cref="UiActions.Start"/>, which reports its failure.
     /// </summary>
     /// <remarks>
     /// An exception leaves the flags where it found them, as in the reference: one thrown mid-load never clears
