@@ -153,6 +153,12 @@ public static class ScanProblemTypes
     /// raised <c>ValueError("Missing MO2 settings ...")</c> on its scan thread instead (B-3, bug #22).
     /// </summary>
     public const string MissingMo2Settings = "Missing MO2 Settings";
+
+    /// <summary>
+    /// The group of the row that ends a scan stopped by an unexpected error (<see cref="ScanOutcome.StoppedEarly"/>).
+    /// The port's own group, with no <c>ProblemType</c> counterpart.
+    /// </summary>
+    public const string IncompleteScan = "Incomplete Scan";
 }
 
 /// <summary>The <c>enums.SolutionType</c> texts the data walk uses.</summary>
