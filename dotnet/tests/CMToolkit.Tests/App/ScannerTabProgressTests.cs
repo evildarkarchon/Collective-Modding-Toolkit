@@ -16,24 +16,23 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.App;
 
 /// <summary>
-/// The tab's side of the SCN-S4 queue protocol, timed as the scenarios can't time it (the reference's worker never sent
-/// the folder tuple, bug #89, which the port fixes): updates the worker reports reach the scanning label and the
-/// progress bar in order while it runs, are drained before the results replace them, still land when the worker dies
-/// (B-3), and are dropped once the scan is over (no B-2 race: ADR-0003).
+/// The tab's side of the scan's progress, timed as the scenarios can't time it: the statuses the worker reports through
+/// the sink the tab gives it reach the scanning label and the progress bar as they are, in order, while it runs; they
+/// are drained before the results replace them, still land when the worker dies, and are dropped once the scan is over
+/// (ADR-0003).
 /// </summary>
 public sealed class ScannerTabProgressTests
 {
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
-    public void Updates_reach_the_label_and_the_bar_while_the_worker_runs()
+    public void Statuses_reach_the_label_and_the_bar_while_the_worker_runs()
     {
         var gate = new ManualResetEventSlim();
         var reported = new ManualResetEventSlim();
-        using var app = ProgressApp.Start(progress => s =>
+        using var app = ProgressApp.Start((s, progress) =>
         {
-            progress().Report(new ScanUpdate.Folder(ScanWorker.RaceSubgraphStep));
-            progress().Report(new ScanUpdate.TopLevelFolders(["F4SE", "Meshes"]));
-            progress().Report(new ScanUpdate.Folder("Meshes"));
+            progress.Report(new ScanStatus("Counting Race Subgraph records...", 1));
+            progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));
             reported.Set();
             gate.Wait(TimeSpan.FromSeconds(30));
             return ScanOutcome.Empty;
@@ -52,21 +51,27 @@ public sealed class ScannerTabProgressTests
 
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
-    public void Updates_still_queued_when_the_worker_returns_are_applied_before_the_results()
+    public void Statuses_still_queued_when_the_worker_returns_are_applied_before_the_results()
     {
-        var applied = new List<ScanUpdate>();
-        using var app = ProgressApp.Start(progress => s =>
+        var applied = new List<(ScanStatus Status, string? Label, double Bar)>();
+        using var app = ProgressApp.Start((s, progress) =>
         {
-            progress().Report(new ScanUpdate.TopLevelFolders(["Meshes"]));
-            progress().Report(new ScanUpdate.Folder("Meshes"));
+            progress.Report(new ScanStatus("Building mod file index...", 1));
+            progress.Report(new ScanStatus("Scanning... 0/1: Meshes", 0));
             return ScanOutcome.Empty;
         });
-        app.Scanner.ProgressApplied += (_, update) => applied.Add(update);
+        // The notification fires once per status, after the label and the bar show it.
+        app.Scanner.ProgressApplied += (_, status) => applied.Add((status, app.ScanningText.Text, app.Progress.Value));
 
         var scan = app.Scanner.ScanAsync();
         DispatcherWait.Until(() => scan.IsCompleted);
 
-        Assert.Equal([new ScanUpdate.TopLevelFolders(["Meshes"]), new ScanUpdate.Folder("Meshes")], applied, UpdateComparer.Instance);
+        Assert.Equal(
+            [
+                (new ScanStatus("Building mod file index...", 1), "Building mod file index...", 1.0),
+                (new ScanStatus("Scanning... 0/1: Meshes", 0), "Scanning... 0/1: Meshes", 0.0),
+            ],
+            applied);
         Assert.Equal(100.0, app.Progress.Value);
     }
 
@@ -77,10 +82,9 @@ public sealed class ScannerTabProgressTests
     public void A_worker_that_dies_has_its_updates_applied_and_then_the_scan_ends()
     {
         var applied = new List<string>();
-        using var app = ProgressApp.Start(progress => s =>
+        using var app = ProgressApp.Start((s, progress) =>
         {
-            progress().Report(new ScanUpdate.TopLevelFolders(["F4SE", "Meshes"]));
-            progress().Report(new ScanUpdate.Folder("Meshes"));
+            progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));
             throw new IOException("worker died");
         });
         app.Scanner.ProgressApplied += (_, _) => applied.Add(app.ScanningText.Text!);
@@ -97,31 +101,26 @@ public sealed class ScannerTabProgressTests
 
     [AvaloniaFact]
     [Trait("Parity", "SCN-S4")]
-    public void An_update_after_the_scan_is_over_changes_nothing()
+    public void A_status_after_the_scan_is_over_changes_nothing()
     {
-        using var app = ProgressApp.Start(progress => s => ScanOutcome.Empty);
+        // The sink the tab gave the scan, kept past its end, as a worker thread still running might keep it.
+        IProgress<ScanStatus>? given = null;
+        using var app = ProgressApp.Start((s, progress) =>
+        {
+            given = progress;
+            return ScanOutcome.Empty;
+        });
+        var applied = 0;
+        app.Scanner.ProgressApplied += (_, _) => applied++;
         var scan = app.Scanner.ScanAsync();
         DispatcherWait.Until(() => scan.IsCompleted);
 
-        app.Scanner.Progress.Report(new ScanUpdate.TopLevelFolders(["Meshes"]));
-        app.Scanner.Progress.Report(new ScanUpdate.Folder("Meshes"));
+        given!.Report(new ScanStatus("Scanning... 0/1: Meshes", 0));
         Dispatcher.UIThread.RunJobs();
 
+        Assert.Equal(0, applied);
         Assert.False(app.ScanningText.IsVisible);
         Assert.Equal(100.0, app.Progress.Value);
-    }
-
-    private sealed class UpdateComparer : IEqualityComparer<ScanUpdate>
-    {
-        public static readonly UpdateComparer Instance = new();
-
-        public bool Equals(ScanUpdate? x, ScanUpdate? y) => (x, y) switch
-        {
-            (ScanUpdate.TopLevelFolders a, ScanUpdate.TopLevelFolders b) => a.Names.SequenceEqual(b.Names),
-            _ => object.Equals(x, y),
-        };
-
-        public int GetHashCode(ScanUpdate obj) => 0;
     }
 
     /// <summary>The Scanner over the <c>scanner/overview-issues</c> machine with a scripted worker.</summary>
@@ -144,8 +143,8 @@ public sealed class ScannerTabProgressTests
 
         public ProgressBar Progress => Named<ProgressBar>("Progress");
 
-        /// <summary>Starts the app with the worker <paramref name="worker"/> makes from a getter for the tab's progress.</summary>
-        public static ProgressApp Start(Func<Func<IProgress<ScanUpdate>>, Func<ScanSettings, ScanOutcome>> worker)
+        /// <summary>Starts the app with <paramref name="worker"/> as the scan, given the snapshot and the tab's progress sink.</summary>
+        public static ProgressApp Start(Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> worker)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
@@ -153,8 +152,7 @@ public sealed class ScannerTabProgressTests
             var runtime = new AppRuntime(new CapturingLogger());
             var state = new OverviewState(runtime, p => CMToolkit.Core.Overview.OverviewReport.Gather(game, machine.Host, runtime.Logger, p));
             var settings = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            ScannerTab? scanner = null;
-            scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, Worker = worker(() => scanner!.Progress) };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, Worker = worker };
             // The Scanner needs only the loaded module, not an Overview tab; the first tab is a placeholder.
             var window = new MainWindow(runtime, [new ProbeTab("Other", "OtherTab"), scanner]);
             window.Show();

@@ -381,51 +381,27 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folder": "Race Subgraph Records"
-            }
+            "scanningText": "Counting Race Subgraph records..."
           },
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -674,44 +650,23 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -902,44 +857,23 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -1096,44 +1030,23 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -1290,44 +1203,23 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -1507,44 +1399,23 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Building mod file index...",
-            "update": {
-              "folders": [
-                "Extra",
-                "F4SE",
-                "Meshes",
-                "Scripts",
-                "Textures"
-              ]
-            }
+            "scanningText": "Building mod file index..."
           },
           {
             "progress": 20,
-            "scanningText": "Scanning... 1/5: F4SE",
-            "update": {
-              "folder": "F4SE"
-            }
+            "scanningText": "Scanning... 1/5: F4SE"
           },
           {
             "progress": 40,
-            "scanningText": "Scanning... 2/5: Meshes",
-            "update": {
-              "folder": "Meshes"
-            }
+            "scanningText": "Scanning... 2/5: Meshes"
           },
           {
             "progress": 60,
-            "scanningText": "Scanning... 3/5: Scripts",
-            "update": {
-              "folder": "Scripts"
-            }
+            "scanningText": "Scanning... 3/5: Scripts"
           },
           {
             "progress": 80,
-            "scanningText": "Scanning... 4/5: Textures",
-            "update": {
-              "folder": "Textures"
-            }
+            "scanningText": "Scanning... 4/5: Textures"
           }
         ],
         "workerError": null,
@@ -1568,10 +1439,7 @@
         "updates": [
           {
             "progress": 1,
-            "scanningText": "Refreshing Overview...",
-            "update": {
-              "folder": "Race Subgraph Records"
-            }
+            "scanningText": "Counting Race Subgraph records..."
           }
         ],
         "workerError": null,

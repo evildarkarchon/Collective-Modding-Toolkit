@@ -380,11 +380,11 @@ public sealed class ScannerTabScenarioTests
 
         public void Release() => _gate.Set();
 
-        public ScanOutcome Run(ScanSettings settings)
+        public ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus> progress)
         {
             _entered = true;
             _gate.Wait(TimeSpan.FromSeconds(30));
-            return ScanWorker.Run(settings);
+            return ScanWorker.Run(settings, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
         }
     }
 }

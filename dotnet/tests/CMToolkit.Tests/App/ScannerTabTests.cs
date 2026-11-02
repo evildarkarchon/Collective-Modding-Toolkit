@@ -39,7 +39,7 @@ public sealed class ScannerTabTests
                 gather.Wait(TimeSpan.FromSeconds(30));
                 return real(p);
             },
-            worker: s =>
+            worker: (s, _) =>
             {
                 workerOnUiThread = Dispatcher.UIThread.CheckAccess();
                 work.Wait(TimeSpan.FromSeconds(30));
@@ -187,7 +187,7 @@ public sealed class ScannerTabTests
     {
         var error = new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8");
         var found = Problem.Simple("101 SADD Records from 1 modules", ScanProblemTypes.RaceSubgraphRecordCount, "Too many.", "Merge some.");
-        using var app = ScannerApp.Start(worker: _ => ScanOutcome.StoppedEarly([found], error));
+        using var app = ScannerApp.Start(worker: (_, _) => ScanOutcome.StoppedEarly([found], error));
         // What the tree holds when the Error Window opens: the error must show before the list appears.
         int? listedWhenTheErrorShowed = null;
         using var opened = Window.WindowOpenedEvent.AddClassHandler<ErrorWindow>(
@@ -228,7 +228,7 @@ public sealed class ScannerTabTests
         // B-3 (bug #22), fixed (ADR-0006): the reference's scan stayed stuck on Scanning... with Scan Game disabled. The
         // scan returns its own failures on its outcome (ScanWorkerFailureTests); this is the tab's last resort for an
         // exception that gets out anyway.
-        using var app = ScannerApp.Start(worker: _ => throw new InvalidOperationException("escaped the scan"));
+        using var app = ScannerApp.Start(worker: (_, _) => throw new InvalidOperationException("escaped the scan"));
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         DispatcherWait.Until(() => app.Runtime.Errors.Window is not null);
@@ -257,7 +257,7 @@ public sealed class ScannerTabTests
     {
         var work = new ManualResetEventSlim();
         var entered = false;
-        using var app = ScannerApp.Start(worker: s =>
+        using var app = ScannerApp.Start(worker: (s, _) =>
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
@@ -296,7 +296,7 @@ public sealed class ScannerTabTests
         var workerRan = false;
         using var app = ScannerApp.Start(
             gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p),
-            worker: s =>
+            worker: (s, _) =>
             {
                 workerRan = true;
                 return ScanWorker.Run(s);
@@ -330,7 +330,7 @@ public sealed class ScannerTabTests
                 // The frames are built from the binaries; the scan never reads them.
                 return ++gathered == 1 ? report : report with { Binaries = null! };
             },
-            worker: s =>
+            worker: (s, _) =>
             {
                 workerRan = true;
                 return ScanWorker.Run(s);
@@ -377,7 +377,7 @@ public sealed class ScannerTabTests
         // reported, so the Scan Game UI Action reports it, once, under the UI thread's header.
         var work = new ManualResetEventSlim();
         var entered = false;
-        using var app = ScannerApp.Start(worker: s =>
+        using var app = ScannerApp.Start(worker: (s, _) =>
         {
             entered = true;
             work.Wait(TimeSpan.FromSeconds(30));
@@ -550,7 +550,7 @@ public sealed class ScannerTabTests
         /// </param>
         public static ScannerApp Start(
             Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gatherer = null,
-            Func<ScanSettings, ScanOutcome>? worker = null,
+            Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome>? worker = null,
             CMToolkit.Core.Settings.AppSettings? stored = null,
             SettingsStore? settingsStore = null,
             bool overviewTab = false)
@@ -567,7 +567,7 @@ public sealed class ScannerTabTests
                 : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ScanWorker.Run };
+            var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker ?? ((s, _) => ScanWorker.Run(s)) };
             var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
             var load = overviewTab ? null : state.LoadAsync();

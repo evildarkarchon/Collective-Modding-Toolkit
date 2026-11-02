@@ -65,8 +65,10 @@ public sealed record ScanOutcome(IReadOnlyList<Problem> Problems, ModFiles? Inde
 /// </summary>
 public static class ScanWorker
 {
-    /// <summary>The progress step the Race Subgraphs count reports, which is no folder, so the tab ignores it.</summary>
-    public const string RaceSubgraphStep = "Race Subgraph Records";
+    // The statuses reported before the walk's own: both at 1%, where the tab's progress bar already stands once the
+    // Overview refresh is done, so only the label moves.
+    private static readonly ScanStatus CountingRaceSubgraphs = new("Counting Race Subgraph records...", 1);
+    private static readonly ScanStatus BuildingModFileIndex = new("Building mod file index...", 1);
 
     private const string LoosePrevisSummary =
         "Loose previs files should be archived so they only win conflicts according to their plugin's load order.\nLoose previs files are also not supported by PJM's Previs Scripts.";
@@ -89,20 +91,28 @@ public static class ScanWorker
 
     /// <summary>
     /// Runs the scan's worker part: without a Data folder it finds nothing. Otherwise the Race Subgraphs count (SCN-S5)
-    /// if ticked, then, unless no data check is ticked, the mod file index (SCN-S6) and the walk of Data (SCN-C1..C9),
-    /// reporting each top-level folder it enters (SCN-S4). When MO2's configuration stops the index (no selected
-    /// profile, or no <c>modlist.txt</c>), its problem row follows what was found before and the walk is skipped
-    /// (bug #22). Those rows aren't failures.
+    /// if ticked, then, unless no data check is ticked, the mod file index (SCN-S6) and the walk of Data (SCN-C1..C9).
+    /// When MO2's configuration stops the index (no selected profile, or no <c>modlist.txt</c>), its problem row
+    /// follows what was found before and the walk is skipped (bug #22). Those rows aren't failures.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Each step reports the status the Scanner tab shows for it: <c>Counting Race Subgraph records...</c> when the
+    /// count starts, <c>Building mod file index...</c> at 1% when the data checks begin, then
+    /// <c>Scanning... {index}/{folders}: {name}</c> for each top-level Data folder entered. A status is reported only
+    /// when the label or the progress changes, and each call tracks its own progress, so nothing carries over from an
+    /// earlier scan.
+    /// </para>
+    /// <para>
     /// An unexpected error from a check, such as a <c>modlist.txt</c> that isn't UTF-8, doesn't escape: the scan stops
     /// there and returns <see cref="ScanOutcome.StoppedEarly"/>, the problems found before it and then the stopped-early
     /// row, with the error on the outcome and no index. The worker neither logs nor reports the error; its caller does.
+    /// </para>
     /// </remarks>
     /// <param name="settings">The scan's settings snapshot.</param>
-    /// <param name="progress">Where progress updates go, in order, from the calling thread; null for none.</param>
+    /// <param name="progress">Where the scan's statuses go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
-    public static ScanOutcome Run(ScanSettings settings, IProgress<ScanUpdate>? progress, ILogger logger)
+    public static ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus>? progress, ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(logger);
@@ -115,7 +125,7 @@ public static class ScanWorker
         var problems = new List<Problem>();
         try
         {
-            return RunChecks(settings, data, progress, logger, problems);
+            return RunChecks(settings, data, new ScanProgressTracker(progress), logger, problems);
         }
         catch (Exception ex)
         {
@@ -126,16 +136,18 @@ public static class ScanWorker
     }
 
     /// <summary>
-    /// The checks <see cref="Run(ScanSettings, IProgress{ScanUpdate}?, ILogger)"/> runs over <paramref name="data"/>,
+    /// The checks <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> runs over <paramref name="data"/>,
     /// adding what they find to <paramref name="problems"/> as they go, so a caller catching a throw still has the
     /// problems found before it.
     /// </summary>
+    /// <param name="progress">This scan's own tracker, which reports each step's status.</param>
     private static ScanOutcome RunChecks(
-        ScanSettings settings, PythonPath data, IProgress<ScanUpdate>? progress, ILogger logger, List<Problem> problems)
+        ScanSettings settings, PythonPath data, ScanProgressTracker progress, ILogger logger, List<Problem> problems)
     {
         if (settings[ScanSetting.RaceSubgraphs])
         {
-            progress?.Report(new ScanUpdate.Folder(RaceSubgraphStep));
+            // Reading every enabled module can be the slowest step, so it gets a label of its own.
+            progress.Show(CountingRaceSubgraphs);
             CountRaceSubgraphs(settings, logger, problems);
         }
 
@@ -144,6 +156,7 @@ public static class ScanWorker
             return new ScanOutcome(problems, null);
         }
 
+        progress.Show(BuildingModFileIndex);
         var index = ModFileIndex.Build(settings, out var failure);
         if (failure is not null)
         {
