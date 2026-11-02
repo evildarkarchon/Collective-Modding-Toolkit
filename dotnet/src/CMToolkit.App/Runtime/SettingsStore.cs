@@ -66,7 +66,7 @@ public sealed class SettingsStore
     /// a <see cref="OperationPhase.Blocking"/> background operation, because the reference wrote it on the Tk thread
     /// and so froze input until the write was done (ADR-0003).
     /// </summary>
-    /// <param name="operations">The runner the write goes through. Call this on the UI thread, as the runner requires.</param>
+    /// <param name="actions">The runner the write goes through. Call this on the UI thread, as the runner requires.</param>
     /// <param name="settings">The settings to make current and save.</param>
     /// <returns>A task that completes, on the UI thread, once the file is written (or the write failed and was logged).</returns>
     /// <exception cref="OperationFailedException">The write raised past its own logging; the runner has reported it.</exception>
@@ -75,10 +75,10 @@ public sealed class SettingsStore
     /// it, as every save in the reference built on the one shared dict. Writes land in the order their saves were made,
     /// and the last one wins.
     /// </remarks>
-    public Task SaveAsync(BackgroundOperations operations, AppSettings settings)
+    public Task SaveAsync(UiActions actions, AppSettings settings)
     {
         var ticket = Commit(settings);
-        return operations.RunAsync(SaveOperationName, OperationPhase.Blocking, () => Write(ticket, settings));
+        return actions.Run(SaveOperationName, OperationPhase.Blocking, () => Write(ticket, settings));
     }
 
     /// <summary>Makes <paramref name="settings"/> current and numbers the save, atomically, so numbers follow saves.</summary>

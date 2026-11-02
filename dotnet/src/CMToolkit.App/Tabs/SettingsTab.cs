@@ -111,7 +111,7 @@ public sealed class SettingsTab : TabPage
         {
             // Set before the action starts: routing has moved on by the time the save completes.
             e.Handled = true;
-            _ = _runtime.Actions.Start(() => _settings.SaveAsync(_runtime.Operations, change(_settings.Current)));
+            _ = _runtime.Actions.Start(() => _settings.SaveAsync(_runtime.Actions, change(_settings.Current)));
         };
         return radio;
     }

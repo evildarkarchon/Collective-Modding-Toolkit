@@ -77,7 +77,7 @@ public sealed class MainWindowCloseTests
         var (runtime, window) = ShowShell();
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("Refresh", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("Refresh", OperationPhase.Blocking, () => gate.Task.Wait());
         UserClose.Request(window);
         Assert.True(window.IsVisible);
 

@@ -160,7 +160,7 @@ public sealed class LazyTabTests
         Shell? shell = null;
         shell = ShowShell(pages => pages[1].Load = async _ =>
         {
-            await shell!.Runtime.Operations.RunAsync(
+            await shell!.Runtime.Actions.Run(
                 "Load F4SETab", OperationPhase.Blocking, () => throw new InvalidOperationException("no DLLs"));
             return true;
         });
@@ -237,7 +237,7 @@ public sealed class LazyTabTests
         Shell? shell = null;
         shell = ShowShell(pages => pages[1].Load = async _ =>
         {
-            await shell!.Runtime.Operations.RunAsync(
+            await shell!.Runtime.Actions.Run(
                 "Load F4SETab", OperationPhase.Blocking, () => throw new InvalidOperationException("no DLLs"));
             return true;
         });

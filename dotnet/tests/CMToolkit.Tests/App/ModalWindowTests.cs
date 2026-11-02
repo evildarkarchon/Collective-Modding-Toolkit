@@ -137,7 +137,7 @@ public sealed class ModalWindowTests
         var about = ShowAbout(runtime, owner);
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
         Press(about, Key.Space, PhysicalKey.Space);
         Press(about, Key.Escape, PhysicalKey.Escape);
         Assert.True(about.IsVisible);
@@ -158,7 +158,7 @@ public sealed class ModalWindowTests
         about.ProcessingData = true;
         var gate = new TaskCompletionSource();
 
-        var operation = runtime.Operations.RunAsync("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
+        var operation = runtime.Actions.Run("Patch All", OperationPhase.Blocking, () => gate.Task.Wait());
         Press(about, Key.Escape, PhysicalKey.Escape);
         Assert.True(about.IsVisible);
 

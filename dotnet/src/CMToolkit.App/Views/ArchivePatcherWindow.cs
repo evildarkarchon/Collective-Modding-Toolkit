@@ -206,7 +206,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
         });
         try
         {
-            await Runtime.Operations.RunAsync(
+            await Runtime.Actions.Run(
                 "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
         }
         catch (OperationFailedException ex)

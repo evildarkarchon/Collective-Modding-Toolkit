@@ -135,7 +135,7 @@ public sealed class F4seTab : TabPage
     /// <inheritdoc/>
     protected internal override async Task<bool> LoadAsync()
     {
-        var scan = await _runtime.Operations.RunAsync("F4SE load", OperationPhase.Blocking, () => F4seScan.Run(_game, _host, _runtime.Logger));
+        var scan = await _runtime.Actions.Run("F4SE load", OperationPhase.Blocking, () => F4seScan.Run(_game, _host, _runtime.Logger));
         if (scan.LoadingError is { } error)
         {
             LoadingError = error;

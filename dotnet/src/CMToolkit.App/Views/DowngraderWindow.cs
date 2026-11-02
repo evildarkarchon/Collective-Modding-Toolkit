@@ -172,7 +172,7 @@ public sealed class DowngraderWindow : ModalWindow
         // Not awaited: the returned task completes only when the modal closes. Started as a UI Action of its own, so a
         // window that fails to open reaches the Error Window; Start's task never faults.
         _ = Runtime.Actions.Start(() => ShowModalAsync(owner));
-        Versions = await Runtime.Operations.RunAsync(
+        Versions = await Runtime.Actions.Run(
             "Downgrader detection", OperationPhase.Blocking, () => DowngraderDetection.Detect(_game, _host));
 
         _run = new DowngraderRun(_game, _host, _deltaPatchHttp, Versions) { PatchFolder = _patchFolder };
@@ -235,7 +235,7 @@ public sealed class DowngraderWindow : ModalWindow
         Interlocked.Increment(ref _operations);
         try
         {
-            await Runtime.Operations.RunPhasedAsync(
+            await Runtime.Actions.RunPhased(
                 "Downgrader Patch All", OperationPhase.Blocking, async _ =>
                 {
                     // The settings file is written inside the blocking operation, off the UI thread (ADR-0003), and
@@ -323,7 +323,7 @@ public sealed class DowngraderWindow : ModalWindow
     {
         try
         {
-            await Runtime.Operations.RunPhasedAsync(
+            await Runtime.Actions.RunPhased(
                 "Downgrader download", OperationPhase.Interactive, async phases =>
                 {
                     await poll(phases).ConfigureAwait(false);

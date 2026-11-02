@@ -121,7 +121,7 @@ public sealed class ErrorWindowTests
     {
         var runtime = new AppRuntime(new CapturingLogger());
 
-        await Assert.ThrowsAsync<OperationFailedException>(() => runtime.Operations.RunAsync(
+        await Assert.ThrowsAsync<OperationFailedException>(() => runtime.Actions.Run(
             "Load F4SETab", OperationPhase.Blocking, () => throw new InvalidOperationException("boom")));
 
         Assert.StartsWith(
@@ -180,7 +180,7 @@ public sealed class ErrorWindowTests
             {
                 try
                 {
-                    await runtime.Operations.RunAsync(
+                    await runtime.Actions.Run(
                         "Refresh", OperationPhase.Blocking, () => throw new InvalidOperationException());
                 }
                 finally

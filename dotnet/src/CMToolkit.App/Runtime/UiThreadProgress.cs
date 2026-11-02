@@ -3,7 +3,7 @@ using Avalonia.Threading;
 namespace CMToolkit.App.Runtime;
 
 /// <summary>
-/// An <see cref="IProgress{T}"/> for a Core operation running under <see cref="BackgroundOperations"/>: each report is
+/// An <see cref="IProgress{T}"/> for a Core operation running under <see cref="UiActions"/>: each report is
 /// handled on the UI thread before <see cref="Report"/> returns, so the App sees a run's events (log pane lines,
 /// percentages) in the order the work emitted them, each before the work goes on, as the reference's UI-thread code
 /// handled them in line.

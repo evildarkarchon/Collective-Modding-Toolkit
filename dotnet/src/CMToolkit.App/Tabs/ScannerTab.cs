@@ -331,7 +331,7 @@ public sealed class ScannerTab : TabPage
         _pending = pending;
         try
         {
-            outcome = await _runtime.Operations.RunAsync(
+            outcome = await _runtime.Actions.Run(
                 ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
         }
         catch (OperationFailedException ex)
@@ -465,7 +465,7 @@ public sealed class ScannerTab : TabPage
     /// </exception>
     private Task SaveBoxesAsync(ScanSidePane side)
         => ScanSettings.ChangedSettings(_settings.Current, side.Values) is { } changed
-            ? _settings.SaveAsync(_runtime.Operations, changed)
+            ? _settings.SaveAsync(_runtime.Actions, changed)
             : Task.CompletedTask;
 
     /// <summary>Closes the details pane if one is open (<c>details_pane.destroy()</c>), so the next selection makes a new one.</summary>

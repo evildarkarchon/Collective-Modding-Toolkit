@@ -7,7 +7,7 @@ namespace CMToolkit.App.Runtime;
 /// </summary>
 public sealed class OperationFailedException : Exception
 {
-    /// <param name="operationName">The operation's name, as given to <see cref="BackgroundOperations"/>.</param>
+    /// <param name="operationName">The operation's name, as given to <see cref="UiActions"/>.</param>
     /// <param name="innerException">What the work threw.</param>
     public OperationFailedException(string operationName, Exception innerException)
         : base($"Background operation '{operationName}' failed; the error has been reported.", innerException)
