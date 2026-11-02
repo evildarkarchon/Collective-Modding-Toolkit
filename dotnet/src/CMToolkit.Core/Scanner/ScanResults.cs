@@ -26,6 +26,34 @@ public sealed class ModFiles
 
     /// <summary>The archives at a mod's root, by file name (<c>archives</c>).</summary>
     public Dictionary<string, ModFile> Archives { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Which mod a file or folder of Data belongs to: the mod that has it and its path in that mod's staging folder,
+    /// or, when no mod has it, an empty mod and <paramref name="dataPath"/>. This is the one place the rule lives, so
+    /// every check that names a mod agrees on it.
+    /// </summary>
+    /// <param name="relative">The path relative to Data, matched case-insensitively.</param>
+    /// <param name="kind">
+    /// Whether the path is a file or a folder. Files and folders are indexed apart, so a folder lookup never finds a
+    /// file of the same path (two mods can disagree on which one a path is).
+    /// </param>
+    /// <param name="dataPath">The path in Data itself, returned when no mod has it.</param>
+    /// <returns>The owning mod's entry, or <c>("", dataPath)</c>.</returns>
+    public ModFile OwnerOf(PythonPath relative, ModPathKind kind, PythonPath dataPath)
+    {
+        var table = kind == ModPathKind.Folder ? Folders : Files;
+        return table.TryGetValue(relative, out var owner) ? owner : new ModFile(string.Empty, dataPath);
+    }
+}
+
+/// <summary>Whether a <see cref="ModFiles.OwnerOf"/> lookup is for a file or a folder.</summary>
+public enum ModPathKind
+{
+    /// <summary>A file, looked up in <see cref="ModFiles.Files"/>.</summary>
+    File,
+
+    /// <summary>A folder, looked up in <see cref="ModFiles.Folders"/>.</summary>
+    Folder,
 }
 
 /// <summary>One results tree group: a problem type and its items, in display order.</summary>
