@@ -39,7 +39,7 @@ public sealed class ProbeTab : TabPage
     public void FailWith(string? error) => LoadingError = error;
 
     /// <inheritdoc/>
-    protected override async Task<bool> LoadAsync()
+    protected internal override async Task<bool> LoadAsync()
     {
         Calls.Add("load");
         await Gate;
@@ -47,19 +47,19 @@ public sealed class ProbeTab : TabPage
     }
 
     /// <inheritdoc/>
-    protected override Control BuildContent()
+    protected internal override Control BuildContent()
     {
         Calls.Add("build");
         return Built;
     }
 
     /// <inheritdoc/>
-    protected override void SwitchTo()
+    protected internal override void SwitchTo()
     {
         Calls.Add("switch_to");
         OnSwitchTo?.Invoke();
     }
 
     /// <inheritdoc/>
-    protected override void SwitchFrom() => Calls.Add("switch_from");
+    protected internal override void SwitchFrom() => Calls.Add("switch_from");
 }

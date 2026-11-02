@@ -16,8 +16,10 @@ namespace CMToolkit.App.Runtime;
 /// <see cref="OperationPhase"/> decides whether the UI stays live meanwhile. An exception in the work is reported to the
 /// Error Window and the log, then the returned task fails with <see cref="OperationFailedException"/>. Letting that
 /// propagate is what stops the UI Action at its first failure; <see cref="Start"/> and the global handlers know it was
-/// already reported. Every method but <see cref="Schedule"/> is called on the UI thread, and its results come back on
-/// it.
+/// already reported. The few actions that must carry on after a failed Operation start it through
+/// <see cref="TryRun{T}"/> instead, which hands the reported failure back as an <see cref="OperationOutcome{T}"/>; no
+/// caller catches the exception, which is internal to the runner. Every method but <see cref="Schedule"/> is called on
+/// the UI thread, and its results come back on it.
 /// </remarks>
 public sealed class UiActions
 {

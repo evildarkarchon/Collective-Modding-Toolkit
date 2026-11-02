@@ -5,7 +5,11 @@ namespace CMToolkit.App.Runtime;
 /// Window and the log. Callers let it propagate, so the rest of the UI Action is skipped, and
 /// <see cref="UiActions.Start"/> and the global handlers drop it rather than report it twice.
 /// </summary>
-public sealed class OperationFailedException : Exception
+/// <remarks>
+/// Internal: only the runner throws and recognises it. A caller that must carry on after a failed Operation uses
+/// <see cref="UiActions.TryRun{T}"/> and its <see cref="OperationOutcome{T}"/> rather than catching this.
+/// </remarks>
+internal sealed class OperationFailedException : Exception
 {
     /// <param name="operationName">The operation's name, as given to <see cref="UiActions"/>.</param>
     /// <param name="innerException">What the work threw.</param>
