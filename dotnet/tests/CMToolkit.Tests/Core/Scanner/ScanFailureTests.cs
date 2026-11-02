@@ -1,5 +1,3 @@
-using CMToolkit.App.Startup;
-using CMToolkit.Core.Overview;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
@@ -142,10 +140,5 @@ public sealed class ScanFailureTests
     /// the scan's refresh would have (its enabled modules).
     /// </summary>
     private static async Task<ScanSettings> ChecksTicked(MaterializedScenario machine)
-    {
-        var game = await Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
-            ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
-        return ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, s => s != ScanSetting.OverviewIssues), game, report, machine.Host);
-    }
+        => (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues));
 }

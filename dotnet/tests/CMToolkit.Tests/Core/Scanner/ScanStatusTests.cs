@@ -1,5 +1,3 @@
-using CMToolkit.App.Startup;
-using CMToolkit.Core.Overview;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
@@ -111,7 +109,7 @@ public sealed class ScanStatusTests
     /// <summary>Runs one scan of <paramref name="settings"/> and returns the statuses it reported, in order.</summary>
     private static List<ScanStatus> Statuses(ScanSettings settings)
     {
-        var statuses = new ListProgress();
+        var statuses = new ListProgress<ScanStatus>();
         Scan.Run(settings, statuses, NullLogger.Instance);
         return statuses.Reported;
     }
@@ -123,18 +121,5 @@ public sealed class ScanStatusTests
     /// (its enabled modules, which the Race Subgraphs count reads).
     /// </summary>
     private static async Task<ScanSettings> Ticked(MaterializedScenario machine, params ScanSetting[] ticked)
-    {
-        var game = await Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
-            ?? throw new InvalidOperationException("The scenario's game wasn't found.");
-        var report = OverviewReport.Gather(game, machine.Host, new CapturingLogger());
-        return ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, ticked.Contains), game, report, machine.Host);
-    }
-
-    /// <summary>Records each status on the reporting thread, as the scan reports them; <see cref="Progress{T}"/> would post them.</summary>
-    private sealed class ListProgress : IProgress<ScanStatus>
-    {
-        public List<ScanStatus> Reported { get; } = [];
-
-        public void Report(ScanStatus value) => Reported.Add(value);
-    }
+        => (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ticked);
 }

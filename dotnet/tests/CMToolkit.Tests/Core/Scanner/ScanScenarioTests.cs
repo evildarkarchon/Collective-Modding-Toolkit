@@ -1,8 +1,6 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CMToolkit.App.Runtime;
-using CMToolkit.App.Startup;
-using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Core.Overview;
@@ -34,20 +32,18 @@ public sealed partial class ScanScenarioTests
     public async Task The_scan_matches_the_recorded_result(ParityScenario scenario)
     {
         using var machine = scenario.Materialize();
-        var game = await GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand))
-                   ?? throw new InvalidOperationException("The scenario's game wasn't found.");
+        var located = await ScanScenarioMachine.LocateAsync(machine);
 
-        OverviewReport? report = null;
         var usingStage = false;
         var runs = new JsonArray();
         foreach (var ticked in Runs)
         {
             // Each Scan starts with its Overview refresh, which the tab runs before the scan and logs on its own.
-            report = OverviewReport.Gather(game, machine.Host, new CapturingLogger(), report);
-            var settings = ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, ticked.Contains), game, report, machine.Host);
+            located = located.Refreshed();
+            var settings = located.Snapshot(ticked);
             usingStage = settings.UsingStage;
             var log = new CapturingLogger();
-            var statuses = new ListProgress();
+            var statuses = new ListProgress<ScanStatus>();
 
             var outcome = Scan.Run(settings, statuses, log);
 
@@ -150,12 +146,4 @@ public sealed partial class ScanScenarioTests
     /// <summary>Masks object addresses in an error message, as the reference driver masked Python's.</summary>
     [GeneratedRegex("0x[0-9A-Fa-f]+")]
     private static partial Regex Address();
-
-    /// <summary>Records each status on the reporting thread, in order.</summary>
-    private sealed class ListProgress : IProgress<ScanStatus>
-    {
-        public List<ScanStatus> Reported { get; } = [];
-
-        public void Report(ScanStatus value) => Reported.Add(value);
-    }
 }
