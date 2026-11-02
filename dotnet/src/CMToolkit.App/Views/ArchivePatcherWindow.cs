@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -171,10 +170,10 @@ public sealed class ArchivePatcherWindow : ModalWindow
         {
             try
             {
-                var patchFailure = await PatchAsync();
+                var patched = await PatchAsync();
                 await _overview.RefreshAsync();
                 // The refresh succeeded, so the list is right; the patch run's failure, if any, still ends the action.
-                patchFailure?.Throw();
+                patched.ThrowIfFailed();
             }
             finally
             {
@@ -188,10 +187,10 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <c>Patcher Finished</c>.
     /// </summary>
     /// <returns>
-    /// Null when the run finished, otherwise its <see cref="OperationFailedException"/>, already reported by the runner,
-    /// captured so that Patch All can refresh before rethrowing it.
+    /// The run's outcome. A failure has already been reported by the runner, and is handed back rather than thrown so
+    /// that Patch All can refresh before it ends the action.
     /// </returns>
-    private async Task<ExceptionDispatchInfo?> PatchAsync()
+    private async Task<OperationOutcome<ArchivePatchResult>> PatchAsync()
     {
         Runtime.Logger.Write(LogLevel.Information, "Patcher Running: ArchivePatcher");
         var files = FilesToPatch;
@@ -204,18 +203,14 @@ public sealed class ArchivePatcherWindow : ModalWindow
                 Log.Log(line);
             }
         });
-        try
+        var outcome = await Runtime.Actions.TryRun(
+            "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
+        if (outcome is OperationOutcome<ArchivePatchResult>.Succeeded)
         {
-            await Runtime.Actions.Run(
-                "Archive Patcher", OperationPhase.Blocking, () => ArchivePatching.Patch(files, target, filter, _host, Runtime.Logger, progress));
-        }
-        catch (OperationFailedException ex)
-        {
-            return ExceptionDispatchInfo.Capture(ex);
+            Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
         }
 
-        Runtime.Logger.Write(LogLevel.Information, "Patcher Finished");
-        return null;
+        return outcome;
     }
 
     /// <summary><c>filter_text</c>: which archives the list shows for the Desired Version.</summary>

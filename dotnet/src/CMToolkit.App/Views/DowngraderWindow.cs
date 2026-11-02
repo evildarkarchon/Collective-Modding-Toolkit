@@ -358,17 +358,10 @@ public sealed class DowngraderWindow : ModalWindow
         /// </remarks>
         public async Task<bool> RefreshOverviewAsync()
         {
-            try
-            {
-                await Dispatcher.UIThread.InvokeAsync(window._overview.RefreshAsync).ConfigureAwait(false);
-                return true;
-            }
-            catch (OperationFailedException)
-            {
-                // Translated, not propagated: IDowngraderHost is a Core seam and Core doesn't know the runner's exception
-                // (ADR-0003). Left to propagate, it would also fail the download poll, and be reported a second time.
-                return false;
-            }
+            var outcome = await Dispatcher.UIThread.InvokeAsync(window._overview.TryRefreshAsync).ConfigureAwait(false);
+            // Translated, not thrown: IDowngraderHost is a Core seam and Core doesn't know the runner's outcomes or
+            // exception (ADR-0003). Thrown, it would also fail the download poll, and be reported a second time.
+            return outcome is OperationOutcome<OverviewReport>.Succeeded;
         }
 
         public void SchedulePoll(Func<IProgress<OperationPhase>, Task> poll) => window.SchedulePoll(poll);

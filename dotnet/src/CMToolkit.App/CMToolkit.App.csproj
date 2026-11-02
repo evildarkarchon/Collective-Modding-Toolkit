@@ -45,4 +45,9 @@
   <ItemGroup>
     <ProjectReference Include="..\CMToolkit.Core\CMToolkit.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- The runner's tests assert on OperationFailedException, which is internal so no caller can catch it (ADR-0009). -->
+    <InternalsVisibleTo Include="CMToolkit.Tests" />
+  </ItemGroup>
 </Project>

@@ -147,18 +147,16 @@ public sealed class OverviewTab : TabPage
     /// <exception cref="OperationFailedException">The load failed; the runner has reported it.</exception>
     protected internal override async Task<bool> LoadAsync()
     {
-        try
-        {
-            await _state.LoadAsync();
-        }
-        catch (OperationFailedException)
+        var outcome = await _state.TryLoadAsync();
+        if (outcome is OperationOutcome<OverviewReport>.Failed)
         {
             if (_state.Report is { } partial)
             {
                 await ShowWarningsAsync(partial.Warnings);
             }
 
-            throw;
+            // Already reported by the runner; this only ends the load, so the tab stays on its loading text.
+            outcome.ThrowIfFailed();
         }
 
         await ShowWarningsAsync(_state.Report!.Warnings);

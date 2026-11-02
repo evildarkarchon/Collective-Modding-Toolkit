@@ -445,4 +445,124 @@ public sealed class UiActionsTests
         probe.ClickButton();
         Assert.Equal(1, probe.Clicks);
     }
+
+    [AvaloniaFact]
+    public async Task Try_run_returns_succeeded_with_the_work_s_value_and_reports_nothing()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+
+        var outcome = await runtime.Actions.TryRun("probe", OperationPhase.Blocking, () => 7);
+
+        var succeeded = Assert.IsType<OperationOutcome<int>.Succeeded>(outcome);
+        Assert.Equal(7, succeeded.Value);
+        Assert.Empty(logger.Entries);
+    }
+
+    [AvaloniaFact]
+    public async Task Try_run_returns_failed_with_the_original_exception_reported_once_under_the_operation_s_header()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var thrown = new InvalidOperationException("boom");
+
+        var outcome = await runtime.Actions.TryRun<int>("Patch", OperationPhase.Blocking, () => throw thrown);
+
+        var failed = Assert.IsType<OperationOutcome<int>.Failed>(outcome);
+        Assert.Same(thrown, failed.Error);
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.OperationHeader("Patch")}\nSystem.InvalidOperationException: boom", entry.Message);
+        Assert.False(runtime.Input.IsBlocking);
+    }
+
+    [AvaloniaFact]
+    public async Task Throw_if_failed_on_a_failed_outcome_ends_the_ui_action_without_a_second_report()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var carriedOn = false;
+        var skipped = true;
+
+        await runtime.Actions.Start(async () =>
+        {
+            var outcome = await runtime.Actions.TryRun<int>("Patch", OperationPhase.Blocking, () => throw new InvalidOperationException("boom"));
+            carriedOn = true;
+            outcome.ThrowIfFailed();
+            skipped = false;
+        });
+
+        Assert.True(carriedOn);
+        Assert.True(skipped);
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Patch")}\n", entry.Message);
+    }
+
+    /// <summary>
+    /// Patch All's shape: a failed outcome ended inside a <c>Blocking</c> span, after the span carried on past it. The
+    /// span must treat it as already reported, or the error would be shown a second time under the UI-thread header.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Throw_if_failed_inside_a_blocking_span_is_not_reported_a_second_time_and_releases_the_block()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var probe = InputProbe.Show(runtime);
+        var skipped = true;
+
+        await runtime.Actions.Start(() => runtime.Actions.Blocking(async () =>
+        {
+            var outcome = await runtime.Actions.TryRun<int>("Patch", OperationPhase.Blocking, () => throw new InvalidOperationException("boom"));
+            await runtime.Actions.Run("Refresh", OperationPhase.Blocking, () => { });
+            outcome.ThrowIfFailed();
+            skipped = false;
+        }));
+
+        Assert.True(skipped);
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Patch")}\n", entry.Message);
+        Assert.False(runtime.Input.IsBlocking);
+        probe.ClickButton();
+        Assert.Equal(1, probe.Clicks);
+    }
+
+    [AvaloniaFact]
+    public async Task Throw_if_failed_on_a_succeeded_outcome_does_nothing()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var finished = false;
+
+        await runtime.Actions.Start(async () =>
+        {
+            var outcome = await runtime.Actions.TryRun("probe", OperationPhase.Blocking, () => 7);
+            outcome.ThrowIfFailed();
+            finished = true;
+        });
+
+        Assert.True(finished);
+        Assert.Empty(logger.Entries);
+    }
+
+    /// <summary>
+    /// An error the Operation returned rather than threw, like a Scan that stopped early, goes to the Error Window under
+    /// the same header the runner gives a failure of that Operation.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Report_failure_reports_a_returned_error_under_the_operation_s_header()
+    {
+        var thrownLogger = new CapturingLogger();
+        var thrownRuntime = new AppRuntime(thrownLogger);
+        await thrownRuntime.Actions.TryRun<int>("Scan", OperationPhase.Interactive, () => throw new IOException("unreadable"));
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+
+        runtime.Actions.ReportFailure("Scan", new IOException("unreadable"));
+
+        var entry = Assert.Single(logger.Entries);
+        var header = ErrorReporter.OperationHeader("Scan");
+        Assert.StartsWith($"StdErr : {header}\nSystem.IO.IOException: unreadable", entry.Message);
+        Assert.StartsWith($"StdErr : {header}\n", Assert.Single(thrownLogger.Entries).Message);
+        Assert.StartsWith($"{header}\nSystem.IO.IOException: unreadable", runtime.Errors.Window!.Text);
+    }
 }

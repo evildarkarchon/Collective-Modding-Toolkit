@@ -9,6 +9,7 @@ using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
+using CMToolkit.Core.Overview;
 using CMToolkit.Core.Problems;
 using CMToolkit.Core.Scanner;
 using Microsoft.Extensions.Logging;
@@ -304,11 +305,7 @@ public sealed class ScannerTab : TabPage
 
         _scanningText!.IsVisible = true;
         _scanningText.Text = "Refreshing Overview...";
-        try
-        {
-            await _overview.RefreshAsync();
-        }
-        catch (OperationFailedException)
+        if (await _overview.TryRefreshAsync() is OperationOutcome<OverviewReport>.Failed)
         {
             // Bug #22's loose end, fixed (ADR-0006): the refresh raised in the reference's start_threaded_scan, which
             // left Scan Game disabled on Scanning... for good. The runner has reported the error; the scan ends before
@@ -329,19 +326,20 @@ public sealed class ScannerTab : TabPage
         var errorReported = false;
         var pending = new ConcurrentQueue<ScanStatus>();
         _pending = pending;
-        try
-        {
-            outcome = await _runtime.Actions.Run(
-                ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
-        }
-        catch (OperationFailedException ex)
+        var run = await _runtime.Actions.TryRun(
+            ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
+        if (run is OperationOutcome<ScanOutcome>.Failed failed)
         {
             // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
             // Everything the scan would have listed died with it (it seeds its own results), so the list is the
             // stopped-early row alone: an empty list would read as a clean scan. The runner has already reported the
             // error, so it must not reach the Error Window a second time below.
-            outcome = ScanOutcome.StoppedEarly([], ex.InnerException ?? ex);
+            outcome = ScanOutcome.StoppedEarly([], failed.Error);
             errorReported = true;
+        }
+        else
+        {
+            outcome = ((OperationOutcome<ScanOutcome>.Succeeded)run).Value;
         }
 
         // The statuses still queued when the scan returned are applied first: the await's continuation can run ahead of
@@ -356,7 +354,7 @@ public sealed class ScannerTab : TabPage
         {
             // The scan stopped early and returned its error rather than throwing it, so no runner reported it. Shown
             // now, on the UI thread, so the Error Window is up before the partial results are listed.
-            _runtime.Errors.Report(ErrorReporter.OperationHeader(ScanOperation), error);
+            _runtime.Actions.ReportFailure(ScanOperation, error);
         }
 
         _progress.Value = 100;

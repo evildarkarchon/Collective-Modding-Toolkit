@@ -16,8 +16,10 @@ namespace CMToolkit.App.Runtime;
 /// <see cref="OperationPhase"/> decides whether the UI stays live meanwhile. An exception in the work is reported to the
 /// Error Window and the log, then the returned task fails with <see cref="OperationFailedException"/>. Letting that
 /// propagate is what stops the UI Action at its first failure; <see cref="Start"/> and the global handlers know it was
-/// already reported. Every method but <see cref="Schedule"/> is called on the UI thread, and its results come back on
-/// it.
+/// already reported. The few actions that must carry on after a failed Operation start it through
+/// <see cref="TryRun{T}"/> instead, which hands the reported failure back as an <see cref="OperationOutcome{T}"/>; no
+/// caller catches the exception, which is internal to the runner. Every method but <see cref="Schedule"/> is called on
+/// the UI thread, and its results come back on it.
 /// </remarks>
 public sealed class UiActions
 {
@@ -112,18 +114,56 @@ public sealed class UiActions
     public async Task<T> RunPhased<T>(
         string name, OperationPhase initialPhase, Func<IProgress<OperationPhase>, Task<T>> work)
     {
+        var outcome = await TryRunPhased(name, initialPhase, work);
+        outcome.ThrowIfFailed();
+        return ((OperationOutcome<T>.Succeeded)outcome).Value;
+    }
+
+    /// <summary>
+    /// Runs <paramref name="work"/> off the UI thread as one Operation in a single phase, like
+    /// <see cref="Run{T}"/>, but hands its failure back instead of throwing it, for a UI Action that must carry on after
+    /// it. The failure is still reported, once, under the Operation's name.
+    /// </summary>
+    /// <param name="name">Names the Operation in the Error Window if it fails.</param>
+    /// <param name="phase">Whether the UI is input-blocked while it runs.</param>
+    /// <param name="work">The Core call.</param>
+    /// <returns>
+    /// <see cref="OperationOutcome{T}.Succeeded"/> with the work's result, or <see cref="OperationOutcome{T}.Failed"/>
+    /// with what it threw, already reported; back on the UI thread either way.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">Not called on the UI thread.</exception>
+    public Task<OperationOutcome<T>> TryRun<T>(string name, OperationPhase phase, Func<T> work)
+        => TryRunPhased(name, phase, _ => Task.FromResult(work()));
+
+    /// <summary>
+    /// Reports an error that an Operation returned rather than threw, such as the Scan's when it stops early, under the
+    /// header the runner gives that Operation's failures. Synchronous, so on the UI thread the Error Window is up before
+    /// this returns.
+    /// </summary>
+    /// <param name="name">The Operation's name, as given to the runner.</param>
+    /// <param name="error">The error it returned.</param>
+    public void ReportFailure(string name, Exception error)
+        => _errors.Report(ErrorReporter.OperationHeader(name), error);
+
+    /// <summary>
+    /// The one place an Operation runs: off the UI thread, in its phases, with a failure reported under its name and
+    /// handed back as <see cref="OperationOutcome{T}.Failed"/>. The throwing forms rethrow from here.
+    /// </summary>
+    private async Task<OperationOutcome<T>> TryRunPhased<T>(
+        string name, OperationPhase initialPhase, Func<IProgress<OperationPhase>, Task<T>> work)
+    {
         Dispatcher.UIThread.VerifyAccess();
 
         // Disposed after the catch block has reported, so the Error Window is up before deferred input is replayed.
         using var phases = new PhaseTracker(_input, initialPhase);
         try
         {
-            return await Task.Run(() => work(phases));
+            return new OperationOutcome<T>.Succeeded(await Task.Run(() => work(phases)));
         }
         catch (Exception ex)
         {
             _errors.Report(ErrorReporter.OperationHeader(name), ex);
-            throw new OperationFailedException(name, ex);
+            return new OperationOutcome<T>.Failed(name, ex);
         }
     }
 
