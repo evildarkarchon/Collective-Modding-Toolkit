@@ -175,7 +175,6 @@ public sealed class ScannerTabTests
 
         Assert.Equal(0, listedWhenTheErrorShowed);
         Assert.Equal(stopping.Text, labelWhenTheErrorShowed);
-        Assert.StartsWith(ErrorReporter.OperationHeader("Scanner scan"), app.Runtime.Errors.Window!.Text, StringComparison.Ordinal);
 
         var scan = app.Scanner.SidePane!.ScanButton;
         Assert.True(scan.IsEnabled);
@@ -257,9 +256,24 @@ public sealed class ScannerTabTests
             gatherer: real => p => fail ? throw new InvalidDataException("No [Archive] section") : real(p));
         fail = true;
 
-        MouseClick.On(app.Scanner.SidePane!.ScanButton);
-        DispatcherWait.Until(() => app.Runtime.Errors.Window is not null && !app.Runtime.Input.IsBlocking);
+        // Every text Scan Game shows from the click on. What reaches the Error Window when the refresh dies is
+        // ScanStateTests'; the tab is read once it has drawn the Scan's start and then its end, since the refresh can
+        // die before the click's own jobs have run out.
+        var button = app.Scanner.SidePane!.ScanButton;
+        var drawn = new List<string?>();
+        button.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == ContentControl.ContentProperty)
+            {
+                drawn.Add((string?)e.NewValue);
+            }
+        };
+
+        MouseClick.On(button);
+        DispatcherWait.Until(() => drawn is [.., "Scan Game"] && !app.Runtime.Input.IsBlocking);
         Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(["Scanning...", "Scan Game"], drawn);
 
         // Bug #22's loose end, fixed (ADR-0006): the reference's start_threaded_scan died with the refresh, leaving
         // Scan Game disabled on Scanning... and the label on Refreshing Overview....
