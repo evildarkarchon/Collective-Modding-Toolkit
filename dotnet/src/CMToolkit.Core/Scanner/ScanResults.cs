@@ -69,7 +69,7 @@ public static class ScanResults
 {
     /// <summary>
     /// The results a scan starts with (SCN-S3): the Overview problems, in their list order, when Overview Issues is
-    /// ticked; none otherwise. The worker's problems are appended after them.
+    /// ticked; none otherwise. The Scan appends its checks' problems after them.
     /// </summary>
     /// <param name="overviewIssues">Whether Overview Issues was ticked.</param>
     /// <param name="overviewProblems">The problems of the Overview refresh the scan just ran.</param>
@@ -92,7 +92,7 @@ public static class ScanResults
     /// the same results. Items with equal keys keep their results order, which for the Overview's archive problems is
     /// the enabled-archive set order (T-15).
     /// </remarks>
-    /// <param name="results">The scan's results: the seeded Overview problems, then the worker's.</param>
+    /// <param name="results">The scan's results: the seed, then the checks' problems.</param>
     /// <param name="index">The mod file index, which only an MO2 stage-mode data walk builds; null otherwise.</param>
     public static IReadOnlyList<ScanResultGroup> Group(IReadOnlyList<Problem> results, ModFiles? index)
     {

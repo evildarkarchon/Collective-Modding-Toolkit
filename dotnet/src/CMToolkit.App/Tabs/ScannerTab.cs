@@ -46,7 +46,7 @@ public sealed class ScannerTab : TabPage
     private ProgressBar? _progress;
     private bool _selectable;
 
-    // The progress sink the tab hands the scan through Worker: the only way a status reaches the label and the bar.
+    // The progress sink the tab hands the scan through RunScan: the only way a status reaches the label and the bar.
     private readonly IProgress<ScanStatus> _statuses;
 
     // The running scan's progress queue, or null when no worker is running; replaced per scan so a late update from an
@@ -66,22 +66,21 @@ public sealed class ScannerTab : TabPage
         _overview = overview;
         _settings = settings;
         _statuses = new ProgressQueue(this);
-        Worker = (s, progress) => ScanWorker.Run(s, progress, _runtime.Logger);
+        RunScan = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
     }
 
     /// <summary>
-    /// The scan's worker part (<c>scan_data_files</c>), run off the UI thread as an interactive operation and given the
+    /// Everything in the Scan after its Overview refresh, run off the UI thread as an interactive operation and given the
     /// scan's snapshot and the tab's progress sink:
-    /// <see cref="ScanWorker.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> by
-    /// default. A test seam, so tests can hold a scan mid-run, report statuses or make the worker fail.
+    /// <see cref="Scan.Run(ScanSettings, IProgress{ScanStatus}?, Microsoft.Extensions.Logging.ILogger)"/> with the app
+    /// log by default. A test seam, so tests can hold a scan mid-run, report statuses or hand the tab a canned outcome.
     /// </summary>
     /// <remarks>
     /// The sink takes statuses from any thread. They are queued for the running scan and applied on the UI thread in
-    /// order; the queue is drained once more when the worker returns, before the results are listed, as
-    /// <c>check_scan_progress</c> drained it before testing for the finished thread. A status reported once the scan is
-    /// over is dropped.
+    /// order; the queue is drained once more when the scan returns, before the results are listed. A status reported
+    /// once the scan is over is dropped.
     /// </remarks>
-    public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> Worker { get; init; }
+    public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> RunScan { get; init; }
 
     /// <summary>
     /// Raised on the UI thread after each status is applied to the scanning label and the progress bar. A test seam for
@@ -112,9 +111,10 @@ public sealed class ScannerTab : TabPage
 
     /// <summary>
     /// The machine the scan reads (SCN-S5, SCN-S6, the data walk) and the details pane checks result paths on (SCN-R5):
-    /// a relative path is relative to its working directory. The real machine by default.
+    /// a relative path is relative to its working directory. Required, with no default, because the scan's snapshot is
+    /// taken with it: a tab built without naming its machine would silently scan the real one.
     /// </summary>
-    public IHostEnvironment Host { get; init; } = SystemHostEnvironment.Instance;
+    public required IHostEnvironment Host { get; init; }
 
     /// <summary>What the details pane's path click opens a folder with: the shell by default, a recorder in tests.</summary>
     public Action<string> OpenFolder { get; init; } = ScanDetailsPane.StartFile;
@@ -321,8 +321,6 @@ public sealed class ScannerTab : TabPage
         // the port has saved each box as it changed (bug #20), so the settings already hold these and nothing is written.
         var settings = ScanSettings.Snapshot(side.Values, _game, _overview.Report, Host);
 
-        // SCN-S3.
-        var seeded = ScanResults.Seed(settings[ScanSetting.OverviewIssues], _overview.Report?.Problems ?? []);
         // The label stays on Refreshing Overview... until the scan reports a status of its own, and it reports none when
         // only Overview Issues is ticked.
         _progress!.Value = 1;
@@ -333,14 +331,14 @@ public sealed class ScannerTab : TabPage
         try
         {
             outcome = await _runtime.Operations.RunAsync(
-                ScanOperation, OperationPhase.Interactive, () => Worker(settings, _statuses));
+                ScanOperation, OperationPhase.Interactive, () => RunScan(settings, _statuses));
         }
         catch (OperationFailedException)
         {
             // The last resort, for an exception that escaped the scan, which returns its own failures on its outcome.
-            // The reference's thread died without clearing thread_scan, so the scan stayed on Scanning... with the
-            // button disabled. The runner has already reported the error; the scan ends as a finished one does, listing
-            // the seeded Overview problems (whatever the scan found died with it) and enabling Scan Game again.
+            // The runner has already reported the error; the scan ends as a finished one does, listing nothing (the
+            // scan seeds its own results, so everything it would have listed died with it) and enabling Scan Game
+            // again.
             outcome = ScanOutcome.Empty;
         }
 
@@ -359,7 +357,7 @@ public sealed class ScannerTab : TabPage
         }
 
         _progress.Value = 100;
-        Populate(settings, [.. seeded, .. outcome.Problems], outcome.Index);
+        Populate(settings, outcome);
     }
 
     /// <summary>
@@ -391,16 +389,19 @@ public sealed class ScannerTab : TabPage
     /// <c>populate_results</c>: hides the scanning label, sets the info label, lists the groups and re-enables Scan Game
     /// and selection.
     /// </summary>
-    private void Populate(ScanSettings settings, IReadOnlyList<Problem> results, ModFiles? index)
+    /// <param name="settings">The scan's snapshot, which says whether rows get the mod column.</param>
+    /// <param name="outcome">The scan's outcome: its problems are counted and its groups listed as they are.</param>
+    /// <exception cref="InvalidOperationException">The side pane is gone: the tab was left mid-scan.</exception>
+    private void Populate(ScanSettings settings, ScanOutcome outcome)
     {
         // Left the tab mid-scan: the reference raised ValueError here, before touching anything.
         var side = SidePane ?? throw new InvalidOperationException("populate_results: the side pane is gone.");
 
         _scanningText!.IsVisible = false;
         _scanningText.Text = "";
-        _resultsInfo!.Text = ScanResults.InfoText(results.Count);
+        _resultsInfo!.Text = ScanResults.InfoText(outcome.Problems.Count);
 
-        foreach (var group in ScanResults.Group(results, index))
+        foreach (var group in outcome.Groups)
         {
             var groupItem = new TreeViewItem { Header = Text(group.Kind), IsExpanded = true };
             foreach (var problem in group.Items)
@@ -526,7 +527,7 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// The progress sink <see cref="Worker"/> is given: queues each status for the running scan and asks the UI thread to
+    /// The progress sink <see cref="RunScan"/> is given: queues each status for the running scan and asks the UI thread to
     /// drain it, standing in for the reference's 100 ms polling. Statuses reported while no scan's worker runs are dropped.
     /// </summary>
     private sealed class ProgressQueue(ScannerTab tab) : IProgress<ScanStatus>
