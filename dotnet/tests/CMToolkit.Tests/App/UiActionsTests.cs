@@ -362,4 +362,87 @@ public sealed class UiActionsTests
         Assert.Equal(1, probe.Clicks);
         Assert.Equal(7, await runtime.Actions.Run("next", OperationPhase.Blocking, () => 7));
     }
+
+    /// <summary>
+    /// The span's block outlasts each Operation's own: input stays blocked between them and through an Interactive one,
+    /// and comes back when the span ends.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task A_blocking_span_holds_the_input_block_across_its_operations_and_releases_it_after()
+    {
+        var runtime = new AppRuntime(new CapturingLogger());
+        var probe = InputProbe.Show(runtime);
+        bool? blockedBetween = null;
+        bool? blockedDuringInteractive = null;
+
+        await runtime.Actions.Blocking(async () =>
+        {
+            await runtime.Actions.Run("first", OperationPhase.Blocking, () => { });
+            blockedBetween = runtime.Input.IsBlocking;
+            // Read on the worker: reading it through the dispatcher would hide a block released and taken again.
+            blockedDuringInteractive = await runtime.Actions.Run("second", OperationPhase.Interactive, () => runtime.Input.IsBlocking);
+        });
+
+        Assert.True(blockedBetween);
+        Assert.True(blockedDuringInteractive);
+        Assert.False(runtime.Input.IsBlocking);
+        probe.ClickButton();
+        Assert.Equal(1, probe.Clicks);
+    }
+
+    /// <summary>
+    /// The span itself throws, outside any Operation, while a user close waits on its block. The span reports the error
+    /// before it releases the block, so the Error Window is up when the close replays, whoever awaits the span and
+    /// however its continuations are scheduled.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task A_blocking_span_that_throws_has_the_error_window_up_before_a_deferred_close_replays()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var window = new Window { Width = 300, Height = 200 };
+        bool? errorWindowUpAtReplay = null;
+        runtime.Input.Attach(window, onEscape: () => { }, onCloseRequest: () => errorWindowUpAtReplay = runtime.Errors.Window is not null);
+        window.Show();
+
+        var span = runtime.Actions.Blocking(async () =>
+        {
+            await Task.Yield();
+            UserClose.Request(window);
+            throw new InvalidOperationException("in the span");
+        });
+        var failure = await Assert.ThrowsAsync<OperationFailedException>(() => span);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(errorWindowUpAtReplay);
+        Assert.Equal("in the span", failure.InnerException?.Message);
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith(
+            $"StdErr : {ErrorReporter.UiThreadHeader}\nSystem.InvalidOperationException: in the span", entry.Message);
+        Assert.False(runtime.Input.IsBlocking);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task A_blocking_span_whose_operation_fails_is_not_reported_a_second_time_and_releases_the_block()
+    {
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var probe = InputProbe.Show(runtime);
+        var skipped = true;
+
+        await Assert.ThrowsAsync<OperationFailedException>(() => runtime.Actions.Blocking(async () =>
+        {
+            await runtime.Actions.Run("Patch", OperationPhase.Blocking, () => throw new InvalidOperationException("boom"));
+            skipped = false;
+        }));
+
+        // Only the runner's report, under the Operation's own header; the rest of the span was skipped.
+        var entry = Assert.Single(logger.Entries);
+        Assert.StartsWith($"StdErr : {ErrorReporter.OperationHeader("Patch")}\n", entry.Message);
+        Assert.True(skipped);
+        Assert.False(runtime.Input.IsBlocking);
+        probe.ClickButton();
+        Assert.Equal(1, probe.Clicks);
+    }
 }

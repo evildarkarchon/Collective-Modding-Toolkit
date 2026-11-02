@@ -41,8 +41,8 @@ public sealed class UiActions
     /// is also why handlers don't rely on <c>async void</c> and the global hook: an <c>async void</c> rethrow arrives as
     /// a posted job, queued behind the replay.</para>
     /// <para>No name parameter: an operation that fails inside the action is still reported by the runner under its own
-    /// name. No input block either: callers that need one hold their own, since theirs deliberately start after earlier
-    /// steps. UI thread only.</para>
+    /// name. No input block either: an action that needs one wraps the steps it covers in <see cref="Blocking"/>, since
+    /// a block often deliberately starts after earlier steps. UI thread only.</para>
     /// </remarks>
     /// <param name="action">
     /// The action. A <see cref="Func{TResult}"/>, not a <see cref="Task"/>, so it is started here and a synchronous throw
@@ -124,6 +124,51 @@ public sealed class UiActions
         {
             _errors.Report(ErrorReporter.OperationHeader(name), ex);
             throw new OperationFailedException(name, ex);
+        }
+    }
+
+    /// <summary>
+    /// Runs <paramref name="span"/>, a stretch of a UI Action, with input blocked throughout: across the Operations in
+    /// it, whatever their phases, and the UI-thread steps between them, so no click, key, Close or Escape lands in the
+    /// middle. Deferred Close and Escape replay once the span ends.
+    /// </summary>
+    /// <remarks>
+    /// If the span throws an error the runner hasn't reported, it is reported under
+    /// <see cref="ErrorReporter.UiThreadHeader"/> before the block is released, so the Error Window is up before deferred
+    /// input replays. An <see cref="OperationFailedException"/> was reported when its Operation died, and is let through
+    /// as it is. UI thread only.
+    /// </remarks>
+    /// <param name="span">
+    /// The steps to run under the block. A <see cref="Func{TResult}"/>, so a synchronous throw before its first await is
+    /// handled the same way.
+    /// </param>
+    /// <exception cref="OperationFailedException">
+    /// The span failed; the error has been reported, whether by the Operation that died or by this method.
+    /// </exception>
+    public async Task Blocking(Func<Task> span)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+
+        var block = _input.Block();
+        try
+        {
+            await span();
+        }
+        catch (OperationFailedException)
+        {
+            // Already reported by the Operation that died; reporting it again would show it twice.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Here, not in the caller: the report must come before the finally block releases the input block, because
+            // the release is what posts a deferred Close or Escape's replay.
+            _errors.Report(ErrorReporter.UiThreadHeader, ex);
+            throw new OperationFailedException(ex);
+        }
+        finally
+        {
+            block.Dispose();
         }
     }
 

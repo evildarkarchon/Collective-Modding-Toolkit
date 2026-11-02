@@ -13,4 +13,11 @@ public sealed class OperationFailedException : Exception
         : base($"Background operation '{operationName}' failed; the error has been reported.", innerException)
     {
     }
+
+    /// <summary>A UI Action failed outside any Operation, and <see cref="UiActions.Blocking"/> has reported it.</summary>
+    /// <param name="innerException">What the UI Action threw.</param>
+    internal OperationFailedException(Exception innerException)
+        : base("A UI Action failed; the error has been reported.", innerException)
+    {
+    }
 }
