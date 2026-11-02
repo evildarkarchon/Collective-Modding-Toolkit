@@ -1,5 +1,6 @@
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
+using CMToolkit.Core.Problems;
 using CMToolkit.Core.PythonSemantics;
 using CMToolkit.Core.Settings;
 
@@ -94,12 +95,15 @@ public sealed class ScanSettings
     private readonly IReadOnlyDictionary<ScanSetting, bool> _values;
 
     /// <summary>
-    /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, taken once, as
-    /// <c>ScanSettings.__init__</c> copied them. Built through the <c>Snapshot</c> overloads.
+    /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, copied once when the scan
+    /// starts. Built through <see cref="Snapshot"/>.
     /// </summary>
     /// <param name="values">Every setting's box, ticked or not.</param>
     /// <param name="game">The installation; its mod manager decides the skip lists.</param>
-    /// <param name="overview">The Overview's last report, whose enabled modules and archives the scan checks; null for none.</param>
+    /// <param name="overview">
+    /// The Overview's last report, whose enabled modules and archives the scan checks and whose problems it carries; null
+    /// for none.
+    /// </param>
     /// <param name="host">The machine the scan reads.</param>
     private ScanSettings(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)
     {
@@ -107,6 +111,7 @@ public sealed class ScanSettings
         Host = host;
         ModulesEnabled = overview?.Modules.Enabled ?? [];
         ArchivesEnabled = new HashSet<PythonPath>(overview?.Archives.Enabled ?? [], PythonPath.Equality);
+        OverviewProblems = overview?.Problems ?? [];
         // Overview Issues and Race Subgraphs don't need the walk; any other ticked box does.
         SkipDataScan = !All.Any(s => values[s] && s is not (ScanSetting.OverviewIssues or ScanSetting.RaceSubgraphs));
         Game = game;
@@ -163,24 +168,29 @@ public sealed class ScanSettings
     /// </summary>
     public IReadOnlySet<PythonPath> ArchivesEnabled { get; }
 
+    /// <summary>
+    /// The Overview Report's problems as the scan's Overview refresh left them, in the report's order. Empty without an
+    /// Overview Report.
+    /// </summary>
+    public IReadOnlyList<Problem> OverviewProblems { get; }
+
     /// <summary>The machine the scan reads: relative paths resolve against its working directory.</summary>
     public IHostEnvironment Host { get; }
 
-    /// <summary>Takes the snapshot: <c>ScanSettings(side_pane)</c>, without its save (see <see cref="ChangedSettings(AppSettings)"/>).</summary>
-    /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
-    /// <param name="game">The installation being scanned.</param>
-    /// <exception cref="ArgumentException">A setting is missing from <paramref name="values"/>.</exception>
-    public static ScanSettings Snapshot(IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game)
-        => Snapshot(values, game, null, SystemHostEnvironment.Instance);
-
     /// <summary>
-    /// Takes the snapshot with what the worker reads from the Overview refresh the scan just ran (the reference's shared
-    /// <c>cmc.game</c> state) and the machine it reads.
+    /// Takes the snapshot with what the scan reads from the Overview refresh it just ran (the enabled modules and
+    /// archives, and the problems) and the machine it reads. It doesn't save the boxes (see
+    /// <see cref="ChangedSettings(AppSettings)"/>).
     /// </summary>
     /// <param name="values">Each box's state; every <see cref="ScanSetting"/> must be present.</param>
     /// <param name="game">The installation being scanned.</param>
-    /// <param name="overview">The current Overview report, or null when there is none (no modules or archives enabled).</param>
-    /// <param name="host">The machine the scan reads.</param>
+    /// <param name="overview">
+    /// The current Overview report, or null when there is none (no modules or archives enabled, no Overview problems).
+    /// </param>
+    /// <param name="host">
+    /// The machine the scan reads. There is deliberately no default: a snapshot that fell back to the real machine would
+    /// let a test read it, relative to its working directory, instead of the scenario it set up.
+    /// </param>
     /// <exception cref="ArgumentException">A setting is missing from <paramref name="values"/>.</exception>
     public static ScanSettings Snapshot(
         IReadOnlyDictionary<ScanSetting, bool> values, GameInstall game, OverviewReport? overview, IHostEnvironment host)

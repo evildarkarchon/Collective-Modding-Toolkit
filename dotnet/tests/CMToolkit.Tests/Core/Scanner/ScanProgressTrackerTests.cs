@@ -1,4 +1,5 @@
 using CMToolkit.Core.Scanner;
+using CMToolkit.Tests.Support;
 
 namespace CMToolkit.Tests.Core.Scanner;
 
@@ -13,7 +14,7 @@ public sealed class ScanProgressTrackerTests
     [Trait("Parity", "SCN-S4")]
     public void Before_any_folder_tuple_every_name_is_ignored()
     {
-        var tracker = new ScanProgressTracker();
+        var tracker = new ScanProgressTracker(null);
 
         Assert.Null(tracker.Apply(new ScanUpdate.Folder("Race Subgraph Records")));
         Assert.Null(tracker.Apply(new ScanUpdate.Folder("Meshes")));
@@ -23,7 +24,7 @@ public sealed class ScanProgressTrackerTests
     [Trait("Parity", "SCN-S4")]
     public void A_folder_in_the_tuple_shows_its_zero_based_index_and_the_share_done()
     {
-        var tracker = new ScanProgressTracker();
+        var tracker = new ScanProgressTracker(null);
 
         Assert.Null(tracker.Apply(new ScanUpdate.TopLevelFolders(["F4SE", "Meshes", "Textures"])));
         Assert.Equal(new ScanStatus("Scanning... 0/3: F4SE", 0.0), tracker.Apply(new ScanUpdate.Folder("F4SE")));
@@ -36,7 +37,7 @@ public sealed class ScanProgressTrackerTests
     [Trait("Parity", "SCN-S4")]
     public void Names_are_matched_exactly_and_unknown_ones_are_ignored()
     {
-        var tracker = new ScanProgressTracker();
+        var tracker = new ScanProgressTracker(null);
         tracker.Apply(new ScanUpdate.TopLevelFolders(["Meshes"]));
 
         Assert.Null(tracker.Apply(new ScanUpdate.Folder("meshes")));
@@ -44,21 +45,34 @@ public sealed class ScanProgressTrackerTests
     }
 
     [Fact]
-    [Trait("Parity", "SCN-S4")]
-    public void The_last_tuple_carries_over_to_the_next_scan()
+    public void A_status_is_passed_on_only_when_the_label_or_the_progress_changes()
     {
-        var tracker = new ScanProgressTracker();
-        tracker.Apply(new ScanUpdate.TopLevelFolders(["Meshes", "Scripts"]));
+        var shown = new ListProgress<ScanStatus>();
+        var tracker = new ScanProgressTracker(shown);
 
-        // scan_folders lives on the tab: a later scan's names are placed in the earlier tuple until a new one comes.
-        Assert.Equal(new ScanStatus("Scanning... 1/2: Scripts", 50.0), tracker.Apply(new ScanUpdate.Folder("Scripts")));
+        tracker.Show(new ScanStatus("Building mod file index...", 1));
+        tracker.Show(new ScanStatus("Building mod file index...", 1));
+        tracker.Report(new ScanUpdate.TopLevelFolders(["Meshes", "Scripts"]));
+        tracker.Report(new ScanUpdate.Folder("Unknown"));
+        tracker.Show(new ScanStatus("Scanning... 0/2: Meshes", 1));
+        tracker.Report(new ScanUpdate.Folder("Meshes"));
+        tracker.Report(new ScanUpdate.Folder("Meshes"));
+
+        Assert.Equal(
+            [
+                new ScanStatus("Building mod file index...", 1),
+                // The same label at another percent is a change.
+                new ScanStatus("Scanning... 0/2: Meshes", 1),
+                new ScanStatus("Scanning... 0/2: Meshes", 0),
+            ],
+            shown.Reported);
     }
 
     [Fact]
     [Trait("Parity", "SCN-S4")]
     public void With_an_empty_tuple_no_name_is_found()
     {
-        var tracker = new ScanProgressTracker();
+        var tracker = new ScanProgressTracker(null);
         tracker.Apply(new ScanUpdate.TopLevelFolders([]));
 
         Assert.Null(tracker.Apply(new ScanUpdate.Folder("Meshes")));

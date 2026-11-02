@@ -62,7 +62,7 @@ public sealed class ScannerTabScenarioTests
             ShowWarning = (_, _) => throw new InvalidOperationException("The scanner scenarios show no warning."),
         };
         var worker = new GatedWorker();
-        var scanner = new ScannerTab(runtime, game, state, settings) { Worker = worker.Run };
+        var scanner = new ScannerTab(runtime, game, state, settings) { Host = machine.Host, RunScan = worker.Run };
         var window = new MainWindow(runtime, [overview, scanner, new ToolsTab(runtime)]);
         window.Show();
         DispatcherWait.Until(() => state.Report is not null && !runtime.Input.IsBlocking);
@@ -380,43 +380,11 @@ public sealed class ScannerTabScenarioTests
 
         public void Release() => _gate.Set();
 
-        public ScanOutcome Run(ScanSettings settings)
+        public ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus> progress)
         {
             _entered = true;
             _gate.Wait(TimeSpan.FromSeconds(30));
-            return ScanWorker.Run(settings);
-        }
-    }
-}
-
-/// <summary>Grouping of adjacent elements with equal keys, as Python's <c>itertools.groupby</c> does.</summary>
-internal static class AdjacentGrouping
-{
-    public static IEnumerable<List<T>> GroupAdjacent<T>(this IEnumerable<T> items, Func<T, string> key)
-    {
-        List<T>? run = null;
-        string? current = null;
-        foreach (var item in items)
-        {
-            var k = key(item);
-            if (run is not null && k == current)
-            {
-                run.Add(item);
-                continue;
-            }
-
-            if (run is not null)
-            {
-                yield return run;
-            }
-
-            run = [item];
-            current = k;
-        }
-
-        if (run is not null)
-        {
-            yield return run;
+            return CMToolkit.Core.Scanner.Scan.Run(settings, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
         }
     }
 }

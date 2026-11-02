@@ -26,6 +26,34 @@ public sealed class ModFiles
 
     /// <summary>The archives at a mod's root, by file name (<c>archives</c>).</summary>
     public Dictionary<string, ModFile> Archives { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Which mod a file or folder of Data belongs to: the mod that has it and its path in that mod's staging folder,
+    /// or, when no mod has it, an empty mod and <paramref name="dataPath"/>. This is the one place the rule lives, so
+    /// every check that names a mod agrees on it.
+    /// </summary>
+    /// <param name="relative">The path relative to Data, matched case-insensitively.</param>
+    /// <param name="kind">
+    /// Whether the path is a file or a folder. Files and folders are indexed apart, so a folder lookup never finds a
+    /// file of the same path (two mods can disagree on which one a path is).
+    /// </param>
+    /// <param name="dataPath">The path in Data itself, returned when no mod has it.</param>
+    /// <returns>The owning mod's entry, or <c>("", dataPath)</c>.</returns>
+    public ModFile OwnerOf(PythonPath relative, ModPathKind kind, PythonPath dataPath)
+    {
+        var table = kind == ModPathKind.Folder ? Folders : Files;
+        return table.TryGetValue(relative, out var owner) ? owner : new ModFile(string.Empty, dataPath);
+    }
+}
+
+/// <summary>Whether a <see cref="ModFiles.OwnerOf"/> lookup is for a file or a folder.</summary>
+public enum ModPathKind
+{
+    /// <summary>A file, looked up in <see cref="ModFiles.Files"/>.</summary>
+    File,
+
+    /// <summary>A folder, looked up in <see cref="ModFiles.Folders"/>.</summary>
+    Folder,
 }
 
 /// <summary>One results tree group: a problem type and its items, in display order.</summary>
@@ -40,8 +68,8 @@ public sealed record ScanResultGroup(string Kind, IReadOnlyList<Problem> Items);
 public static class ScanResults
 {
     /// <summary>
-    /// The results a scan starts with (SCN-S3): the Overview problems, in their list order, when Overview Issues is
-    /// ticked; none otherwise. The worker's problems are appended after them.
+    /// The results a scan starts with (the seed): the Overview problems, in their list order, when Overview Issues is
+    /// ticked; none otherwise. The Scan appends its checks' problems after them.
     /// </summary>
     /// <param name="overviewIssues">Whether Overview Issues was ticked.</param>
     /// <param name="overviewProblems">The problems of the Overview refresh the scan just ran.</param>
@@ -64,7 +92,7 @@ public static class ScanResults
     /// the same results. Items with equal keys keep their results order, which for the Overview's archive problems is
     /// the enabled-archive set order (T-15).
     /// </remarks>
-    /// <param name="results">The scan's results: the seeded Overview problems, then the worker's.</param>
+    /// <param name="results">The scan's results: the seed, then the checks' problems.</param>
     /// <param name="index">The mod file index, which only an MO2 stage-mode data walk builds; null otherwise.</param>
     public static IReadOnlyList<ScanResultGroup> Group(IReadOnlyList<Problem> results, ModFiles? index)
     {
