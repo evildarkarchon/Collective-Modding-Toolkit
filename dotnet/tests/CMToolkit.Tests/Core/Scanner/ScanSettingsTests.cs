@@ -3,6 +3,7 @@ using CMToolkit.Core;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
 using CMToolkit.Core.Scanner;
+using CMToolkit.Core.Settings;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 
@@ -10,11 +11,14 @@ namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
 /// The Scan Settings and the <see cref="ScanSnapshot"/> a Scan takes of them: the seven boxes with their labels and
-/// keys, which boxes the snapshot holds as ticked, whether the data walk runs, what it skips, and what it carries from
-/// the Overview Report.
+/// keys, what saving the boxes writes, which boxes the snapshot holds as ticked, whether the data walk runs, what it
+/// skips, and what it carries from the Overview Report.
 /// </summary>
 public sealed class ScanSettingsTests
 {
+    /// <summary>The settings in effect: the defaults, which tick every box.</summary>
+    private static readonly AppSettings Stored = AppSettings.Defaults(DownloadSource.GitHub);
+
     [Fact]
     [Trait("Parity", "SCN-S2")]
     public void The_settings_are_the_seven_boxes_in_enum_order_with_their_reference_labels_and_keys()
@@ -82,6 +86,32 @@ public sealed class ScanSettingsTests
         Assert.Equal(
             [".git", "bodyslide", "fo4edit", "robco_patcher", "source"],
             snapshot.SkipDirectories.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Boxes_that_match_the_stored_settings_save_nothing()
+    {
+        // The defaults tick every box.
+        Assert.Null(ScanSettings.ChangedSettings(Stored, Ticked(ScanSettings.All)));
+    }
+
+    [Fact]
+    public void A_box_that_differs_saves_every_scanner_value_and_keeps_the_rest()
+    {
+        var stored = Stored with { LogLevel = SettingsLogLevel.Debug, DowngraderKeepBackups = false };
+
+        var changed = ScanSettings.ChangedSettings(stored, Ticked([ScanSetting.OverviewIssues, ScanSetting.JunkFiles]));
+
+        Assert.Equal(
+            stored with
+            {
+                ScannerErrors = false,
+                ScannerWrongFormat = false,
+                ScannerLoosePrevis = false,
+                ScannerProblemOverrides = false,
+                ScannerRaceSubgraphs = false,
+            },
+            changed);
     }
 
     [Fact]
