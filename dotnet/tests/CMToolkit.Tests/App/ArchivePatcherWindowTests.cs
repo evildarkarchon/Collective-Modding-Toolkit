@@ -4,14 +4,18 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
+using CMToolkit.App.Tabs;
 using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
+using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
+using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Tests.App;
 
@@ -21,7 +25,7 @@ namespace CMToolkit.Tests.App;
 /// selected still clears the pane and lists again, Patch All holds the input block through the Overview refresh, a
 /// failed patch run or Overview refresh still leaves a window that closes and lists the archives' current versions,
 /// Escape closes it even while the log pane has focus (bug #88, fixed), and a game without a Data folder fails Patch
-/// All's Data folder check.
+/// All's Data folder check. Patch All also refuses to start while a Scan is running, and runs once it has ended.
 /// </summary>
 public sealed class ArchivePatcherWindowTests
 {
@@ -84,6 +88,122 @@ public sealed class ArchivePatcherWindowTests
 
         Assert.True(blockedAfterRefresh);
         Assert.False(runtime.Input.IsBlocking);
+    }
+
+    /// <summary>
+    /// While a Scan is running, Patch All says why it won't start and changes nothing: no Operation runs and input is
+    /// never blocked, the archives, the list and the pane stay as they were, and Patch All stays enabled. The refusal is
+    /// one INFO line in the app log, not a failure.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task While_a_scan_runs_patch_all_shows_a_warning_and_changes_nothing()
+    {
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        var game = Locate(machine);
+        var logger = new CapturingLogger();
+        var runtime = new AppRuntime(logger);
+        var overview = FixedOverview.Load(runtime, Gather(game, machine));
+        var patcher = Show(runtime, game, machine, overview, scanRunning: () => true);
+        var archives = ArchiveBytes(machine);
+        var rows = patcher.Rows;
+        var pane = patcher.Log.Runs.Select(r => r.Text).ToList();
+        var logged = logger.Entries.Count;
+
+        var patchAll = PatchAll(runtime, patcher);
+        var box = patcher.OwnedWindows.OfType<MessageBoxWindow>().Single();
+
+        Assert.Equal(MessageBoxKind.Warning, box.Kind);
+        Assert.Equal("Archive Patcher", box.Title);
+        Assert.Contains(box.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "A Scan is running. Patch All can start once it ends.");
+        Assert.False(runtime.Input.IsBlocking);
+        box.Close();
+        await patchAll.WithTimeout();
+
+        Assert.Equal(archives, ArchiveBytes(machine));
+        Assert.Equal(rows, patcher.Rows);
+        Assert.Equal(pane, patcher.Log.Runs.Select(r => r.Text));
+        Assert.True(ComposedSession.Named<Button>(patcher, "PatchAll").IsEnabled);
+        Assert.Equal(
+            [new LogEntry(LogLevel.Information, "Archive Patcher : Patch All : A Scan is running, refused")],
+            logger.Entries.Skip(logged));
+        Assert.Null(runtime.Errors.Window);
+        patcher.RequestClose();
+        Assert.False(patcher.IsVisible);
+    }
+
+    /// <summary>
+    /// Through the composed app: a Scan started from the Scanner tab's Scan Game runs on the session's Scan module, and
+    /// the Archive Patcher opened from the session asks that same module. Patch All refuses while the Scan is held
+    /// mid-run, and runs once the Scan has ended.
+    /// </summary>
+    [AvaloniaFact]
+    public void Patch_all_from_the_session_refuses_while_its_scan_runs_and_runs_once_it_ends()
+    {
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        using var app = new ComposedSession(machine);
+        // Set, never disposed: a worker still inside Wait would throw on a disposed event, and a slim event that never
+        // handed out its wait handle holds nothing to free.
+        var release = new ManualResetEventSlim();
+        var entered = false;
+        app.Session.Scan.RunScan = (_, _) =>
+        {
+            Volatile.Write(ref entered, true);
+            release.Wait(TaskTimeouts.Default);
+            return ScanOutcome.Empty;
+        };
+        try
+        {
+            var tabs = app.Window.GetLogicalDescendants().OfType<TabControl>().Single();
+            tabs.SelectedIndex = 2;
+            var scanner = Assert.IsType<ScannerTab>(app.Window.CurrentPage);
+            DispatcherWait.Until(() => scanner.SidePane is not null);
+            MouseClick.On(scanner.SidePane!.ScanButton);
+            DispatcherWait.Until(() => Volatile.Read(ref entered) && !app.Session.Runtime.Input.IsBlocking);
+            Assert.True(app.Session.Scan.IsRunning);
+
+            MouseClick.On(app.TabButton(3, "Archive Patcher"));
+            var patcher = app.WaitForArchivePatcher();
+            Assert.Equal(11, patcher.Rows.Count);
+            MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+            var box = patcher.OwnedWindows.OfType<MessageBoxWindow>().Single();
+            Assert.Contains(box.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "A Scan is running. Patch All can start once it ends.");
+            box.Close();
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(11, patcher.Rows.Count);
+
+            release.Set();
+            DispatcherWait.Until(() => !app.Session.Scan.IsRunning);
+            MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+            DispatcherWait.Until(() => !app.Session.Runtime.Input.IsBlocking && patcher.Rows.Count == 1);
+
+            // Everything but the read-only archive was patched to v1, so only it is still listed.
+            Assert.Equal(["ReadOnly - Main.ba2"], patcher.Rows);
+            Assert.Empty(patcher.OwnedWindows.OfType<MessageBoxWindow>());
+            Assert.Null(app.Session.Runtime.Errors.Window);
+        }
+        finally
+        {
+            // Released even when an assert failed, so the held scan's worker doesn't wait out its timeout.
+            release.Set();
+        }
+    }
+
+    /// <summary>With no Scan running, Patch All patches the listed archives and lists what is left, with no warning.</summary>
+    [AvaloniaFact]
+    public async Task With_no_scan_running_patch_all_patches_the_archives()
+    {
+        using var machine = Scenario("archive-patcher/round-trip").Materialize();
+        var (runtime, game, _) = Parts(machine);
+        var overview = Loaded(runtime, previous => Gather(game, machine, previous));
+        var patcher = Show(runtime, game, machine, overview, scanRunning: () => false);
+        Assert.Equal(11, patcher.Rows.Count);
+
+        await PatchAll(runtime, patcher).WithTimeout();
+
+        // Everything but the read-only archive was patched to v1, so only it is still listed.
+        Assert.Equal(["ReadOnly - Main.ba2"], patcher.Rows);
+        Assert.Empty(patcher.OwnedWindows.OfType<MessageBoxWindow>());
+        Assert.Null(runtime.Errors.Window);
     }
 
     /// <summary>
@@ -223,7 +343,7 @@ public sealed class ArchivePatcherWindowTests
         Assert.Null(game.DataPath);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, scanRunning: () => false);
 
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
@@ -245,7 +365,7 @@ public sealed class ArchivePatcherWindowTests
         var (runtime, game, overview) = Parts(machine);
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, scanRunning: () => false);
         Assert.Throws<InvalidOperationException>(() => patcher.ShowOver(owner));
 
         MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
@@ -276,7 +396,7 @@ public sealed class ArchivePatcherWindowTests
         var owner = new Window();
         owner.Show();
         owner.Close();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, scanRunning: () => false);
 
         using (runtime.Errors.InstallGlobalHandlers())
         {
@@ -307,6 +427,10 @@ public sealed class ArchivePatcherWindowTests
         => Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))
             .GetAwaiter().GetResult() ?? throw new InvalidOperationException("The scenario's game wasn't found.");
 
+    /// <summary>Every archive on the machine and its bytes, by path, for telling whether anything was patched.</summary>
+    private static Dictionary<string, byte[]> ArchiveBytes(MaterializedScenario machine)
+        => Directory.EnumerateFiles(machine.Root, "*.ba2", SearchOption.AllDirectories).ToDictionary(p => p, File.ReadAllBytes);
+
     /// <summary>A real Overview Report of the scenario's game as it is on disk now, logged nowhere the test reads.</summary>
     private static OverviewReport Gather(GameInstall game, MaterializedScenario machine, OverviewReport? previous = null)
         => OverviewReport.Gather(game, machine.Host, new CapturingLogger(), previous);
@@ -319,12 +443,14 @@ public sealed class ArchivePatcherWindowTests
         return overview;
     }
 
+    /// <summary>A patcher built by hand and shown over a bare owner, its archives listed.</summary>
+    /// <param name="scanRunning">Whether a Scan is running, as Patch All asks it; none says no Scan is running.</param>
     private static ArchivePatcherWindow Show(
-        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview)
+        AppRuntime runtime, GameInstall game, MaterializedScenario machine, OverviewState overview, Func<bool>? scanRunning = null)
     {
         var owner = new Window();
         owner.Show();
-        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview);
+        var patcher = new ArchivePatcherWindow(runtime, game, machine.Host, overview, scanRunning ?? (() => false));
         patcher.ShowOver(owner);
         return patcher;
     }

@@ -55,12 +55,16 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <summary><c>PATCHER_FILTER_NG</c>: the caption while the target is v1, so the v7 and v8 archives are listed.</summary>
     public const string FilterNextGen = "Showing all v7 & v8\n(Includes Base Game/DLC/CC)";
 
+    /// <summary>What Patch All's warning says when it refuses because a Scan is running.</summary>
+    public const string ScanRunningWarning = "A Scan is running. Patch All can start once it ends.";
+
     /// <summary>The width of the column the tree's vertical <c>ttk.Scrollbar</c> takes, as the log pane's.</summary>
     private const double ScrollBarWidth = 24;
 
     private readonly GameInstall _game;
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
+    private readonly Func<bool> _scanRunning;
     private readonly TextBlock _caption;
     private readonly StackPanel _rows = new() { Name = "Files" };
     private readonly TextBox _nameFilterBox;
@@ -71,12 +75,18 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <param name="overview">
     /// The Overview Report module: its current report's archives are the candidates, and Patch All refreshes it.
     /// </param>
-    public ArchivePatcherWindow(AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview)
+    /// <param name="scanRunning">
+    /// Whether a Scan is running, read on the UI thread each time Patch All is clicked: while it says yes, Patch All
+    /// refuses to start. Only this read, not the Scan module itself, so the window can neither start a Scan nor depend
+    /// on its events.
+    /// </param>
+    public ArchivePatcherWindow(AppRuntime runtime, GameInstall game, IHostEnvironment host, OverviewState overview, Func<bool> scanRunning)
         : base(runtime, "Archive Patcher", 700, 600)
     {
         _game = game;
         _host = host;
         _overview = overview;
+        _scanRunning = scanRunning;
 
         _caption = Small(FilterText, "CmtNeutral2", "FilterCaption");
         // A ttk.Entry: 28 px tall in the reference (taller than the label with pady=5, so it sets the row's height), a
@@ -105,7 +115,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview).ShowOver(owner);
+            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview, () => session.Scan.IsRunning).ShowOver(owner);
         }
     }
 
@@ -156,8 +166,12 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// A failed patch run may have patched some archives before it died, so the refresh still runs after it. Whichever
     /// step fails, the list is repopulated from the current report before input comes back: after a failed refresh
     /// that is the partial report it left, if it carried one, otherwise the previous report.
+    /// <para>
+    /// While a Scan is running, Patch All refuses instead: it shows a warning, logs one INFO line and returns, with no
+    /// Operation, no input block and nothing changed, so the Scan never reads archives the run is rewriting.
+    /// </para>
     /// </remarks>
-    /// <returns>A task that completes when the run is over, failed or not.</returns>
+    /// <returns>A task that completes when the run is over, failed or not, or once a refusal's warning is dismissed.</returns>
     /// <exception cref="InvalidOperationException">The game has no Data folder; input was never blocked.</exception>
     /// <exception cref="OperationFailedException">
     /// The patch run, the refresh or the repopulate failed, and the error has been reported. When the run and the
@@ -166,6 +180,15 @@ public sealed class ArchivePatcherWindow : ModalWindow
     public async Task PatchAllAsync()
     {
         AssertDataPath();
+        if (_scanRunning())
+        {
+            // Checked before the Blocking span, so a refusal takes no input block. It is not a failure: nothing reaches
+            // the Error Window, and the user can click again once the Scan ends.
+            Runtime.Logger.Write(LogLevel.Information, "Archive Patcher : Patch All : A Scan is running, refused");
+            await MessageBox.ShowWarningAsync(this, Title!, ScanRunningWarning);
+            return;
+        }
+
         // One block across the run, the refresh and the repopulate, so no input lands between them and the list is never
         // shown against a report that the run has made stale.
         await Runtime.Actions.Blocking(async () =>

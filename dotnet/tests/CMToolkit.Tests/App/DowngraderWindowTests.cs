@@ -136,7 +136,7 @@ public sealed class DowngraderWindowTests
         var (main, session) = DowngraderRunScenarioTests.Compose(machine, logger, new DowngraderRunScenarioTests.HeldHandler(null));
         main.Close();
         var window = new DowngraderWindow(
-            session.Runtime, session.Game, session.Host, session.Overview, session.Settings, patchFolder: session.AppFolder);
+            session.Runtime, session.Game, session.Host, session.Overview, session.Settings, scanRunning: () => false, patchFolder: session.AppFolder);
 
         var opening = session.Runtime.Actions.Start(() => window.OpenAsync(main));
         DispatcherWait.Until(() => opening.IsCompleted);

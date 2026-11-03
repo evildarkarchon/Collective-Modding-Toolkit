@@ -10,6 +10,7 @@ using CMToolkit.Core;
 using CMToolkit.Core.Downgrader;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
+using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.App.Views;
 
@@ -68,6 +69,9 @@ public sealed class DowngraderWindow : ModalWindow
     /// <summary>The log pane's first line, shown but not logged (<c>skip_logging=True</c>).</summary>
     public const string SeedMessage = "Patches will be downloaded and applied as-needed.";
 
+    /// <summary>What Patch All's warning says when it refuses because a Scan is running.</summary>
+    public const string ScanRunningWarning = "A Scan is running. Patch All can start once it ends.";
+
     /// <summary>The window's width as the reference fixed it; the port widens it only for a label too long for it (bug #85).</summary>
     private const double DefaultWidth = 600;
 
@@ -75,6 +79,7 @@ public sealed class DowngraderWindow : ModalWindow
     private readonly IHostEnvironment _host;
     private readonly OverviewState _overview;
     private readonly SettingsStore _settings;
+    private readonly Func<bool> _scanRunning;
     private readonly HttpMessageHandler? _deltaPatchHttp;
     private readonly string? _patchFolder;
     private readonly IProgress<OperationEvent> _events;
@@ -106,6 +111,11 @@ public sealed class DowngraderWindow : ModalWindow
     /// refreshed when the patch queue empties (see <see cref="WindowHost.RefreshOverviewAsync"/>).
     /// </param>
     /// <param name="settings">Where Keep Backups and Delete Patches start from, and where Patch All saves them.</param>
+    /// <param name="scanRunning">
+    /// Whether a Scan is running, read on the UI thread each time Patch All is clicked: while it says yes, Patch All
+    /// refuses to start. Only this read, not the Scan module itself, so the window can neither start a Scan nor depend
+    /// on its events.
+    /// </param>
     /// <param name="deltaPatchHttp">What patches are downloaded through; none makes every download fail.</param>
     /// <param name="patchFolder">
     /// Where patches are saved: the app's own folder (<see cref="AppSession.AppFolder"/>, bug #36, fixed). None keeps
@@ -117,6 +127,7 @@ public sealed class DowngraderWindow : ModalWindow
         IHostEnvironment host,
         OverviewState overview,
         SettingsStore settings,
+        Func<bool> scanRunning,
         HttpMessageHandler? deltaPatchHttp = null,
         string? patchFolder = null)
         : base(runtime, "Downgrader", DefaultWidth, 334)
@@ -125,6 +136,7 @@ public sealed class DowngraderWindow : ModalWindow
         _host = host;
         _overview = overview;
         _settings = settings;
+        _scanRunning = scanRunning;
         _deltaPatchHttp = deltaPatchHttp;
         _patchFolder = patchFolder;
         _events = new UiThreadProgress<OperationEvent>(Apply);
@@ -141,7 +153,14 @@ public sealed class DowngraderWindow : ModalWindow
             // Not awaited: opening shows the window and completes once it is built, and the click handler that called
             // it has nothing left to do. Start's task never faults, so it can be discarded.
             var window = new DowngraderWindow(
-                session.Runtime, session.Game, session.Host, session.Overview, session.Settings, session.DeltaPatchHttp, session.AppFolder);
+                session.Runtime,
+                session.Game,
+                session.Host,
+                session.Overview,
+                session.Settings,
+                () => session.Scan.IsRunning,
+                session.DeltaPatchHttp,
+                session.AppFolder);
             _ = session.Runtime.Actions.Start(() => window.OpenAsync(owner));
         }
     }
@@ -217,7 +236,16 @@ public sealed class DowngraderWindow : ModalWindow
     /// operation for the Desired Version the radios show now, which first saves Keep Backups and Delete Patches if either
     /// differs from the settings (SET-7).
     /// </summary>
-    /// <returns>A task that completes when the click is done; a download it started goes on in the poll.</returns>
+    /// <remarks>
+    /// While a Scan is running, Patch All refuses instead: it shows a warning, logs one INFO line and returns, with no
+    /// Operation, no input block, no settings save, the button still enabled and the log pane as it was, so the Scan
+    /// never reads files the run is replacing. The download poll a click schedules isn't checked: it only ever follows a
+    /// click that passed this check, and no Scan can start while this modal window is open.
+    /// </remarks>
+    /// <returns>
+    /// A task that completes when the click is done, or once a refusal's warning is dismissed; a download it started goes
+    /// on in the poll.
+    /// </returns>
     /// <exception cref="InvalidOperationException">The window isn't built (its detection failed, or it never opened).</exception>
     /// <exception cref="OperationFailedException">
     /// The click's run failed and the runner has reported it. The rest of the run is skipped, and the button stays
@@ -226,6 +254,15 @@ public sealed class DowngraderWindow : ModalWindow
     public async Task PatchAllAsync()
     {
         var run = _run ?? throw new InvalidOperationException("The Downgrader isn't built.");
+        if (_scanRunning())
+        {
+            // Checked before the button is disabled and the pane cleared, so a refusal leaves the window as it was. It is
+            // not a failure: nothing reaches the Error Window, and the user can click again once the Scan ends.
+            Runtime.Logger.Write(LogLevel.Information, "Downgrader : Patch All : A Scan is running, refused");
+            await MessageBox.ShowWarningAsync(this, Title!, ScanRunningWarning);
+            return;
+        }
+
         _patch!.IsEnabled = false;
         Log!.Clear();
 
