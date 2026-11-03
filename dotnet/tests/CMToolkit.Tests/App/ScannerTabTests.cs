@@ -22,7 +22,7 @@ namespace CMToolkit.Tests.App;
 /// What the <c>scanner-tab</c> scenarios can't record, drawn by the tab from a real <see cref="ScanState"/>: what a scan
 /// that stops early lists and when, what a refresh that dies leaves, leaving the tab mid-scan and coming back, the panes
 /// during a blocking Operation, the box saves, Scan Game's rule and Collapse All / Expand All. The Scan's lifecycle is
-/// <see cref="ScanStateTests"/>'.
+/// <see cref="ScanStateTests"/>', and Scan Game's rule while a Scan runs is <see cref="ScanSidePaneTests"/>'.
 /// </summary>
 public sealed class ScannerTabTests
 {
@@ -412,34 +412,6 @@ public sealed class ScannerTabTests
     }
 
     [AvaloniaFact]
-    public void Ticking_or_unticking_a_box_mid_scan_leaves_scan_game_disabled_on_scanning_and_saves_the_change()
-    {
-        using var held = new HeldScan();
-        var store = SettingsStore.Unsaved(CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-        using var app = ScannerApp.Start(runScan: held.Run, settingsStore: store);
-        var side = app.Scanner.SidePane!;
-        MouseClick.On(side.ScanButton);
-        held.WaitUntilEntered();
-
-        // The scan's checks run as an Interactive Operation, so the boxes stay live while it runs.
-        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
-        Assert.False(side.Checks[ScanSetting.JunkFiles].IsChecked);
-        AssertScanning(side);
-        Assert.False(store.Current.ScannerJunkFiles);
-
-        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
-        Assert.True(side.Checks[ScanSetting.JunkFiles].IsChecked);
-        AssertScanning(side);
-        Assert.True(store.Current.ScannerJunkFiles);
-
-        held.Release();
-        DispatcherWait.Until(() => !app.Scan.IsRunning);
-        Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
-        Assert.True(side.ScanButton.IsEnabled);
-    }
-
-    [AvaloniaFact]
     public void A_side_pane_opened_mid_scan_shows_scanning_with_scan_game_disabled_until_the_scan_ends()
     {
         using var held = new HeldScan();
@@ -458,30 +430,6 @@ public sealed class ScannerTabTests
         Dispatcher.UIThread.RunJobs();
         Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
         Assert.True(side.ScanButton.IsEnabled);
-    }
-
-    [AvaloniaFact]
-    public void A_scan_that_ends_with_every_box_unticked_leaves_scan_game_disabled()
-    {
-        using var held = new HeldScan();
-        using var app = ScannerApp.Start(runScan: held.Run);
-        var side = app.Scanner.SidePane!;
-        MouseClick.On(side.ScanButton);
-        held.WaitUntilEntered();
-
-        foreach (var setting in ScanSettings.All)
-        {
-            ClickBoxAndWaitForTheSave(app, setting);
-            AssertScanning(side);
-        }
-
-        held.Release();
-        DispatcherWait.Until(() => !app.Scan.IsRunning);
-        Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
-        Assert.False(side.ScanButton.IsEnabled);
-        // The scan ran with the boxes it started from, so it still listed what they asked for.
-        Assert.NotEmpty(app.Scanner.Tree!.Items);
     }
 
     /// <summary>

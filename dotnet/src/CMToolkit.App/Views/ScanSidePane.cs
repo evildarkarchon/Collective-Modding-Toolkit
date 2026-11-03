@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using CMToolkit.App.Tabs;
+using CMToolkit.App.ViewModels;
 using CMToolkit.Core.Scanner;
 
 namespace CMToolkit.App.Views;
@@ -15,22 +16,26 @@ public sealed class ScanSidePane : UserControl
 {
     private readonly Dictionary<ScanSetting, CheckBox> _checks = [];
 
-    // Whether a Scan is running, as the tab last said. The pane never decides it: a box change only re-applies the rule.
-    private bool _scanning;
+    // The only answer to whether a Scan is running. The pane keeps no copy of it: every application of the rule reads
+    // IsRunning afresh, so a box change, a Scan's start or end, or a re-dock can't act on a stale answer.
+    private readonly ScanState _scan;
 
     /// <summary>
     /// Builds the pane with each box ticked as <paramref name="initial"/> says, and Scan Game's rule applied from the
     /// start: <c>Scanning...</c> and disabled while a Scan runs, otherwise enabled unless every box is unticked.
     /// </summary>
     /// <param name="initial">Each box's starting state: the saved settings (<see cref="ScanSettings.Stored"/>).</param>
-    /// <param name="scanning">
-    /// Whether a Scan is running as the pane opens, as it is when the user comes back to the tab mid-scan.
+    /// <param name="scan">
+    /// The Scan module, which says whether a Scan is running. The pane listens to its <see cref="ScanState.Started"/>
+    /// and <see cref="ScanState.Ended"/> only while it is attached to the visual tree.
     /// </param>
+    /// <exception cref="ArgumentNullException"><paramref name="initial"/> or <paramref name="scan"/> is null.</exception>
     /// <exception cref="KeyNotFoundException">A setting is missing from <paramref name="initial"/>.</exception>
-    public ScanSidePane(IReadOnlyDictionary<ScanSetting, bool> initial, bool scanning)
+    public ScanSidePane(IReadOnlyDictionary<ScanSetting, bool> initial, ScanState scan)
     {
         ArgumentNullException.ThrowIfNull(initial);
-        _scanning = scanning;
+        ArgumentNullException.ThrowIfNull(scan);
+        _scan = scan;
         var checks = new StackPanel { Name = "Checks", HorizontalAlignment = HorizontalAlignment.Left };
         foreach (var setting in ScanSettings.All)
         {
@@ -103,23 +108,44 @@ public sealed class ScanSidePane : UserControl
     public IReadOnlyDictionary<ScanSetting, bool> Values => _checks.ToDictionary(c => c.Key, c => c.Value.IsChecked == true);
 
     /// <summary>
-    /// Tells the pane whether a Scan is running, as the tab learns it from the Scan module, and applies Scan Game's rule:
-    /// <c>Scanning...</c> and disabled while one runs; otherwise <c>Scan Game</c>, enabled unless every box is unticked.
+    /// Starts listening to the Scan module's start and end, and applies Scan Game's rule, since a Scan may have started
+    /// or ended while the pane was out of the tree.
     /// </summary>
-    /// <param name="scanning">Whether a Scan is running.</param>
-    public void SetScanning(bool scanning)
+    /// <param name="e">The attachment's arguments.</param>
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        _scanning = scanning;
+        base.OnAttachedToVisualTree(e);
+        // Subscribed only while attached, so the module, which outlives every pane, never holds a pane that was built
+        // but never shown, or one that has been closed. Detach always precedes the next attach, so this can't subscribe
+        // twice.
+        _scan.Started += OnScanStarted;
+        _scan.Ended += OnScanEnded;
         ApplyScanButtonRule();
     }
 
+    /// <summary>Stops listening to the Scan module, so a closed or undocked pane holds no handler on it.</summary>
+    /// <param name="e">The detachment's arguments.</param>
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _scan.Started -= OnScanStarted;
+        _scan.Ended -= OnScanEnded;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    /// <summary>Applies Scan Game's rule when a Scan starts, with <see cref="ScanState.IsRunning"/> already true.</summary>
+    private void OnScanStarted(object? sender, EventArgs e) => ApplyScanButtonRule();
+
+    /// <summary>Applies Scan Game's rule when a Scan ends, with <see cref="ScanState.IsRunning"/> already false.</summary>
+    private void OnScanEnded(object? sender, ScanEnded e) => ApplyScanButtonRule();
+
     /// <summary>
-    /// Scan Game's one rule, from the running state the tab last set and the boxes as they are now: enabled only while
-    /// no Scan runs and some box is ticked, and showing <c>Scanning...</c> exactly while a Scan runs.
+    /// Scan Game's one rule, from whether the Scan module says a Scan is running and the boxes as they are now: enabled
+    /// only while no Scan runs and some box is ticked, and showing <c>Scanning...</c> exactly while a Scan runs.
     /// </summary>
     private void ApplyScanButtonRule()
     {
-        ScanButton.IsEnabled = !_scanning && _checks.Values.Any(c => c.IsChecked == true);
-        ScanButton.Content = _scanning ? "Scanning..." : "Scan Game";
+        var scanning = _scan.IsRunning;
+        ScanButton.IsEnabled = !scanning && _checks.Values.Any(c => c.IsChecked == true);
+        ScanButton.Content = scanning ? "Scanning..." : "Scan Game";
     }
 }

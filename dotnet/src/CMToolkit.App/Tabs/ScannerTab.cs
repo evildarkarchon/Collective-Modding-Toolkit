@@ -199,7 +199,7 @@ public sealed class ScannerTab : TabPage
 
         // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch. A
         // pane opened mid-scan, after the user comes back to the tab, starts on Scanning... so no second Scan can start.
-        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan.IsRunning);
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan);
         var created = SidePane;
         // Both UI Actions start through runtime.Actions.Start: what they raise is reported once, at once (a failed
         // Operation already by the runner), and the task they return never faults, so discarding it is safe.
@@ -251,12 +251,11 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Draws a Scan's start: Scan Game shows Scanning... in the open side pane, if there is one; the tree, its data and
-    /// the info label are cleared and nothing can be selected; the details pane closes; and the scanning label appears.
+    /// Draws a Scan's start: the tree, its data and the info label are cleared and nothing can be selected; the details
+    /// pane closes; and the scanning label appears. The side pane reads the Scan module itself, so it isn't touched here.
     /// </summary>
     private void OnStarted()
     {
-        SidePane?.SetScanning(true);
         _selectable = false;
         _tree!.Items.Clear();
         _items.Clear();
@@ -266,10 +265,9 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Draws a Scan's end, wherever the user is: the scanning label hides, a <see cref="ScanEnded.Listed"/> Scan's
-    /// results are listed, and the open side pane, if there is one, shows Scan Game again, enabled unless every box is
-    /// unticked. A
-    /// <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and unselectable.
+    /// Draws a Scan's end, wherever the user is: the scanning label hides and a <see cref="ScanEnded.Listed"/> Scan's
+    /// results are listed. A <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and
+    /// unselectable. The side pane reads the Scan module itself, so it isn't touched here.
     /// </summary>
     /// <param name="ended">How the Scan ended.</param>
     private void OnEnded(ScanEnded ended)
@@ -280,8 +278,6 @@ public sealed class ScannerTab : TabPage
         {
             Populate(listed.Snapshot, listed.Outcome);
         }
-
-        SidePane?.SetScanning(false);
     }
 
     /// <summary>Collapse All / Expand All (<c>set_expanded</c>): opens or closes every group row.</summary>
