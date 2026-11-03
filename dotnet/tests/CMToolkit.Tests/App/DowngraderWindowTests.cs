@@ -6,6 +6,7 @@ using CMToolkit.App;
 using CMToolkit.App.Parity;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
+using CMToolkit.App.Tabs;
 using CMToolkit.App.Views;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
@@ -15,7 +16,7 @@ namespace CMToolkit.Tests.App;
 /// <summary>
 /// How the Downgrader is reached and laid out: both Downgrade Manager buttons open it over the main window from the
 /// real startup composition (OVW-B9, TOOL-1), and a long version label widens the window instead of pushing Patch All
-/// and About out of it, as the reference's fixed window did (bug #85, fixed).
+/// and About out of it, as the reference's fixed window did (bug #85, fixed). It also opens normally while a Scan runs.
 /// </summary>
 public sealed class DowngraderWindowTests
 {
@@ -46,6 +47,37 @@ public sealed class DowngraderWindowTests
 
         var downgrader = app.WaitForDowngrader();
         Assert.Same(app.Window, downgrader.Owner);
+    }
+
+    /// <summary>
+    /// With a Scan running in the session, the Downgrader still opens from the Tools tab and detects the versions as it
+    /// does with none: opening only reads files, so only Patch All refuses during a Scan.
+    /// </summary>
+    [AvaloniaFact]
+    public void The_downgrader_opens_from_the_session_while_its_scan_runs()
+    {
+        using var machine = ParityScenarios.All().Single(s => s.Id == "downgrader/og-steam").Materialize();
+        using var app = new ComposedSession(machine);
+        // Declared after the session, so it is disposed first: the held scan is released before the window closes.
+        using var held = new HeldScan();
+        app.Session.Scan.RunScan = held.Run;
+        var tabs = app.Window.GetLogicalDescendants().OfType<TabControl>().Single();
+        tabs.SelectedIndex = 2;
+        var scanner = Assert.IsType<ScannerTab>(app.Window.CurrentPage);
+        DispatcherWait.Until(() => scanner.SidePane is not null);
+        MouseClick.On(scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => held.Entered && !app.Session.Runtime.Input.IsBlocking);
+
+        MouseClick.On(app.TabButton(3, "Downgrade Manager"));
+        DispatcherWait.Until(() => app.Window.OwnedWindows.OfType<DowngraderWindow>().SingleOrDefault() is { Versions: not null, Content: not null });
+
+        var downgrader = app.Window.OwnedWindows.OfType<DowngraderWindow>().Single();
+        Assert.True(app.Session.Scan.IsRunning);
+        Assert.Same(app.Window, downgrader.Owner);
+        Assert.Equal("Old-Gen", ComposedSession.Named<TextBlock>(downgrader, "Game0").Text);
+        Assert.True(ComposedSession.Named<Button>(downgrader, "PatchAll").IsEnabled);
+        Assert.Empty(downgrader.OwnedWindows);
+        Assert.Null(app.Session.Runtime.Errors.Window);
     }
 
     /// <summary>
