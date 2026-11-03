@@ -67,7 +67,7 @@ public sealed class ScanState
         _game = game;
         _overview = overview;
         _host = host;
-        RunScan = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
+        RunScan = (s, progress) => ScanChecks.Run(s, progress, _runtime.Logger);
     }
 
     /// <summary>
@@ -95,8 +95,8 @@ public sealed class ScanState
     /// <summary>
     /// Everything in the Scan after its Overview refresh, run off the UI thread as an Interactive Operation and given the
     /// Scan's snapshot and its progress sink:
-    /// <see cref="Scan.Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> with the app log by default. A test seam, so
-    /// tests can hold a scan mid-run, report statuses or hand back a canned outcome.
+    /// <see cref="ScanChecks.Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> with the app log by default. A test
+    /// seam, so tests can hold a scan mid-run, report statuses or hand back a canned outcome.
     /// </summary>
     /// <remarks>
     /// The sink is a <see cref="UiThreadProgress{T}"/> made for each Scan, so it takes statuses from any thread and

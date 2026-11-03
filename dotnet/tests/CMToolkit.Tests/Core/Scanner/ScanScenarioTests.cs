@@ -10,8 +10,8 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// The <c>scanner-scan</c> scenarios replayed against <see cref="Scan"/> with no window: one Scan per run (every box,
-/// then each box alone, in pane order), each after its own Overview refresh, recorded as the scan returned it: the
+/// The <c>scanner-scan</c> scenarios replayed against <see cref="ScanChecks"/> with no window: one Scan per run (every
+/// box, then each box alone, in pane order), each after its own Overview refresh, recorded as the scan returned it: the
 /// statuses it reported, its error, its non-DEBUG log lines, the mod file index it built and the groups of its results.
 /// The Scanner tab's rendering of those groups is the <c>scanner-tab</c> replay's. The scenarios cite their IDs.
 /// Compared in full.
@@ -45,7 +45,7 @@ public sealed partial class ScanScenarioTests
             var log = new CapturingLogger();
             var statuses = new ListProgress<ScanStatus>();
 
-            var outcome = Scan.Run(settings, statuses, log);
+            var outcome = ScanChecks.Run(settings, statuses, log);
 
             runs.Add(new JsonObject
             {

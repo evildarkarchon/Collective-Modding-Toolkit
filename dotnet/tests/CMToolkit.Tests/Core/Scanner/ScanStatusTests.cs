@@ -110,7 +110,7 @@ public sealed class ScanStatusTests
     private static List<ScanStatus> Statuses(ScanSettings settings)
     {
         var statuses = new ListProgress<ScanStatus>();
-        Scan.Run(settings, statuses, NullLogger.Instance);
+        ScanChecks.Run(settings, statuses, NullLogger.Instance);
         return statuses.Reported;
     }
 

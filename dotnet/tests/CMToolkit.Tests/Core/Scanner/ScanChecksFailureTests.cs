@@ -10,7 +10,7 @@ namespace CMToolkit.Tests.Core.Scanner;
 /// the scan carries on as a finished one (bug #22). And one it doesn't expect, a <c>modlist.txt</c> that isn't UTF-8,
 /// which stops the scan early with what it found and a stopped-early row.
 /// </summary>
-public sealed class ScanFailureTests
+public sealed class ScanChecksFailureTests
 {
     [Fact]
     [Trait("Parity", "B-3"), Deviation(22, "A missing modlist.txt is a File Not Found problem on its path, listed after the problems the worker found before it, instead of an exception.")]
@@ -21,7 +21,7 @@ public sealed class ScanFailureTests
         WriteSaddRecords(machine, 101);
         var settings = await ChecksTicked(machine);
 
-        var outcome = Scan.Run(settings);
+        var outcome = ScanChecks.Run(settings);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -52,7 +52,7 @@ public sealed class ScanFailureTests
         using var machine = Scenario("scanner/mo2-no-profile");
         var settings = await ChecksTicked(machine);
 
-        var outcome = Scan.Run(settings);
+        var outcome = ScanChecks.Run(settings);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -83,7 +83,7 @@ public sealed class ScanFailureTests
         var settings = await ChecksTicked(machine);
         var log = new CapturingLogger();
 
-        var outcome = Scan.Run(settings, null, log);
+        var outcome = ScanChecks.Run(settings, null, log);
 
         Assert.IsType<System.Text.DecoderFallbackException>(outcome.Error);
         Assert.Null(outcome.Index);
@@ -115,7 +115,7 @@ public sealed class ScanFailureTests
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
         Assert.NotEmpty(machine.Report.Problems);
 
-        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+        var outcome = ScanChecks.Run(machine.Snapshot(ScanSettings.All));
 
         Assert.NotNull(outcome.Error);
         Assert.Equal(

@@ -125,8 +125,8 @@ public sealed class ScanStateTests
     [AvaloniaFact]
     public void An_exception_that_escapes_the_scan_is_reported_once_and_the_scan_ends_with_the_stopped_early_row_alone()
     {
-        // The scan returns its own failures on its outcome (ScanFailureTests); this is the last resort for an exception
-        // that gets out anyway.
+        // The scan returns its own failures on its outcome (ScanChecksFailureTests); this is the last resort for an
+        // exception that gets out anyway.
         var fixture = Fixture.Start((_, progress) =>
         {
             progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));

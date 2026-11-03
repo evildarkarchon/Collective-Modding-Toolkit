@@ -150,9 +150,9 @@ public sealed class ScannerTabTests
         var error = new System.Text.DecoderFallbackException("modlist.txt isn't UTF-8");
         var found = Problem.Simple("101 SADD Records from 1 modules", ScanProblemTypes.RaceSubgraphRecordCount, "Too many.", "Merge some.");
         var stopping = new ScanStatus("Building mod file index...", 1);
-        // Built as Scan.Run builds a stopped-early outcome: the seed (the snapshot's Overview problems, since Overview
-        // Issues is ticked), then what the checks found, then the stopped-early row. The status is the last one the
-        // scan reported before it stopped.
+        // Built as ScanChecks.Run builds a stopped-early outcome: the seed (the snapshot's Overview problems, since
+        // Overview Issues is ticked), then what the checks found, then the stopped-early row. The status is the last one
+        // the scan reported before it stopped.
         using var app = ScannerApp.Start(runScan: (s, progress) =>
         {
             progress.Report(stopping);
@@ -207,7 +207,7 @@ public sealed class ScannerTabTests
             progress.Report(new ScanStatus("Scanning... 2/2: Textures", 75));
             Volatile.Write(ref reportedAway, true);
             finish.Wait(TaskTimeouts.Default);
-            return Scan.Run(s);
+            return ScanChecks.Run(s);
         });
 
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
@@ -299,7 +299,7 @@ public sealed class ScannerTabTests
             runScan: (s, _) =>
             {
                 workerRan = true;
-                return Scan.Run(s);
+                return ScanChecks.Run(s);
             },
             overviewTab: true);
 
@@ -535,7 +535,7 @@ public sealed class ScannerTabTests
         {
             Volatile.Write(ref _entered, true);
             _finish.Wait(TaskTimeouts.Default);
-            return CMToolkit.Core.Scanner.Scan.Run(settings);
+            return CMToolkit.Core.Scanner.ScanChecks.Run(settings);
         }
 
         /// <summary>Runs dispatcher jobs until the scan has started its checks, past the Overview refresh.</summary>
@@ -623,7 +623,7 @@ public sealed class ScannerTabTests
                 : new ProbeTab("Other", "OtherTab");
             var settings = settingsStore
                 ?? SettingsStore.Unsaved(stored ?? CMToolkit.Core.Settings.AppSettings.Defaults(DownloadSource.GitHub));
-            var scan = new ScanState(runtime, game, state, machine.Host) { RunScan = runScan ?? ((s, _) => CMToolkit.Core.Scanner.Scan.Run(s)) };
+            var scan = new ScanState(runtime, game, state, machine.Host) { RunScan = runScan ?? ((s, _) => CMToolkit.Core.Scanner.ScanChecks.Run(s)) };
             var scanner = new ScannerTab(runtime, game, scan, settings) { Host = machine.Host };
             var window = new MainWindow(runtime, [first, scanner]);
             window.Show();
