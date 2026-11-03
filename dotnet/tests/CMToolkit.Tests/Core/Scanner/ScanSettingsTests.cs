@@ -10,11 +10,13 @@ using CMToolkit.Tests.Support;
 namespace CMToolkit.Tests.Core.Scanner;
 
 /// <summary>
-/// The scan settings snapshot (<c>scan_settings.ScanSettings</c>, SCN-S2): which boxes are ticked, whether the data walk
-/// runs, what it skips, and the <c>scanner_*</c> settings it saves when a box differs from the stored value (SET-7).
+/// The Scan Settings and the <see cref="ScanSnapshot"/> a Scan takes of them: the seven boxes with their labels and
+/// keys, what saving the boxes writes, which boxes the snapshot holds as ticked, whether the data walk runs, what it
+/// skips, and what it carries from the Overview Report.
 /// </summary>
 public sealed class ScanSettingsTests
 {
+    /// <summary>The settings in effect: the defaults, which tick every box.</summary>
     private static readonly AppSettings Stored = AppSettings.Defaults(DownloadSource.GitHub);
 
     [Fact]
@@ -46,10 +48,10 @@ public sealed class ScanSettingsTests
         using var machine = Scenario("scanner/overview-issues");
         var game = await Locate(machine);
 
-        var settings = ScanSettings.Snapshot(Ticked(ticked), game, null, machine.Host);
+        var snapshot = ScanSettings.Snapshot(Ticked(ticked), game, null, machine.Host);
 
-        Assert.Equal(skipDataScan, settings.SkipDataScan);
-        Assert.All(ScanSettings.All, s => Assert.Equal(ticked.Contains(s), settings[s]));
+        Assert.Equal(skipDataScan, snapshot.SkipDataScan);
+        Assert.All(ScanSettings.All, s => Assert.Equal(ticked.Contains(s), snapshot[s]));
     }
 
     [Fact]
@@ -59,11 +61,11 @@ public sealed class ScanSettingsTests
         using var machine = Scenario("scanner/overview-issues");
         var game = await Locate(machine);
 
-        var settings = ScanSettings.Snapshot(Ticked([]), game, null, machine.Host);
+        var snapshot = ScanSettings.Snapshot(Ticked([]), game, null, machine.Host);
 
-        Assert.False(settings.UsingStage);
-        Assert.Equal([".vortex_backup"], settings.SkipFileSuffixes);
-        Assert.Equal(["bodyslide", "fo4edit", "robco_patcher", "source"], settings.SkipDirectories.Order(StringComparer.Ordinal));
+        Assert.False(snapshot.UsingStage);
+        Assert.Equal([".vortex_backup"], snapshot.SkipFileSuffixes);
+        Assert.Equal(["bodyslide", "fo4edit", "robco_patcher", "source"], snapshot.SkipDirectories.Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -75,36 +77,30 @@ public sealed class ScanSettingsTests
         using var machine = Scenario("scanner/overview-issues-mo2");
         var game = await Locate(machine);
 
-        var settings = ScanSettings.Snapshot(Ticked([]), game, null, machine.Host);
+        var snapshot = ScanSettings.Snapshot(Ticked([]), game, null, machine.Host);
 
-        Assert.True(settings.UsingStage);
+        Assert.True(snapshot.UsingStage);
         // The INI sets neither key, so MO2's defaults apply (bug #24, fixed: the reference CSV-parsed str(tuple) /
         // str(set) into garbage, B-5), then .vortex_backup.
-        Assert.Equal([".mohidden", ".vortex_backup"], settings.SkipFileSuffixes);
+        Assert.Equal([".mohidden", ".vortex_backup"], snapshot.SkipFileSuffixes);
         Assert.Equal(
             [".git", "bodyslide", "fo4edit", "robco_patcher", "source"],
-            settings.SkipDirectories.Order(StringComparer.Ordinal));
+            snapshot.SkipDirectories.Order(StringComparer.Ordinal));
     }
 
     [Fact]
-    [Trait("Parity", "SET-7")]
-    public async Task Boxes_that_match_the_stored_settings_save_nothing()
+    public void Boxes_that_match_the_stored_settings_save_nothing()
     {
-        using var machine = Scenario("scanner/overview-issues");
-        var settings = ScanSettings.Snapshot(Ticked(ScanSettings.All), await Locate(machine), null, machine.Host);
-
-        Assert.Null(settings.ChangedSettings(Stored));
+        // The defaults tick every box.
+        Assert.Null(ScanSettings.ChangedSettings(Stored, Ticked(ScanSettings.All)));
     }
 
     [Fact]
-    [Trait("Parity", "SET-7")]
-    public async Task A_box_that_differs_saves_every_scanner_value_and_keeps_the_rest()
+    public void A_box_that_differs_saves_every_scanner_value_and_keeps_the_rest()
     {
-        using var machine = Scenario("scanner/overview-issues");
-        var settings = ScanSettings.Snapshot(Ticked([ScanSetting.OverviewIssues, ScanSetting.JunkFiles]), await Locate(machine), null, machine.Host);
         var stored = Stored with { LogLevel = SettingsLogLevel.Debug, DowngraderKeepBackups = false };
 
-        var changed = settings.ChangedSettings(stored);
+        var changed = ScanSettings.ChangedSettings(stored, Ticked([ScanSetting.OverviewIssues, ScanSetting.JunkFiles]));
 
         Assert.Equal(
             stored with
@@ -123,9 +119,9 @@ public sealed class ScanSettingsTests
     {
         using var machine = Scenario("scanner/overview-issues");
 
-        var settings = ScanSettings.Snapshot(Ticked(ScanSettings.All), await Locate(machine), null, machine.Host);
+        var snapshot = ScanSettings.Snapshot(Ticked(ScanSettings.All), await Locate(machine), null, machine.Host);
 
-        Assert.Empty(settings.OverviewProblems);
+        Assert.Empty(snapshot.OverviewProblems);
     }
 
     [Fact]
@@ -137,9 +133,9 @@ public sealed class ScanSettingsTests
         // More than one problem, or the order isn't being checked at all.
         Assert.True(report.Problems.Count > 1, $"The scenario's report has {report.Problems.Count} problems.");
 
-        var settings = ScanSettings.Snapshot(Ticked(ScanSettings.All), game, report, machine.Host);
+        var snapshot = ScanSettings.Snapshot(Ticked(ScanSettings.All), game, report, machine.Host);
 
-        Assert.Equal(report.Problems, settings.OverviewProblems);
+        Assert.Equal(report.Problems, snapshot.OverviewProblems);
     }
 
     private static MaterializedScenario Scenario(string id) => ParityScenarios.All().Single(s => s.Id == id).Materialize();

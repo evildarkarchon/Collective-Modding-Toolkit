@@ -32,9 +32,9 @@ public sealed class ScanStatusTests
     public async Task Race_subgraphs_alone_reports_counting_its_records_and_nothing_else()
     {
         using var machine = Scenario("scanner/data-walk");
-        var settings = await Ticked(machine, ScanSetting.RaceSubgraphs);
+        var snapshot = await Ticked(machine, ScanSetting.RaceSubgraphs);
 
-        var statuses = Statuses(settings);
+        var statuses = Statuses(snapshot);
 
         Assert.Equal([new ScanStatus("Counting Race Subgraph records...", 1)], statuses);
     }
@@ -43,9 +43,9 @@ public sealed class ScanStatusTests
     public async Task Every_box_counts_race_subgraph_records_then_builds_the_index_then_walks_each_folder()
     {
         using var machine = Scenario("scanner/data-walk");
-        var settings = await Ticked(machine, [.. ScanSettings.All]);
+        var snapshot = await Ticked(machine, [.. ScanSettings.All]);
 
-        var statuses = Statuses(settings);
+        var statuses = Statuses(snapshot);
 
         Assert.Equal(
             [
@@ -60,9 +60,9 @@ public sealed class ScanStatusTests
     public async Task A_data_check_alone_builds_the_index_at_one_percent_then_walks_each_folder()
     {
         using var machine = Scenario("scanner/data-walk");
-        var settings = await Ticked(machine, ScanSetting.JunkFiles);
+        var snapshot = await Ticked(machine, ScanSetting.JunkFiles);
 
-        var statuses = Statuses(settings);
+        var statuses = Statuses(snapshot);
 
         Assert.Equal([new ScanStatus("Building mod file index...", 1), .. DataWalkFolders], statuses);
     }
@@ -71,9 +71,9 @@ public sealed class ScanStatusTests
     public async Task Without_a_data_check_or_race_subgraphs_no_status_is_reported()
     {
         using var machine = Scenario("scanner/data-walk");
-        var settings = await Ticked(machine, ScanSetting.OverviewIssues);
+        var snapshot = await Ticked(machine, ScanSetting.OverviewIssues);
 
-        Assert.Empty(Statuses(settings));
+        Assert.Empty(Statuses(snapshot));
     }
 
     [Fact]
@@ -106,11 +106,11 @@ public sealed class ScanStatusTests
             second);
     }
 
-    /// <summary>Runs one scan of <paramref name="settings"/> and returns the statuses it reported, in order.</summary>
-    private static List<ScanStatus> Statuses(ScanSettings settings)
+    /// <summary>Runs one scan of <paramref name="snapshot"/> and returns the statuses it reported, in order.</summary>
+    private static List<ScanStatus> Statuses(ScanSnapshot snapshot)
     {
         var statuses = new ListProgress<ScanStatus>();
-        Scan.Run(settings, statuses, NullLogger.Instance);
+        ScanChecks.Run(snapshot, statuses, NullLogger.Instance);
         return statuses.Reported;
     }
 
@@ -120,6 +120,6 @@ public sealed class ScanStatusTests
     /// The snapshot with only <paramref name="ticked"/> ticked, with the Overview gathered as the scan's refresh would have
     /// (its enabled modules, which the Race Subgraphs count reads).
     /// </summary>
-    private static async Task<ScanSettings> Ticked(MaterializedScenario machine, params ScanSetting[] ticked)
+    private static async Task<ScanSnapshot> Ticked(MaterializedScenario machine, params ScanSetting[] ticked)
         => (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ticked);
 }

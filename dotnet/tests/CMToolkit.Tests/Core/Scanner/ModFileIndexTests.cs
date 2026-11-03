@@ -155,9 +155,9 @@ public sealed class ModFileIndexTests
     /// </summary>
     private static async Task<ModFiles> Build(MaterializedScenario machine)
     {
-        var settings = (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All);
+        var snapshot = (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All);
 
-        var index = ModFileIndex.Build(settings, out var failure);
+        var index = ModFileIndex.Build(snapshot, out var failure);
 
         Assert.Null(failure);
         return index ?? throw new InvalidOperationException("The scenario isn't in MO2 stage mode.");

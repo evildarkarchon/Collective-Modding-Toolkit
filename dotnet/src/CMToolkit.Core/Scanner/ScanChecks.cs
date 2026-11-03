@@ -8,100 +8,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace CMToolkit.Core.Scanner;
 
 /// <summary>
-/// What a <see cref="Scan"/> hands back: everything the Scanner tab lists, the mod file index, and the error that
-/// stopped the scan early, if one did.
-/// </summary>
-public sealed class ScanOutcome
-{
-    private const string StoppedEarlyItem = "Scan stopped early";
-
-    private const string StoppedEarlySummary =
-        "The scan stopped at an unexpected error, so its results are incomplete. The error is shown in the error window and saved to the log.";
-
-    private const string StoppedEarlySolution =
-        "Scan again. If it stops again, share the error from the log with the Collective Modding Discord.";
-
-    /// <summary>
-    /// The outcome of a scan that found <paramref name="problems"/>, with the groups of the results tree made from them
-    /// and <paramref name="index"/>, so the groups always match the list.
-    /// </summary>
-    /// <param name="problems">
-    /// The full ordered problem list: the seed, then the checks' problems in the order found, then the
-    /// <see cref="StoppedEarlyRow"/> when the scan stopped early.
-    /// </param>
-    /// <param name="index">The mod file index, or null when none was built.</param>
-    /// <param name="error">The error that stopped the scan early, or null for a scan that finished.</param>
-    public ScanOutcome(IReadOnlyList<Problem> problems, ModFiles? index, Exception? error = null)
-    {
-        ArgumentNullException.ThrowIfNull(problems);
-        Problems = problems;
-        Index = index;
-        Error = error;
-        // Grouping is a pure function of the list and the index, so the outcome is the one place it is called.
-        Groups = ScanResults.Group(problems, index);
-    }
-
-    /// <summary>No problems and no index.</summary>
-    public static ScanOutcome Empty { get; } = new([], null);
-
-    /// <summary>
-    /// Everything the scan lists, in order: the Overview Report's problems when Overview Issues is ticked, then the
-    /// checks' problems in the order found, then the <see cref="StoppedEarlyRow"/> when the scan stopped early.
-    /// </summary>
-    public IReadOnlyList<Problem> Problems { get; }
-
-    /// <summary>
-    /// The results tree's groups (<see cref="ScanResults.Group"/>): one per problem type, in the order the types first
-    /// appear in <see cref="Problems"/>, each sorted by type + mod, with the Overview problems' mods looked up in the
-    /// <see cref="Index"/>.
-    /// </summary>
-    public IReadOnlyList<ScanResultGroup> Groups { get; }
-
-    /// <summary>
-    /// The mod file index, which only a data walk in MO2 stage mode builds; null otherwise, and always null when the scan
-    /// stopped early. <see cref="Groups"/> looks the Overview problems' mods up in it.
-    /// </summary>
-    public ModFiles? Index { get; }
-
-    /// <summary>
-    /// The unexpected error that stopped the scan early, as it was thrown; null for a scan that finished. The scan doesn't
-    /// log or report it: its caller does, once.
-    /// </summary>
-    public Exception? Error { get; }
-
-    /// <summary>
-    /// The row that ends a scan that stopped early: a simple problem in its own group,
-    /// <see cref="ScanProblemTypes.IncompleteScan"/>, so it isn't mistaken for a problem with the user's setup.
-    /// </summary>
-    public static Problem StoppedEarlyRow { get; } =
-        Problem.Simple(StoppedEarlyItem, ScanProblemTypes.IncompleteScan, StoppedEarlySummary, StoppedEarlySolution);
-
-    /// <summary>
-    /// The outcome of a scan that <paramref name="error"/> stopped early: the problems found before it, then the
-    /// <see cref="StoppedEarlyRow"/>, with no mod file index.
-    /// </summary>
-    /// <param name="found">
-    /// The problems listed before the error, in order: the seed, then what the checks found. Copied, so the caller may
-    /// reuse it.
-    /// </param>
-    /// <param name="error">The error, kept as thrown so the Error Window shows it and not a wrapper.</param>
-    public static ScanOutcome StoppedEarly(IEnumerable<Problem> found, Exception error)
-    {
-        ArgumentNullException.ThrowIfNull(found);
-        ArgumentNullException.ThrowIfNull(error);
-        // Added directly, not through the Overview's problem-logging helper: the error's own log entry, with its
-        // traceback, is the only record of the failure.
-        return new([.. found, StoppedEarlyRow], null, error);
-    }
-}
-
-/// <summary>
-/// A Scan, from its snapshot of the Scan Settings to everything the Scanner tab lists. The Overview refresh, the first
-/// step of a Scan, happens before <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> is called: the
+/// The checks of a Scan that follow its Overview refresh, from its snapshot of the Scan Settings to everything the
+/// Scanner tab lists. The Scan as a whole is the App's <c>ScanState</c>. The Overview refresh, the first
+/// step of a Scan, happens before <see cref="Run(ScanSnapshot, IProgress{ScanStatus}?, ILogger)"/> is called: the
 /// snapshot carries what the scan reads from its Overview Report. Synchronous and unaware of threads; the App runs it
 /// as an interactive operation (ADR-0003).
 /// </summary>
-public static class Scan
+public static class ScanChecks
 {
     // The statuses reported before the walk's own: both at 1%, where the tab's progress bar already stands once the
     // Overview refresh is done, so only the label moves.
@@ -123,9 +36,9 @@ public static class Scan
     // b"\x00\x53\x41\x44\x44": a NUL then the SADD record tag.
     private static readonly byte[] SaddBytes = [0x00, 0x53, 0x41, 0x44, 0x44];
 
-    /// <summary>Runs the Scan for <paramref name="settings"/> after its Overview refresh, reporting no progress and logging nothing.</summary>
-    /// <param name="settings">The scan's settings snapshot.</param>
-    public static ScanOutcome Run(ScanSettings settings) => Run(settings, null, NullLogger.Instance);
+    /// <summary>Runs the Scan's checks for <paramref name="snapshot"/> after its Overview refresh, reporting no progress and logging nothing.</summary>
+    /// <param name="snapshot">The Scan's snapshot.</param>
+    public static ScanOutcome Run(ScanSnapshot snapshot) => Run(snapshot, null, NullLogger.Instance);
 
     /// <summary>
     /// Runs everything in a Scan after the Overview refresh. The results start with the seed: the snapshot's Overview
@@ -149,17 +62,17 @@ public static class Scan
     /// row, with the error on the outcome and no index. The scan neither logs nor reports the error; its caller does.
     /// </para>
     /// </remarks>
-    /// <param name="settings">The scan's settings snapshot, which carries its Overview Report's problems.</param>
+    /// <param name="snapshot">The Scan's snapshot, which carries its Overview Report's problems.</param>
     /// <param name="progress">Where the scan's statuses go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
     /// <returns>The full ordered problem list, its groups, the mod file index and the error, if any.</returns>
-    public static ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus>? progress, ILogger logger)
+    public static ScanOutcome Run(ScanSnapshot snapshot, IProgress<ScanStatus>? progress, ILogger logger)
     {
-        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(logger);
         // The checks append to the seed, so a scan that stops early still lists it first.
-        var problems = new List<Problem>(ScanResults.Seed(settings[ScanSetting.OverviewIssues], settings.OverviewProblems));
-        var data = settings.Game.DataPath;
+        var problems = new List<Problem>(ScanResults.Seed(snapshot[ScanSetting.OverviewIssues], snapshot.OverviewProblems));
+        var data = snapshot.Game.DataPath;
         if (data is null)
         {
             return new ScanOutcome(problems, null);
@@ -167,7 +80,7 @@ public static class Scan
 
         try
         {
-            return RunChecks(settings, data, new ScanProgressTracker(progress), logger, problems);
+            return RunChecks(snapshot, data, new ScanProgressTracker(progress), logger, problems);
         }
         catch (Exception ex)
         {
@@ -178,28 +91,28 @@ public static class Scan
     }
 
     /// <summary>
-    /// The checks <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> runs over <paramref name="data"/>,
+    /// The checks <see cref="Run(ScanSnapshot, IProgress{ScanStatus}?, ILogger)"/> runs over <paramref name="data"/>,
     /// adding what they find to <paramref name="problems"/> as they go, so a caller catching a throw still has the
     /// problems found before it.
     /// </summary>
     /// <param name="progress">This scan's own tracker, which reports each step's status.</param>
     private static ScanOutcome RunChecks(
-        ScanSettings settings, PythonPath data, ScanProgressTracker progress, ILogger logger, List<Problem> problems)
+        ScanSnapshot snapshot, PythonPath data, ScanProgressTracker progress, ILogger logger, List<Problem> problems)
     {
-        if (settings[ScanSetting.RaceSubgraphs])
+        if (snapshot[ScanSetting.RaceSubgraphs])
         {
             // Reading every enabled module can be the slowest step, so it gets a label of its own.
             progress.Show(CountingRaceSubgraphs);
-            CountRaceSubgraphs(settings, logger, problems);
+            CountRaceSubgraphs(snapshot, logger, problems);
         }
 
-        if (settings.SkipDataScan)
+        if (snapshot.SkipDataScan)
         {
             return new ScanOutcome(problems, null);
         }
 
         progress.Show(BuildingModFileIndex);
-        var index = ModFileIndex.Build(settings, out var failure);
+        var index = ModFileIndex.Build(snapshot, out var failure);
         if (failure is not null)
         {
             // Bug #22, fixed (ADR-0006): the reference's get_stage_paths raised here and its thread died with the
@@ -209,7 +122,7 @@ public static class Scan
             return new ScanOutcome(problems, null);
         }
 
-        new DataWalk(settings, index ?? new ModFiles(), progress, problems).Run(data);
+        new DataWalk(snapshot, index ?? new ModFiles(), progress, problems).Run(data);
         return new ScanOutcome(problems, index);
     }
 
@@ -217,19 +130,19 @@ public static class Scan
     /// SCN-S5: the SADD records in each enabled module's whole file, skipping a module that can't be read. A total over
     /// <see cref="ScanSettingTexts.RaceSubgraphThreshold"/> adds one simple problem listing the modules that have any.
     /// </summary>
-    private static void CountRaceSubgraphs(ScanSettings settings, ILogger logger, List<Problem> problems)
+    private static void CountRaceSubgraphs(ScanSnapshot snapshot, ILogger logger, List<Problem> problems)
     {
         var modules = new List<(int Count, PythonPath File)>();
         var total = 0;
         // Bug #90, fixed (ADR-0006): the reference read, totalled and listed a module twice when modules_enabled had it
         // twice (in Fallout4.ccc and plugins.txt, #33; scanner/details). The Overview now lists each module once, in
         // first-seen order, so each is counted once here.
-        foreach (var module in settings.ModulesEnabled)
+        foreach (var module in snapshot.ModulesEnabled)
         {
             int count;
             try
             {
-                count = CountSadd(HostPaths.Resolve(settings.Host, module));
+                count = CountSadd(HostPaths.Resolve(snapshot.Host, module));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
             {
@@ -292,7 +205,7 @@ public static class Scan
     }
 
     /// <summary>The walk of Data, top-down (SCN-C1..SCN-C9), with the state the reference kept in locals.</summary>
-    private sealed class DataWalk(ScanSettings settings, ModFiles index, IProgress<ScanUpdate>? progress, List<Problem> problems)
+    private sealed class DataWalk(ScanSnapshot snapshot, ModFiles index, IProgress<ScanUpdate>? progress, List<Problem> problems)
     {
         // data_root_lower starts as "Data" (not lowercased), the pseudo-root of Data's own files, which has no whitelist.
         private string _dataRoot = "Data";
@@ -304,7 +217,7 @@ public static class Scan
         /// <param name="data">The game's Data folder.</param>
         public void Run(PythonPath data)
         {
-            foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(settings.Host, p)))
+            foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(snapshot.Host, p)))
             {
                 var (modName, modPath) = index.OwnerOf(step.Relative, ModPathKind.Folder, step.Path);
 
@@ -322,7 +235,7 @@ public static class Scan
                     progress?.Report(new ScanUpdate.Folder(step.Path.Name));
                     _dataRoot = step.Path.Name.ToLowerInvariant();
 
-                    if (settings[ScanSetting.JunkFiles] && _dataRoot == "fomod")
+                    if (snapshot[ScanSetting.JunkFiles] && _dataRoot == "fomod")
                     {
                         problems.Add(Problem.ForFile(
                             ScanProblemTypes.JunkFile, modPath, step.Relative, modName,
@@ -337,7 +250,7 @@ public static class Scan
                         continue;
                     }
 
-                    if (settings[ScanSetting.LoosePrevis] && _dataRoot == "vis")
+                    if (snapshot[ScanSetting.LoosePrevis] && _dataRoot == "vis")
                     {
                         problems.Add(Problem.ForFile(
                             ScanProblemTypes.LoosePrevis, modPath, step.Relative, modName, LoosePrevisSummary, ScanSolutionTypes.ArchiveFolder));
@@ -362,7 +275,7 @@ public static class Scan
             {
                 var name = step.Folders[i];
                 var lower = name.ToLowerInvariant();
-                if (settings.SkipDirectories.Contains(lower))
+                if (snapshot.SkipDirectories.Contains(lower))
                 {
                     step.Folders.RemoveAt(i);
                     continue;
@@ -375,14 +288,14 @@ public static class Scan
 
                 var relative = step.Relative.Join(name);
                 var (mod, path) = index.OwnerOf(relative, ModPathKind.Folder, step.Path.Join(name));
-                if (settings[ScanSetting.LoosePrevis] && lower == "precombined")
+                if (snapshot[ScanSetting.LoosePrevis] && lower == "precombined")
                 {
                     problems.Add(Problem.ForFile(ScanProblemTypes.LoosePrevis, path, relative, mod, LoosePrevisSummary, ScanSolutionTypes.ArchiveFolder));
                     step.Folders.RemoveAt(i);
                     continue;
                 }
 
-                if (settings[ScanSetting.ProblemOverrides] && lower == "animtextdata")
+                if (snapshot[ScanSetting.ProblemOverrides] && lower == "animtextdata")
                 {
                     problems.Add(Problem.ForFile(
                         ScanProblemTypes.AnimTextDataFolder, path, relative, mod,
@@ -399,7 +312,7 @@ public static class Scan
             foreach (var name in step.Files)
             {
                 var lower = name.ToLowerInvariant();
-                if (settings.SkipFileSuffixes.Count > 0 && ModFileIndex.HasSuffix(lower, settings.SkipFileSuffixes))
+                if (snapshot.SkipFileSuffixes.Count > 0 && ModFileIndex.HasSuffix(lower, snapshot.SkipFileSuffixes))
                 {
                     continue;
                 }
@@ -408,7 +321,7 @@ public static class Scan
                 var relative = step.Relative.Join(name);
                 var (mod, path) = index.OwnerOf(relative, ModPathKind.File, full);
 
-                if (settings[ScanSetting.JunkFiles] && (ScanTables.JunkFiles.Contains(lower) || ModFileIndex.HasSuffix(lower, ScanTables.JunkFileSuffixes)))
+                if (snapshot[ScanSetting.JunkFiles] && (ScanTables.JunkFiles.Contains(lower) || ModFileIndex.HasSuffix(lower, ScanTables.JunkFileSuffixes)))
                 {
                     problems.Add(Problem.ForFile(
                         ScanProblemTypes.JunkFile, path, relative, mod,
@@ -418,7 +331,7 @@ public static class Scan
 
                 // Directly in Data/Scripts, and only for a file the index gives a mod: without MO2 this never fires.
                 if (_dataRoot == "scripts" && step.Depth == 1
-                    && mod.Length > 0 && settings[ScanSetting.ProblemOverrides] && ScanTables.F4seScripts.Contains(lower))
+                    && mod.Length > 0 && snapshot[ScanSetting.ProblemOverrides] && ScanTables.F4seScripts.Contains(lower))
                 {
                     problems.Add(Problem.ForFile(ScanProblemTypes.F4seOverride, path, relative, mod, F4seOverrideSummary, F4seOverrideSolution));
                     continue;
@@ -433,7 +346,7 @@ public static class Scan
 
                 var stemLower = lower[..dot];
                 var extension = lower[(dot + 1)..];
-                if (!settings[ScanSetting.WrongFormat])
+                if (!snapshot[ScanSetting.WrongFormat])
                 {
                     continue;
                 }
@@ -447,12 +360,12 @@ public static class Scan
                     continue;
                 }
 
-                if (extension == "ba2" && !ScanTables.ArchiveNameWhitelist.Contains(lower) && !settings.ArchivesEnabled.Contains(full))
+                if (extension == "ba2" && !ScanTables.ArchiveNameWhitelist.Contains(lower) && !snapshot.ArchivesEnabled.Contains(full))
                 {
                     // ba2_name_split = file_split[0].rsplit(" - ", 1)
                     var split = stemLower.LastIndexOf(" - ", StringComparison.Ordinal);
                     var prefix = split < 0 ? stemLower : stemLower[..split];
-                    var suffixes = settings.Game.Inis.Ba2Suffixes;
+                    var suffixes = snapshot.Game.Inis.Ba2Suffixes;
                     if (split < 0 || !suffixes.Contains(stemLower[(split + 3)..]))
                     {
                         problems.Add(Problem.ForFile(
@@ -479,7 +392,7 @@ public static class Scan
 
             var found = proper
                 .Select(e => full.WithName(full.Stem + "." + e))
-                .Where(p => HostPaths.IsFile(settings.Host, p))
+                .Where(p => HostPaths.IsFile(snapshot.Host, p))
                 .Select(p => p.Name)
                 .ToList();
             return found.Count > 0

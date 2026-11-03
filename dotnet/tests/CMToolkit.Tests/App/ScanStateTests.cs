@@ -51,8 +51,8 @@ public sealed class ScanStateTests
         var listed = Assert.IsType<ScanEnded.Listed>(seen.Ended);
         Assert.Same(outcome, listed.Outcome);
         // The snapshot is taken after the refresh, so it carries the refreshed report's problems.
-        Assert.Equal([OverviewProblem], listed.Settings.OverviewProblems);
-        Assert.All(ScanSettings.All, s => Assert.True(listed.Settings[s]));
+        Assert.Equal([OverviewProblem], listed.Snapshot.OverviewProblems);
+        Assert.All(ScanSettings.All, s => Assert.True(listed.Snapshot[s]));
         Assert.False(fixture.Scan.IsRunning);
         Assert.Equal(2, fixture.Gathered);
     }
@@ -125,8 +125,8 @@ public sealed class ScanStateTests
     [AvaloniaFact]
     public void An_exception_that_escapes_the_scan_is_reported_once_and_the_scan_ends_with_the_stopped_early_row_alone()
     {
-        // The scan returns its own failures on its outcome (ScanFailureTests); this is the last resort for an exception
-        // that gets out anyway.
+        // The scan returns its own failures on its outcome (ScanChecksFailureTests); this is the last resort for an
+        // exception that gets out anyway.
         var fixture = Fixture.Start((_, progress) =>
         {
             progress.Report(new ScanStatus("Scanning... 1/2: Meshes", 50));
@@ -303,7 +303,7 @@ public sealed class ScanStateTests
     {
         private int _gathered;
 
-        private Fixture(Func<OverviewReport?, OverviewReport>? gather, Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> runScan)
+        private Fixture(Func<OverviewReport?, OverviewReport>? gather, Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> runScan)
         {
             Runtime = new AppRuntime(Logger);
             Overview = new OverviewState(Runtime, previous =>
@@ -343,7 +343,7 @@ public sealed class ScanStateTests
 
         /// <summary>Builds the fixture, with <paramref name="gather"/> in place of the fixed gathering if given, and loads the module.</summary>
         public static Fixture Start(
-            Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> runScan, Func<OverviewReport?, OverviewReport>? gather = null)
+            Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> runScan, Func<OverviewReport?, OverviewReport>? gather = null)
         {
             var fixture = new Fixture(gather, runScan);
             fixture.Await(fixture.Overview.LoadAsync());

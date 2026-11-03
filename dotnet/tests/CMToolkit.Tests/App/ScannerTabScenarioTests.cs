@@ -384,11 +384,11 @@ public sealed class ScannerTabScenarioTests
 
         public void Release() => _gate.Set();
 
-        public ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus> progress)
+        public ScanOutcome Run(ScanSnapshot snapshot, IProgress<ScanStatus> progress)
         {
             _entered = true;
             _gate.Wait(TimeSpan.FromSeconds(30));
-            return CMToolkit.Core.Scanner.Scan.Run(settings, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+            return CMToolkit.Core.Scanner.ScanChecks.Run(snapshot, progress, Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
         }
     }
 }

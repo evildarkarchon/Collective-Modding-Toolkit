@@ -14,11 +14,11 @@ public sealed class ListedStageMode
         {
             if (ended is ScanEnded.Listed listed)
             {
-                UsingStage = listed.Settings.UsingStage;
+                UsingStage = listed.Snapshot.UsingStage;
             }
         };
 
-    /// <summary>The last listed Scan's <see cref="CMToolkit.Core.Scanner.ScanSettings.UsingStage"/>, or null if none has listed yet.</summary>
+    /// <summary>The last listed Scan's <see cref="CMToolkit.Core.Scanner.ScanSnapshot.UsingStage"/>, or null if none has listed yet.</summary>
     public bool? UsingStage { get; private set; }
 
     /// <summary>

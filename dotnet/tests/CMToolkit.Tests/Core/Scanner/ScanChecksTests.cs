@@ -12,7 +12,7 @@ namespace CMToolkit.Tests.Core.Scanner;
 /// (SCN-S5) and the <c>Path.walk</c> emulation's order, pruning and link handling that the data walk and the mod file
 /// index stand on.
 /// </summary>
-public sealed class ScanTests
+public sealed class ScanChecksTests
 {
     private const int Chunk = 1 << 20;
 
@@ -32,9 +32,9 @@ public sealed class ScanTests
     {
         using var materialized = Materialize("scanner/data-walk-mo2");
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
-        var checksOnly = Scan.Run(machine.Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues)));
+        var checksOnly = ScanChecks.Run(machine.Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues)));
 
-        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+        var outcome = ScanChecks.Run(machine.Snapshot(ScanSettings.All));
 
         Assert.Equal(OverviewProblems, outcome.Problems.Take(OverviewProblems.Length).Select(KindAndItem));
         // Then the checks' problems, in the order found: what the same scan finds without the seed.
@@ -48,7 +48,7 @@ public sealed class ScanTests
         using var materialized = Materialize("scanner/data-walk-mo2");
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
 
-        var outcome = Scan.Run(machine.Snapshot([ScanSetting.JunkFiles]));
+        var outcome = ScanChecks.Run(machine.Snapshot([ScanSetting.JunkFiles]));
 
         Assert.Equal([("Junk File", "Thumbs.db")], outcome.Problems.Select(KindAndItem));
     }
@@ -59,7 +59,7 @@ public sealed class ScanTests
         using var materialized = Materialize("scanner/data-walk-mo2");
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
 
-        var outcome = Scan.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
+        var outcome = ScanChecks.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
 
         Assert.Equal(OverviewProblems, outcome.Problems.Select(KindAndItem));
         Assert.Null(outcome.Error);
@@ -72,7 +72,7 @@ public sealed class ScanTests
         using var materialized = Materialize("scanner/data-walk-mo2");
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
 
-        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+        var outcome = ScanChecks.Run(machine.Snapshot(ScanSettings.All));
 
         Assert.Equal(
             [
@@ -95,7 +95,7 @@ public sealed class ScanTests
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
 
         // No data check is ticked, so no index is built to name the mods.
-        var outcome = Scan.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
+        var outcome = ScanChecks.Run(machine.Snapshot([ScanSetting.OverviewIssues]));
 
         Assert.Equal(["", "", "", "<Unmanaged>"], outcome.Groups.SelectMany(g => g.Items).Select(p => p.Mod));
     }
@@ -115,7 +115,7 @@ public sealed class ScanTests
         Sadd.CopyTo(bytes, 10);
         var path = temp.WriteBytes("module.esp", bytes);
 
-        Assert.Equal(2, Scan.CountSadd(path));
+        Assert.Equal(2, ScanChecks.CountSadd(path));
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public sealed class ScanTests
         // b"\x00SADD\x00SADDSADD\x00\x00SADD".count(b"\x00SADD") == 3.
         var path = temp.WriteBytes("module.esp", [.. Sadd, .. Sadd, 0x53, 0x41, 0x44, 0x44, 0x00, .. Sadd]);
 
-        Assert.Equal(3, Scan.CountSadd(path));
+        Assert.Equal(3, ScanChecks.CountSadd(path));
     }
 
     [Fact]

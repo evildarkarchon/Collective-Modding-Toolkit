@@ -21,6 +21,8 @@ namespace CMToolkit.App;
 /// </param>
 public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, PcInfo Pc, GameInstall Game, IHostEnvironment Host)
 {
+    private ScanState? _scan;
+
     /// <summary>The settings in effect, which the Settings tab, the Scanner and the Downgrader read and save.</summary>
     public SettingsStore Settings => Model.Settings;
 
@@ -33,11 +35,23 @@ public sealed record AppSession(AppRuntime Runtime, MainWindowViewModel Model, P
 
     /// <summary>
     /// The Overview Report module, which gathers the report from the session's game and machine into its log. The
-    /// Overview tab loads it; the Overview tab, the Scanner, the Archive Patcher and the Downgrader refresh it; the F4SE
-    /// tab, the Scanner and the Downgrader read it.
+    /// Overview tab loads it; the Overview tab, the Scan module (<see cref="Scan"/>), the Archive Patcher and the
+    /// Downgrader refresh it; the F4SE tab, the Scan module, the Archive Patcher and the Downgrader read it.
     /// </summary>
     public OverviewState Overview { get; } =
         new(Runtime, previous => OverviewReport.Gather(Game, Host, Runtime.Logger, previous));
+
+    /// <summary>
+    /// The Scan module, over the session's game, Overview Report module and machine: the one answer to whether a Scan is
+    /// running. The Scanner tab starts Scans through it and draws its events; the Downgrader and the Archive Patcher ask
+    /// it whether a Scan is running when Patch All is clicked. The same module on every read. UI thread only.
+    /// </summary>
+    /// <remarks>
+    /// Built on first read rather than in an initializer like <see cref="Overview"/>'s: an initializer can't read another
+    /// instance member, and the module needs <see cref="Overview"/>. Every read is on the UI thread, so the lazy build
+    /// needs no lock.
+    /// </remarks>
+    public ScanState Scan => _scan ??= new(Runtime, Game, Overview, Host);
 
     /// <summary>
     /// The main window built over this session (the reference's <c>cmc.root</c>), which owns the windows the tabs open,

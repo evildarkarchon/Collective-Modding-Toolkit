@@ -52,8 +52,9 @@ public sealed class ScannerTab : TabPage
         _game = game;
         _scan = scan;
         _settings = settings;
-        // Never unsubscribed: the module and the tab are built together and live as long as the main window. Only the
-        // side pane starts a Scan, and it opens after the tab has built, so no event arrives before there is a tree.
+        // Never unsubscribed: the session holds the module, and the tab lives as long as the main window, which is as
+        // long as the session. Other windows read the module too (the patch windows ask whether a Scan is running), but
+        // none of them starts a Scan, so the tree OnStarted clears is there before any event arrives (see OnStarted).
         _scan.Started += (_, _) => OnStarted();
         _scan.StatusChanged += (_, status) => Apply(status);
         _scan.Ended += (_, ended) => OnEnded(ended);
@@ -199,7 +200,7 @@ public sealed class ScannerTab : TabPage
 
         // The boxes start as last saved (bug #20 fixed), so a scan's choices carry over to the next pane and launch. A
         // pane opened mid-scan, after the user comes back to the tab, starts on Scanning... so no second Scan can start.
-        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan.IsRunning);
+        SidePane = new ScanSidePane(ScanSettings.Stored(_settings.Current), _scan);
         var created = SidePane;
         // Both UI Actions start through runtime.Actions.Start: what they raise is reported once, at once (a failed
         // Operation already by the runner), and the task they return never faults, so discarding it is safe.
@@ -251,12 +252,15 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Draws a Scan's start: Scan Game shows Scanning... in the open side pane, if there is one; the tree, its data and
-    /// the info label are cleared and nothing can be selected; the details pane closes; and the scanning label appears.
+    /// Draws a Scan's start: the tree, its data and the info label are cleared and nothing can be selected; the details
+    /// pane closes; and the scanning label appears. The side pane reads the Scan module itself, so it isn't touched here.
     /// </summary>
+    /// <remarks>
+    /// The tree is assumed built. The session holds the module, but the side pane is still the only thing that starts a
+    /// Scan, and it opens only once the tab has built its tree.
+    /// </remarks>
     private void OnStarted()
     {
-        SidePane?.SetScanning(true);
         _selectable = false;
         _tree!.Items.Clear();
         _items.Clear();
@@ -266,10 +270,9 @@ public sealed class ScannerTab : TabPage
     }
 
     /// <summary>
-    /// Draws a Scan's end, wherever the user is: the scanning label hides, a <see cref="ScanEnded.Listed"/> Scan's
-    /// results are listed, and the open side pane, if there is one, shows Scan Game again, enabled unless every box is
-    /// unticked. A
-    /// <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and unselectable.
+    /// Draws a Scan's end, wherever the user is: the scanning label hides and a <see cref="ScanEnded.Listed"/> Scan's
+    /// results are listed. A <see cref="ScanEnded.NotScanned"/> Scan lists nothing, so the tree stays cleared and
+    /// unselectable. The side pane reads the Scan module itself, so it isn't touched here.
     /// </summary>
     /// <param name="ended">How the Scan ended.</param>
     private void OnEnded(ScanEnded ended)
@@ -278,10 +281,8 @@ public sealed class ScannerTab : TabPage
         _scanningText.Text = "";
         if (ended is ScanEnded.Listed listed)
         {
-            Populate(listed.Settings, listed.Outcome);
+            Populate(listed.Snapshot, listed.Outcome);
         }
-
-        SidePane?.SetScanning(false);
     }
 
     /// <summary>Collapse All / Expand All (<c>set_expanded</c>): opens or closes every group row.</summary>
@@ -297,13 +298,13 @@ public sealed class ScannerTab : TabPage
     /// Lists a Scan's results: sets the info label, lists the groups and makes the results selectable. It reads no pane,
     /// so it lists them whether or not the tab is current.
     /// </summary>
-    /// <param name="settings">
+    /// <param name="snapshot">
     /// The Scan's snapshot, which says whether rows get the mod column; the details pane follows it too.
     /// </param>
     /// <param name="outcome">The Scan's outcome: its problems are counted and its groups listed as they are.</param>
-    private void Populate(ScanSettings settings, ScanOutcome outcome)
+    private void Populate(ScanSnapshot snapshot, ScanOutcome outcome)
     {
-        _usingStage = settings.UsingStage;
+        _usingStage = snapshot.UsingStage;
         _resultsInfo!.Text = ScanResults.InfoText(outcome.Problems.Count);
 
         foreach (var group in outcome.Groups)

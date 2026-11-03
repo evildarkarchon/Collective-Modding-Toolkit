@@ -34,13 +34,13 @@ public static class MainTabs
         () => ArchivePatcherWindow.Open(session));
 
     /// <summary>
-    /// The Scanner tab over a <see cref="ScanState"/> built here for it, over the session's game, Overview Report module
-    /// and machine. Nothing else holds the module.
+    /// The Scanner tab over the session's Scan module (<see cref="AppSession.Scan"/>), which the Downgrader and the
+    /// Archive Patcher also ask whether a Scan is running.
     /// </summary>
     private static ScannerTab Scanner(AppSession session) => new(
         session.Runtime,
         session.Game,
-        new ScanState(session.Runtime, session.Game, session.Overview, session.Host),
+        session.Scan,
         session.Settings)
     {
         Host = session.Host,

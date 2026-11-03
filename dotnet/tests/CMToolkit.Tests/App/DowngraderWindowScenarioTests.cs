@@ -55,7 +55,7 @@ public sealed class DowngraderWindowScenarioTests
         var owner = new Window();
         owner.Show();
 
-        var window = new DowngraderWindow(runtime, game, machine.Host, overview, settings);
+        var window = new DowngraderWindow(runtime, game, machine.Host, overview, settings, scanRunning: () => false);
         var opening = window.OpenAsync(owner);
         DispatcherWait.Until(() => opening.IsCompleted);
         opening.GetAwaiter().GetResult();

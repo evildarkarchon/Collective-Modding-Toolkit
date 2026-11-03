@@ -38,7 +38,7 @@ public static class ModFileIndex
     /// port recognises the root as the walk's first step: it gets no folder entry, and its modules and archives are
     /// indexed by file name.
     /// </remarks>
-    /// <param name="settings">The scan's settings snapshot.</param>
+    /// <param name="snapshot">The Scan's snapshot.</param>
     /// <param name="failure">
     /// Set when MO2's configuration stops the index (bug #22, fixed): its selected profile is empty, or the profile has
     /// no <c>modlist.txt</c>. The reference's <c>get_stage_paths</c> raised <c>ValueError</c> or
@@ -47,16 +47,16 @@ public static class ModFileIndex
     /// </param>
     /// <returns>The index; null outside MO2 stage mode, or when <paramref name="failure"/> is set.</returns>
     /// <exception cref="System.Text.DecoderFallbackException"><c>modlist.txt</c> isn't UTF-8 (T-1).</exception>
-    public static ModFiles? Build(ScanSettings settings, out Problem? failure)
+    public static ModFiles? Build(ScanSnapshot snapshot, out Problem? failure)
     {
-        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(snapshot);
         failure = null;
-        if (!settings.UsingStage || settings.Manager is not { Kind: ModManagerKind.ModOrganizer } || settings.Game.Mo2 is not { } mo2)
+        if (!snapshot.UsingStage || snapshot.Manager is not { Kind: ModManagerKind.ModOrganizer } || snapshot.Game.Mo2 is not { } mo2)
         {
             return null;
         }
 
-        var stagePaths = StagePaths(settings, mo2, out failure);
+        var stagePaths = StagePaths(snapshot, mo2, out failure);
         if (stagePaths is null)
         {
             return null;
@@ -66,9 +66,9 @@ public static class ModFileIndex
         foreach (var modPath in stagePaths)
         {
             var modName = modPath.Name;
-            foreach (var step in PythonWalk.TopDown(modPath, p => HostPaths.Resolve(settings.Host, p)))
+            foreach (var step in PythonWalk.TopDown(modPath, p => HostPaths.Resolve(snapshot.Host, p)))
             {
-                PruneSkipFolders(step.Folders, settings.SkipDirectories);
+                PruneSkipFolders(step.Folders, snapshot.SkipDirectories);
 
                 // Bug #89, fixed (ADR-0006): the reference's `root is mod_path` was never true, so the mod's root got a
                 // folder entry keyed "." too. The root is the walk's first step, and it isn't a folder of the mod.
@@ -81,7 +81,7 @@ public static class ModFileIndex
                 foreach (var file in step.Files)
                 {
                     var lower = file.ToLowerInvariant();
-                    if (HasSuffix(lower, settings.SkipFileSuffixes))
+                    if (HasSuffix(lower, snapshot.SkipFileSuffixes))
                     {
                         continue;
                     }
@@ -116,7 +116,7 @@ public static class ModFileIndex
     /// overwrite folder if it exists. Null, with <paramref name="failure"/> set, when MO2 has no selected profile or
     /// the profile has no <c>modlist.txt</c>.
     /// </summary>
-    private static List<PythonPath>? StagePaths(ScanSettings settings, Mo2Configuration mo2, out Problem? failure)
+    private static List<PythonPath>? StagePaths(ScanSnapshot snapshot, Mo2Configuration mo2, out Problem? failure)
     {
         failure = null;
 
@@ -133,23 +133,23 @@ public static class ModFileIndex
         }
 
         var modlist = mo2.ProfilesPath.Join(mo2.SelectedProfile).Join("modlist.txt");
-        if (!HostPaths.IsFile(settings.Host, modlist))
+        if (!HostPaths.IsFile(snapshot.Host, modlist))
         {
             failure = Problem.ForFile(ProblemTypes.FileNotFound, modlist, modlist, null, NoModlistSummary, NoModlistSolution);
             return null;
         }
 
-        var lines = PythonText.SplitLines(PythonText.ReadUtf8Strict(HostPaths.Resolve(settings.Host, modlist)));
+        var lines = PythonText.SplitLines(PythonText.ReadUtf8Strict(HostPaths.Resolve(snapshot.Host, modlist)));
         var paths = new List<PythonPath>();
         foreach (var line in lines.Reverse())
         {
-            if (line.StartsWith('+') && mo2.StagePath.Join(line[1..]) is var modPath && HostPaths.IsDirectory(settings.Host, modPath))
+            if (line.StartsWith('+') && mo2.StagePath.Join(line[1..]) is var modPath && HostPaths.IsDirectory(snapshot.Host, modPath))
             {
                 paths.Add(modPath);
             }
         }
 
-        if (HostPaths.IsDirectory(settings.Host, mo2.OverwritePath))
+        if (HostPaths.IsDirectory(snapshot.Host, mo2.OverwritePath))
         {
             paths.Add(mo2.OverwritePath);
         }

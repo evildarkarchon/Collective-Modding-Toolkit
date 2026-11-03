@@ -10,7 +10,7 @@ namespace CMToolkit.Tests.Core.Scanner;
 /// the scan carries on as a finished one (bug #22). And one it doesn't expect, a <c>modlist.txt</c> that isn't UTF-8,
 /// which stops the scan early with what it found and a stopped-early row.
 /// </summary>
-public sealed class ScanFailureTests
+public sealed class ScanChecksFailureTests
 {
     [Fact]
     [Trait("Parity", "B-3"), Deviation(22, "A missing modlist.txt is a File Not Found problem on its path, listed after the problems the worker found before it, instead of an exception.")]
@@ -19,9 +19,9 @@ public sealed class ScanFailureTests
         using var machine = Scenario("scanner/mo2-no-modlist");
         // 101 SADD records in an enabled module: over the threshold, so the count found before the index is a problem.
         WriteSaddRecords(machine, 101);
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
 
-        var outcome = Scan.Run(settings);
+        var outcome = ScanChecks.Run(snapshot);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -50,9 +50,9 @@ public sealed class ScanFailureTests
     public async Task An_empty_selected_profile_is_a_missing_mo2_settings_problem_on_the_mo2_ini()
     {
         using var machine = Scenario("scanner/mo2-no-profile");
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
 
-        var outcome = Scan.Run(settings);
+        var outcome = ScanChecks.Run(snapshot);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -80,10 +80,10 @@ public sealed class ScanFailureTests
         var modlist = machine.PathOf(@"LocalAppData\ModOrganizer\Fallout 4\profiles\Default\modlist.txt");
         Directory.CreateDirectory(Path.GetDirectoryName(modlist)!);
         File.WriteAllBytes(modlist, [0xFF, 0xFE, (byte)'+', (byte)'A', (byte)'\r', (byte)'\n']);
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
         var log = new CapturingLogger();
 
-        var outcome = Scan.Run(settings, null, log);
+        var outcome = ScanChecks.Run(snapshot, null, log);
 
         Assert.IsType<System.Text.DecoderFallbackException>(outcome.Error);
         Assert.Null(outcome.Index);
@@ -115,7 +115,7 @@ public sealed class ScanFailureTests
         var machine = await ScanScenarioMachine.LocateAsync(materialized);
         Assert.NotEmpty(machine.Report.Problems);
 
-        var outcome = Scan.Run(machine.Snapshot(ScanSettings.All));
+        var outcome = ScanChecks.Run(machine.Snapshot(ScanSettings.All));
 
         Assert.NotNull(outcome.Error);
         Assert.Equal(
@@ -139,6 +139,6 @@ public sealed class ScanFailureTests
     /// Every box ticked but Overview Issues, so the outcome holds only what the checks found, with the Overview gathered as
     /// the scan's refresh would have (its enabled modules).
     /// </summary>
-    private static async Task<ScanSettings> ChecksTicked(MaterializedScenario machine)
+    private static async Task<ScanSnapshot> ChecksTicked(MaterializedScenario machine)
         => (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues));
 }

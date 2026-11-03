@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using CMToolkit.App;
 using CMToolkit.App.Runtime;
 using CMToolkit.App.Startup;
@@ -10,6 +11,7 @@ using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
+using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.Tests.App;
 
@@ -17,7 +19,7 @@ namespace CMToolkit.Tests.App;
 /// The Downgrader window while its Patch All run is under way, what the recorded scenarios can't show: the UI is live
 /// while a patch downloads but the window can't be closed (THR-2, DG-6), and a box ticked meanwhile reaches the run at
 /// its next read. The machine is <c>downgrader/run-reenabled-during-download</c>: one Old-Gen <c>Fallout4.exe</c> and its
-/// canned OG-to-NG patch, held until the test releases it.
+/// canned OG-to-NG patch, held until the test releases it. Patch All also refuses to start while a Scan is running.
 /// </summary>
 public sealed class DowngraderRunWindowTests
 {
@@ -100,6 +102,69 @@ public sealed class DowngraderRunWindowTests
         log.Release();
         DispatcherWait.Until(() => !window.IsRunning);
         Assert.Contains("\"downgrader_keep_backups\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+        window.Close();
+        owner.Close();
+    }
+
+    /// <summary>
+    /// While a Scan is running, Patch All says why it won't start and changes nothing: no Operation runs and input is
+    /// never blocked, nothing is downloaded or patched, the options ticked since the window opened aren't saved, the pane
+    /// keeps what it showed and Patch All stays enabled. The refusal is one INFO line in the app log, not a failure.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task While_a_scan_runs_patch_all_shows_a_warning_and_changes_nothing()
+    {
+        using var machine = Machine.Materialize();
+        var logger = new CapturingLogger();
+        var http = new DowngraderRunScenarioTests.HeldHandler(machine.CreateHttpHandler());
+        var (owner, window, runtime, _) = Build(machine, http, logger, scanRunning: () => true);
+        var settingsPath = Path.Combine(machine.Root, "Cwd", "settings.json");
+        var exe = Path.Combine(machine.Root, "Game", "Fallout4.exe");
+        var settings = File.ReadAllBytes(settingsPath);
+        var crc = FileCrc32.Of(exe);
+        MouseClick.On(ComposedSession.Named<CheckBox>(window, "KeepBackups"));
+        var pane = window.Log!.Runs.Select(r => r.Text).ToList();
+        var logged = logger.Entries.Count;
+
+        var patchAll = runtime.Actions.Start(window.PatchAllAsync);
+        var box = window.OwnedWindows.OfType<MessageBoxWindow>().Single();
+
+        Assert.Equal(MessageBoxKind.Warning, box.Kind);
+        Assert.Equal("Downgrader", box.Title);
+        Assert.Contains(box.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "A Scan is running. Patch All can start once it ends.");
+        Assert.False(runtime.Input.IsBlocking);
+        Assert.False(window.IsRunning);
+        box.Close();
+        await patchAll.WithTimeout();
+
+        Assert.Equal(settings, File.ReadAllBytes(settingsPath));
+        Assert.Equal(crc, FileCrc32.Of(exe));
+        Assert.Empty(http.Requests);
+        Assert.True(ComposedSession.Named<Button>(window, "PatchAll").IsEnabled);
+        Assert.Equal(pane, window.Log!.Runs.Select(r => r.Text));
+        Assert.False(window.ProcessingData);
+        Assert.Equal(
+            [new LogEntry(LogLevel.Information, "Downgrader : Patch All : A Scan is running, refused")],
+            logger.Entries.Skip(logged));
+        Assert.Null(runtime.Errors.Window);
+        window.Close();
+        owner.Close();
+    }
+
+    /// <summary>With no Scan running, Patch All patches the game to the Desired Version, with no warning.</summary>
+    [AvaloniaFact]
+    public void With_no_scan_running_patch_all_patches_the_game()
+    {
+        using var machine = Machine.Materialize();
+        var (owner, window, runtime, _) = Build(machine, machine.CreateHttpHandler(), scanRunning: () => false);
+
+        MouseClick.On(ComposedSession.Named<Button>(window, "PatchAll"));
+        DispatcherWait.Until(() => !window.IsRunning);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal("C5965A2E", FileCrc32.Of(Path.Combine(machine.Root, "Game", "Fallout4.exe")));
+        Assert.Empty(window.OwnedWindows.OfType<MessageBoxWindow>());
+        Assert.Null(runtime.Errors.Window);
         window.Close();
         owner.Close();
     }
@@ -247,7 +312,8 @@ public sealed class DowngraderRunWindowTests
     /// The Downgrader built on its own over the machine, without a main window or an Overview tab: its Overview Report
     /// module gathers through <paramref name="gather"/> (the real gathering by default, which the function is handed so
     /// it can wrap it) and is loaded before the window opens over a bare owner. The window is set to Next-Gen. Its
-    /// settings store logs to <paramref name="settingsLogger"/> if given, else to the app's log.
+    /// settings store logs to <paramref name="settingsLogger"/> if given, else to the app's log. Patch All asks
+    /// <paramref name="scanRunning"/> whether a Scan is running; none says no Scan is running.
     /// </summary>
     /// <returns>The owner, the window with its content built, the app runtime and the window's Overview Report module.</returns>
     private static (Window Owner, DowngraderWindow Window, AppRuntime Runtime, OverviewState Overview) Build(
@@ -255,7 +321,8 @@ public sealed class DowngraderRunWindowTests
         HttpMessageHandler http,
         CapturingLogger? logger = null,
         Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gather = null,
-        Microsoft.Extensions.Logging.ILogger? settingsLogger = null)
+        Microsoft.Extensions.Logging.ILogger? settingsLogger = null,
+        Func<bool>? scanRunning = null)
     {
         logger ??= new CapturingLogger();
         // Off the UI thread: blocking on it there would deadlock the locator's continuations. No dialog is scripted.
@@ -273,7 +340,8 @@ public sealed class DowngraderRunWindowTests
 
         var owner = new Window();
         owner.Show();
-        var window = new DowngraderWindow(runtime, game, machine.Host, overview, settings, deltaPatchHttp: http, patchFolder: appFolder);
+        var window = new DowngraderWindow(
+            runtime, game, machine.Host, overview, settings, scanRunning ?? (() => false), deltaPatchHttp: http, patchFolder: appFolder);
         var opening = runtime.Actions.Start(() => window.OpenAsync(owner));
         DispatcherWait.Until(() => opening.IsCompleted && window.Content is not null);
         window.UpdateLayout();

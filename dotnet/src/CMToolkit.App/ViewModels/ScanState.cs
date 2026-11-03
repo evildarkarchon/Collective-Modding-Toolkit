@@ -22,9 +22,9 @@ public abstract record ScanEnded
     /// The scan ran, and finished or stopped early; its outcome is what to list. An error on the outcome is already in the
     /// Error Window.
     /// </summary>
-    /// <param name="Settings">The Scan's snapshot, which says whether rows get the mod column.</param>
+    /// <param name="Snapshot">The Scan's snapshot, which says whether rows get the mod column.</param>
     /// <param name="Outcome">What the scan found, in the order it is listed.</param>
-    public sealed record Listed(ScanSettings Settings, ScanOutcome Outcome) : ScanEnded;
+    public sealed record Listed(ScanSnapshot Snapshot, ScanOutcome Outcome) : ScanEnded;
 }
 
 /// <summary>
@@ -67,7 +67,7 @@ public sealed class ScanState
         _game = game;
         _overview = overview;
         _host = host;
-        RunScan = (s, progress) => Scan.Run(s, progress, _runtime.Logger);
+        RunScan = (s, progress) => ScanChecks.Run(s, progress, _runtime.Logger);
     }
 
     /// <summary>
@@ -95,16 +95,21 @@ public sealed class ScanState
     /// <summary>
     /// Everything in the Scan after its Overview refresh, run off the UI thread as an Interactive Operation and given the
     /// Scan's snapshot and its progress sink:
-    /// <see cref="Scan.Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> with the app log by default. A test seam, so
-    /// tests can hold a scan mid-run, report statuses or hand back a canned outcome.
+    /// <see cref="ScanChecks.Run(ScanSnapshot, IProgress{ScanStatus}?, ILogger)"/> with the app log by default. A test
+    /// seam, so tests can hold a scan mid-run, report statuses or hand back a canned outcome.
     /// </summary>
     /// <remarks>
     /// The sink is a <see cref="UiThreadProgress{T}"/> made for each Scan, so it takes statuses from any thread and
     /// raises <see cref="StatusChanged"/> for each one on the UI thread before <see cref="IProgress{T}.Report"/> returns.
     /// Every status is therefore raised, in order, before <see cref="Ended"/>. A status reported once the scan has
     /// returned is dropped.
+    /// <para>
+    /// Settable, not only at construction, because <see cref="AppSession.Scan"/> builds the session's module itself: a
+    /// test that goes through the composed session swaps the scan in afterwards. Set it on the UI thread, before the
+    /// Scan Game click it is meant for; each Scan reads it once its Overview refresh is done.
+    /// </para>
     /// </remarks>
-    public Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> RunScan { get; init; }
+    public Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> RunScan { get; set; }
 
     /// <summary>
     /// Runs one Scan: refreshes the Overview Report, takes the snapshot of <paramref name="boxes"/>, runs the scan with its
@@ -168,7 +173,7 @@ public sealed class ScanState
 
         // The snapshot, taken after the refresh so it carries the new report. Each box was saved as it changed, so the
         // settings already hold these and nothing is written.
-        var settings = ScanSettings.Snapshot(boxes, _game, _overview.Report, _host);
+        var snapshot = ScanSettings.Snapshot(boxes, _game, _overview.Report, _host);
 
         // The label stays on Refreshing Overview... until the scan reports a status of its own, and it reports none when
         // only Overview Issues is ticked.
@@ -185,7 +190,7 @@ public sealed class ScanState
                 Raise(status);
             }
         });
-        var run = await _runtime.Actions.TryRun(ScanOperation, OperationPhase.Interactive, () => RunScan(settings, statuses));
+        var run = await _runtime.Actions.TryRun(ScanOperation, OperationPhase.Interactive, () => RunScan(snapshot, statuses));
         over = true;
 
         ScanOutcome outcome;
@@ -212,7 +217,7 @@ public sealed class ScanState
         }
 
         Raise(_last with { Progress = 100 });
-        return new ScanEnded.Listed(settings, outcome);
+        return new ScanEnded.Listed(snapshot, outcome);
     }
 
     /// <summary>Remembers <paramref name="status"/> as the last one and raises <see cref="StatusChanged"/> with it. UI thread only.</summary>
