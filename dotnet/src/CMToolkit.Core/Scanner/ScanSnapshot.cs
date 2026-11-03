@@ -16,8 +16,10 @@ public sealed class ScanSnapshot
 
     /// <summary>
     /// The snapshot: the boxes' values and what the scan reads from the Overview and the game, copied once when the scan
-    /// starts. Built through <see cref="ScanSettings.Snapshot"/>, which checks every setting is present; internal so
-    /// nothing else can skip that check.
+    /// starts. Build it through <see cref="ScanSettings.Snapshot"/>, which checks every setting is present; this
+    /// constructor doesn't. It is internal, which keeps the App and other assemblies from skipping that check, but not
+    /// the rest of Core or the tests (through <c>InternalsVisibleTo</c>): those must go through
+    /// <see cref="ScanSettings.Snapshot"/> by convention.
     /// </summary>
     /// <param name="values">Every setting's box, ticked or not.</param>
     /// <param name="game">The installation; its mod manager decides the skip lists.</param>
