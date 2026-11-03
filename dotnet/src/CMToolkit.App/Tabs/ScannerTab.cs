@@ -278,7 +278,7 @@ public sealed class ScannerTab : TabPage
         _scanningText.Text = "";
         if (ended is ScanEnded.Listed listed)
         {
-            Populate(listed.Settings, listed.Outcome);
+            Populate(listed.Snapshot, listed.Outcome);
         }
 
         SidePane?.SetScanning(false);
@@ -297,13 +297,13 @@ public sealed class ScannerTab : TabPage
     /// Lists a Scan's results: sets the info label, lists the groups and makes the results selectable. It reads no pane,
     /// so it lists them whether or not the tab is current.
     /// </summary>
-    /// <param name="settings">
+    /// <param name="snapshot">
     /// The Scan's snapshot, which says whether rows get the mod column; the details pane follows it too.
     /// </param>
     /// <param name="outcome">The Scan's outcome: its problems are counted and its groups listed as they are.</param>
-    private void Populate(ScanSettings settings, ScanOutcome outcome)
+    private void Populate(ScanSnapshot snapshot, ScanOutcome outcome)
     {
-        _usingStage = settings.UsingStage;
+        _usingStage = snapshot.UsingStage;
         _resultsInfo!.Text = ScanResults.InfoText(outcome.Problems.Count);
 
         foreach (var group in outcome.Groups)

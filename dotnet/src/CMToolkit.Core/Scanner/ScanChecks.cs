@@ -10,7 +10,7 @@ namespace CMToolkit.Core.Scanner;
 /// <summary>
 /// The checks of a Scan that follow its Overview refresh, from its snapshot of the Scan Settings to everything the
 /// Scanner tab lists. The Scan as a whole is the App's <c>ScanState</c>. The Overview refresh, the first
-/// step of a Scan, happens before <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> is called: the
+/// step of a Scan, happens before <see cref="Run(ScanSnapshot, IProgress{ScanStatus}?, ILogger)"/> is called: the
 /// snapshot carries what the scan reads from its Overview Report. Synchronous and unaware of threads; the App runs it
 /// as an interactive operation (ADR-0003).
 /// </summary>
@@ -36,9 +36,9 @@ public static class ScanChecks
     // b"\x00\x53\x41\x44\x44": a NUL then the SADD record tag.
     private static readonly byte[] SaddBytes = [0x00, 0x53, 0x41, 0x44, 0x44];
 
-    /// <summary>Runs the Scan's checks for <paramref name="settings"/> after its Overview refresh, reporting no progress and logging nothing.</summary>
-    /// <param name="settings">The scan's settings snapshot.</param>
-    public static ScanOutcome Run(ScanSettings settings) => Run(settings, null, NullLogger.Instance);
+    /// <summary>Runs the Scan's checks for <paramref name="snapshot"/> after its Overview refresh, reporting no progress and logging nothing.</summary>
+    /// <param name="snapshot">The Scan's snapshot.</param>
+    public static ScanOutcome Run(ScanSnapshot snapshot) => Run(snapshot, null, NullLogger.Instance);
 
     /// <summary>
     /// Runs everything in a Scan after the Overview refresh. The results start with the seed: the snapshot's Overview
@@ -62,17 +62,17 @@ public static class ScanChecks
     /// row, with the error on the outcome and no index. The scan neither logs nor reports the error; its caller does.
     /// </para>
     /// </remarks>
-    /// <param name="settings">The scan's settings snapshot, which carries its Overview Report's problems.</param>
+    /// <param name="snapshot">The Scan's snapshot, which carries its Overview Report's problems.</param>
     /// <param name="progress">Where the scan's statuses go, in order, from the calling thread; null for none.</param>
     /// <param name="logger">The app log, which gets the Race Subgraphs problem's <c>SimpleProblemInfo</c> line.</param>
     /// <returns>The full ordered problem list, its groups, the mod file index and the error, if any.</returns>
-    public static ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus>? progress, ILogger logger)
+    public static ScanOutcome Run(ScanSnapshot snapshot, IProgress<ScanStatus>? progress, ILogger logger)
     {
-        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(logger);
         // The checks append to the seed, so a scan that stops early still lists it first.
-        var problems = new List<Problem>(ScanResults.Seed(settings[ScanSetting.OverviewIssues], settings.OverviewProblems));
-        var data = settings.Game.DataPath;
+        var problems = new List<Problem>(ScanResults.Seed(snapshot[ScanSetting.OverviewIssues], snapshot.OverviewProblems));
+        var data = snapshot.Game.DataPath;
         if (data is null)
         {
             return new ScanOutcome(problems, null);
@@ -80,7 +80,7 @@ public static class ScanChecks
 
         try
         {
-            return RunChecks(settings, data, new ScanProgressTracker(progress), logger, problems);
+            return RunChecks(snapshot, data, new ScanProgressTracker(progress), logger, problems);
         }
         catch (Exception ex)
         {
@@ -91,28 +91,28 @@ public static class ScanChecks
     }
 
     /// <summary>
-    /// The checks <see cref="Run(ScanSettings, IProgress{ScanStatus}?, ILogger)"/> runs over <paramref name="data"/>,
+    /// The checks <see cref="Run(ScanSnapshot, IProgress{ScanStatus}?, ILogger)"/> runs over <paramref name="data"/>,
     /// adding what they find to <paramref name="problems"/> as they go, so a caller catching a throw still has the
     /// problems found before it.
     /// </summary>
     /// <param name="progress">This scan's own tracker, which reports each step's status.</param>
     private static ScanOutcome RunChecks(
-        ScanSettings settings, PythonPath data, ScanProgressTracker progress, ILogger logger, List<Problem> problems)
+        ScanSnapshot snapshot, PythonPath data, ScanProgressTracker progress, ILogger logger, List<Problem> problems)
     {
-        if (settings[ScanSetting.RaceSubgraphs])
+        if (snapshot[ScanSetting.RaceSubgraphs])
         {
             // Reading every enabled module can be the slowest step, so it gets a label of its own.
             progress.Show(CountingRaceSubgraphs);
-            CountRaceSubgraphs(settings, logger, problems);
+            CountRaceSubgraphs(snapshot, logger, problems);
         }
 
-        if (settings.SkipDataScan)
+        if (snapshot.SkipDataScan)
         {
             return new ScanOutcome(problems, null);
         }
 
         progress.Show(BuildingModFileIndex);
-        var index = ModFileIndex.Build(settings, out var failure);
+        var index = ModFileIndex.Build(snapshot, out var failure);
         if (failure is not null)
         {
             // Bug #22, fixed (ADR-0006): the reference's get_stage_paths raised here and its thread died with the
@@ -122,7 +122,7 @@ public static class ScanChecks
             return new ScanOutcome(problems, null);
         }
 
-        new DataWalk(settings, index ?? new ModFiles(), progress, problems).Run(data);
+        new DataWalk(snapshot, index ?? new ModFiles(), progress, problems).Run(data);
         return new ScanOutcome(problems, index);
     }
 
@@ -130,19 +130,19 @@ public static class ScanChecks
     /// SCN-S5: the SADD records in each enabled module's whole file, skipping a module that can't be read. A total over
     /// <see cref="ScanSettingTexts.RaceSubgraphThreshold"/> adds one simple problem listing the modules that have any.
     /// </summary>
-    private static void CountRaceSubgraphs(ScanSettings settings, ILogger logger, List<Problem> problems)
+    private static void CountRaceSubgraphs(ScanSnapshot snapshot, ILogger logger, List<Problem> problems)
     {
         var modules = new List<(int Count, PythonPath File)>();
         var total = 0;
         // Bug #90, fixed (ADR-0006): the reference read, totalled and listed a module twice when modules_enabled had it
         // twice (in Fallout4.ccc and plugins.txt, #33; scanner/details). The Overview now lists each module once, in
         // first-seen order, so each is counted once here.
-        foreach (var module in settings.ModulesEnabled)
+        foreach (var module in snapshot.ModulesEnabled)
         {
             int count;
             try
             {
-                count = CountSadd(HostPaths.Resolve(settings.Host, module));
+                count = CountSadd(HostPaths.Resolve(snapshot.Host, module));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
             {
@@ -205,7 +205,7 @@ public static class ScanChecks
     }
 
     /// <summary>The walk of Data, top-down (SCN-C1..SCN-C9), with the state the reference kept in locals.</summary>
-    private sealed class DataWalk(ScanSettings settings, ModFiles index, IProgress<ScanUpdate>? progress, List<Problem> problems)
+    private sealed class DataWalk(ScanSnapshot snapshot, ModFiles index, IProgress<ScanUpdate>? progress, List<Problem> problems)
     {
         // data_root_lower starts as "Data" (not lowercased), the pseudo-root of Data's own files, which has no whitelist.
         private string _dataRoot = "Data";
@@ -217,7 +217,7 @@ public static class ScanChecks
         /// <param name="data">The game's Data folder.</param>
         public void Run(PythonPath data)
         {
-            foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(settings.Host, p)))
+            foreach (var step in PythonWalk.TopDown(data, p => HostPaths.Resolve(snapshot.Host, p)))
             {
                 var (modName, modPath) = index.OwnerOf(step.Relative, ModPathKind.Folder, step.Path);
 
@@ -235,7 +235,7 @@ public static class ScanChecks
                     progress?.Report(new ScanUpdate.Folder(step.Path.Name));
                     _dataRoot = step.Path.Name.ToLowerInvariant();
 
-                    if (settings[ScanSetting.JunkFiles] && _dataRoot == "fomod")
+                    if (snapshot[ScanSetting.JunkFiles] && _dataRoot == "fomod")
                     {
                         problems.Add(Problem.ForFile(
                             ScanProblemTypes.JunkFile, modPath, step.Relative, modName,
@@ -250,7 +250,7 @@ public static class ScanChecks
                         continue;
                     }
 
-                    if (settings[ScanSetting.LoosePrevis] && _dataRoot == "vis")
+                    if (snapshot[ScanSetting.LoosePrevis] && _dataRoot == "vis")
                     {
                         problems.Add(Problem.ForFile(
                             ScanProblemTypes.LoosePrevis, modPath, step.Relative, modName, LoosePrevisSummary, ScanSolutionTypes.ArchiveFolder));
@@ -275,7 +275,7 @@ public static class ScanChecks
             {
                 var name = step.Folders[i];
                 var lower = name.ToLowerInvariant();
-                if (settings.SkipDirectories.Contains(lower))
+                if (snapshot.SkipDirectories.Contains(lower))
                 {
                     step.Folders.RemoveAt(i);
                     continue;
@@ -288,14 +288,14 @@ public static class ScanChecks
 
                 var relative = step.Relative.Join(name);
                 var (mod, path) = index.OwnerOf(relative, ModPathKind.Folder, step.Path.Join(name));
-                if (settings[ScanSetting.LoosePrevis] && lower == "precombined")
+                if (snapshot[ScanSetting.LoosePrevis] && lower == "precombined")
                 {
                     problems.Add(Problem.ForFile(ScanProblemTypes.LoosePrevis, path, relative, mod, LoosePrevisSummary, ScanSolutionTypes.ArchiveFolder));
                     step.Folders.RemoveAt(i);
                     continue;
                 }
 
-                if (settings[ScanSetting.ProblemOverrides] && lower == "animtextdata")
+                if (snapshot[ScanSetting.ProblemOverrides] && lower == "animtextdata")
                 {
                     problems.Add(Problem.ForFile(
                         ScanProblemTypes.AnimTextDataFolder, path, relative, mod,
@@ -312,7 +312,7 @@ public static class ScanChecks
             foreach (var name in step.Files)
             {
                 var lower = name.ToLowerInvariant();
-                if (settings.SkipFileSuffixes.Count > 0 && ModFileIndex.HasSuffix(lower, settings.SkipFileSuffixes))
+                if (snapshot.SkipFileSuffixes.Count > 0 && ModFileIndex.HasSuffix(lower, snapshot.SkipFileSuffixes))
                 {
                     continue;
                 }
@@ -321,7 +321,7 @@ public static class ScanChecks
                 var relative = step.Relative.Join(name);
                 var (mod, path) = index.OwnerOf(relative, ModPathKind.File, full);
 
-                if (settings[ScanSetting.JunkFiles] && (ScanTables.JunkFiles.Contains(lower) || ModFileIndex.HasSuffix(lower, ScanTables.JunkFileSuffixes)))
+                if (snapshot[ScanSetting.JunkFiles] && (ScanTables.JunkFiles.Contains(lower) || ModFileIndex.HasSuffix(lower, ScanTables.JunkFileSuffixes)))
                 {
                     problems.Add(Problem.ForFile(
                         ScanProblemTypes.JunkFile, path, relative, mod,
@@ -331,7 +331,7 @@ public static class ScanChecks
 
                 // Directly in Data/Scripts, and only for a file the index gives a mod: without MO2 this never fires.
                 if (_dataRoot == "scripts" && step.Depth == 1
-                    && mod.Length > 0 && settings[ScanSetting.ProblemOverrides] && ScanTables.F4seScripts.Contains(lower))
+                    && mod.Length > 0 && snapshot[ScanSetting.ProblemOverrides] && ScanTables.F4seScripts.Contains(lower))
                 {
                     problems.Add(Problem.ForFile(ScanProblemTypes.F4seOverride, path, relative, mod, F4seOverrideSummary, F4seOverrideSolution));
                     continue;
@@ -346,7 +346,7 @@ public static class ScanChecks
 
                 var stemLower = lower[..dot];
                 var extension = lower[(dot + 1)..];
-                if (!settings[ScanSetting.WrongFormat])
+                if (!snapshot[ScanSetting.WrongFormat])
                 {
                     continue;
                 }
@@ -360,12 +360,12 @@ public static class ScanChecks
                     continue;
                 }
 
-                if (extension == "ba2" && !ScanTables.ArchiveNameWhitelist.Contains(lower) && !settings.ArchivesEnabled.Contains(full))
+                if (extension == "ba2" && !ScanTables.ArchiveNameWhitelist.Contains(lower) && !snapshot.ArchivesEnabled.Contains(full))
                 {
                     // ba2_name_split = file_split[0].rsplit(" - ", 1)
                     var split = stemLower.LastIndexOf(" - ", StringComparison.Ordinal);
                     var prefix = split < 0 ? stemLower : stemLower[..split];
-                    var suffixes = settings.Game.Inis.Ba2Suffixes;
+                    var suffixes = snapshot.Game.Inis.Ba2Suffixes;
                     if (split < 0 || !suffixes.Contains(stemLower[(split + 3)..]))
                     {
                         problems.Add(Problem.ForFile(
@@ -392,7 +392,7 @@ public static class ScanChecks
 
             var found = proper
                 .Select(e => full.WithName(full.Stem + "." + e))
-                .Where(p => HostPaths.IsFile(settings.Host, p))
+                .Where(p => HostPaths.IsFile(snapshot.Host, p))
                 .Select(p => p.Name)
                 .ToList();
             return found.Count > 0

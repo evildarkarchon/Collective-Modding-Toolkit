@@ -40,12 +40,12 @@ public sealed partial class ScanScenarioTests
         {
             // Each Scan starts with its Overview refresh, which the tab runs before the scan and logs on its own.
             located = located.Refreshed();
-            var settings = located.Snapshot(ticked);
-            usingStage = settings.UsingStage;
+            var snapshot = located.Snapshot(ticked);
+            usingStage = snapshot.UsingStage;
             var log = new CapturingLogger();
             var statuses = new ListProgress<ScanStatus>();
 
-            var outcome = ScanChecks.Run(settings, statuses, log);
+            var outcome = ScanChecks.Run(snapshot, statuses, log);
 
             runs.Add(new JsonObject
             {

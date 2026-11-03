@@ -211,7 +211,7 @@ public sealed class ScannerTabProgressTests
         public ProgressBar Progress => Named<ProgressBar>("Progress");
 
         /// <summary>Starts the app with <paramref name="runScan"/> as the scan, given the snapshot and the Scan's progress sink.</summary>
-        public static ProgressApp Start(Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome> runScan)
+        public static ProgressApp Start(Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> runScan)
         {
             var machine = ParityScenarios.All().Single(s => s.Id == "scanner/overview-issues").Materialize();
             var game = Task.Run(() => GameInstallLocator.LocateAsync(machine.Host, new ScriptedStartupDialogs([], machine.Host.Expand)))

@@ -19,9 +19,9 @@ public sealed class ScanChecksFailureTests
         using var machine = Scenario("scanner/mo2-no-modlist");
         // 101 SADD records in an enabled module: over the threshold, so the count found before the index is a problem.
         WriteSaddRecords(machine, 101);
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
 
-        var outcome = ScanChecks.Run(settings);
+        var outcome = ScanChecks.Run(snapshot);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -50,9 +50,9 @@ public sealed class ScanChecksFailureTests
     public async Task An_empty_selected_profile_is_a_missing_mo2_settings_problem_on_the_mo2_ini()
     {
         using var machine = Scenario("scanner/mo2-no-profile");
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
 
-        var outcome = ScanChecks.Run(settings);
+        var outcome = ScanChecks.Run(snapshot);
 
         // A problem row, not a failure: the scan didn't stop early.
         Assert.Null(outcome.Error);
@@ -80,10 +80,10 @@ public sealed class ScanChecksFailureTests
         var modlist = machine.PathOf(@"LocalAppData\ModOrganizer\Fallout 4\profiles\Default\modlist.txt");
         Directory.CreateDirectory(Path.GetDirectoryName(modlist)!);
         File.WriteAllBytes(modlist, [0xFF, 0xFE, (byte)'+', (byte)'A', (byte)'\r', (byte)'\n']);
-        var settings = await ChecksTicked(machine);
+        var snapshot = await ChecksTicked(machine);
         var log = new CapturingLogger();
 
-        var outcome = ScanChecks.Run(settings, null, log);
+        var outcome = ScanChecks.Run(snapshot, null, log);
 
         Assert.IsType<System.Text.DecoderFallbackException>(outcome.Error);
         Assert.Null(outcome.Index);
@@ -139,6 +139,6 @@ public sealed class ScanChecksFailureTests
     /// Every box ticked but Overview Issues, so the outcome holds only what the checks found, with the Overview gathered as
     /// the scan's refresh would have (its enabled modules).
     /// </summary>
-    private static async Task<ScanSettings> ChecksTicked(MaterializedScenario machine)
+    private static async Task<ScanSnapshot> ChecksTicked(MaterializedScenario machine)
         => (await ScanScenarioMachine.LocateAsync(machine)).Snapshot(ScanSettings.All.Where(s => s != ScanSetting.OverviewIssues));
 }

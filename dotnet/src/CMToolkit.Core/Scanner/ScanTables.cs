@@ -22,6 +22,15 @@ public static class ScanTables
         ["vis"] = Set("uvd"),
     };
 
+    /// <summary><c>IGNORE_FOLDERS</c>: the folders the mod file index always skips, lowercase.</summary>
+    public static readonly IReadOnlySet<string> IgnoreFolders = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "bodyslide",
+        "fo4edit",
+        "robco_patcher",
+        "source",
+    };
+
     /// <summary><c>JUNK_FILES</c>: file names that are junk wherever they are.</summary>
     public static readonly IReadOnlySet<string> JunkFiles = Set("thumbs.db", "desktop.ini", ".ds_store");
 

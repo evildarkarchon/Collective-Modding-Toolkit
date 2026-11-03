@@ -34,7 +34,7 @@ internal sealed record ScanScenarioMachine(MaterializedScenario Machine, GameIns
         => this with { Report = OverviewReport.Gather(Game, Machine.Host, new CapturingLogger(), Report) };
 
     /// <summary>The scan's snapshot with only <paramref name="ticked"/> ticked, reading this machine.</summary>
-    public ScanSettings Snapshot(IEnumerable<ScanSetting> ticked)
+    public ScanSnapshot Snapshot(IEnumerable<ScanSetting> ticked)
     {
         var set = ticked.ToHashSet();
         return ScanSettings.Snapshot(ScanSettings.All.ToDictionary(s => s, set.Contains), Game, Report, Machine.Host);

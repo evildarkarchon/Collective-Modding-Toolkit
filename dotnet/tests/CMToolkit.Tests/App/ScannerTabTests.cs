@@ -531,11 +531,11 @@ public sealed class ScannerTabTests
         private bool _entered;
 
         /// <summary>The scan: marks itself entered, waits for <see cref="Release"/>, then scans.</summary>
-        public ScanOutcome Run(ScanSettings settings, IProgress<ScanStatus> progress)
+        public ScanOutcome Run(ScanSnapshot snapshot, IProgress<ScanStatus> progress)
         {
             Volatile.Write(ref _entered, true);
             _finish.Wait(TaskTimeouts.Default);
-            return CMToolkit.Core.Scanner.ScanChecks.Run(settings);
+            return CMToolkit.Core.Scanner.ScanChecks.Run(snapshot);
         }
 
         /// <summary>Runs dispatcher jobs until the scan has started its checks, past the Overview refresh.</summary>
@@ -606,7 +606,7 @@ public sealed class ScannerTabTests
         /// </param>
         public static ScannerApp Start(
             Func<Func<OverviewReport?, OverviewReport>, Func<OverviewReport?, OverviewReport>>? gatherer = null,
-            Func<ScanSettings, IProgress<ScanStatus>, ScanOutcome>? runScan = null,
+            Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome>? runScan = null,
             CMToolkit.Core.Settings.AppSettings? stored = null,
             SettingsStore? settingsStore = null,
             bool overviewTab = false)
