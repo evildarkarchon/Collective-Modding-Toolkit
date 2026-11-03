@@ -19,7 +19,7 @@ _Avoid_: overview state, game info, scan (the Scanner's scan is a separate, wide
 ## Scanning
 
 **Scan**:
-One run of the Scanner tab's Scan Game. It refreshes the Overview Report, then checks the Data folder and the mod setup behind it for the problems the ticked Scan Settings ask for, and lists them, after the Overview Report's problems when Overview Issues is ticked. A scan that fails part-way still lists what it found, followed by a row saying it stopped early. Only one scan runs at a time, and leaving the Scanner tab doesn't stop it: its results are listed when it ends.
+One run of the Scanner tab's Scan Game. It refreshes the Overview Report, then checks the Data folder and the mod setup behind it for the problems the ticked Scan Settings ask for, and lists them, after the Overview Report's problems when Overview Issues is ticked. A scan that fails part-way still lists what it found, followed by a row saying it stopped early. Only one scan runs at a time, and leaving the Scanner tab doesn't stop it: its results are listed when it ends. While one runs, the Downgrader's and the Archive Patcher's Patch All refuse to start, so a scan never reads game files a patch is changing.
 _Avoid_: data scan (one part of a scan), check (one rule within a scan), Overview refresh (the first step of a scan, not the scan)
 
 **Scan Setting**:
