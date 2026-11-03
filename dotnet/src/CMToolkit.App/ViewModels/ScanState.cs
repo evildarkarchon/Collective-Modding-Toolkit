@@ -103,8 +103,13 @@ public sealed class ScanState
     /// raises <see cref="StatusChanged"/> for each one on the UI thread before <see cref="IProgress{T}.Report"/> returns.
     /// Every status is therefore raised, in order, before <see cref="Ended"/>. A status reported once the scan has
     /// returned is dropped.
+    /// <para>
+    /// Settable, not only at construction, because <see cref="AppSession.Scan"/> builds the session's module itself: a
+    /// test that goes through the composed session swaps the scan in afterwards. Set it on the UI thread, before the
+    /// Scan Game click it is meant for; each Scan reads it once its Overview refresh is done.
+    /// </para>
     /// </remarks>
-    public Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> RunScan { get; init; }
+    public Func<ScanSnapshot, IProgress<ScanStatus>, ScanOutcome> RunScan { get; set; }
 
     /// <summary>
     /// Runs one Scan: refreshes the Overview Report, takes the snapshot of <paramref name="boxes"/>, runs the scan with its

@@ -52,8 +52,9 @@ public sealed class ScannerTab : TabPage
         _game = game;
         _scan = scan;
         _settings = settings;
-        // Never unsubscribed: the module and the tab are built together and live as long as the main window. Only the
-        // side pane starts a Scan, and it opens after the tab has built, so no event arrives before there is a tree.
+        // Never unsubscribed: the session holds the module, and the tab lives as long as the main window, which is as
+        // long as the session. Other windows read the module too (the patch windows ask whether a Scan is running), but
+        // none of them starts a Scan, so the tree OnStarted clears is there before any event arrives (see OnStarted).
         _scan.Started += (_, _) => OnStarted();
         _scan.StatusChanged += (_, status) => Apply(status);
         _scan.Ended += (_, ended) => OnEnded(ended);
@@ -254,6 +255,10 @@ public sealed class ScannerTab : TabPage
     /// Draws a Scan's start: the tree, its data and the info label are cleared and nothing can be selected; the details
     /// pane closes; and the scanning label appears. The side pane reads the Scan module itself, so it isn't touched here.
     /// </summary>
+    /// <remarks>
+    /// The tree is assumed built. The session holds the module, but the side pane is still the only thing that starts a
+    /// Scan, and it opens only once the tab has built its tree.
+    /// </remarks>
     private void OnStarted()
     {
         _selectable = false;
