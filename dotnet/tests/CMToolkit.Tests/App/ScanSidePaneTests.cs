@@ -18,6 +18,10 @@ namespace CMToolkit.Tests.App;
 /// </summary>
 public sealed class ScanSidePaneTests
 {
+    /// <summary>
+    /// A box change mid-scan applies Scan Game's rule again, which keeps it disabled on <c>Scanning...</c> whether the
+    /// box was ticked or unticked; once the Scan ends, Scan Game is back and enabled.
+    /// </summary>
     [AvaloniaFact]
     public void Ticking_or_unticking_a_box_mid_scan_leaves_scan_game_disabled_on_scanning()
     {
@@ -36,6 +40,10 @@ public sealed class ScanSidePaneTests
         AssertScanGame(pane, enabled: true);
     }
 
+    /// <summary>
+    /// A pane built while a Scan runs starts on <c>Scanning...</c>, before and after it is shown, and shows Scan Game,
+    /// enabled, once the Scan ends.
+    /// </summary>
     [AvaloniaFact]
     public void A_pane_built_mid_scan_starts_on_scanning_and_shows_scan_game_once_the_scan_ends()
     {
@@ -51,6 +59,10 @@ public sealed class ScanSidePaneTests
         AssertScanGame(pane, enabled: true);
     }
 
+    /// <summary>
+    /// Unticking every box mid-scan keeps Scan Game on <c>Scanning...</c>, and when the Scan ends it shows Scan Game
+    /// disabled, since no box is ticked.
+    /// </summary>
     [AvaloniaFact]
     public void A_scan_that_ends_with_every_box_unticked_leaves_scan_game_disabled()
     {
@@ -69,6 +81,10 @@ public sealed class ScanSidePaneTests
         AssertScanGame(pane, enabled: false);
     }
 
+    /// <summary>
+    /// A pane taken out of the visual tree mid-scan misses the Scan's end, so when it is put back it reads whether a Scan
+    /// is running afresh and shows Scan Game enabled rather than a stale <c>Scanning...</c>.
+    /// </summary>
     [AvaloniaFact]
     public void A_pane_taken_out_mid_scan_and_put_back_after_the_scan_ended_shows_scan_game_enabled()
     {
@@ -137,8 +153,7 @@ public sealed class ScanSidePaneTests
     /// </summary>
     private sealed class HeldScanModule : IDisposable
     {
-        private readonly ManualResetEventSlim _finish = new();
-        private bool _entered;
+        private readonly HeldScan _held = new();
         private Task? _running;
 
         private HeldScanModule()
@@ -150,12 +165,7 @@ public sealed class ScanSidePaneTests
                 null, null, new GameDirectories(new PythonPath(@"C:\Nowhere\Fallout 4"), null, null), new GameInis(empty, empty, "en"));
             Scan = new ScanState(runtime, game, Overview, new FakeHostEnvironment(new HostBlock(), @"C:\Nowhere"))
             {
-                RunScan = (_, _) =>
-                {
-                    Volatile.Write(ref _entered, true);
-                    _finish.Wait(TaskTimeouts.Default);
-                    return ScanOutcome.Empty;
-                },
+                RunScan = _held.Run,
             };
         }
 
@@ -177,22 +187,18 @@ public sealed class ScanSidePaneTests
         public void Start()
         {
             _running = Scan.StartAsync(AllTicked);
-            DispatcherWait.Until(() => Volatile.Read(ref _entered));
+            _held.WaitUntilEntered();
         }
 
         /// <summary>Lets the held scan finish and runs the dispatcher until the Scan has ended.</summary>
         public void End()
         {
-            _finish.Set();
+            _held.Release();
             DispatcherWait.Until(() => _running!.IsCompleted);
             _running!.GetAwaiter().GetResult();
         }
 
-        /// <summary>Releases the scan, so a failed test doesn't leave a worker waiting.</summary>
-        /// <remarks>
-        /// The event is set, not disposed: a worker still inside <see cref="ManualResetEventSlim.Wait(TimeSpan)"/> would
-        /// throw on a disposed one, and a slim event that never handed out its wait handle holds nothing to free.
-        /// </remarks>
-        public void Dispose() => _finish.Set();
+        /// <summary>Releases the scan, so a failed test doesn't leave a worker waiting (see <see cref="HeldScan.Dispose"/>).</summary>
+        public void Dispose() => _held.Dispose();
     }
 }

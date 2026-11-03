@@ -12,7 +12,6 @@ using CMToolkit.App.ViewModels;
 using CMToolkit.App.Views;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
-using CMToolkit.Core.Scanner;
 using CMToolkit.Tests.Parity;
 using CMToolkit.Tests.Support;
 using Microsoft.Extensions.Logging;
@@ -141,51 +140,36 @@ public sealed class ArchivePatcherWindowTests
     {
         using var machine = Scenario("archive-patcher/round-trip").Materialize();
         using var app = new ComposedSession(machine);
-        // Set, never disposed: a worker still inside Wait would throw on a disposed event, and a slim event that never
-        // handed out its wait handle holds nothing to free.
-        var release = new ManualResetEventSlim();
-        var entered = false;
-        app.Session.Scan.RunScan = (_, _) =>
-        {
-            Volatile.Write(ref entered, true);
-            release.Wait(TaskTimeouts.Default);
-            return ScanOutcome.Empty;
-        };
-        try
-        {
-            var tabs = app.Window.GetLogicalDescendants().OfType<TabControl>().Single();
-            tabs.SelectedIndex = 2;
-            var scanner = Assert.IsType<ScannerTab>(app.Window.CurrentPage);
-            DispatcherWait.Until(() => scanner.SidePane is not null);
-            MouseClick.On(scanner.SidePane!.ScanButton);
-            DispatcherWait.Until(() => Volatile.Read(ref entered) && !app.Session.Runtime.Input.IsBlocking);
-            Assert.True(app.Session.Scan.IsRunning);
+        // Declared after the session, so it is disposed first: the held scan is released before the window closes.
+        using var held = new HeldScan();
+        app.Session.Scan.RunScan = held.Run;
+        var tabs = app.Window.GetLogicalDescendants().OfType<TabControl>().Single();
+        tabs.SelectedIndex = 2;
+        var scanner = Assert.IsType<ScannerTab>(app.Window.CurrentPage);
+        DispatcherWait.Until(() => scanner.SidePane is not null);
+        MouseClick.On(scanner.SidePane!.ScanButton);
+        DispatcherWait.Until(() => held.Entered && !app.Session.Runtime.Input.IsBlocking);
+        Assert.True(app.Session.Scan.IsRunning);
 
-            MouseClick.On(app.TabButton(3, "Archive Patcher"));
-            var patcher = app.WaitForArchivePatcher();
-            Assert.Equal(11, patcher.Rows.Count);
-            MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
-            var box = patcher.OwnedWindows.OfType<MessageBoxWindow>().Single();
-            Assert.Contains(box.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "A Scan is running. Patch All can start once it ends.");
-            box.Close();
-            Dispatcher.UIThread.RunJobs();
-            Assert.Equal(11, patcher.Rows.Count);
+        MouseClick.On(app.TabButton(3, "Archive Patcher"));
+        var patcher = app.WaitForArchivePatcher();
+        Assert.Equal(11, patcher.Rows.Count);
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+        var box = patcher.OwnedWindows.OfType<MessageBoxWindow>().Single();
+        Assert.Contains(box.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "A Scan is running. Patch All can start once it ends.");
+        box.Close();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(11, patcher.Rows.Count);
 
-            release.Set();
-            DispatcherWait.Until(() => !app.Session.Scan.IsRunning);
-            MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
-            DispatcherWait.Until(() => !app.Session.Runtime.Input.IsBlocking && patcher.Rows.Count == 1);
+        held.Release();
+        DispatcherWait.Until(() => !app.Session.Scan.IsRunning);
+        MouseClick.On(ComposedSession.Named<Button>(patcher, "PatchAll"));
+        DispatcherWait.Until(() => !app.Session.Runtime.Input.IsBlocking && patcher.Rows.Count == 1);
 
-            // Everything but the read-only archive was patched to v1, so only it is still listed.
-            Assert.Equal(["ReadOnly - Main.ba2"], patcher.Rows);
-            Assert.Empty(patcher.OwnedWindows.OfType<MessageBoxWindow>());
-            Assert.Null(app.Session.Runtime.Errors.Window);
-        }
-        finally
-        {
-            // Released even when an assert failed, so the held scan's worker doesn't wait out its timeout.
-            release.Set();
-        }
+        // Everything but the read-only archive was patched to v1, so only it is still listed.
+        Assert.Equal(["ReadOnly - Main.ba2"], patcher.Rows);
+        Assert.Empty(patcher.OwnedWindows.OfType<MessageBoxWindow>());
+        Assert.Null(app.Session.Runtime.Errors.Window);
     }
 
     /// <summary>With no Scan running, Patch All patches the listed archives and lists what is left, with no warning.</summary>

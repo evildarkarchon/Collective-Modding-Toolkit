@@ -414,7 +414,7 @@ public sealed class ScannerTabTests
     [AvaloniaFact]
     public void A_side_pane_opened_mid_scan_shows_scanning_with_scan_game_disabled_until_the_scan_ends()
     {
-        using var held = new HeldScan();
+        using var held = new HeldScan(ScanChecks.Run);
         using var app = ScannerApp.Start(runScan: held.Run);
         MouseClick.On(app.Scanner.SidePane!.ScanButton);
         held.WaitUntilEntered();
@@ -430,6 +430,52 @@ public sealed class ScannerTabTests
         Dispatcher.UIThread.RunJobs();
         Assert.Equal("Scan Game", (string?)side.ScanButton.Content);
         Assert.True(side.ScanButton.IsEnabled);
+    }
+
+    /// <summary>
+    /// A box ticked or unticked while a Scan runs is written to <c>settings.json</c> at once, as it is with no Scan
+    /// running, not held back until the Scan ends.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_box_change_mid_scan_still_saves_at_once()
+    {
+        using var temp = new TempDirectory();
+        var settingsPath = Path.Combine(temp.Path, "settings.json");
+        var store = SettingsStore.Load(settingsPath, DownloadSource.GitHub, new CapturingLogger());
+        using var held = new HeldScan();
+        using var app = ScannerApp.Start(runScan: held.Run, settingsStore: store);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        held.WaitUntilEntered();
+
+        // The scan's checks run as an Interactive Operation, so the boxes stay live while it runs.
+        ClickBoxAndWaitForTheSave(app, ScanSetting.JunkFiles);
+
+        Assert.True(app.Scan.IsRunning);
+        Assert.Contains("\"scanner_JunkFiles\": false", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A Scan whose boxes are all unticked while it runs still lists its results: it scans with the boxes as they were
+    /// when Scan Game was clicked.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_scan_that_ends_with_every_box_unticked_still_lists_its_results()
+    {
+        using var held = new HeldScan(ScanChecks.Run);
+        using var app = ScannerApp.Start(runScan: held.Run);
+        MouseClick.On(app.Scanner.SidePane!.ScanButton);
+        held.WaitUntilEntered();
+
+        foreach (var setting in ScanSettings.All)
+        {
+            ClickBoxAndWaitForTheSave(app, setting);
+        }
+
+        held.Release();
+        DispatcherWait.Until(() => !app.Scan.IsRunning);
+        Dispatcher.UIThread.RunJobs();
+        // The scan ran with the boxes it started from, so it still listed what they asked for.
+        Assert.NotEmpty(app.Scanner.Tree!.Items);
     }
 
     /// <summary>
@@ -467,37 +513,6 @@ public sealed class ScannerTabTests
         Assert.Empty(app.Scanner.Tree!.Items);
         Assert.Equal("", app.ResultsInfo.Text ?? "");
         Assert.False(app.Scanner.IsSelectable);
-    }
-
-    /// <summary>
-    /// A scripted <see cref="ScanState.RunScan"/> that holds mid-run until released, then runs the real scan over the
-    /// snapshot it was given.
-    /// </summary>
-    private sealed class HeldScan : IDisposable
-    {
-        private readonly ManualResetEventSlim _finish = new();
-        private bool _entered;
-
-        /// <summary>The scan: marks itself entered, waits for <see cref="Release"/>, then scans.</summary>
-        public ScanOutcome Run(ScanSnapshot snapshot, IProgress<ScanStatus> progress)
-        {
-            Volatile.Write(ref _entered, true);
-            _finish.Wait(TaskTimeouts.Default);
-            return CMToolkit.Core.Scanner.ScanChecks.Run(snapshot);
-        }
-
-        /// <summary>Runs dispatcher jobs until the scan has started its checks, past the Overview refresh.</summary>
-        public void WaitUntilEntered() => DispatcherWait.Until(() => Volatile.Read(ref _entered));
-
-        /// <summary>Lets the scan finish.</summary>
-        public void Release() => _finish.Set();
-
-        /// <summary>Releases the scan, so a failed test doesn't leave a worker waiting.</summary>
-        /// <remarks>
-        /// The event is set, not disposed: a worker still inside <see cref="ManualResetEventSlim.Wait(TimeSpan)"/> would
-        /// throw on a disposed one, and a slim event that never handed out its wait handle holds nothing to free.
-        /// </remarks>
-        public void Dispose() => _finish.Set();
     }
 
     /// <summary>
