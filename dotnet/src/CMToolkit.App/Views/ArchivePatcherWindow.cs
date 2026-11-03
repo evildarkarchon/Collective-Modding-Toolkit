@@ -55,9 +55,6 @@ public sealed class ArchivePatcherWindow : ModalWindow
     /// <summary><c>PATCHER_FILTER_NG</c>: the caption while the target is v1, so the v7 and v8 archives are listed.</summary>
     public const string FilterNextGen = "Showing all v7 & v8\n(Includes Base Game/DLC/CC)";
 
-    /// <summary>What Patch All's warning says when it refuses because a Scan is running.</summary>
-    public const string ScanRunningWarning = "A Scan is running. Patch All can start once it ends.";
-
     /// <summary>The width of the column the tree's vertical <c>ttk.Scrollbar</c> takes, as the log pane's.</summary>
     private const double ScrollBarWidth = 24;
 
@@ -115,7 +112,12 @@ public sealed class ArchivePatcherWindow : ModalWindow
     {
         if (session.MainWindow is { } owner)
         {
-            new ArchivePatcherWindow(session.Runtime, session.Game, session.Host, session.Overview, () => session.Scan.IsRunning).ShowOver(owner);
+            new ArchivePatcherWindow(
+                session.Runtime,
+                session.Game,
+                session.Host,
+                session.Overview,
+                () => session.Scan.IsRunning).ShowOver(owner);
         }
     }
 
@@ -184,8 +186,7 @@ public sealed class ArchivePatcherWindow : ModalWindow
         {
             // Checked before the Blocking span, so a refusal takes no input block. It is not a failure: nothing reaches
             // the Error Window, and the user can click again once the Scan ends.
-            Runtime.Logger.Write(LogLevel.Information, "Archive Patcher : Patch All : A Scan is running, refused");
-            await MessageBox.ShowWarningAsync(this, Title!, ScanRunningWarning);
+            await PatchAllRefusal.ShowAsync(this, Runtime, "Archive Patcher");
             return;
         }
 

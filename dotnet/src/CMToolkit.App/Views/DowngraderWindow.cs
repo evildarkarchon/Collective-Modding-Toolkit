@@ -10,7 +10,6 @@ using CMToolkit.Core;
 using CMToolkit.Core.Downgrader;
 using CMToolkit.Core.EnvironmentDetection;
 using CMToolkit.Core.Overview;
-using Microsoft.Extensions.Logging;
 
 namespace CMToolkit.App.Views;
 
@@ -68,9 +67,6 @@ public sealed class DowngraderWindow : ModalWindow
 
     /// <summary>The log pane's first line, shown but not logged (<c>skip_logging=True</c>).</summary>
     public const string SeedMessage = "Patches will be downloaded and applied as-needed.";
-
-    /// <summary>What Patch All's warning says when it refuses because a Scan is running.</summary>
-    public const string ScanRunningWarning = "A Scan is running. Patch All can start once it ends.";
 
     /// <summary>The window's width as the reference fixed it; the port widens it only for a label too long for it (bug #85).</summary>
     private const double DefaultWidth = 600;
@@ -258,8 +254,7 @@ public sealed class DowngraderWindow : ModalWindow
         {
             // Checked before the button is disabled and the pane cleared, so a refusal leaves the window as it was. It is
             // not a failure: nothing reaches the Error Window, and the user can click again once the Scan ends.
-            Runtime.Logger.Write(LogLevel.Information, "Downgrader : Patch All : A Scan is running, refused");
-            await MessageBox.ShowWarningAsync(this, Title!, ScanRunningWarning);
+            await PatchAllRefusal.ShowAsync(this, Runtime, "Downgrader");
             return;
         }
 
